@@ -1,21 +1,31 @@
-import { Zap, Shield, Rocket, HeadphonesIcon, TrendingUp, Clock } from "lucide-react";
+import {
+  Zap,
+  Shield,
+  Rocket,
+  HeadphonesIcon,
+  TrendingUp,
+  Clock,
+} from "lucide-react";
 
 const FeaturesSection = () => {
   const features = [
     {
       icon: Zap,
       title: "Lightning Fast",
-      description: "Optimized performance that keeps your business running at peak efficiency.",
+      description:
+        "Optimized performance that keeps your business running at peak efficiency.",
     },
     {
       icon: Shield,
       title: "Secure & Reliable",
-      description: "Enterprise-grade security measures to protect your valuable data.",
+      description:
+        "Enterprise-grade security measures to protect your valuable data.",
     },
     {
       icon: Rocket,
       title: "Scalable Solutions",
-      description: "Grow without limits with our flexible and scalable infrastructure.",
+      description:
+        "Grow without limits with our flexible and scalable infrastructure.",
     },
     {
       icon: HeadphonesIcon,
@@ -25,17 +35,19 @@ const FeaturesSection = () => {
     {
       icon: TrendingUp,
       title: "Growth Focused",
-      description: "Strategic solutions designed to accelerate your business growth.",
+      description:
+        "Strategic solutions designed to accelerate your business growth.",
     },
     {
       icon: Clock,
       title: "Time Efficient",
-      description: "Streamlined processes that save time and increase productivity.",
+      description:
+        "Streamlined processes that save time and increase productivity.",
     },
   ];
 
   return (
-    <section id="features" className="py-24 bg-background">
+    <section id="features" className="py-0 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -57,7 +69,9 @@ const FeaturesSection = () => {
                 <feature.icon className="text-primary" size={24} />
               </div>
               <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-              <p className="text-muted-foreground text-sm">{feature.description}</p>
+              <p className="text-muted-foreground text-sm">
+                {feature.description}
+              </p>
             </div>
           ))}
         </div>

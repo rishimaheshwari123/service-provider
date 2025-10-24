@@ -5,29 +5,33 @@ const AboutSection = () => {
     {
       icon: Target,
       title: "Our Mission",
-      description: "To empower businesses with innovative solutions that drive measurable results and sustainable growth.",
+      description:
+        "To empower businesses with innovative solutions that drive measurable results and sustainable growth.",
     },
     {
       icon: Award,
       title: "Excellence",
-      description: "Committed to delivering the highest quality services with attention to detail and industry expertise.",
+      description:
+        "Committed to delivering the highest quality services with attention to detail and industry expertise.",
     },
     {
       icon: Users,
       title: "Client-First",
-      description: "Your success is our priority. We build lasting partnerships through transparency and dedication.",
+      description:
+        "Your success is our priority. We build lasting partnerships through transparency and dedication.",
     },
   ];
 
   return (
-    <section id="about" className="py-24 bg-card">
+    <section id="about" className="py-0 bg-card">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
             About <span className="gradient-text">ProServe</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            We're a team of passionate professionals dedicated to transforming how businesses operate in the digital age.
+            We're a team of passionate professionals dedicated to transforming
+            how businesses operate in the digital age.
           </p>
         </div>
 

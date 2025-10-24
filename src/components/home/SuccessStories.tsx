@@ -8,26 +8,29 @@ const SuccessStories = () => {
   const stories = [
     {
       title: "TechCorp's Digital Transformation",
-      description: "Helped TechCorp achieve 300% growth through strategic digital transformation and process automation.",
+      description:
+        "Helped TechCorp achieve 300% growth through strategic digital transformation and process automation.",
       metric: "300% Growth",
       image: successStory1,
     },
     {
       title: "Data-Driven Success",
-      description: "Implemented advanced analytics solutions that increased operational efficiency by 150%.",
+      description:
+        "Implemented advanced analytics solutions that increased operational efficiency by 150%.",
       metric: "150% Efficiency",
       image: successStory2,
     },
     {
       title: "Innovation Partnership",
-      description: "Collaborated with StartupHub to develop cutting-edge solutions that revolutionized their industry.",
+      description:
+        "Collaborated with StartupHub to develop cutting-edge solutions that revolutionized their industry.",
       metric: "5x ROI",
       image: successStory3,
     },
   ];
 
   return (
-    <section className="py-24 bg-background">
+    <section className="pb-10 bg-background">
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
@@ -61,10 +64,15 @@ const SuccessStories = () => {
 
               <div className="p-6 space-y-4">
                 <h3 className="text-xl font-bold">{story.title}</h3>
-                <p className="text-muted-foreground text-sm">{story.description}</p>
+                <p className="text-muted-foreground text-sm">
+                  {story.description}
+                </p>
                 <Button variant="ghost" className="w-full group/btn">
                   Read Case Study
-                  <ArrowRight className="ml-2 group-hover/btn:translate-x-1 transition-transform" size={16} />
+                  <ArrowRight
+                    className="ml-2 group-hover/btn:translate-x-1 transition-transform"
+                    size={16}
+                  />
                 </Button>
               </div>
             </div>
