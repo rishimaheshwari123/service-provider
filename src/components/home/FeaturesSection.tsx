@@ -11,38 +11,38 @@ const FeaturesSection = () => {
   const features = [
     {
       icon: Zap,
-      title: "Lightning Fast",
+      title: "Quick Hiring",
       description:
-        "Optimized performance that keeps your business running at peak efficiency.",
+        "Post your requirement and receive proposals from qualified experts within hours.",
     },
     {
       icon: Shield,
-      title: "Secure & Reliable",
+      title: "Secure Payments",
       description:
-        "Enterprise-grade security measures to protect your valuable data.",
+        "Milestone-based payments with escrow protection for your peace of mind.",
     },
     {
       icon: Rocket,
-      title: "Scalable Solutions",
+      title: "Quality Guaranteed",
       description:
-        "Grow without limits with our flexible and scalable infrastructure.",
+        "Work with pre-vetted professionals who have proven track records.",
     },
     {
       icon: HeadphonesIcon,
       title: "24/7 Support",
-      description: "Round-the-clock expert assistance whenever you need it.",
+      description: "Our team is available around the clock to help with any issues.",
     },
     {
       icon: TrendingUp,
-      title: "Growth Focused",
+      title: "Budget Friendly",
       description:
-        "Strategic solutions designed to accelerate your business growth.",
+        "Compare quotes and choose service providers that fit your budget perfectly.",
     },
     {
       icon: Clock,
-      title: "Time Efficient",
+      title: "Save Time",
       description:
-        "Streamlined processes that save time and increase productivity.",
+        "Stop searching endlessly. We connect you with the right experts instantly.",
     },
   ];
 
@@ -51,10 +51,10 @@ const FeaturesSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Powerful <span className="gradient-text">Features</span>
+            Platform <span className="gradient-text">Benefits</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Everything you need to take your business to the next level
+            Everything you need to find, hire, and work with the best service providers
           </p>
         </div>
 

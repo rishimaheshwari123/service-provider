@@ -5,19 +5,19 @@ const TestimonialsSection = () => {
     {
       name: "Sarah Johnson",
       role: "CEO, TechCorp",
-      content: "ProServe transformed our entire operation. Their expertise and dedication are unmatched. We've seen a 300% increase in efficiency.",
+      content: "I found an amazing developer within 24 hours. The quality of experts on this platform is outstanding. My project was completed on time and within budget!",
       rating: 5,
     },
     {
       name: "Michael Chen",
       role: "Founder, StartupHub",
-      content: "Outstanding service from start to finish. The team is professional, responsive, and truly understands business needs.",
+      content: "Best platform for hiring service providers! The verification process ensures you only work with professionals. Saved me time and money.",
       rating: 5,
     },
     {
       name: "Emily Rodriguez",
-      role: "Director, GlobalTech",
-      content: "Working with ProServe was a game-changer. They delivered beyond our expectations and continue to provide excellent support.",
+      role: "Marketing Director, GlobalBrand",
+      content: "Hired a marketing consultant who transformed our campaigns. The escrow payment system made me feel secure throughout the entire project.",
       rating: 5,
     },
   ];
@@ -30,7 +30,7 @@ const TestimonialsSection = () => {
             What Our <span className="gradient-text">Clients Say</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Don't just take our word for it - hear from our satisfied clients
+            Hear from businesses who found their perfect service providers
           </p>
         </div>
 

@@ -7,24 +7,24 @@ import { ArrowRight, TrendingUp } from "lucide-react";
 const SuccessStories = () => {
   const stories = [
     {
-      title: "TechCorp's Digital Transformation",
+      title: "E-commerce Platform Launch",
       description:
-        "Helped TechCorp achieve 300% growth through strategic digital transformation and process automation.",
-      metric: "300% Growth",
+        "TechStart hired a developer through our platform and successfully launched their e-commerce store in just 6 weeks.",
+      metric: "6 Weeks",
       image: successStory1,
     },
     {
-      title: "Data-Driven Success",
+      title: "Marketing Campaign Success",
       description:
-        "Implemented advanced analytics solutions that increased operational efficiency by 150%.",
-      metric: "150% Efficiency",
+        "GlobalBrand found the perfect marketing consultant who increased their ROI by 250% in 3 months.",
+      metric: "250% ROI",
       image: successStory2,
     },
     {
-      title: "Innovation Partnership",
+      title: "Mobile App Development",
       description:
-        "Collaborated with StartupHub to develop cutting-edge solutions that revolutionized their industry.",
-      metric: "5x ROI",
+        "FinTech startup hired expert developers and launched their mobile app to 50,000+ users within budget.",
+      metric: "50K+ Users",
       image: successStory3,
     },
   ];
@@ -37,7 +37,7 @@ const SuccessStories = () => {
             Success <span className="gradient-text">Stories</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Real results from real businesses we've helped transform
+            Real projects completed by businesses who found their perfect service providers
           </p>
         </div>
 
@@ -81,7 +81,7 @@ const SuccessStories = () => {
 
         <div className="text-center mt-12">
           <Button variant="hero" size="lg">
-            View All Success Stories
+            Start Your Success Story
             <ArrowRight className="ml-2" size={20} />
           </Button>
         </div>

@@ -14,10 +14,10 @@ const ContactSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Get In <span className="gradient-text">Touch</span>
+            Need <span className="gradient-text">Help?</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Ready to transform your business? Let's start a conversation
+            Have questions? Our team is here to help you find the right service provider
           </p>
         </div>
 
@@ -32,7 +32,7 @@ const ContactSection = () => {
                   </div>
                   <div>
                     <div className="font-medium mb-1">Email</div>
-                    <div className="text-muted-foreground">contact@proserve.com</div>
+                    <div className="text-muted-foreground">support@hireexpert.com</div>
                   </div>
                 </div>
 

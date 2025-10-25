@@ -4,21 +4,21 @@ const AboutSection = () => {
   const features = [
     {
       icon: Target,
-      title: "Our Mission",
+      title: "Find Perfect Match",
       description:
-        "To empower businesses with innovative solutions that drive measurable results and sustainable growth.",
+        "Connect with pre-vetted service providers who match your specific requirements and budget.",
     },
     {
       icon: Award,
-      title: "Excellence",
+      title: "Verified Experts",
       description:
-        "Committed to delivering the highest quality services with attention to detail and industry expertise.",
+        "All our service providers are thoroughly verified with proven track records and client reviews.",
     },
     {
       icon: Users,
-      title: "Client-First",
+      title: "Easy Collaboration",
       description:
-        "Your success is our priority. We build lasting partnerships through transparency and dedication.",
+        "Seamlessly communicate, share files, and manage projects with your chosen service provider.",
     },
   ];
 
@@ -27,11 +27,11 @@ const AboutSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            About <span className="gradient-text">ProServe</span>
+            Why Choose <span className="gradient-text">HireExpert</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            We're a team of passionate professionals dedicated to transforming
-            how businesses operate in the digital age.
+            The fastest and most reliable way to find and hire top service providers
+            for any project or task.
           </p>
         </div>
 

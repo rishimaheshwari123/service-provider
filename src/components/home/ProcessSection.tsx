@@ -5,26 +5,26 @@ const ProcessSection = () => {
     {
       number: "01",
       icon: FileSearch,
-      title: "Discovery",
-      description: "We start by understanding your business goals, challenges, and requirements through comprehensive analysis.",
+      title: "Post Your Job",
+      description: "Describe your project requirements, budget, and timeline. It takes just a few minutes to get started.",
     },
     {
       number: "02",
       icon: Lightbulb,
-      title: "Strategy",
-      description: "Our experts develop a customized strategy aligned with your objectives and industry best practices.",
+      title: "Review Proposals",
+      description: "Receive proposals from qualified service providers. Compare their profiles, rates, and reviews.",
     },
     {
       number: "03",
       icon: Code,
-      title: "Development",
-      description: "We build and implement solutions using cutting-edge technology and agile methodologies.",
+      title: "Hire & Collaborate",
+      description: "Choose the best expert for your needs and start working together through our secure platform.",
     },
     {
       number: "04",
       icon: Rocket,
-      title: "Launch & Support",
-      description: "We deploy your solution and provide ongoing support to ensure continued success and growth.",
+      title: "Get Results",
+      description: "Track progress, communicate easily, and release payments as milestones are completed successfully.",
     },
   ];
 
@@ -39,10 +39,10 @@ const ProcessSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Our <span className="gradient-text">Process</span>
+            How It <span className="gradient-text">Works</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            A proven methodology that delivers exceptional results
+            Simple steps to find and hire the perfect service provider
           </p>
         </div>
 

@@ -15,28 +15,28 @@ import { ArrowRight } from "lucide-react";
 const ServicesSlider = () => {
   const services = [
     {
-      title: "Business Consulting",
-      description: "Strategic guidance to help your business reach its full potential with data-driven insights and expert analysis.",
+      title: "Business Consultants",
+      description: "Hire experienced business consultants to help grow your company with strategic planning and expert insights.",
       image: consultingImage,
-      features: ["Strategic Planning", "Market Analysis", "Growth Strategy"],
+      features: ["Strategy Planning", "Market Research", "Business Analysis"],
     },
     {
-      title: "Software Development",
-      description: "Custom software solutions built with cutting-edge technology to meet your unique business requirements.",
+      title: "Developers & IT",
+      description: "Find skilled developers and IT professionals for web, mobile, and software development projects.",
       image: developmentImage,
-      features: ["Web Applications", "Mobile Apps", "API Integration"],
+      features: ["Web Development", "App Development", "Technical Support"],
     },
     {
-      title: "24/7 Support",
-      description: "Round-the-clock expert support to ensure your operations run smoothly without interruption.",
+      title: "Customer Support",
+      description: "Hire professional customer support agents to handle your client communications efficiently.",
       image: supportImage,
-      features: ["Live Chat", "Phone Support", "Email Assistance"],
+      features: ["Live Support", "Email Management", "Client Relations"],
     },
     {
-      title: "Training & Development",
-      description: "Comprehensive training programs designed to upskill your team and maximize productivity.",
+      title: "Trainers & Educators",
+      description: "Connect with expert trainers and educators for corporate training and skill development programs.",
       image: trainingImage,
-      features: ["Workshops", "Online Courses", "Certification"],
+      features: ["Corporate Training", "Online Teaching", "Skill Development"],
     },
   ];
 
@@ -45,10 +45,10 @@ const ServicesSlider = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Our <span className="gradient-text">Services</span>
+            Browse <span className="gradient-text">Service Categories</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Comprehensive solutions tailored to your business needs
+            Find qualified service providers across multiple categories
           </p>
         </div>
 
@@ -82,7 +82,7 @@ const ServicesSlider = () => {
                         </ul>
 
                         <Button variant="outline" className="w-full group/btn">
-                          Learn More
+                          Browse Experts
                           <ArrowRight className="ml-2 group-hover/btn:translate-x-1 transition-transform" size={16} />
                         </Button>
                       </div>

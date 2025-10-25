@@ -4,27 +4,27 @@ const StatsSection = () => {
   const stats = [
     {
       icon: Users,
-      value: "500+",
-      label: "Happy Clients",
-      description: "Businesses trust us worldwide",
+      value: "1000+",
+      label: "Verified Experts",
+      description: "Skilled professionals ready to work",
     },
     {
       icon: Award,
-      value: "98%",
-      label: "Success Rate",
-      description: "Projects delivered on time",
+      value: "95%",
+      label: "Client Satisfaction",
+      description: "Jobs completed successfully",
     },
     {
       icon: Globe,
-      value: "50+",
-      label: "Countries",
-      description: "Global presence and reach",
+      value: "2000+",
+      label: "Projects Completed",
+      description: "Successful collaborations",
     },
     {
       icon: Clock,
-      value: "24/7",
-      label: "Support",
-      description: "Always here when you need us",
+      value: "< 24hrs",
+      label: "Average Response",
+      description: "Get proposals fast",
     },
   ];
 
