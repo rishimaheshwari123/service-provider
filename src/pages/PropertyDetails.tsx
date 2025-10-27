@@ -45,6 +45,8 @@ import {
 import { toast } from "sonner";
 import { getPropertyBYIDAPI } from "@/service/operations/property";
 import { createContactAPI } from "@/service/operations/contact";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const PropertyDetails = () => {
   const { id } = useParams();
@@ -54,6 +56,8 @@ const PropertyDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const { token, user } = useSelector((state: RootState) => state.auth);
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -273,6 +277,7 @@ const PropertyDetails = () => {
         phone: formData.phone,
         message: formData.message,
         property,
+        user: user._id,
       };
       const response = await createContactAPI(contactData);
 
@@ -305,6 +310,13 @@ const PropertyDetails = () => {
     navigate("/services");
   };
 
+  const handleOpenModal = () => {
+    if (!token) {
+      navigate("/login");
+    } else {
+      setIsModalOpen(true);
+    }
+  };
   const handleCall = () => {
     if (property?.vendor?.phone) {
       window.location.href = `tel:${property.vendor.phone}`;
@@ -577,7 +589,10 @@ const PropertyDetails = () => {
                 <div className="space-y-3 mb-6">
                   <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                     <DialogTrigger asChild>
-                      <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white">
+                      <Button
+                        onClick={handleOpenModal}
+                        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                      >
                         <Send className="w-4 h-4 mr-2" />
                         Send Inquiry
                       </Button>
@@ -585,7 +600,7 @@ const PropertyDetails = () => {
                     <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="text-2xl font-bold">
-                          Property Inquiry
+                          Service Inquiry
                         </DialogTitle>
                       </DialogHeader>
 

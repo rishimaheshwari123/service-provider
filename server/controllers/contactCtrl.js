@@ -2,7 +2,7 @@ const Contact = require('../models/contactModel');
 
 const createContactCtrl = async (req, res) => {
     try {
-        const { name, email, phone, message, property } = req.body;
+        const { name, email, phone, message, property, user } = req.body;
 
         if (!name || !email || !phone || !property) {
             return res.status(400).json({ error: 'Missing required fields.' });
@@ -16,7 +16,8 @@ const createContactCtrl = async (req, res) => {
             phone,
             message,
             vendor,
-            property
+            property,
+            user
         });
 
         await newContact.save();

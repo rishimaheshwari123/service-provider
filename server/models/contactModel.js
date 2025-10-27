@@ -25,6 +25,11 @@ const contactSchema = new mongoose.Schema({
         ref: 'Vendor',
         required: true
     },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'auth',
+        required: true
+    },
     property: {
         type: Object,
         required: true

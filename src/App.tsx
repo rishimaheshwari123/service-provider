@@ -30,6 +30,7 @@ import SingleBlog from "./pages/SingleBlog";
 import Blogs from "./pages/Blogs";
 import VendorProfile from "./components/pages/vendor/VendorProfile";
 import VendorGetInquiry from "./components/pages/vendor/VendorGetInquiry";
+import UserProfile from "./pages/UserProfile";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -48,6 +49,7 @@ const App = () => {
             <Route path="/service/:id" element={<PropertyDetails />} />
             <Route path="/blog/:id" element={<SingleBlog />} />
             <Route path="/blogs" element={<Blogs />} />
+            <Route path="/user/profile" element={<UserProfile />} />
 
             <Route
               path="/login"

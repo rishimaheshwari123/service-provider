@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const authModel = require("../models/authModel");
 const jwt = require("jsonwebtoken");
+const Contact = require("../models/contactModel");
 
 
 
@@ -198,7 +199,40 @@ const editPermissionCtrl = async (req, res) => {
 };
 
 
+const getUserInquiries = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    // Check user exists
+    const user = await authModel.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Get all inquiries for this user (as-is)
+    const inquiries = await Contact.find({ user: id })
+      .populate("vendor")
+      .populate("user");
+
+    // Return direct data
+    return res.status(200).json({
+      success: true,
+      message: "User inquiries fetched successfully",
+      user,
+      inquiries,
+    });
+  } catch (error) {
+    console.error("Error fetching user inquiries:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
 
 
 
@@ -208,5 +242,6 @@ module.exports = {
   loginCtrl,
   getAllUsers,
   editPermissionCtrl,
-  deleteAuthCtrl
+  deleteAuthCtrl,
+  getUserInquiries
 };

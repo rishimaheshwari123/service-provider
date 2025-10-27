@@ -4,7 +4,7 @@ import { apiConnector } from "../apiConnector";
 import { endpoints } from "../apis";
 import Swal from "sweetalert2";
 const {
-  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API,
+  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE
 } = endpoints;
 
 export async function login(email, password, dispatch) {
@@ -107,6 +107,23 @@ export const getAllUsersAPI = async () => {
     }
 
     return response?.data?.users || [];
+  } catch (error) {
+    console.error("GET users API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to get users !");
+    return [];
+  }
+};
+export const getUserProfile = async (id) => {
+
+  try {
+    const response = await apiConnector("GET", `${MY_PROFILE}/${id}`)
+
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    return response?.data || [];
   } catch (error) {
     console.error("GET users API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to get users !");
