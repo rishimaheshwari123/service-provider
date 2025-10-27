@@ -102,6 +102,13 @@ const VendorSidebar = () => {
       color: "text-green-600",
       permission: null,
     },
+    {
+      to: "/vendor/inquiry-services",
+      icon: BarChart3,
+      label: " Service Inquiry",
+      color: "text-green-600",
+      permission: null,
+    },
   ];
 
   // Filter menu items based on user permissions

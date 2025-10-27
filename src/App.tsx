@@ -29,6 +29,7 @@ import GetBlog from "./components/pages/admin/GetBlog";
 import SingleBlog from "./pages/SingleBlog";
 import Blogs from "./pages/Blogs";
 import VendorProfile from "./components/pages/vendor/VendorProfile";
+import VendorGetInquiry from "./components/pages/vendor/VendorGetInquiry";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -93,6 +94,7 @@ const App = () => {
                 <Route path="services" element={<VendorAddProperty />} />
                 <Route path="get-services" element={<VendorServices />} />
                 <Route path="my-profile" element={<VendorProfile />} />
+                <Route path="inquiry-services" element={<VendorGetInquiry />} />
               </Route>
             )}
 
