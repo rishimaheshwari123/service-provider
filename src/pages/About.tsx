@@ -7,39 +7,44 @@ const About = () => {
     {
       icon: Target,
       title: "Mission Driven",
-      description: "We're committed to helping businesses achieve their full potential through innovative solutions.",
+      description:
+        "We're committed to helping businesses achieve their full potential through innovative solutions.",
     },
     {
       icon: Heart,
       title: "Passion",
-      description: "Our team is passionate about technology and dedicated to delivering excellence in every project.",
+      description:
+        "Our team is passionate about technology and dedicated to delivering excellence in every project.",
     },
     {
       icon: Users,
       title: "Collaboration",
-      description: "We believe in the power of teamwork and building strong partnerships with our clients.",
+      description:
+        "We believe in the power of teamwork and building strong partnerships with our clients.",
     },
     {
       icon: Award,
       title: "Excellence",
-      description: "Quality is at the core of everything we do, from initial consultation to final delivery.",
+      description:
+        "Quality is at the core of everything we do, from initial consultation to final delivery.",
     },
   ];
 
   return (
     <div className="min-h-screen">
       <Navbar />
-      
-      <main className="pt-24">
+
+      <main className="">
         {/* Hero Section */}
-        <section className="py-20 bg-gradient-to-br from-primary/10 via-background to-accent-blue/10">
+        <section className="py-10 bg-gradient-to-br from-primary/10 via-background to-accent-blue/10">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center animate-fade-in-up">
               <h1 className="text-5xl md:text-6xl font-bold mb-6">
                 About <span className="gradient-text">ProServe</span>
               </h1>
               <p className="text-xl text-muted-foreground">
-                We're on a mission to revolutionize how businesses leverage technology to achieve their goals.
+                We're on a mission to revolutionize how businesses leverage
+                technology to achieve their goals.
               </p>
             </div>
           </div>
@@ -53,32 +58,57 @@ const About = () => {
                 <div className="animate-fade-in">
                   <h2 className="text-3xl font-bold mb-6">Our Story</h2>
                   <p className="text-muted-foreground mb-4">
-                    Founded in 2020, ProServe emerged from a simple idea: businesses deserve better technology solutions that are both powerful and accessible.
+                    Founded in 2020, ProServe emerged from a simple idea:
+                    businesses deserve better technology solutions that are both
+                    powerful and accessible.
                   </p>
                   <p className="text-muted-foreground mb-4">
-                    What started as a small team of dedicated professionals has grown into a leading service provider, trusted by hundreds of businesses worldwide.
+                    What started as a small team of dedicated professionals has
+                    grown into a leading service provider, trusted by hundreds
+                    of businesses worldwide.
                   </p>
                   <p className="text-muted-foreground">
-                    Today, we continue to push boundaries, innovate relentlessly, and put our clients' success at the center of everything we do.
+                    Today, we continue to push boundaries, innovate
+                    relentlessly, and put our clients' success at the center of
+                    everything we do.
                   </p>
                 </div>
-                <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+                <div
+                  className="animate-fade-in"
+                  style={{ animationDelay: "0.2s" }}
+                >
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-6 rounded-xl bg-card border border-border">
-                      <div className="text-3xl font-bold gradient-text mb-2">500+</div>
-                      <div className="text-muted-foreground text-sm">Projects Completed</div>
+                      <div className="text-3xl font-bold gradient-text mb-2">
+                        500+
+                      </div>
+                      <div className="text-muted-foreground text-sm">
+                        Projects Completed
+                      </div>
                     </div>
                     <div className="p-6 rounded-xl bg-card border border-border">
-                      <div className="text-3xl font-bold gradient-text mb-2">98%</div>
-                      <div className="text-muted-foreground text-sm">Client Satisfaction</div>
+                      <div className="text-3xl font-bold gradient-text mb-2">
+                        98%
+                      </div>
+                      <div className="text-muted-foreground text-sm">
+                        Client Satisfaction
+                      </div>
                     </div>
                     <div className="p-6 rounded-xl bg-card border border-border">
-                      <div className="text-3xl font-bold gradient-text mb-2">50+</div>
-                      <div className="text-muted-foreground text-sm">Team Members</div>
+                      <div className="text-3xl font-bold gradient-text mb-2">
+                        50+
+                      </div>
+                      <div className="text-muted-foreground text-sm">
+                        Team Members
+                      </div>
                     </div>
                     <div className="p-6 rounded-xl bg-card border border-border">
-                      <div className="text-3xl font-bold gradient-text mb-2">24/7</div>
-                      <div className="text-muted-foreground text-sm">Support Available</div>
+                      <div className="text-3xl font-bold gradient-text mb-2">
+                        24/7
+                      </div>
+                      <div className="text-muted-foreground text-sm">
+                        Support Available
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -88,7 +118,7 @@ const About = () => {
         </section>
 
         {/* Values Section */}
-        <section className="py-20 bg-card">
+        <section className="py-10 bg-card">
           <div className="container mx-auto px-4">
             <div className="max-w-3xl mx-auto text-center mb-16">
               <h2 className="text-4xl font-bold mb-4">Our Values</h2>
@@ -108,7 +138,9 @@ const About = () => {
                     <value.icon className="text-primary-foreground" size={24} />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">{value.title}</h3>
-                  <p className="text-muted-foreground text-sm">{value.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {value.description}
+                  </p>
                 </div>
               ))}
             </div>

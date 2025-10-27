@@ -82,16 +82,11 @@ const Sidebar = () => {
       permission: null,
     },
     {
-      to: "/hr/add-employee",
-      icon: Plus,
-      label: "Add Employee",
-      color: "text-purple-600",
-      permission:
-        user?.role === "admin" ||
-        user?.role === "hr" ||
-        user?.role === "manager"
-          ? true
-          : false,
+      to: "/admin/vendors",
+      icon: BarChart3,
+      label: "Manage Vendors",
+      color: "text-green-600",
+      permission: null,
     },
   ];
 

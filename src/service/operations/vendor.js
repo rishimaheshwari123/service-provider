@@ -9,6 +9,8 @@ const {
   GET_ALL_VENDOR,
   UPDATE_VENDOR,
   GET_VENDOR,
+  UPDATE_VENDOR_PROFILE,
+  UPDATE_VENDOR_PERSANTAGE
 } = vendor;
 
 export async function login(email, password, dispatch) {
@@ -167,6 +169,52 @@ export const updateVendorStatusAPI = async (id, action) => {
 
   try {
     const response = await apiConnector("PUT", `${UPDATE_VENDOR}/${id}`, { status: action });
+
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message)
+    return response?.data;
+  } catch (error) {
+    console.error("UPDATE Vendor API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to vendor product!");
+    return [];
+  } finally {
+    toast.dismiss(toastId);
+  }
+
+};
+export const updateVendorPersentageAPI = async (id, action) => {
+
+  const toastId = toast.loading("Loading...");
+
+  try {
+    const response = await apiConnector("PUT", `${UPDATE_VENDOR_PERSANTAGE}/${id}`, { percentage: action });
+
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message)
+    return response?.data;
+  } catch (error) {
+    console.error("UPDATE Vendor API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to vendor percentage!");
+    return [];
+  } finally {
+    toast.dismiss(toastId);
+  }
+
+};
+export const updateVendorProfileAPI = async (id, data) => {
+
+  const toastId = toast.loading("Loading...");
+
+  try {
+    const response = await apiConnector("PUT", `${UPDATE_VENDOR_PROFILE}/${id}`, data);
 
 
     if (!response?.data?.success) {

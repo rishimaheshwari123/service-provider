@@ -75,23 +75,25 @@ const VendorSidebar = () => {
       permission: null,
     },
     {
-      to: "/admin/dashboard",
+      to: "/vendor/dashboard",
       icon: BarChart3,
       label: "Dashboard",
       color: "text-green-600",
       permission: null,
     },
     {
-      to: "/hr/add-employee",
-      icon: Plus,
-      label: "Add Employee",
-      color: "text-purple-600",
-      permission:
-        user?.role === "admin" ||
-        user?.role === "hr" ||
-        user?.role === "manager"
-          ? true
-          : false,
+      to: "/vendor/services",
+      icon: BarChart3,
+      label: "Add Services",
+      color: "text-green-600",
+      permission: null,
+    },
+    {
+      to: "/vendor/get-services",
+      icon: BarChart3,
+      label: "Get Services",
+      color: "text-green-600",
+      permission: null,
     },
   ];
 
