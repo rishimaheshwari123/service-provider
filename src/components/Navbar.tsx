@@ -158,7 +158,7 @@ const Navbar = () => {
                   {link.label}
                 </a>
                 {link.hot && (
-                  <span className="bg-pink-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                  <span className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold">
                     Hot
                   </span>
                 )}
@@ -298,7 +298,7 @@ const Navbar = () => {
               ) : (
                 // Not logged in - smart login dropdown
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center space-x-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all font-semibold">
+                  <DropdownMenuTrigger className="flex items-center space-x-2 px-4 py-2 rounded-full bg-primary text-white transition-all font-semibold">
                     <span>Login</span>
                     <ChevronDown className="h-4 w-4" />
                   </DropdownMenuTrigger>
@@ -308,7 +308,9 @@ const Navbar = () => {
                         <User className="h-4 w-4 text-purple-600" />
                         <div>
                           <p className="font-medium">User Login</p>
-                          <p className="text-xs text-gray-500">For customers</p>
+                          <p className="text-xs text-gray-500 hover:text-white">
+                            For customers
+                          </p>
                         </div>
                       </Link>
                     </DropdownMenuItem>
@@ -316,12 +318,12 @@ const Navbar = () => {
                     <DropdownMenuItem asChild>
                       <Link
                         to="/vendor/login"
-                        className="flex items-center space-x-2"
+                        className="flex items-center  hover:text-white space-x-2"
                       >
                         <Store className="h-4 w-4 text-green-600" />
                         <div>
                           <p className="font-medium">Vendor Login</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500  hover:text-white">
                             For business owners
                           </p>
                         </div>
@@ -382,7 +384,7 @@ const Navbar = () => {
                 {link.label}
               </a>
               {link.hot && (
-                <span className="bg-pink-500 text-white px-2 py-1 rounded-full text-xs font-bold">
+                <span className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold">
                   Hot
                 </span>
               )}
@@ -392,7 +394,7 @@ const Navbar = () => {
           {/* Call Number - Mobile */}
           <div className="flex items-center space-x-2 text-purple-600 font-semibold mt-4">
             <Phone className="h-5 w-5" />
-            <span>+91 98765 43210</span>
+            <span>+91 1234567890</span>
           </div>
 
           {/* Mobile Auth Section */}

@@ -5,26 +5,30 @@ const ProcessSection = () => {
     {
       number: "01",
       icon: FileSearch,
-      title: "Post Your Job",
-      description: "Describe your project requirements, budget, and timeline. It takes just a few minutes to get started.",
+      title: "Create Your Service",
+      description:
+        "Vendors can easily list their services with details like pricing, description, and expertise areas to reach potential clients.",
     },
     {
       number: "02",
       icon: Lightbulb,
-      title: "Review Proposals",
-      description: "Receive proposals from qualified service providers. Compare their profiles, rates, and reviews.",
+      title: "Get Discovered",
+      description:
+        "Your services become visible to users looking for professionals. Get noticed through ratings, reviews, and categories.",
     },
     {
       number: "03",
       icon: Code,
-      title: "Hire & Collaborate",
-      description: "Choose the best expert for your needs and start working together through our secure platform.",
+      title: "Receive Bookings",
+      description:
+        "Users can hire you directly through the platform. Manage requests, chat with clients, and confirm service details securely.",
     },
     {
       number: "04",
       icon: Rocket,
-      title: "Get Results",
-      description: "Track progress, communicate easily, and release payments as milestones are completed successfully.",
+      title: "Deliver & Get Paid",
+      description:
+        "Complete the service, get client approval, and receive payments quickly and safely through our secure payment system.",
     },
   ];
 
@@ -42,7 +46,7 @@ const ProcessSection = () => {
             How It <span className="gradient-text">Works</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Simple steps to find and hire the perfect service provider
+            Simple steps for service providers to grow and get hired
           </p>
         </div>
 
@@ -60,14 +64,18 @@ const ProcessSection = () => {
                 )}
 
                 <div className="relative z-10 p-6 rounded-xl bg-background border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-elegant group">
-                  <div className="text-5xl font-bold text-primary/20 mb-4">{step.number}</div>
-                  
+                  <div className="text-5xl font-bold text-primary/20 mb-4">
+                    {step.number}
+                  </div>
+
                   <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-glow">
                     <step.icon className="text-primary-foreground" size={28} />
                   </div>
 
                   <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground text-sm">{step.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {step.description}
+                  </p>
                 </div>
               </div>
             ))}

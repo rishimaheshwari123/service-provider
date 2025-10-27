@@ -1,30 +1,30 @@
-import successStory1 from "@/assets/success-story-1.jpg";
-import successStory2 from "@/assets/success-story-2.jpg";
-import successStory3 from "@/assets/success-story-3.jpg";
+import successStory1 from "@/assets/success1.jpg";
+import successStory2 from "@/assets/success2.jpg";
+import successStory3 from "@/assets/success3.jpg";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { ArrowRight, Star } from "lucide-react";
 
 const SuccessStories = () => {
   const stories = [
     {
-      title: "E-commerce Platform Launch",
+      title: "Local Electrician Doubled Bookings",
       description:
-        "TechStart hired a developer through our platform and successfully launched their e-commerce store in just 6 weeks.",
-      metric: "6 Weeks",
+        "Ravi, an independent electrician, listed his services and gained 40+ new clients in the first month through our platform.",
+      metric: "40+ Clients",
       image: successStory1,
     },
     {
-      title: "Marketing Campaign Success",
+      title: "Freelance Designer Built Strong Brand",
       description:
-        "GlobalBrand found the perfect marketing consultant who increased their ROI by 250% in 3 months.",
-      metric: "250% ROI",
+        "Priya, a freelance graphic designer, connected with multiple startups and boosted her monthly income by 180%.",
+      metric: "180% Growth",
       image: successStory2,
     },
     {
-      title: "Mobile App Development",
+      title: "Home Cleaning Vendor Expanded Team",
       description:
-        "FinTech startup hired expert developers and launched their mobile app to 50,000+ users within budget.",
-      metric: "50K+ Users",
+        "CleanPro Services received continuous bookings from verified clients, allowing them to hire more staff and grow their business.",
+      metric: "5x Bookings",
       image: successStory3,
     },
   ];
@@ -34,10 +34,11 @@ const SuccessStories = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Success <span className="gradient-text">Stories</span>
+            Vendor <span className="gradient-text">Success Stories</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Real projects completed by businesses who found their perfect service providers
+            Real vendors who grew their business by offering services through
+            our platform
           </p>
         </div>
 
@@ -56,7 +57,7 @@ const SuccessStories = () => {
                 />
                 <div className="absolute top-4 right-4 px-4 py-2 rounded-lg bg-primary/90 backdrop-blur-sm">
                   <div className="flex items-center gap-2 text-primary-foreground font-semibold">
-                    <TrendingUp size={16} />
+                    <Star size={16} />
                     <span>{story.metric}</span>
                   </div>
                 </div>
@@ -68,7 +69,7 @@ const SuccessStories = () => {
                   {story.description}
                 </p>
                 <Button variant="ghost" className="w-full group/btn">
-                  Read Case Study
+                  View Story
                   <ArrowRight
                     className="ml-2 group-hover/btn:translate-x-1 transition-transform"
                     size={16}
