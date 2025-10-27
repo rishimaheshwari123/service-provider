@@ -82,6 +82,13 @@ const VendorSidebar = () => {
       permission: null,
     },
     {
+      to: "/vendor/my-profile",
+      icon: BarChart3,
+      label: "My Profile",
+      color: "text-green-600",
+      permission: null,
+    },
+    {
       to: "/vendor/services",
       icon: BarChart3,
       label: "Add Services",

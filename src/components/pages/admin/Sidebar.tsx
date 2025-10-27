@@ -88,6 +88,20 @@ const Sidebar = () => {
       color: "text-green-600",
       permission: null,
     },
+    {
+      to: "/admin/add-blog",
+      icon: BarChart3,
+      label: "Add Blog",
+      color: "text-green-600",
+      permission: null,
+    },
+    {
+      to: "/admin/get-blog",
+      icon: BarChart3,
+      label: "Get Blog",
+      color: "text-green-600",
+      permission: null,
+    },
   ];
 
   // Filter menu items based on user permissions

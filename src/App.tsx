@@ -24,6 +24,11 @@ import VendorAddProperty from "./components/pages/vendor/VendorAddProperty";
 import VendorServices from "./components/pages/vendor/VendorProperties";
 import ServicesPage from "./pages/ServicePage";
 import PropertyDetails from "./pages/PropertyDetails";
+import AddBlog from "./components/pages/admin/AddBlog";
+import GetBlog from "./components/pages/admin/GetBlog";
+import SingleBlog from "./pages/SingleBlog";
+import Blogs from "./pages/Blogs";
+import VendorProfile from "./components/pages/vendor/VendorProfile";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -40,6 +45,8 @@ const App = () => {
             <Route path="/contact" element={<Contact />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/service/:id" element={<PropertyDetails />} />
+            <Route path="/blog/:id" element={<SingleBlog />} />
+            <Route path="/blogs" element={<Blogs />} />
 
             <Route
               path="/login"
@@ -69,6 +76,8 @@ const App = () => {
               >
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="vendors" element={<VendorManagement />} />
+                <Route path="add-blog" element={<AddBlog />} />
+                <Route path="get-blog" element={<GetBlog />} />
               </Route>
             )}
             {user?.role === "vendor" && (
@@ -83,6 +92,7 @@ const App = () => {
                 <Route path="dashboard" element={<VendorDashboard />} />
                 <Route path="services" element={<VendorAddProperty />} />
                 <Route path="get-services" element={<VendorServices />} />
+                <Route path="my-profile" element={<VendorProfile />} />
               </Route>
             )}
 

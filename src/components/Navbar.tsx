@@ -36,6 +36,7 @@ const menuLinks = [
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
   { label: "Services", href: "/services", hot: true },
+  { label: "Blogs", href: "/blogs" },
 ];
 
 const Navbar = () => {

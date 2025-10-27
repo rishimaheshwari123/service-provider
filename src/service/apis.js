@@ -1,6 +1,6 @@
 
-const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
-// const BASE_URL = "http://localhost:8000/api/v1"
+// const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
+const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -34,4 +34,12 @@ export const property = {
 export const contact = {
   CREATE_CONTACT_API: BASE_URL + "/contact/create",
   GET_CONTACT_API: BASE_URL + "/contact/getAll",
+}
+
+export const blog = {
+  CREATE_BLOG_API: BASE_URL + "/blog/create",
+  GET_ALL_BLOG_API: BASE_URL + "/blog/getAll",
+  GET_SINGLE_BLOG_API: BASE_URL + "/blog/get",
+  DELETE_BLOG_API: BASE_URL + "/blog/delete",
+  UPDATE_BLOG_API: BASE_URL + "/blog",
 }

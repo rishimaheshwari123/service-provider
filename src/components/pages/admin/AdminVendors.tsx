@@ -951,7 +951,7 @@ const VendorManagement = () => {
               Vendor Details
             </DialogTitle>
             <DialogDescription>
-              Complete information about the vendor and their properties
+              Complete information about the vendor and their services
             </DialogDescription>
           </DialogHeader>
 
@@ -1042,7 +1042,7 @@ const VendorManagement = () => {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-purple-600" />
-                    Properties ({vendorProperties.length})
+                    Services ({vendorProperties.length})
                     {loadingProperties && (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     )}
@@ -1052,7 +1052,7 @@ const VendorManagement = () => {
                   {loadingProperties ? (
                     <div className="text-center py-8">
                       <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-                      <p className="text-gray-500">Loading properties...</p>
+                      <p className="text-gray-500">Loading services...</p>
                     </div>
                   ) : vendorProperties.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
