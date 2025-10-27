@@ -8,9 +8,9 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import heroSlide1 from "@/assets/hero-slide-1.jpg";
-import heroSlide2 from "@/assets/hero-slide-2.jpg";
-import heroSlide3 from "@/assets/hero-slide-3.jpg";
+import heroSlide1 from "@/assets/success1.jpg";
+import heroSlide2 from "@/assets/success2.jpg";
+import heroSlide3 from "@/assets/success3.jpg";
 import heroSlide4 from "@/assets/hero-slide-4.jpg";
 
 const HeroSection = () => {
