@@ -31,6 +31,7 @@ import Blogs from "./pages/Blogs";
 import VendorProfile from "./components/pages/vendor/VendorProfile";
 import VendorGetInquiry from "./components/pages/vendor/VendorGetInquiry";
 import UserProfile from "./pages/UserProfile";
+import AllUsers from "./components/pages/admin/AllUsers";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -81,6 +82,7 @@ const App = () => {
                 <Route path="vendors" element={<VendorManagement />} />
                 <Route path="add-blog" element={<AddBlog />} />
                 <Route path="get-blog" element={<GetBlog />} />
+                <Route path="users" element={<AllUsers />} />
               </Route>
             )}
             {user?.role === "vendor" && (

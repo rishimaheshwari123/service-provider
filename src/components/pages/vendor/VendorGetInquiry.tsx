@@ -270,8 +270,7 @@ const VendorGetInquiry = () => {
                     <TableHead className="w-[100px]">Customer</TableHead>
                     <TableHead>Contact Info</TableHead>
                     <TableHead>Message</TableHead>
-                    <TableHead>Property</TableHead>
-                    <TableHead>Property Details</TableHead>
+                    <TableHead>Services</TableHead>
                     <TableHead>Location</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Date</TableHead>
@@ -388,24 +387,6 @@ const VendorGetInquiry = () => {
                         </div>
                       </TableCell>
 
-                      {/* Property Details */}
-                      <TableCell>
-                        <div className="space-y-1 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">Area:</span>
-                            <span>
-                              {inquiry?.property?.area || "N/A"} sq ft
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">Bed:</span>
-                            <span>{inquiry?.property?.bedrooms || "N/A"}</span>
-                            <span className="font-medium">Bath:</span>
-                            <span>{inquiry?.property?.bathrooms || "N/A"}</span>
-                          </div>
-                        </div>
-                      </TableCell>
-
                       {/* Location */}
                       <TableCell>
                         <p className="text-sm capitalize">
@@ -489,7 +470,7 @@ const VendorGetInquiry = () => {
                                 {/* Property Info */}
                                 <div className="space-y-4">
                                   <h4 className="font-semibold">
-                                    Property Information
+                                    Service Information
                                   </h4>
                                   {inquiry?.property?.image && (
                                     <div className="w-full h-32 rounded-lg overflow-hidden">
@@ -537,34 +518,6 @@ const VendorGetInquiry = () => {
                                       <span className="text-sm">
                                         {formatPrice(inquiry?.property?.price)}
                                       </span>
-                                    </div>
-                                    <div className="grid grid-cols-3 gap-2 text-sm">
-                                      <div>
-                                        <span className="font-medium">
-                                          Area:{" "}
-                                        </span>
-                                        <span>
-                                          {inquiry?.property?.area || "N/A"} sq
-                                          ft
-                                        </span>
-                                      </div>
-                                      <div>
-                                        <span className="font-medium">
-                                          Bed:{" "}
-                                        </span>
-                                        <span>
-                                          {inquiry?.property?.bedrooms || "N/A"}
-                                        </span>
-                                      </div>
-                                      <div>
-                                        <span className="font-medium">
-                                          Bath:{" "}
-                                        </span>
-                                        <span>
-                                          {inquiry?.property?.bathrooms ||
-                                            "N/A"}
-                                        </span>
-                                      </div>
                                     </div>
                                   </div>
                                 </div>

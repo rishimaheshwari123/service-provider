@@ -44,3 +44,8 @@ export const blog = {
   DELETE_BLOG_API: BASE_URL + "/blog/delete",
   UPDATE_BLOG_API: BASE_URL + "/blog",
 }
+export const dashboar = {
+
+  ADMIN_DASHBOARD_DATA: BASE_URL + "/dashboard/stats",
+  VENDOR_DASHBOARD_DATA: BASE_URL + "/dashboard/vendor-stats",
+}

@@ -39,6 +39,7 @@ app.use("/api/v1/image", require("./routes/imageRoute"))
 app.use("/api/v1/blog", require("./routes/blogRoute"))
 app.use("/api/v1/property", require("./routes/propertyRoute"))
 app.use("/api/v1/contact", require("./routes/contactRoute"))
+app.use("/api/v1/dashboard", require("./routes/dashboardRoute"))
 
 
 

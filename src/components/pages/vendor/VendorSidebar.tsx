@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Shield,
 } from "lucide-react";
+import { User, PlusSquare, ListChecks } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUser } from "@/redux/authSlice";
 import { toast } from "react-toastify";
@@ -76,41 +77,40 @@ const VendorSidebar = () => {
     },
     {
       to: "/vendor/dashboard",
-      icon: BarChart3,
+      icon: BarChart3, // dashboard analytics
       label: "Dashboard",
       color: "text-green-600",
       permission: null,
     },
     {
       to: "/vendor/my-profile",
-      icon: BarChart3,
+      icon: User, // profile icon
       label: "My Profile",
-      color: "text-green-600",
+      color: "text-purple-600",
       permission: null,
     },
     {
       to: "/vendor/services",
-      icon: BarChart3,
+      icon: PlusSquare, // add services
       label: "Add Services",
-      color: "text-green-600",
+      color: "text-orange-600",
       permission: null,
     },
     {
       to: "/vendor/get-services",
-      icon: BarChart3,
+      icon: ListChecks, // list or get services
       label: "Get Services",
-      color: "text-green-600",
+      color: "text-teal-600",
       permission: null,
     },
     {
       to: "/vendor/inquiry-services",
-      icon: BarChart3,
-      label: " Service Inquiry",
-      color: "text-green-600",
+      icon: MessageSquare, // inquiries/messages
+      label: "Service Inquiry",
+      color: "text-pink-600",
       permission: null,
     },
   ];
-
   // Filter menu items based on user permissions
   const menuItems = allMenuItems.filter(
     (item) => item.permission === null || item.permission

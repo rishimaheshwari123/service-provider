@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Shield,
 } from "lucide-react";
+import { UserCog, FilePlus2, Files } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUser } from "@/redux/authSlice";
 import { toast } from "react-toastify";
@@ -83,23 +84,30 @@ const Sidebar = () => {
     },
     {
       to: "/admin/vendors",
-      icon: BarChart3,
+      icon: UserCog, // vendors = manage users type
       label: "Manage Vendors",
-      color: "text-green-600",
+      color: "text-orange-600",
       permission: null,
     },
     {
       to: "/admin/add-blog",
-      icon: BarChart3,
+      icon: FilePlus2, // adding blog = plus file
       label: "Add Blog",
-      color: "text-green-600",
+      color: "text-purple-600",
       permission: null,
     },
     {
       to: "/admin/get-blog",
-      icon: BarChart3,
+      icon: Files, // multiple blogs listing
       label: "Get Blog",
-      color: "text-green-600",
+      color: "text-pink-600",
+      permission: null,
+    },
+    {
+      to: "/admin/users",
+      icon: Users, // all users list
+      label: "All Users",
+      color: "text-teal-600",
       permission: null,
     },
   ];
