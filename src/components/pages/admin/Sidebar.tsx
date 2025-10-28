@@ -110,6 +110,13 @@ const Sidebar = () => {
       color: "text-teal-600",
       permission: null,
     },
+    {
+      to: "/admin/get-support",
+      icon: Users, // all users list
+      label: "Customer Support",
+      color: "text-teal-600",
+      permission: null,
+    },
   ];
 
   // Filter menu items based on user permissions

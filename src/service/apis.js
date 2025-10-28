@@ -1,6 +1,6 @@
 
-const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
-// const BASE_URL = "http://localhost:8000/api/v1"
+// const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
+const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -48,4 +48,9 @@ export const dashboar = {
 
   ADMIN_DASHBOARD_DATA: BASE_URL + "/dashboard/stats",
   VENDOR_DASHBOARD_DATA: BASE_URL + "/dashboard/vendor-stats",
+}
+
+export const customerSupport = {
+  CREATE_CUSTOMER_SUPPORT_API: BASE_URL + "/customer-support/create",
+  GET_ALL_CUSTOMER_SUPPORT_API: BASE_URL + "/customer-support/getAll",
 }

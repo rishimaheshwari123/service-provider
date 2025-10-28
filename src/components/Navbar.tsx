@@ -37,6 +37,7 @@ const menuLinks = [
   { label: "Contact", href: "/contact" },
   { label: "Services", href: "/services", hot: true },
   { label: "Blogs", href: "/blogs" },
+  { label: "Support", href: "/customer-support" },
 ];
 
 const Navbar = () => {
