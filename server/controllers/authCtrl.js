@@ -234,6 +234,34 @@ const getUserInquiries = async (req, res) => {
   }
 };
 
+const changeUserTypeCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;       // user id from URL
+    const { type } = req.body;       // new type from body
+    console.log(req.body)
+    if (!id || !type) {
+      return res.status(400).json({ message: "User ID and type are required" });
+    }
+
+    const user = await authModel.findById(id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.type = type;
+    await user.save();
+    console.log(user)
+
+    return res.status(200).json({
+      success: true,
+      message: "User type updated successfully",
+      user,
+    });
+  } catch (error) {
+    console.error("Error updating user type:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
 
 
 
@@ -243,5 +271,6 @@ module.exports = {
   getAllUsers,
   editPermissionCtrl,
   deleteAuthCtrl,
-  getUserInquiries
+  getUserInquiries,
+  changeUserTypeCtrl
 };

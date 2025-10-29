@@ -4,7 +4,7 @@ import { apiConnector } from "../apiConnector";
 import { endpoints } from "../apis";
 import Swal from "sweetalert2";
 const {
-  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE
+  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE
 } = endpoints;
 
 export async function login(email, password, dispatch) {
@@ -132,6 +132,21 @@ export const getUserProfile = async (id) => {
 };
 
 
+export const changeUserType = async (id, type) => {
+  try {
+    const response = await apiConnector("PUT", `${CHANGE_USER_TYPE}/${id}`, { type });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success("User type changed successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("CHANGE_USER_TYPE API ERROR:", error);
+    return null;
+  }
+};
 
 
 export function logout(navigate) {

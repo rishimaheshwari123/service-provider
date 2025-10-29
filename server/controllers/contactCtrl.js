@@ -49,4 +49,19 @@ const getContactsByVendorCtrl = async (req, res) => {
     }
 };
 
-module.exports = { createContactCtrl, getContactsByVendorCtrl };
+const getUserInquiryByIdCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+
+        const contacts = await Contact.find({ user: id }).sort({ createdAt: -1 });
+
+        res.status(200).json({ success: true, contacts });
+
+    } catch (error) {
+        console.error('Get Contacts Error:', error);
+        res.status(500).json({ success: false, error: 'Server error while fetching contacts.' });
+    }
+};
+
+module.exports = { createContactCtrl, getContactsByVendorCtrl, getUserInquiryByIdCtrl };

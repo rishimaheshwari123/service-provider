@@ -4,7 +4,7 @@ import { contact } from "../apis";
 
 
 const {
-  CREATE_CONTACT_API, GET_CONTACT_API } = contact;
+  CREATE_CONTACT_API, GET_CONTACT_API, GET_USER_INQUIRY_API } = contact;
 
 export const createContactAPI = async (contactData) => {
   const toastId = toast.loading("Loading...");
@@ -36,6 +36,22 @@ export const getVendorContactAPI = async (id) => {
     const response = await apiConnector("GET", `${GET_CONTACT_API}/${id}`)
 
 
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    return response?.data?.contacts || [];
+  } catch (error) {
+    console.error("GET contact API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to get contact !");
+    return [];
+  }
+};
+
+export const getUserInquiryApi = async (id) => {
+
+  try {
+    const response = await apiConnector("GET", `${GET_USER_INQUIRY_API}/${id}`)
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
     }
