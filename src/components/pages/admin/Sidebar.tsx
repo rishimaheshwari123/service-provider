@@ -12,6 +12,8 @@ import {
   Building2,
   MessageSquare,
   Shield,
+  Briefcase,
+  ListChecks,
 } from "lucide-react";
 import { UserCog, FilePlus2, Files } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -115,6 +117,20 @@ const Sidebar = () => {
       icon: Users, // all users list
       label: "Customer Support",
       color: "text-teal-600",
+      permission: null,
+    },
+    {
+      to: "/admin/add-job",
+      icon: Briefcase, // or any other suitable icon (import it from lucide-react)
+      label: "Add Job",
+      color: "text-orange-600",
+      permission: null,
+    },
+    {
+      to: "/admin/get-jobs",
+      icon: ListChecks, // another good option, or you can use FileText
+      label: "All Jobs",
+      color: "text-blue-600",
       permission: null,
     },
   ];

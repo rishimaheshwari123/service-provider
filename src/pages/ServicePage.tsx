@@ -1,22 +1,51 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const ServicesPage = () => {
   const [services, setServices] = useState([]);
+  const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [filters, setFilters] = useState({
+    title: "",
+    price: "",
+    location: "",
+    category: "all",
+  });
+
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // ✅ Read URL Params on Mount
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const newFilters = {
+      title: params.get("title") || "",
+      price: params.get("price") || "",
+      location: params.get("location") || "",
+      category: params.get("category") || "all",
+    };
+    setFilters(newFilters);
+  }, [location.search]);
 
   const fetchServices = async () => {
     try {
       setLoading(true);
       const allServices = await getAllPropertyAPI();
       setServices(allServices);
+      setFilteredServices(allServices);
     } catch (error) {
       console.error("Error fetching services:", error);
       toast.error("Failed to fetch services");
@@ -29,6 +58,43 @@ const ServicesPage = () => {
     fetchServices();
   }, []);
 
+  // Apply filters after services are fetched or filters change
+  useEffect(() => {
+    if (services.length > 0) applyFilters(filters);
+  }, [services, filters]);
+
+  const applyFilters = (newFilters) => {
+    const filtered = services.filter((service) => {
+      const matchTitle = service.title
+        ?.toLowerCase()
+        .includes(newFilters.title.toLowerCase());
+      const matchLocation = service.location
+        ?.toLowerCase()
+        .includes(newFilters.location.toLowerCase());
+      const matchCategory =
+        newFilters.category === "all" ||
+        service.category?.toLowerCase() === newFilters.category.toLowerCase();
+      const matchPrice =
+        newFilters.price === "" ||
+        (service.price && service.price <= Number(newFilters.price));
+
+      return matchTitle && matchLocation && matchCategory && matchPrice;
+    });
+
+    setFilteredServices(filtered);
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    const newFilters = { ...filters, [name]: value };
+    setFilters(newFilters);
+  };
+
+  const handleCategoryChange = (value) => {
+    const newFilters = { ...filters, category: value };
+    setFilters(newFilters);
+  };
+
   const handleHireNow = (id) => {
     navigate(`/service/${id}`);
   };
@@ -38,7 +104,7 @@ const ServicesPage = () => {
       <Navbar />
       <section className="py-24 bg-card min-h-screen">
         <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center mb-16">
+          <div className="max-w-3xl mx-auto text-center mb-12">
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               Browse <span className="gradient-text">All Services</span>
             </h2>
@@ -47,17 +113,66 @@ const ServicesPage = () => {
             </p>
           </div>
 
+          {/* 🔍 Filter Section */}
+          <div className="bg-white shadow-md rounded-2xl p-6 mb-10 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input
+              type="text"
+              name="title"
+              value={filters.title}
+              onChange={handleInputChange}
+              placeholder="Search by title"
+              className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+
+            <input
+              type="number"
+              name="price"
+              value={filters.price}
+              onChange={handleInputChange}
+              placeholder="Max Price"
+              className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+
+            <input
+              type="text"
+              name="location"
+              value={filters.location}
+              onChange={handleInputChange}
+              placeholder="Search by location"
+              className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary"
+            />
+
+            <Select
+              value={filters.category}
+              onValueChange={handleCategoryChange}
+            >
+              <SelectTrigger className="w-full border rounded-lg px-3 py-2">
+                <SelectValue placeholder="Select Category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="plumbing">Plumbing</SelectItem>
+                <SelectItem value="electrical">Electrical</SelectItem>
+                <SelectItem value="cleaning">Cleaning</SelectItem>
+                <SelectItem value="tutoring">Tutoring</SelectItem>
+                <SelectItem value="it-support">IT Support</SelectItem>
+                <SelectItem value="others">Others</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* 🔹 Service Cards */}
           {loading ? (
             <p className="text-center text-muted-foreground">
               Loading services...
             </p>
-          ) : services.length === 0 ? (
+          ) : filteredServices.length === 0 ? (
             <p className="text-center text-muted-foreground">
-              No services available.
+              No matching services found.
             </p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {services.map((service, index) => (
+              {filteredServices.map((service, index) => (
                 <div
                   key={index}
                   className="group rounded-2xl bg-background border border-border overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-elegant"
@@ -81,9 +196,6 @@ const ServicesPage = () => {
                     </p>
 
                     <div className="text-sm text-muted-foreground space-y-1">
-                      <p>
-                        <strong>Type:</strong> {service.type || "N/A"}
-                      </p>
                       <p>
                         <strong>Category:</strong> {service.category || "N/A"}
                       </p>

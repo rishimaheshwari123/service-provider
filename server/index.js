@@ -41,6 +41,8 @@ app.use("/api/v1/property", require("./routes/propertyRoute"))
 app.use("/api/v1/contact", require("./routes/contactRoute"))
 app.use("/api/v1/dashboard", require("./routes/dashboardRoute"))
 app.use("/api/v1/customer-support", require("./routes/customerSupportRoute"))
+app.use("/api/v1/job", require("./routes/jobRoute"))
+app.use("/api/v1/career", require("./routes/careerRoute"))
 
 
 

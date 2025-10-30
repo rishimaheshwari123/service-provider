@@ -56,3 +56,16 @@ export const customerSupport = {
   CREATE_CUSTOMER_SUPPORT_API: BASE_URL + "/customer-support/create",
   GET_ALL_CUSTOMER_SUPPORT_API: BASE_URL + "/customer-support/getAll",
 }
+
+export const job = {
+  CREATE_JOB_API: BASE_URL + "/job/create",
+  GET_ALL_JOB_API: BASE_URL + "/job/getAll",
+  GET_JOB_BY_ID_API: BASE_URL + "/job/get",
+
+}
+
+export const career = {
+  CREATE_CAREER_API: BASE_URL + "/career/create",
+  GET_ALL_CAREER_API: BASE_URL + "/career/getAll",
+
+}

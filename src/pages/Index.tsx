@@ -9,6 +9,7 @@ import SuccessStories from "@/components/home/SuccessStories";
 import StatsSection from "@/components/home/StatsSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import ContactSection from "@/components/home/ContactSection";
+import HomeFilterSection from "./HomeFilterSection";
 
 const Index = () => {
   return (
@@ -16,6 +17,7 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
+        <HomeFilterSection />
         <AboutSection />
         <ServicesSlider />
         <FeaturesSection />

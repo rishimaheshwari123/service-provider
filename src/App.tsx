@@ -34,6 +34,10 @@ import UserProfile from "./pages/UserProfile";
 import AllUsers from "./components/pages/admin/AllUsers";
 import GetCustomerSupport from "./components/pages/admin/GetCustomerSupport";
 import CustomerSupport from "./pages/CustomerSupport";
+import JobCreate from "./components/pages/admin/JobCreate";
+import GetAllJob from "./components/pages/admin/GetAllJob";
+import Careers from "./pages/Career";
+import JobDetail from "./pages/JobDetails";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -54,6 +58,8 @@ const App = () => {
             <Route path="/blogs" element={<Blogs />} />
             <Route path="/user/profile" element={<UserProfile />} />
             <Route path="/customer-support" element={<CustomerSupport />} />
+            <Route path="/careers" element={<Careers />} />
+            <Route path="/careers/:id" element={<JobDetail />} />
             <Route
               path="/login"
               element={
@@ -86,6 +92,8 @@ const App = () => {
                 <Route path="get-blog" element={<GetBlog />} />
                 <Route path="users" element={<AllUsers />} />
                 <Route path="get-support" element={<GetCustomerSupport />} />
+                <Route path="add-job" element={<JobCreate />} />
+                <Route path="get-jobs" element={<GetAllJob />} />
               </Route>
             )}
             {user?.role === "vendor" && (
