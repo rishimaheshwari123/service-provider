@@ -10,10 +10,12 @@ import StatsSection from "@/components/home/StatsSection";
 import TestimonialsSection from "@/components/home/TestimonialsSection";
 import ContactSection from "@/components/home/ContactSection";
 import HomeFilterSection from "./HomeFilterSection";
+import TopSearchBar from "./Top";
 
 const Index = () => {
   return (
     <div className="min-h-screen">
+      <TopSearchBar />
       <Navbar />
       <main>
         <HeroSection />

@@ -132,10 +132,10 @@ const Contact = () => {
                     <div>
                       <div className="font-semibold mb-1">Email</div>
                       <div className="text-muted-foreground">
-                        contact@proserve.com
+                        contact@email.com
                       </div>
                       <div className="text-muted-foreground">
-                        support@proserve.com
+                        support@email.com
                       </div>
                     </div>
                   </div>
@@ -147,10 +147,10 @@ const Contact = () => {
                     <div>
                       <div className="font-semibold mb-1">Phone</div>
                       <div className="text-muted-foreground">
-                        +1 (555) 123-4567
+                        +91 1234567890
                       </div>
                       <div className="text-muted-foreground">
-                        +1 (555) 765-4321
+                        +91 1234567890
                       </div>
                     </div>
                   </div>

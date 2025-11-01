@@ -6,7 +6,6 @@ const vendorSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
-
         email: {
             type: String,
         },
@@ -30,7 +29,6 @@ const vendorSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
-
         role: {
             type: String,
             enum: ["vendor"],
@@ -38,22 +36,40 @@ const vendorSchema = new mongoose.Schema(
         },
         status: {
             type: String,
-            // default: false
         },
         percentage: {
             type: String,
-            // default: false
         },
         adhar: {
             type: String,
-
         },
         pan: {
             type: String,
-
         },
         token: {
             type: String,
+        },
+        // New field for working hours with available
+        workingHours: {
+            monday: { start: String, end: String, available: { type: Boolean, default: true } },
+            tuesday: { start: String, end: String, available: { type: Boolean, default: true } },
+            wednesday: { start: String, end: String, available: { type: Boolean, default: true } },
+            thursday: { start: String, end: String, available: { type: Boolean, default: true } },
+            friday: { start: String, end: String, available: { type: Boolean, default: true } },
+            saturday: { start: String, end: String, available: { type: Boolean, default: true } },
+            sunday: { start: String, end: String, available: { type: Boolean, default: false } }, // default not available
+        },
+        bankDetail: {
+            accountNumber: { type: String, trim: true },
+            IFSC: { type: String, trim: true },
+            accountHolderName: { type: String, trim: true },
+            branch: { type: String, trim: true },
+        },
+
+        // Experience object
+        experience: {
+            fields: { type: [String], default: [] }, // multiple fields
+            totalYears: { type: Number, default: 0 },
         },
     },
     { timestamps: true }

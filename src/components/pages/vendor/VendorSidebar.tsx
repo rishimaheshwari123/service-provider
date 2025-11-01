@@ -12,6 +12,9 @@ import {
   Building2,
   MessageSquare,
   Shield,
+  Clock,
+  ListOrdered,
+  ClipboardList,
 } from "lucide-react";
 import { User, PlusSquare, ListChecks } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -107,6 +110,27 @@ const VendorSidebar = () => {
       to: "/vendor/inquiry-services",
       icon: MessageSquare, // inquiries/messages
       label: "Service Inquiry",
+      color: "text-pink-600",
+      permission: null,
+    },
+    {
+      to: "/vendor/working-hours",
+      icon: Clock, // inquiries/messages
+      label: "Upload Woking Hours",
+      color: "text-pink-600",
+      permission: null,
+    },
+    {
+      to: "/vendor/bookings",
+      icon: ListOrdered, // inquiries/messages
+      label: "Bookings",
+      color: "text-pink-600",
+      permission: null,
+    },
+    {
+      to: "/vendor/tasks",
+      icon: ClipboardList, // inquiries/messages
+      label: "Tasks",
       color: "text-pink-600",
       permission: null,
     },

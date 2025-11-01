@@ -88,7 +88,7 @@ const ServicesSlider = () => {
                             {service.description || "No description available"}
                           </p>
 
-                          <div className="text-sm text-muted-foreground space-y-1">
+                          {/* <div className="text-sm text-muted-foreground space-y-1">
                             <p>
                               <strong>Type:</strong> {service.type || "N/A"}
                             </p>
@@ -104,7 +104,7 @@ const ServicesSlider = () => {
                               <strong>Price:</strong>{" "}
                               {service.price ? `₹${service.price}` : "N/A"}
                             </p>
-                          </div>
+                          </div> */}
 
                           <Button
                             variant="outline"

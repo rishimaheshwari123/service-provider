@@ -74,6 +74,7 @@ import {
 import { getVendorPropertyAPI } from "@/service/operations/property";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
+import AllBooking from "./AllBooking";
 const VendorManagement = () => {
   const [vendors, setVendors] = useState([]);
   const [percentages, setPercentages] = useState({});
@@ -1099,6 +1100,8 @@ const VendorManagement = () => {
                   )}
                 </CardContent>
               </Card>
+
+              <AllBooking user={selectedVendor} />
             </div>
           )}
         </DialogContent>

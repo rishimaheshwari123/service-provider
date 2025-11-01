@@ -48,6 +48,17 @@ interface VendorData {
   status: string;
   adhar: string;
   pan: string;
+  percentage?: string;
+  bankDetail?: {
+    accountNumber?: string;
+    IFSC?: string;
+    accountHolderName?: string;
+    branch?: string;
+  };
+  experience?: {
+    fields?: string[];
+    totalYears?: number;
+  };
   createdAt: string;
   updatedAt: string;
 }
@@ -157,7 +168,7 @@ const VendorProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
@@ -430,6 +441,177 @@ const VendorProfile = () => {
                       <CreditCard className="w-4 h-4 text-gray-400" />
                       {vendor?.percentage ? `${vendor.percentage}%` : "Not set"}
                     </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Bank Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="w-5 h-5" />
+                  Bank Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="accountNumber">Account Number</Label>
+                    {isEditing ? (
+                      <Input
+                        id="accountNumber"
+                        value={formData.bankDetail?.accountNumber || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            bankDetail: {
+                              ...prev.bankDetail,
+                              accountNumber: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Enter account number"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">
+                        {vendor.bankDetail?.accountNumber || "-"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="IFSC">IFSC Code</Label>
+                    {isEditing ? (
+                      <Input
+                        id="IFSC"
+                        value={formData.bankDetail?.IFSC || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            bankDetail: {
+                              ...prev.bankDetail,
+                              IFSC: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Enter IFSC code"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">
+                        {vendor.bankDetail?.IFSC || "-"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="accountHolderName">
+                      Account Holder Name
+                    </Label>
+                    {isEditing ? (
+                      <Input
+                        id="accountHolderName"
+                        value={formData.bankDetail?.accountHolderName || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            bankDetail: {
+                              ...prev.bankDetail,
+                              accountHolderName: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Enter account holder name"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">
+                        {vendor.bankDetail?.accountHolderName || "-"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="branch">Branch</Label>
+                    {isEditing ? (
+                      <Input
+                        id="branch"
+                        value={formData.bankDetail?.branch || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            bankDetail: {
+                              ...prev.bankDetail,
+                              branch: e.target.value,
+                            },
+                          }))
+                        }
+                        placeholder="Enter branch"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">
+                        {vendor.bankDetail?.branch || "-"}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Experience */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5" />
+                  Experience
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="experienceFields">Fields</Label>
+                    {isEditing ? (
+                      <Input
+                        id="experienceFields"
+                        value={(formData.experience?.fields || []).join(", ")}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            experience: {
+                              ...prev.experience,
+                              fields: e.target.value
+                                .split(",")
+                                .map((f) => f.trim()),
+                            },
+                          }))
+                        }
+                        placeholder="Enter fields separated by commas"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">
+                        {(vendor.experience?.fields || []).join(", ") || "-"}
+                      </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="totalYears">Total Years</Label>
+                    {isEditing ? (
+                      <Input
+                        id="totalYears"
+                        type="number"
+                        value={formData.experience?.totalYears || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            experience: {
+                              ...prev.experience,
+                              totalYears: Number(e.target.value),
+                            },
+                          }))
+                        }
+                        placeholder="Enter total years of experience"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">
+                        {vendor.experience?.totalYears || 0}
+                      </p>
+                    )}
                   </div>
                 </div>
               </CardContent>

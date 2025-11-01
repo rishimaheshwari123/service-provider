@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+
+// **अज़्यूम (Assume) करते हैं कि मैक्सिमम पॉसिबल प्राइस यह है, आप इसे अपने डेटा के अनुसार बदल सकते हैं**
+const MAX_PRICE_LIMIT = 50000;
+const MIN_PRICE_LIMIT = 0;
 
 const ServicesPage = () => {
   const [services, setServices] = useState([]);
@@ -20,7 +25,7 @@ const ServicesPage = () => {
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     title: "",
-    price: "",
+    price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT], // [min, max]
     location: "",
     category: "all",
   });
@@ -31,9 +36,12 @@ const ServicesPage = () => {
   // ✅ Read URL Params on Mount
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    const minPrice = Number(params.get("minPrice")) || MIN_PRICE_LIMIT;
+    const maxPrice = Number(params.get("maxPrice")) || MAX_PRICE_LIMIT;
+
     const newFilters = {
       title: params.get("title") || "",
-      price: params.get("price") || "",
+      price: [minPrice, maxPrice],
       location: params.get("location") || "",
       category: params.get("category") || "all",
     };
@@ -64,6 +72,8 @@ const ServicesPage = () => {
   }, [services, filters]);
 
   const applyFilters = (newFilters) => {
+    const [minPrice, maxPrice] = newFilters.price;
+
     const filtered = services.filter((service) => {
       const matchTitle = service.title
         ?.toLowerCase()
@@ -74,9 +84,9 @@ const ServicesPage = () => {
       const matchCategory =
         newFilters.category === "all" ||
         service.category?.toLowerCase() === newFilters.category.toLowerCase();
-      const matchPrice =
-        newFilters.price === "" ||
-        (service.price && service.price <= Number(newFilters.price));
+
+      const servicePrice = Number(service.price);
+      const matchPrice = servicePrice >= minPrice && servicePrice <= maxPrice;
 
       return matchTitle && matchLocation && matchCategory && matchPrice;
     });
@@ -95,6 +105,11 @@ const ServicesPage = () => {
     setFilters(newFilters);
   };
 
+  const handlePriceChange = (value) => {
+    const newFilters = { ...filters, price: value };
+    setFilters(newFilters);
+  };
+
   const handleHireNow = (id) => {
     navigate(`/service/${id}`);
   };
@@ -102,10 +117,10 @@ const ServicesPage = () => {
   return (
     <>
       <Navbar />
-      <section className="py-24 bg-card min-h-screen">
+      <section className="py-10 bg-card min-h-screen">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">
               Browse <span className="gradient-text">All Services</span>
             </h2>
             <p className="text-xl text-muted-foreground">
@@ -113,52 +128,74 @@ const ServicesPage = () => {
             </p>
           </div>
 
-          {/* 🔍 Filter Section */}
-          <div className="bg-white shadow-md rounded-2xl p-6 mb-10 grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* 🔍 एडवांस फ़िल्टर सेक्शन (Advanced Filter Section) */}
+          {/* 💡 बैकग्राउंड बदला गया: bg-white से bg-gray-50 */}
+          <div className="bg-gray-200 shadow-xl rounded-2xl p-6 mb-10 grid grid-cols-1 md:grid-cols-3 gap-6 border border-gray-200">
+            <div className="col-span-1 md:col-span-3">
+              <h3 className="text-lg font-semibold mb-3 flex items-center text-primary-dark">
+                🔍 Advanced Filters
+              </h3>
+            </div>
+
+            {/* 1. Title/Search Filter */}
             <input
               type="text"
               name="title"
               value={filters.title}
               onChange={handleInputChange}
-              placeholder="Search by title"
-              className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Search by title..."
+              className="border rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-primary/50 transition duration-150"
             />
 
-            <input
-              type="number"
-              name="price"
-              value={filters.price}
-              onChange={handleInputChange}
-              placeholder="Max Price"
-              className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-
+            {/* 2. Location Filter */}
             <input
               type="text"
               name="location"
               value={filters.location}
               onChange={handleInputChange}
-              placeholder="Search by location"
-              className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-primary"
+              placeholder="Filter by location..."
+              className="border rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-primary/50 transition duration-150"
             />
 
+            {/* 3. Category Filter */}
             <Select
               value={filters.category}
               onValueChange={handleCategoryChange}
             >
-              <SelectTrigger className="w-full border rounded-lg px-3 py-2">
+              <SelectTrigger className="w-full border rounded-lg px-4 py-3 h-auto bg-white">
                 <SelectValue placeholder="Select Category" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 <SelectItem value="plumbing">Plumbing</SelectItem>
                 <SelectItem value="electrical">Electrical</SelectItem>
                 <SelectItem value="cleaning">Cleaning</SelectItem>
                 <SelectItem value="tutoring">Tutoring</SelectItem>
-                <SelectItem value="it-support">IT Support</SelectItem>
+                <SelectItem value="support">Support</SelectItem>
                 <SelectItem value="others">Others</SelectItem>
               </SelectContent>
             </Select>
+
+            {/* 4. Price Range Slider (पूरे कॉलम में) */}
+            <div className="col-span-1 md:col-span-3 pt-2">
+              <label className="text-sm font-medium mb-2 block">
+                Price Range: ₹{filters.price[0].toLocaleString()} - ₹
+                {filters.price[1].toLocaleString()}
+              </label>
+              <Slider
+                name="price"
+                min={MIN_PRICE_LIMIT}
+                max={MAX_PRICE_LIMIT}
+                step={500} // ₹500 के स्टेप्स में
+                value={filters.price} // array [min, max]
+                onValueChange={handlePriceChange}
+                className="w-full h-2"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                <span>₹{MIN_PRICE_LIMIT.toLocaleString()}</span>
+                <span>₹{MAX_PRICE_LIMIT.toLocaleString()}</span>
+              </div>
+            </div>
           </div>
 
           {/* 🔹 Service Cards */}
@@ -195,16 +232,11 @@ const ServicesPage = () => {
                       {service.description || "No description available"}
                     </p>
 
-                    <div className="text-sm text-muted-foreground space-y-1">
-                      <p>
-                        <strong>Category:</strong> {service.category || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Location:</strong> {service.location || "N/A"}
-                      </p>
-                      <p>
-                        <strong>Price:</strong>{" "}
-                        {service.price ? `₹${service.price}` : "N/A"}
+                    <div className="text-sm space-y-1">
+                      <p className="text-xl font-bold text-primary">
+                        {service.price
+                          ? `₹${service.price.toLocaleString()}`
+                          : "N/A"}
                       </p>
                     </div>
 

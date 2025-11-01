@@ -270,6 +270,45 @@ const updateVendorProfileCtrl = async (req, res) => {
 
 
 
+const updateWorkingHours = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { workingHours } = req.body;
+    // workingHours = {
+    //   monday: { start: "09:00", end: "18:00", available: true },
+    //   tuesday: { start: "09:00", end: "18:00", available: true },
+    //   ...
+    // }
+
+    // Find vendor by ID
+    const vendor = await vendorModel.findById(id);
+    if (!vendor) {
+      return res.status(404).json({ success: false, message: "Vendor not found" });
+    }
+
+    // Update only provided days
+    for (let day in workingHours) {
+      if (vendor.workingHours[day]) {
+        vendor.workingHours[day].start = workingHours[day].start ?? vendor.workingHours[day].start;
+        vendor.workingHours[day].end = workingHours[day].end ?? vendor.workingHours[day].end;
+        vendor.workingHours[day].available = workingHours[day].available ?? vendor.workingHours[day].available;
+      }
+    }
+
+    await vendor.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Working hours updated successfully",
+      workingHours: vendor.workingHours,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+
 
 
 module.exports = {
@@ -279,5 +318,6 @@ module.exports = {
   updateVendorStatusCtrl,
   getVendorByIDCtrl,
   updateVendorProfileCtrl,
-  updateVendorPercentageCtrl
+  updateVendorPercentageCtrl,
+  updateWorkingHours
 };

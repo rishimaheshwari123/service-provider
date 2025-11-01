@@ -146,7 +146,7 @@ const Navbar = () => {
                 alt="Logo"
                 className=" h-10 md:h-12 object-contain cursor-pointer transition-transform hover:scale-105"
               /> */}
-              <p>Logo</p>
+              <h3 className="text-xl font-bold gradient-text ">Logo</h3>{" "}
             </Link>
           </div>
 
@@ -203,7 +203,7 @@ const Navbar = () => {
             {/* Call Number */}
             <div className="hidden lg:flex items-center space-x-2 text-purple-600 font-semibold">
               <Phone className="h-5 w-5" />
-              <span>+91 98765 43210</span>
+              <span>+91 1234567890</span>
             </div>
 
             {/* Hamburger menu - Mobile only */}

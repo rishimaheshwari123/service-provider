@@ -36,7 +36,7 @@ const ContactSection = () => {
                   <div>
                     <div className="font-medium mb-1">Email</div>
                     <div className="text-muted-foreground">
-                      support@hireexpert.com
+                      support@email.com
                     </div>
                   </div>
                 </div>
@@ -47,9 +47,7 @@ const ContactSection = () => {
                   </div>
                   <div>
                     <div className="font-medium mb-1">Phone</div>
-                    <div className="text-muted-foreground">
-                      +1 (555) 123-4567
-                    </div>
+                    <div className="text-muted-foreground">+91 1234567890</div>
                   </div>
                 </div>
 

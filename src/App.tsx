@@ -38,6 +38,11 @@ import JobCreate from "./components/pages/admin/JobCreate";
 import GetAllJob from "./components/pages/admin/GetAllJob";
 import Careers from "./pages/Career";
 import JobDetail from "./pages/JobDetails";
+import UpdateWorkingHoursPage from "./components/pages/vendor/UpdateWorkingHoursPage";
+import CreateAdd from "./components/pages/admin/CreateAdd";
+import VendorBookings from "./components/pages/vendor/VendorBooking";
+import AllBookingsPage from "./components/pages/admin/AllBookingsPage";
+import Task from "./components/pages/vendor/Task";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -94,6 +99,8 @@ const App = () => {
                 <Route path="get-support" element={<GetCustomerSupport />} />
                 <Route path="add-job" element={<JobCreate />} />
                 <Route path="get-jobs" element={<GetAllJob />} />
+                <Route path="ads" element={<CreateAdd />} />
+                <Route path="bookings" element={<AllBookingsPage />} />
               </Route>
             )}
             {user?.role === "vendor" && (
@@ -110,6 +117,12 @@ const App = () => {
                 <Route path="get-services" element={<VendorServices />} />
                 <Route path="my-profile" element={<VendorProfile />} />
                 <Route path="inquiry-services" element={<VendorGetInquiry />} />
+                <Route path="bookings" element={<VendorBookings />} />
+                <Route path="tasks" element={<Task />} />
+                <Route
+                  path="working-hours"
+                  element={<UpdateWorkingHoursPage />}
+                />
               </Route>
             )}
 

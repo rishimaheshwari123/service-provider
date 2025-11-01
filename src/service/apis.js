@@ -23,6 +23,7 @@ export const vendor = {
   UPDATE_VENDOR: BASE_URL + "/vendor/update",
   UPDATE_VENDOR_PROFILE: BASE_URL + "/vendor/update-profile",
   UPDATE_VENDOR_PERSANTAGE: BASE_URL + "/vendor/update-percentage",
+  UPDATE_VENDOR_WORKING_HOURS: BASE_URL + "/vendor/working-hours",
 }
 
 export const property = {
@@ -68,4 +69,16 @@ export const career = {
   CREATE_CAREER_API: BASE_URL + "/career/create",
   GET_ALL_CAREER_API: BASE_URL + "/career/getAll",
 
+}
+
+
+export const ratingEndpoints = {
+  ADD_RATING_API: BASE_URL + "/rating/create",
+  GETALL_RATING_API: BASE_URL + "/rating/getAll",
+}
+export const booking = {
+  CREATE_BOOKING: BASE_URL + "/booking/create",
+  GET_ALL_BOOKINGS: BASE_URL + "/booking/getAll",
+  GET_VENDOR_ALL_BOOKINGS: BASE_URL + "/booking/get",
+  UPDATE_BOOKING_STATUS_BOOKINGS: BASE_URL + "/booking/update",
 }

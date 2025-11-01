@@ -14,6 +14,7 @@ import {
   Shield,
   Briefcase,
   ListChecks,
+  ListOrdered,
 } from "lucide-react";
 import { UserCog, FilePlus2, Files } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -130,6 +131,20 @@ const Sidebar = () => {
       to: "/admin/get-jobs",
       icon: ListChecks, // another good option, or you can use FileText
       label: "All Jobs",
+      color: "text-blue-600",
+      permission: null,
+    },
+    {
+      to: "/admin/ads",
+      icon: ListChecks, // another good option, or you can use FileText
+      label: "Promote Your Service",
+      color: "text-blue-600",
+      permission: null,
+    },
+    {
+      to: "/admin/bookings",
+      icon: ListOrdered, // another good option, or you can use FileText
+      label: "Bookings",
       color: "text-blue-600",
       permission: null,
     },
