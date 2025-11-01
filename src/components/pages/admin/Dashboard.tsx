@@ -12,6 +12,7 @@ import {
   FaHeadset,
   FaChartLine, // Added for a modern touch to the main stat section
 } from "react-icons/fa";
+import AdminDashboardSummary from "./AdminDashboardSummary";
 
 // Interface for the dashboard data for better type safety
 interface DashboardData {
@@ -181,6 +182,7 @@ const Dashboard = () => {
           </div>
         )}
       </section>
+      <AdminDashboardSummary />
 
       {/* --- */}
 

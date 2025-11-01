@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import VendorGetInquiry from "./VendorGetInquiry";
 import { useNavigate } from "react-router-dom";
+import DashboardSummary from "./DashboardSummary";
 
 // Interface for the dashboard data for better type safety
 interface VendorDashboardData {
@@ -152,6 +153,9 @@ const VendorDashboard = () => {
           })}
         </div>
       </section>
+
+      <DashboardSummary />
+      <br />
       {/* Quick Actions Section (Modern Grid) */}
       <section className="mb-16">
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-8 uppercase tracking-wider">
