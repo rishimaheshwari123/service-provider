@@ -156,6 +156,13 @@ const Sidebar = () => {
       color: "text-blue-600",
       permission: null,
     },
+    {
+      to: "/admin/categories",
+      icon: Files,
+      label: "Manage Categories",
+      color: "text-indigo-600",
+      permission: null,
+    },
   ];
 
   // Filter menu items based on user permissions

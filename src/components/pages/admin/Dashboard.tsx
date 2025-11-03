@@ -13,6 +13,8 @@ import {
   FaChartLine, // Added for a modern touch to the main stat section
 } from "react-icons/fa";
 import AdminDashboardSummary from "./AdminDashboardSummary";
+import { getAllCategoriesAPI } from "@/service/operations/category";
+import { Button } from "@/components/ui/button";
 
 // Interface for the dashboard data for better type safety
 interface DashboardData {
@@ -32,6 +34,7 @@ const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<any[]>([]);
 
   // Re-define quickActions with slightly refined descriptions and modern colors
   const quickActions = [
@@ -101,10 +104,13 @@ const Dashboard = () => {
       try {
         const res = await getAdminDashboardData();
         setData(res);
+        const cats = await getAllCategoriesAPI();
+        setCategories(cats);
       } catch (error) {
         console.error("Failed to fetch dashboard data:", error);
         // Optionally set data to default on error
         setData({ users: 0, vendors: 0, services: 0, inquiries: 0 });
+        setCategories([]);
       } finally {
         setLoading(false);
       }
@@ -217,6 +223,29 @@ const Dashboard = () => {
       </section>
 
       {/* --- */}
+
+      {/* Categories Overview */}
+      <section className="mb-16">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">Categories Overview</h2>
+          <Button onClick={() => navigate("/admin/categories")}>Manage Categories</Button>
+        </div>
+        {categories.length === 0 ? (
+          <p className="text-gray-500">No categories created yet.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories.slice(0, 6).map((c) => (
+              <div key={c._id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-gray-800">{c.name}</h3>
+                  <span className="text-sm text-gray-600">₹{c.price}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Active: {c.active ? "Yes" : "No"}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* All Users Component */}
       <section className="mt-16">

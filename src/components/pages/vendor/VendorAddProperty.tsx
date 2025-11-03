@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +17,7 @@ import Dropzone from "react-dropzone";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/redux/store";
 import { createPropertyAPI } from "@/service/operations/property";
+import { getPurchasedCategoriesAPI } from "@/service/operations/category";
 import { imageUpload } from "@/service/operations/image";
 
 const VendorAddService = () => {
@@ -31,6 +32,7 @@ const VendorAddService = () => {
   });
 
   const [images, setImages] = useState([]);
+  const [myCategories, setMyCategories] = useState<any[]>([]);
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
@@ -53,6 +55,15 @@ const VendorAddService = () => {
       toast.error("Image upload failed");
     }
   };
+
+  useEffect(() => {
+    const loadCats = async () => {
+      if (!user?._id) return;
+      const cats = await getPurchasedCategoriesAPI(user._id);
+      setMyCategories(cats);
+    };
+    loadCats();
+  }, [user?._id]);
 
   const removeImage = (publicId: string) => {
     setImages((prev) => prev.filter((img) => img.public_id !== publicId));
@@ -178,20 +189,15 @@ const VendorAddService = () => {
                 <Label htmlFor="category">Category</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) =>
-                    handleSelectChange("category", value)
-                  }
+                  onValueChange={(value) => handleSelectChange("category", value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={myCategories.length ? "Select category" : "No purchased categories"} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="plumbing">Plumbing</SelectItem>
-                    <SelectItem value="electrical">Electrical</SelectItem>
-                    <SelectItem value="cleaning">Cleaning</SelectItem>
-                    <SelectItem value="tutoring">Tutoring</SelectItem>
-                    <SelectItem value="it-support">IT Support</SelectItem>
-                    <SelectItem value="others">Others</SelectItem>
+                    {myCategories.map((c) => (
+                      <SelectItem key={c._id} value={c.name}>{c.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

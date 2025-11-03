@@ -134,6 +134,13 @@ const VendorSidebar = () => {
       color: "text-pink-600",
       permission: null,
     },
+    {
+      to: "/vendor/purchase-categories",
+      icon: Building2,
+      label: "Purchase Categories",
+      color: "text-indigo-600",
+      permission: null,
+    },
   ];
   // Filter menu items based on user permissions
   const menuItems = allMenuItems.filter(

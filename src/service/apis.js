@@ -1,6 +1,6 @@
 
-const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
-// const BASE_URL = "http://localhost:8000/api/v1"
+// const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
+const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -36,6 +36,15 @@ export const property = {
   UPDATE_PROPERTY_API: BASE_URL + "/property/update",
   DELETE_PROPERTY_API: BASE_URL + "/property/delete",
   GET_PROPERTY_BY_ID_API: BASE_URL + "/property/get",
+}
+
+export const category = {
+  CREATE_CATEGORY_API: BASE_URL + "/category/create",
+  GET_ALL_CATEGORY_API: BASE_URL + "/category/getAll",
+  UPDATE_CATEGORY_API: BASE_URL + "/category/update",
+  PURCHASE_CATEGORY_API: BASE_URL + "/category/purchase",
+  GET_PURCHASED_CATEGORY_API: BASE_URL + "/category/purchased",
+  GET_CATEGORY_PURCHASERS_API: BASE_URL + "/category/purchasers",
 }
 export const contact = {
   CREATE_CONTACT_API: BASE_URL + "/contact/create",

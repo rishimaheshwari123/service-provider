@@ -14,6 +14,9 @@ import {
 import VendorGetInquiry from "./VendorGetInquiry";
 import { useNavigate } from "react-router-dom";
 import DashboardSummary from "./DashboardSummary";
+import { getPurchasedCategoriesAPI, getAllCategoriesAPI } from "@/service/operations/category";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 
 // Interface for the dashboard data for better type safety
 interface VendorDashboardData {
@@ -25,6 +28,9 @@ const VendorDashboard = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [dashboardData, setDashboardData] = useState<VendorDashboardData>({});
   const [loading, setLoading] = useState<boolean>(true);
+  const [purchasedCategories, setPurchasedCategories] = useState<any[]>([]);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,16 +41,29 @@ const VendorDashboard = () => {
         // Assuming getVendorDashboardData returns the required data
         const data = await getVendorDashboardData(user._id);
         setDashboardData(data);
+        const cats = await getPurchasedCategoriesAPI(user._id);
+        setPurchasedCategories(cats);
+        const all = await getAllCategoriesAPI();
+        setAllCategories(all);
       } catch (error) {
         console.error("Failed to fetch vendor dashboard data:", error);
         // Set to default or handle error state
         setDashboardData({ totalServices: 0, totalInquiries: 0 });
+        setPurchasedCategories([]);
+        setAllCategories([]);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, [user]);
+
+  const filteredPurchased = purchasedCategories.filter((c) =>
+    c.name?.toLowerCase().includes(search.toLowerCase())
+  );
+  const filteredAvailable = allCategories
+    .filter((ac) => !purchasedCategories.some((pc) => pc._id === ac._id))
+    .filter((c) => c.name?.toLowerCase().includes(search.toLowerCase()));
 
   // Utility array for the Stats cards
   const statsCards = [
@@ -156,6 +175,61 @@ const VendorDashboard = () => {
 
       <DashboardSummary />
       <br />
+      {/* Categories Tab */}
+      <section className="mb-16">
+        <Tabs defaultValue="purchased" className="w-full">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-gray-800">Categories</h2>
+            <button className="px-4 py-2 bg-indigo-600 text-white rounded-md" onClick={() => navigate("/vendor/purchase-categories")}>Go to Purchase</button>
+          </div>
+          <div className="mb-4">
+            <Input
+              placeholder="Search categories..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <TabsList>
+            <TabsTrigger value="purchased">Purchased</TabsTrigger>
+            <TabsTrigger value="available">Available</TabsTrigger>
+          </TabsList>
+          <TabsContent value="purchased" className="mt-6">
+            {filteredPurchased.length === 0 ? (
+              <p className="text-gray-500">You have not purchased any categories yet.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {filteredPurchased.map((c) => (
+                  <div key={c._id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-gray-800">{c.name}</h3>
+                      <span className="text-sm text-gray-600">₹{c.price}</span>
+                    </div>
+                    <p className="text-gray-500 text-sm mt-2">You can add services under this category.</p>
+                    <button className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md" onClick={() => navigate("/vendor/services")}>Add Service</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="available" className="mt-6">
+            {filteredAvailable.length === 0 ? (
+              <p className="text-gray-500">No categories available.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {filteredAvailable.map((c) => (
+                  <div key={c._id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-gray-800">{c.name}</h3>
+                      <span className="text-sm text-gray-600">₹{c.price}</span>
+                    </div>
+                    <button className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md" onClick={() => navigate("/vendor/purchase-categories")}>Purchase</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      </section>
       {/* Quick Actions Section (Modern Grid) */}
       <section className="mb-16">
         <h2 className="text-2xl font-bold text-gray-800 text-center mb-8 uppercase tracking-wider">
