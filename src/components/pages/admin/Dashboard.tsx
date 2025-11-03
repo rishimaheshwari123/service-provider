@@ -168,8 +168,13 @@ const Dashboard = () => {
                       <h3 className="text-sm font-light uppercase opacity-90">
                         {stat.name}
                       </h3>
-                      <p className="text-4xl font-extrabold mt-1">
+                      <p className="text-4xl font-extrabold mt-1 flex items-center gap-2">
                         {stat.value}
+                        {(stat.name === "Users" || stat.name === "Vendors") && (
+                          <span className="text-sm font-medium bg-white/20 px-2 py-0.5 rounded-md">
+                            Active
+                          </span>
+                        )}
                       </p>
                     </div>
                     <div className="p-3 bg-white bg-opacity-20 rounded-full">

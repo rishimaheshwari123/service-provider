@@ -11,7 +11,8 @@ const {
   GET_VENDOR,
   UPDATE_VENDOR_PROFILE,
   UPDATE_VENDOR_PERSANTAGE,
-  UPDATE_VENDOR_WORKING_HOURS
+  UPDATE_VENDOR_WORKING_HOURS,
+  REQUST_FOR_THE_UPDATE_PROFILE_API
 } = vendor;
 
 export async function login(email, password, dispatch) {
@@ -239,6 +240,29 @@ export const updateVendorWorkingHoursAPI = async (id, data) => {
 
   try {
     const response = await apiConnector("PUT", `${UPDATE_VENDOR_WORKING_HOURS}/${id}`, data);
+
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message)
+    return response?.data;
+  } catch (error) {
+    console.error("UPDATE Vendor wokinng hourse API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to update vendor woring hours!");
+    return [];
+  } finally {
+    toast.dismiss(toastId);
+  }
+
+};
+export const requestForTheUpdateProfileAPI = async (id, updateProfileRequest) => {
+
+  const toastId = toast.loading("Loading...");
+
+  try {
+    const response = await apiConnector("POST", `${REQUST_FOR_THE_UPDATE_PROFILE_API}/${id}`, { updateProfileRequest });
 
 
     if (!response?.data?.success) {

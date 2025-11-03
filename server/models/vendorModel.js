@@ -49,6 +49,11 @@ const vendorSchema = new mongoose.Schema(
         token: {
             type: String,
         },
+        updateProfileRequest: {
+            type: String,
+            enum: ["pending", "requested", "approved"],
+            default: "pending",
+        },
         // New field for working hours with available
         workingHours: {
             monday: { start: String, end: String, available: { type: Boolean, default: true } },
@@ -71,7 +76,12 @@ const vendorSchema = new mongoose.Schema(
             fields: { type: [String], default: [] }, // multiple fields
             totalYears: { type: Number, default: 0 },
         },
+
+        profilePhoto: { type: String, },
+        document1: { type: String, },
+        document2: { type: String, },
     },
+
     { timestamps: true }
 );
 

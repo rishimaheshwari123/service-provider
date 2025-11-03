@@ -68,14 +68,13 @@ interface VendorData {
   updatedAt: string;
 }
 
-const VendorProfile = () => {
+const VendorProfileMangeByAdmin = ({ user }) => {
+  console.log(user);
   const [vendor, setVendor] = useState<VendorData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState<Partial<VendorData>>({});
-
-  const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   useEffect(() => {
     fetchVendorData();
@@ -247,51 +246,32 @@ const VendorProfile = () => {
               </p>
             </div>
             <div className="flex gap-2 items-center">
-              {vendor.updateProfileRequest === "approved" ? (
-                !isEditing ? (
+              {!isEditing ? (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
+                </Button>
+              ) : (
+                <div className="flex gap-2">
                   <Button
-                    onClick={() => setIsEditing(true)}
+                    onClick={handleSave}
+                    disabled={updating}
                     className="flex items-center gap-2"
                   >
-                    <Edit className="w-4 h-4" />
-                    Edit Profile
+                    <Save className="w-4 h-4" />
+                    {updating ? "Saving..." : "Save"}
                   </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleSave}
-                      disabled={updating}
-                      className="flex items-center gap-2"
-                    >
-                      <Save className="w-4 h-4" />
-                      {updating ? "Saving..." : "Save"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={updating}
-                      className="flex items-center gap-2"
-                    >
-                      <X className="w-4 h-4" />
-                      Cancel
-                    </Button>
-                  </div>
-                )
-              ) : vendor.updateProfileRequest === "requested" ? (
-                <p className="text-yellow-600">
-                  Your request has been sent. Admin will verify and approve
-                  shortly.
-                </p>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <p className="text-yellow-600">
-                    You need permission before updating your profile.
-                  </p>
                   <Button
-                    onClick={handleRequestUpdate}
-                    className="bg-blue-500 text-white hover:bg-blue-600"
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={updating}
+                    className="flex items-center gap-2"
                   >
-                    Make Request for Update Profile
+                    <X className="w-4 h-4" />
+                    Cancel
                   </Button>
                 </div>
               )}
@@ -821,4 +801,4 @@ const VendorProfile = () => {
   );
 };
 
-export default VendorProfile;
+export default VendorProfileMangeByAdmin;

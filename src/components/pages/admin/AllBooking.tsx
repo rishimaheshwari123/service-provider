@@ -126,7 +126,7 @@ const AllBooking: React.FC<AllBookingProps> = ({ user }) => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-extrabold mb-8 text-gray-800 border-b pb-2">
-        Vendor Bookings
+        Partner Bookings
       </h1>
 
       {bookings.length === 0 ? (

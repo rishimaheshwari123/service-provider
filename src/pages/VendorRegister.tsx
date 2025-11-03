@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
+import { toast } from "react-toastify";
+
 const VendorRegister = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -18,6 +20,9 @@ const VendorRegister = () => {
     adhar: "",
     pan: "",
   });
+  const [showModal, setShowModal] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+
   const navigate = useNavigate();
 
   const handleChange = (
@@ -31,6 +36,12 @@ const VendorRegister = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!accepted) {
+      toast.error("Please accept the Terms & Conditions before registering.");
+      return;
+    }
+
     const response = await signUp(formData);
     if (response) {
       navigate("/vendor/login");
@@ -48,6 +59,7 @@ const VendorRegister = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Input fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
@@ -123,6 +135,7 @@ const VendorRegister = () => {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="adhar">Adhar Number</Label>
               <Input
@@ -134,6 +147,7 @@ const VendorRegister = () => {
                 required
               />
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="pan">Pan Number</Label>
               <Input
@@ -158,10 +172,35 @@ const VendorRegister = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full gradient-gold text-white">
+            {/* Terms & Conditions */}
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="terms"
+                checked={accepted}
+                onChange={(e) => setAccepted(e.target.checked)}
+                className="cursor-pointer"
+              />
+              <label htmlFor="terms" className="text-sm text-gray-700">
+                I agree to the{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowModal(true)}
+                  className="text-blue-600 hover:underline"
+                >
+                  Terms & Conditions
+                </button>
+              </label>
+            </div>
+
+            <Button
+              type="submit"
+              className="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white"
+            >
               Register
             </Button>
           </form>
+
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
@@ -175,6 +214,55 @@ const VendorRegister = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal for Terms & Conditions */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+          <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg relative">
+            <h2 className="text-xl font-semibold mb-3">Terms & Conditions</h2>
+            <div className="max-h-64 overflow-y-auto text-gray-700 text-sm space-y-2">
+              <p>
+                1. By registering as a vendor, you agree to provide accurate and
+                truthful information about your business.
+              </p>
+              <p>
+                2. All uploaded data and property listings must comply with our
+                platform’s guidelines.
+              </p>
+              <p>
+                3. Misuse of the platform or providing false information may
+                result in account suspension.
+              </p>
+              <p>
+                4. Your data may be used for communication and verification
+                purposes only.
+              </p>
+              <p>
+                5. The company reserves the right to update or modify terms at
+                any time.
+              </p>
+            </div>
+            <div className="flex justify-end gap-3 mt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowModal(false)}
+                className="px-4"
+              >
+                Close
+              </Button>
+              <Button
+                onClick={() => {
+                  setAccepted(true);
+                  setShowModal(false);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-4"
+              >
+                Accept
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

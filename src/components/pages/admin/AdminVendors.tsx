@@ -70,11 +70,13 @@ import {
   updateVendorStatusAPI,
   updateVendorPersentageAPI,
   updateVendorProfileAPI,
+  requestForTheUpdateProfileAPI,
 } from "@/service/operations/vendor";
 import { getVendorPropertyAPI } from "@/service/operations/property";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 import AllBooking from "./AllBooking";
+import VendorProfileMangeByAdmin from "./VendorProfileMangeByAdmin";
 const VendorManagement = () => {
   const [vendors, setVendors] = useState([]);
   const [percentages, setPercentages] = useState({});
@@ -96,7 +98,8 @@ const VendorManagement = () => {
   const [loadingProperties, setLoadingProperties] = useState(false);
   const [updatingPercentage, setUpdatingPercentage] = useState({});
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
-
+  const [accepted, setAccepted] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
@@ -109,6 +112,7 @@ const VendorManagement = () => {
     description: "",
     adhar: "",
     pan: "",
+    status: "approved",
   });
 
   // Fetch all vendors
@@ -269,6 +273,14 @@ const VendorManagement = () => {
   const handleAddVendor = async (e) => {
     e.preventDefault();
 
+    if (!accepted) {
+      toast({
+        title: "Error",
+        description: "Please accept the Terms & Conditions before registering.",
+        variant: "destructive",
+      });
+      return;
+    }
     // Validate required fields
     const requiredFields = [
       "name",
@@ -314,6 +326,7 @@ const VendorManagement = () => {
           description: "",
           adhar: "",
           pan: "",
+          status: "approved",
         });
 
         setIsAddDialogOpen(false);
@@ -469,10 +482,10 @@ const VendorManagement = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
             <Building2 className="w-8 h-8 text-blue-600" />
-            Vendor Management
+            Partner Management
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage vendor applications and approvals
+            Manage partner applications and approvals
           </p>
         </div>
 
@@ -497,19 +510,21 @@ const VendorManagement = () => {
             <DialogTrigger asChild>
               <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg">
                 <Plus className="w-4 h-4 mr-2" />
-                Add Vendor
+                Add Partner
               </Button>
             </DialogTrigger>
+
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <User className="w-5 h-5 text-blue-600" />
-                  Add New Vendor
+                  Add New Partner
                 </DialogTitle>
                 <DialogDescription>
                   Register a new vendor to list their properties
                 </DialogDescription>
               </DialogHeader>
+
               <form onSubmit={handleAddVendor} className="space-y-4 mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -645,6 +660,27 @@ const VendorManagement = () => {
                   />
                 </div>
 
+                {/* ✅ Terms & Conditions Checkbox */}
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="terms"
+                    checked={accepted}
+                    onChange={(e) => setAccepted(e.target.checked)}
+                    className="cursor-pointer"
+                  />
+                  <label htmlFor="terms" className="text-sm text-gray-700">
+                    I agree to the{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowTermsModal(true)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Terms & Conditions
+                    </button>
+                  </label>
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <Button
                     type="submit"
@@ -673,6 +709,56 @@ const VendorManagement = () => {
                   </Button>
                 </div>
               </form>
+
+              {/* ✅ Terms & Conditions Modal */}
+              {showTermsModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
+                  <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg">
+                    <h2 className="text-xl font-semibold mb-3">
+                      Terms & Conditions
+                    </h2>
+                    <div className="max-h-64 overflow-y-auto text-gray-700 text-sm space-y-2">
+                      <p>
+                        1. By registering, you confirm that all provided details
+                        are accurate and valid.
+                      </p>
+                      <p>
+                        2. Vendors must comply with platform rules and maintain
+                        the quality of listings.
+                      </p>
+                      <p>
+                        3. Misuse, spam, or false data will lead to account
+                        termination.
+                      </p>
+                      <p>
+                        4. Data collected will be used for communication and
+                        verification purposes only.
+                      </p>
+                      <p>
+                        5. The platform reserves the right to modify these terms
+                        at any time.
+                      </p>
+                    </div>
+                    <div className="flex justify-end gap-3 mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowTermsModal(false)}
+                      >
+                        Close
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setAccepted(true);
+                          setShowTermsModal(false);
+                        }}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        Accept
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </DialogContent>
           </Dialog>
         </div>
@@ -686,7 +772,7 @@ const VendorManagement = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search vendors..."
+                  placeholder="Search partners..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -715,7 +801,7 @@ const VendorManagement = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5" />
-            All Vendors ({filteredVendors.length})
+            All Partners ({filteredVendors.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -732,7 +818,7 @@ const VendorManagement = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Vendor</TableHead>
+                    <TableHead>Partner</TableHead>
                     <TableHead>Company</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Documents</TableHead>
@@ -869,7 +955,7 @@ const VendorManagement = () => {
                               onClick={() => openEditDialog(vendor)}
                             >
                               <Edit className="w-4 h-4 mr-2" />
-                              Edit Vendor
+                              Edit Partner
                             </DropdownMenuItem>
                             {vendor.status === "pending" && (
                               <>
@@ -949,7 +1035,7 @@ const VendorManagement = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Eye className="w-5 h-5 text-blue-600" />
-              Vendor Details
+              Partner Details
             </DialogTitle>
             <DialogDescription>
               Complete information about the vendor and their services
@@ -958,6 +1044,62 @@ const VendorManagement = () => {
 
           {selectedVendor && (
             <div className="space-y-6">
+              {/* ---- Update Profile Request Status ---- */}
+              {selectedVendor.updateProfileRequest === "requested" && (
+                <div className="flex items-center justify-between p-4 mb-4 bg-blue-50 rounded-md border border-blue-200">
+                  <span className="font-medium text-blue-700">
+                    Vendor has requested profile update.
+                  </span>
+                  <div className="flex gap-2">
+                    {/* Approve Button */}
+                    <Button
+                      className="bg-green-500 text-white hover:bg-green-600"
+                      onClick={async () => {
+                        const result = await requestForTheUpdateProfileAPI(
+                          selectedVendor._id,
+                          "approved"
+                        );
+                        if (result?.success) {
+                          setSelectedVendor((prev) => ({
+                            ...prev,
+                            updateProfileRequest: "approved",
+                          }));
+                          toast({
+                            title: "Success",
+                            description: `Request update successfully`,
+                          });
+                        }
+                      }}
+                    >
+                      Approve
+                    </Button>
+
+                    {/* Reject Button */}
+                    <Button
+                      className="bg-red-500 text-white hover:bg-red-600"
+                      onClick={async () => {
+                        const result = await requestForTheUpdateProfileAPI(
+                          selectedVendor._id,
+                          "pending"
+                        );
+                        if (result?.success) {
+                          setSelectedVendor((prev) => ({
+                            ...prev,
+                            updateProfileRequest: "pending",
+                          }));
+                          toast({
+                            title: "Success",
+                            description: `Request reject successfully`,
+                          });
+                        }
+                      }}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              )}
+
               {/* Vendor Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
@@ -999,43 +1141,7 @@ const VendorManagement = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-green-600" />
-                      Additional Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <IdCard className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Aadhar:</span>
-                      <span>{selectedVendor?.adhar || "Not provided"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">PAN:</span>
-                      <span>{selectedVendor?.pan || "Not provided"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Percent className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Commission:</span>
-                      <span>{selectedVendor?.percentage || 0}%</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Phone:</span>
-                      <span>{selectedVendor?.phone || "Not provided"}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                      <span className="font-medium">Address:</span>
-                      <span className="text-sm">
-                        {selectedVendor?.address || "Not provided"}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+                {/* ... Additional Details Card */}
               </div>
 
               {/* Properties Section */}
@@ -1049,56 +1155,7 @@ const VendorManagement = () => {
                     )}
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  {loadingProperties ? (
-                    <div className="text-center py-8">
-                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
-                      <p className="text-gray-500">Loading services...</p>
-                    </div>
-                  ) : vendorProperties.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {vendorProperties.map((property) => (
-                        <Card key={property._id} className="overflow-hidden">
-                          <div className="aspect-video relative">
-                            <img
-                              src={
-                                property?.images?.[0]?.url ||
-                                "/placeholder.svg?height=200&width=300"
-                              }
-                              alt={property?.title || "Property image"}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                          <CardContent className="p-4">
-                            <h4 className="font-semibold text-lg mb-2">
-                              {property?.title}
-                            </h4>
-                            <div className="space-y-2 text-sm">
-                              <div className="flex items-center gap-2">
-                                <Building2 className="w-4 h-4 text-gray-400" />
-                                <span>{property.type}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <MapPin className="w-4 h-4 text-gray-400" />
-                                <span>{property.location}</span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-green-600">
-                                  ₹{property.price}
-                                </span>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                      <p>No properties found for this vendor.</p>
-                    </div>
-                  )}
-                </CardContent>
+                <CardContent>{/* ... Property cards */}</CardContent>
               </Card>
 
               <AllBooking user={selectedVendor} />
@@ -1109,205 +1166,206 @@ const VendorManagement = () => {
 
       {/* Edit Vendor Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="w-5 h-5 text-blue-600" />
-              Edit Vendor
+              Edit Partner
             </DialogTitle>
-            <DialogDescription>Update vendor information</DialogDescription>
+            <DialogDescription>Update partner information</DialogDescription>
           </DialogHeader>
           {editingVendor && (
-            <form onSubmit={handleEditVendor} className="space-y-4 mt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="edit-name"
-                    className="flex items-center gap-2"
-                  >
-                    <User className="w-4 h-4" />
-                    Full Name
-                  </Label>
-                  <Input
-                    id="edit-name"
-                    value={editingVendor.name}
-                    onChange={(e) =>
-                      setEditingVendor({
-                        ...editingVendor,
-                        name: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="edit-email"
-                    className="flex items-center gap-2"
-                  >
-                    <Mail className="w-4 h-4" />
-                    Email
-                  </Label>
-                  <Input
-                    id="edit-email"
-                    type="email"
-                    value={editingVendor.email}
-                    onChange={(e) =>
-                      setEditingVendor({
-                        ...editingVendor,
-                        email: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-              </div>
+            <VendorProfileMangeByAdmin user={editingVendor} />
+            // <form onSubmit={handleEditVendor} className="space-y-4 mt-4">
+            //   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            //     <div className="space-y-2">
+            //       <Label
+            //         htmlFor="edit-name"
+            //         className="flex items-center gap-2"
+            //       >
+            //         <User className="w-4 h-4" />
+            //         Full Name
+            //       </Label>
+            //       <Input
+            //         id="edit-name"
+            //         value={editingVendor.name}
+            //         onChange={(e) =>
+            //           setEditingVendor({
+            //             ...editingVendor,
+            //             name: e.target.value,
+            //           })
+            //         }
+            //         required
+            //       />
+            //     </div>
+            //     <div className="space-y-2">
+            //       <Label
+            //         htmlFor="edit-email"
+            //         className="flex items-center gap-2"
+            //       >
+            //         <Mail className="w-4 h-4" />
+            //         Email
+            //       </Label>
+            //       <Input
+            //         id="edit-email"
+            //         type="email"
+            //         value={editingVendor.email}
+            //         onChange={(e) =>
+            //           setEditingVendor({
+            //             ...editingVendor,
+            //             email: e.target.value,
+            //           })
+            //         }
+            //         required
+            //       />
+            //     </div>
+            //   </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="edit-phone"
-                    className="flex items-center gap-2"
-                  >
-                    <Phone className="w-4 h-4" />
-                    Phone Number
-                  </Label>
-                  <Input
-                    id="edit-phone"
-                    value={editingVendor.phone}
-                    onChange={(e) =>
-                      setEditingVendor({
-                        ...editingVendor,
-                        phone: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="edit-company"
-                    className="flex items-center gap-2"
-                  >
-                    <Building2 className="w-4 h-4" />
-                    Company
-                  </Label>
-                  <Input
-                    id="edit-company"
-                    value={editingVendor.company}
-                    onChange={(e) =>
-                      setEditingVendor({
-                        ...editingVendor,
-                        company: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                </div>
-              </div>
+            //   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            //     <div className="space-y-2">
+            //       <Label
+            //         htmlFor="edit-phone"
+            //         className="flex items-center gap-2"
+            //       >
+            //         <Phone className="w-4 h-4" />
+            //         Phone Number
+            //       </Label>
+            //       <Input
+            //         id="edit-phone"
+            //         value={editingVendor.phone}
+            //         onChange={(e) =>
+            //           setEditingVendor({
+            //             ...editingVendor,
+            //             phone: e.target.value,
+            //           })
+            //         }
+            //         required
+            //       />
+            //     </div>
+            //     <div className="space-y-2">
+            //       <Label
+            //         htmlFor="edit-company"
+            //         className="flex items-center gap-2"
+            //       >
+            //         <Building2 className="w-4 h-4" />
+            //         Company
+            //       </Label>
+            //       <Input
+            //         id="edit-company"
+            //         value={editingVendor.company}
+            //         onChange={(e) =>
+            //           setEditingVendor({
+            //             ...editingVendor,
+            //             company: e.target.value,
+            //           })
+            //         }
+            //         required
+            //       />
+            //     </div>
+            //   </div>
 
-              <div className="space-y-2">
-                <Label
-                  htmlFor="edit-address"
-                  className="flex items-center gap-2"
-                >
-                  <MapPin className="w-4 h-4" />
-                  Address
-                </Label>
-                <Input
-                  id="edit-address"
-                  value={editingVendor.address}
-                  onChange={(e) =>
-                    setEditingVendor({
-                      ...editingVendor,
-                      address: e.target.value,
-                    })
-                  }
-                  required
-                />
-              </div>
+            //   <div className="space-y-2">
+            //     <Label
+            //       htmlFor="edit-address"
+            //       className="flex items-center gap-2"
+            //     >
+            //       <MapPin className="w-4 h-4" />
+            //       Address
+            //     </Label>
+            //     <Input
+            //       id="edit-address"
+            //       value={editingVendor.address}
+            //       onChange={(e) =>
+            //         setEditingVendor({
+            //           ...editingVendor,
+            //           address: e.target.value,
+            //         })
+            //       }
+            //       required
+            //     />
+            //   </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="edit-adhar"
-                    className="flex items-center gap-2"
-                  >
-                    <IdCard className="w-4 h-4" />
-                    Aadhar Number
-                  </Label>
-                  <Input
-                    id="edit-adhar"
-                    value={editingVendor.adhar}
-                    onChange={(e) =>
-                      setEditingVendor({
-                        ...editingVendor,
-                        adhar: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="edit-pan" className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    PAN Number
-                  </Label>
-                  <Input
-                    id="edit-pan"
-                    value={editingVendor.pan}
-                    onChange={(e) =>
-                      setEditingVendor({
-                        ...editingVendor,
-                        pan: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
+            //   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            //     <div className="space-y-2">
+            //       <Label
+            //         htmlFor="edit-adhar"
+            //         className="flex items-center gap-2"
+            //       >
+            //         <IdCard className="w-4 h-4" />
+            //         Aadhar Number
+            //       </Label>
+            //       <Input
+            //         id="edit-adhar"
+            //         value={editingVendor.adhar}
+            //         onChange={(e) =>
+            //           setEditingVendor({
+            //             ...editingVendor,
+            //             adhar: e.target.value,
+            //           })
+            //         }
+            //       />
+            //     </div>
+            //     <div className="space-y-2">
+            //       <Label htmlFor="edit-pan" className="flex items-center gap-2">
+            //         <CreditCard className="w-4 h-4" />
+            //         PAN Number
+            //       </Label>
+            //       <Input
+            //         id="edit-pan"
+            //         value={editingVendor.pan}
+            //         onChange={(e) =>
+            //           setEditingVendor({
+            //             ...editingVendor,
+            //             pan: e.target.value,
+            //           })
+            //         }
+            //       />
+            //     </div>
+            //   </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={editingVendor.description}
-                  onChange={(e) =>
-                    setEditingVendor({
-                      ...editingVendor,
-                      description: e.target.value,
-                    })
-                  }
-                  rows={3}
-                />
-              </div>
+            //   <div className="space-y-2">
+            //     <Label htmlFor="edit-description">Description</Label>
+            //     <Textarea
+            //       id="edit-description"
+            //       value={editingVendor.description}
+            //       onChange={(e) =>
+            //         setEditingVendor({
+            //           ...editingVendor,
+            //           description: e.target.value,
+            //         })
+            //       }
+            //       rows={3}
+            //     />
+            //   </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4 mr-2" />
-                      Update Vendor
-                    </>
-                  )}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsEditDialogOpen(false)}
-                  disabled={submitting}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </form>
+            //   <div className="flex gap-3 pt-4">
+            //     <Button
+            //       type="submit"
+            //       disabled={submitting}
+            //       className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+            //     >
+            //       {submitting ? (
+            //         <>
+            //           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            //           Updating...
+            //         </>
+            //       ) : (
+            //         <>
+            //           <Check className="w-4 h-4 mr-2" />
+            //           Update Vendor
+            //         </>
+            //       )}
+            //     </Button>
+            //     <Button
+            //       type="button"
+            //       variant="outline"
+            //       onClick={() => setIsEditDialogOpen(false)}
+            //       disabled={submitting}
+            //     >
+            //       Cancel
+            //     </Button>
+            //   </div>
+            // </form>
           )}
         </DialogContent>
       </Dialog>

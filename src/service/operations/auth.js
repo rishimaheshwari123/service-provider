@@ -4,7 +4,7 @@ import { apiConnector } from "../apiConnector";
 import { endpoints } from "../apis";
 import Swal from "sweetalert2";
 const {
-  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE
+  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER
 } = endpoints;
 
 export async function login(email, password, dispatch) {
@@ -165,3 +165,51 @@ export function logout(navigate) {
   };
 }
 
+
+
+export const editPermissionAPI = async (id, dataToUpdate) => {
+
+  const toastId = toast.loading("Loading...");
+
+  try {
+    const response = await apiConnector("PUT", `${EDIT_USER_PERMISSION_API}/${id}`, dataToUpdate);
+
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message)
+    return response?.data;
+  } catch (error) {
+    console.error("permission API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to update permission!");
+    return [];
+  } finally {
+    toast.dismiss(toastId);
+  }
+
+};
+export const deleteUserAPI = async (id) => {
+
+  const toastId = toast.loading("Loading...");
+
+  try {
+    const response = await apiConnector("DELETE", `${DELETE_USER}/${id}`);
+
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message)
+    return response?.data;
+  } catch (error) {
+    console.error("delete user API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to delete user!");
+    return [];
+  } finally {
+    toast.dismiss(toastId);
+  }
+
+};

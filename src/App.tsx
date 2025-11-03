@@ -43,6 +43,7 @@ import CreateAdd from "./components/pages/admin/CreateAdd";
 import VendorBookings from "./components/pages/vendor/VendorBooking";
 import AllBookingsPage from "./components/pages/admin/AllBookingsPage";
 import Task from "./components/pages/vendor/Task";
+import { AddRoles } from "./components/pages/admin/AddRoles";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -101,6 +102,7 @@ const App = () => {
                 <Route path="get-jobs" element={<GetAllJob />} />
                 <Route path="ads" element={<CreateAdd />} />
                 <Route path="bookings" element={<AllBookingsPage />} />
+                <Route path="crm" element={<AddRoles />} />
               </Route>
             )}
             {user?.role === "vendor" && (

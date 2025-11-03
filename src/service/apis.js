@@ -9,6 +9,8 @@ export const endpoints = {
   GET_ALL_USER_API: BASE_URL + "/auth/getAll",
   MY_PROFILE: BASE_URL + "/auth/my-profile",
   CHANGE_USER_TYPE: BASE_URL + "/auth/change-type",
+  EDIT_USER_PERMISSION_API: BASE_URL + "/auth/update",
+  DELETE_USER: BASE_URL + "/auth/delete",
 
 }
 
@@ -24,6 +26,7 @@ export const vendor = {
   UPDATE_VENDOR_PROFILE: BASE_URL + "/vendor/update-profile",
   UPDATE_VENDOR_PERSANTAGE: BASE_URL + "/vendor/update-percentage",
   UPDATE_VENDOR_WORKING_HOURS: BASE_URL + "/vendor/working-hours",
+  REQUST_FOR_THE_UPDATE_PROFILE_API: BASE_URL + "/vendor/request-update",
 }
 
 export const property = {

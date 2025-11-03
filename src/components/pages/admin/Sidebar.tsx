@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { endpoints } from "@/service/apis";
 import { apiConnector } from "@/service/apiConnector";
+import { FaPeopleArrows } from "react-icons/fa";
 
 const { LOGOUT_API } = endpoints;
 
@@ -145,6 +146,13 @@ const Sidebar = () => {
       to: "/admin/bookings",
       icon: ListOrdered, // another good option, or you can use FileText
       label: "Bookings",
+      color: "text-blue-600",
+      permission: null,
+    },
+    {
+      to: "/admin/crm",
+      icon: FaPeopleArrows, // another good option, or you can use FileText
+      label: "Manage Employee",
       color: "text-blue-600",
       permission: null,
     },

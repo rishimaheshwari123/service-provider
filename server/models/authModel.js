@@ -27,6 +27,41 @@ const authSchema = new mongoose.Schema(
         type: {
             type: String,
         },
+        isvendor: {
+            type: Boolean,
+            default: false,
+            trim: true,
+        },
+        isProperties: {
+            type: Boolean,
+            default: false,
+            trim: true,
+        },
+        isInquiry: {
+            type: Boolean,
+            default: false,
+            trim: true,
+        },
+        isBlog: {
+            type: Boolean,
+            default: false,
+            trim: true,
+        },
+        isAppicatoin: {
+            type: Boolean,
+            default: false,
+            trim: true,
+        },
+        isManageEmp: {
+            type: Boolean,
+            default: false,
+            trim: true,
+        },
+        isJob: {
+            type: Boolean,
+            default: false,
+            trim: true,
+        },
     },
     { timestamps: true }
 );

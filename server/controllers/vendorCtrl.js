@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const vendorModel = require("../models/vendorModel");
 const jwt = require("jsonwebtoken");
 
+const { uploadImageToCloudinary } = require("../config/imageUploader")
 
 
 
@@ -239,20 +240,50 @@ const getVendorByIDCtrl = async (req, res) => {
 const updateVendorProfileCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+    const files = req.files;
+    const fileUpdates = {};
 
+    // Always set updateProfileRequest to "pending"
+    updateData.updateProfileRequest = "pending";
+
+    // Transform experience fields from request body
+    if (updateData['experience[fields]'] || updateData['experience[totalYears]']) {
+      updateData.experience = {
+        fields: updateData['experience[fields]']
+          ? Array.isArray(updateData['experience[fields]'])
+            ? updateData['experience[fields]']
+            : [updateData['experience[fields]']]
+          : [],
+        totalYears: updateData['experience[totalYears]']
+          ? Number(updateData['experience[totalYears]'])
+          : 0,
+      };
+
+      delete updateData['experience[fields]'];
+      delete updateData['experience[totalYears]'];
+    }
+
+    // Upload files if provided
+    if (files?.profilePhoto) {
+      const photoUpload = await uploadImageToCloudinary(files.profilePhoto.path, "profilePhoto");
+      fileUpdates.profilePhoto = photoUpload.secure_url;
+    }
+    if (files?.document1) {
+      const doc1Upload = await uploadImageToCloudinary(files.document1.path, "vendorDocuments");
+      fileUpdates.document1 = doc1Upload.secure_url;
+    }
+    if (files?.document2) {
+      const doc2Upload = await uploadImageToCloudinary(files.document2.path, "vendorDocuments");
+      fileUpdates.document2 = doc2Upload.secure_url;
+    }
+
+    // Update vendor
     const updatedVendor = await vendorModel.findByIdAndUpdate(
       id,
-      { $set: updateData },
+      { $set: { ...updateData, ...fileUpdates } },
       { new: true, runValidators: true }
     );
-
-    if (!updatedVendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
-    }
 
     return res.status(200).json({
       success: true,
@@ -260,13 +291,20 @@ const updateVendorProfileCtrl = async (req, res) => {
       vendor: updatedVendor,
     });
   } catch (error) {
-    console.error("Update error:", error);
+    console.error("❌ Update error:", error);
     return res.status(500).json({
       success: false,
       message: "Error updating vendor profile",
+      error: error.message,
     });
   }
 };
+
+
+
+
+
+
 
 
 
@@ -308,7 +346,46 @@ const updateWorkingHours = async (req, res) => {
   }
 };
 
+const requestProfileUpdateCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { updateProfileRequest } = req.body; // get value from body
 
+    if (!updateProfileRequest) {
+      return res.status(400).json({
+        success: false,
+        message: "updateProfileRequest is required",
+      });
+    }
+
+    // Update the vendor's updateProfileRequest field
+    const updatedVendor = await vendorModel.findByIdAndUpdate(
+      id,
+      { updateProfileRequest },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedVendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile update request updated successfully",
+      vendor: updatedVendor,
+    });
+  } catch (error) {
+    console.error("❌ Request update error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating profile request",
+      error: error.message,
+    });
+  }
+};
 
 
 module.exports = {
@@ -319,5 +396,6 @@ module.exports = {
   getVendorByIDCtrl,
   updateVendorProfileCtrl,
   updateVendorPercentageCtrl,
-  updateWorkingHours
+  updateWorkingHours,
+  requestProfileUpdateCtrl
 };
