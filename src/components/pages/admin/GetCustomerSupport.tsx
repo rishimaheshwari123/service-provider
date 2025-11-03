@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Home } from "lucide-react";
 import { getCustomerSupportRequestAPI } from "@/service/operations/customerSupport";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 const GetCustomerSupport = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   useEffect(() => {
     const fetchSupportRequests = async () => {
@@ -43,6 +46,14 @@ const GetCustomerSupport = () => {
       <div className="text-center text-red-600 text-lg p-8">
         <p>{error}</p>
         {/* No back button needed if only requests are displayed */}
+      </div>
+    );
+  }
+
+  if (!user?.isSupport) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
       </div>
     );
   }

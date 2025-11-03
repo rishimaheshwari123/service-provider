@@ -50,6 +50,14 @@ const AddBlog = () => {
     }
   };
 
+  if (!user?.isBlog) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
+
   return (
     <>
       <h6 className="text-blue-600 text-center text-3xl border-b-2 border-blue-600 pb-2">

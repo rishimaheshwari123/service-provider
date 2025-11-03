@@ -3,10 +3,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createCategoryAPI, getAllCategoriesAPI, updateCategoryAPI, getCategoryPurchasersAPI, purchaseCategoryAPI } from "@/service/operations/category";
+import {
+  createCategoryAPI,
+  getAllCategoriesAPI,
+  updateCategoryAPI,
+  getCategoryPurchasersAPI,
+  purchaseCategoryAPI,
+} from "@/service/operations/category";
 import { getAllVendorAPI } from "@/service/operations/vendor";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { RootState } from "@/redux/store";
+import { useSelector } from "react-redux";
 
 const ManageCategories = () => {
   const [form, setForm] = useState({ name: "", price: "" });
@@ -20,6 +39,7 @@ const ManageCategories = () => {
   const [assignOpen, setAssignOpen] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState<string>("");
+  const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   const load = async () => {
     const data = await getAllCategoriesAPI();
@@ -45,7 +65,10 @@ const ManageCategories = () => {
 
   const handleAssign = async () => {
     if (!currentCategory?._id || !selectedVendorId) return;
-    await purchaseCategoryAPI({ vendorId: selectedVendorId, categoryId: currentCategory._id });
+    await purchaseCategoryAPI({
+      vendorId: selectedVendorId,
+      categoryId: currentCategory._id,
+    });
     setAssignOpen(false);
   };
 
@@ -59,7 +82,10 @@ const ManageCategories = () => {
     setLoading(true);
     const priceNum = Number(form.price);
     if (editingId) {
-      await updateCategoryAPI(editingId, { name: form.name.trim(), price: priceNum });
+      await updateCategoryAPI(editingId, {
+        name: form.name.trim(),
+        price: priceNum,
+      });
     } else {
       await createCategoryAPI({ name: form.name.trim(), price: priceNum });
     }
@@ -69,26 +95,65 @@ const ManageCategories = () => {
     setLoading(false);
   };
 
+  if (!user?.isCategoryManage) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
+
   return (
     <div className="p-6">
       <Card className="max-w-xl">
         <CardHeader>
-          <CardTitle>{editingId ? "Edit Category" : "Create Category"}</CardTitle>
+          <CardTitle>
+            {editingId ? "Edit Category" : "Create Category"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
               <Label htmlFor="name">Category Name</Label>
-              <Input id="name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Plumbing" required />
+              <Input
+                id="name"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="e.g. Plumbing"
+                required
+              />
             </div>
             <div>
               <Label htmlFor="price">Price</Label>
-              <Input id="price" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="e.g. 499" required />
+              <Input
+                id="price"
+                value={form.price}
+                onChange={(e) => setForm({ ...form, price: e.target.value })}
+                placeholder="e.g. 499"
+                required
+              />
             </div>
             <div className="flex gap-2">
-              <Button type="submit" disabled={loading}>{loading ? (editingId ? "Updating..." : "Creating...") : (editingId ? "Update" : "Create")}</Button>
+              <Button type="submit" disabled={loading}>
+                {loading
+                  ? editingId
+                    ? "Updating..."
+                    : "Creating..."
+                  : editingId
+                  ? "Update"
+                  : "Create"}
+              </Button>
               {editingId && (
-                <Button type="button" variant="outline" onClick={() => { setEditingId(null); setForm({ name: "", price: "" }); }}>Cancel</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setEditingId(null);
+                    setForm({ name: "", price: "" });
+                  }}
+                >
+                  Cancel
+                </Button>
               )}
             </div>
           </form>
@@ -101,25 +166,53 @@ const ManageCategories = () => {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <Input placeholder="Search categories..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Input
+              placeholder="Search categories..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
           </div>
           <div className="divide-y">
             {categories.length === 0 ? (
               <p className="text-sm text-gray-500">No categories yet.</p>
             ) : (
-              categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase())).map((c) => (
-                <div key={c._id} className="py-2 flex items-center justify-between">
-                  <div>
-                    <span className="font-medium mr-4">{c.name}</span>
-                    <span className="text-gray-600">₹{c.price}</span>
+              categories
+                .filter((c) =>
+                  c.name.toLowerCase().includes(search.toLowerCase())
+                )
+                .map((c) => (
+                  <div
+                    key={c._id}
+                    className="py-2 flex items-center justify-between"
+                  >
+                    <div>
+                      <span className="font-medium mr-4">{c.name}</span>
+                      <span className="text-gray-600">₹{c.price}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => {
+                          setEditingId(c._id);
+                          setForm({ name: c.name, price: String(c.price) });
+                        }}
+                      >
+                        Edit
+                      </Button>
+                      <Button size="sm" onClick={() => openPurchasers(c)}>
+                        View Purchasers
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openAssignToVendor(c)}
+                      >
+                        Assign to Vendor
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="secondary" onClick={() => { setEditingId(c._id); setForm({ name: c.name, price: String(c.price) }); }}>Edit</Button>
-                    <Button size="sm" onClick={() => openPurchasers(c)}>View Purchasers</Button>
-                    <Button size="sm" variant="outline" onClick={() => openAssignToVendor(c)}>Assign to Vendor</Button>
-                  </div>
-                </div>
-              ))
+                ))
             )}
           </div>
         </CardContent>
@@ -131,16 +224,27 @@ const ManageCategories = () => {
             <DialogTitle>Purchasers - {currentCategory?.name}</DialogTitle>
           </DialogHeader>
           {purchasers.length === 0 ? (
-            <p className="text-sm text-gray-500">No purchases yet for this category.</p>
+            <p className="text-sm text-gray-500">
+              No purchases yet for this category.
+            </p>
           ) : (
             <div className="space-y-2">
               {purchasers.map((p, idx) => (
-                <div key={idx} className="flex items-center justify-between py-2 border-b">
+                <div
+                  key={idx}
+                  className="flex items-center justify-between py-2 border-b"
+                >
                   <div>
-                    <p className="font-medium">{p.vendor?.name || "Unknown Vendor"}</p>
-                    <p className="text-xs text-gray-500">{p.vendor?.email || p.vendor?.phone || ""}</p>
+                    <p className="font-medium">
+                      {p.vendor?.name || "Unknown Vendor"}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {p.vendor?.email || p.vendor?.phone || ""}
+                    </p>
                   </div>
-                  <span className="text-xs text-gray-500">{new Date(p.purchasedAt).toLocaleString()}</span>
+                  <span className="text-xs text-gray-500">
+                    {new Date(p.purchasedAt).toLocaleString()}
+                  </span>
                 </div>
               ))}
             </div>
@@ -151,11 +255,16 @@ const ManageCategories = () => {
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Assign "{currentCategory?.name}" to Vendor</DialogTitle>
+            <DialogTitle>
+              Assign "{currentCategory?.name}" to Vendor
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Label>Select Vendor</Label>
-            <Select value={selectedVendorId} onValueChange={(val) => setSelectedVendorId(val)}>
+            <Select
+              value={selectedVendorId}
+              onValueChange={(val) => setSelectedVendorId(val)}
+            >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose a vendor" />
               </SelectTrigger>
@@ -169,8 +278,12 @@ const ManageCategories = () => {
             </Select>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setAssignOpen(false)}>Cancel</Button>
-              <Button disabled={!selectedVendorId} onClick={handleAssign}>Assign</Button>
+              <Button variant="outline" onClick={() => setAssignOpen(false)}>
+                Cancel
+              </Button>
+              <Button disabled={!selectedVendorId} onClick={handleAssign}>
+                Assign
+              </Button>
             </div>
           </div>
         </DialogContent>

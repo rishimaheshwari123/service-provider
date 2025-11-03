@@ -3,6 +3,8 @@ import { toast } from "react-toastify";
 import { getAllBookingAPI } from "@/service/operations/booking";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 interface Booking {
   _id: string;
@@ -37,6 +39,7 @@ interface Booking {
 const AllBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -72,6 +75,13 @@ const AllBookingsPage: React.FC = () => {
     return `${formattedHour}:${minute.toString().padStart(2, "0")} ${period}`;
   };
 
+  if (!user?.isBooking) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
   return (
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 border-b pb-2 text-gray-800">

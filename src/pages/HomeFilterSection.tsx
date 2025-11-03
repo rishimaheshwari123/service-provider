@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import { getAllCategoriesAPI } from "@/service/operations/category"; // ✅ same API as in TopSearchBar
 
 const MIN_PRICE_LIMIT = 0;
 const MAX_PRICE_LIMIT = 50000;
@@ -21,7 +22,17 @@ const HomeFilterSection = () => {
     category: "all",
   });
 
+  const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
+
+  // ✅ Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getAllCategoriesAPI();
+      setCategories(data);
+    };
+    fetchCategories();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -65,6 +76,7 @@ const HomeFilterSection = () => {
 
       {/* Filter Box */}
       <div className="bg-white shadow-md rounded-2xl p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Title */}
         <input
           type="text"
           name="title"
@@ -74,6 +86,7 @@ const HomeFilterSection = () => {
           className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
+        {/* Location */}
         <input
           type="text"
           name="location"
@@ -83,21 +96,26 @@ const HomeFilterSection = () => {
           className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
+        {/* Dynamic Category Select */}
         <Select value={filters.category} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
             <SelectValue placeholder="Select Category" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
-            <SelectItem value="plumbing">Plumbing</SelectItem>
-            <SelectItem value="electrical">Electrical</SelectItem>
-            <SelectItem value="cleaning">Cleaning</SelectItem>
-            <SelectItem value="tutoring">Tutoring</SelectItem>
-            <SelectItem value="it-support">IT Support</SelectItem>
-            <SelectItem value="others">Others</SelectItem>
+            {categories.length > 0 ? (
+              categories.map((cat) => (
+                <SelectItem key={cat._id} value={cat.name}>
+                  {cat.name}
+                </SelectItem>
+              ))
+            ) : (
+              <SelectItem disabled>Loading...</SelectItem>
+            )}
           </SelectContent>
         </Select>
 
+        {/* Search Button */}
         <Button
           onClick={handleSearch}
           className="w-full bg-blue-600 text-white hover:bg-blue-700 transition-all"

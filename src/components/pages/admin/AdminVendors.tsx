@@ -77,6 +77,7 @@ import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 import AllBooking from "./AllBooking";
 import VendorProfileMangeByAdmin from "./VendorProfileMangeByAdmin";
+import { useNavigate } from "react-router-dom";
 const VendorManagement = () => {
   const [vendors, setVendors] = useState([]);
   const [percentages, setPercentages] = useState({});
@@ -100,7 +101,10 @@ const VendorManagement = () => {
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [accepted, setAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const navigate = useNavigate();
   const { toast } = useToast();
+
+  console.log(user);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -471,6 +475,14 @@ const VendorManagement = () => {
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading vendors...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (!user?.isVendor) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
       </div>
     );
   }
@@ -1146,7 +1158,8 @@ const VendorManagement = () => {
 
               {/* Properties Section */}
               <Card>
-                <CardHeader>
+                <CardHeader className="relative">
+                  {/* Left Side - Title */}
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="w-5 h-5 text-purple-600" />
                     Services ({vendorProperties.length})
@@ -1154,8 +1167,68 @@ const VendorManagement = () => {
                       <Loader2 className="w-4 h-4 animate-spin" />
                     )}
                   </CardTitle>
+
+                  {/* Right Side - Button */}
+                  <button
+                    onClick={() =>
+                      navigate(`/admin/add-service/${selectedVendor._id}`)
+                    }
+                    className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 transition"
+                  >
+                    Add Services
+                  </button>
                 </CardHeader>
-                <CardContent>{/* ... Property cards */}</CardContent>
+
+                <CardContent>
+                  {loadingProperties ? (
+                    <div className="text-center py-8">
+                      <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4" />
+                      <p className="text-gray-500">Loading services...</p>
+                    </div>
+                  ) : vendorProperties.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {vendorProperties.map((property) => (
+                        <Card key={property._id} className="overflow-hidden">
+                          <div className="aspect-video relative">
+                            <img
+                              src={
+                                property?.images?.[0]?.url ||
+                                "/placeholder.svg?height=200&width=300"
+                              }
+                              alt={property?.title || "Property image"}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          <CardContent className="p-4">
+                            <h4 className="font-semibold text-lg mb-2">
+                              {property?.title}
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex items-center gap-2">
+                                <Building2 className="w-4 h-4 text-gray-400" />
+                                <span>{property.type}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <MapPin className="w-4 h-4 text-gray-400" />
+                                <span>{property.location}</span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-green-600">
+                                  ₹{property.price}
+                                </span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+                      <p>No Service found for this Partner.</p>
+                    </div>
+                  )}
+                </CardContent>
               </Card>
 
               <AllBooking user={selectedVendor} />

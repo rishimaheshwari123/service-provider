@@ -156,6 +156,14 @@ export default function JobCreate() {
     );
   };
 
+  if (!user?.isJob) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <div className="mb-8">

@@ -54,6 +54,13 @@ const GetBlog = () => {
     const options = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
+  if (!user?.isBlog) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">

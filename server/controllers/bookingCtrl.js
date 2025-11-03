@@ -71,7 +71,7 @@ exports.getBookingsByVendorCtrl = async (req, res) => {
         if (!propertyIds.length) {
             return res.status(404).json({
                 success: false,
-                message: "No properties found for this vendor.",
+                message: "No Service found for this Partner.",
             });
         }
 

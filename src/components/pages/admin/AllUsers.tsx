@@ -12,6 +12,8 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
@@ -21,6 +23,7 @@ const AllUsers = () => {
   const [showModal, setShowModal] = useState(false);
   const [inquiryLoading, setInquiryLoading] = useState(false);
   const [typeLoading, setTypeLoading] = useState(null);
+  const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   const fetchUsers = async () => {
     try {
@@ -72,6 +75,13 @@ const AllUsers = () => {
     setSelectedUser(null);
   };
 
+  if (!user?.isUser) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
   return (
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       <h2 className="text-3xl font-extrabold mb-8 text-gray-900 flex items-center justify-center">

@@ -18,7 +18,7 @@ function CreateAdd() {
   });
   const [ads, setAds] = useState([]);
   const dispatch = useDispatch();
-  const { token } = useSelector((state: RootState) => state.auth);
+  const { token, user } = useSelector((state: RootState) => state.auth);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -136,6 +136,13 @@ function CreateAdd() {
     (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
   );
 
+  if (!user?.isAds) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-100 p-8 font-sans">
       <div className="container mx-auto max-w-7xl">

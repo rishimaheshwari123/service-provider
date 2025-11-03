@@ -9,16 +9,29 @@ const Contact = require("../models/contactModel");
 const registerCtrl = async (req, res) => {
   try {
     const {
-      name, email, password, isvendor, isProperties, isInquiry, isBlog, isAppicatoin, isJob, type
+      name,
+      email,
+      password,
+      type,
+      role,
+      isVendor,
+      isBlog,
+      isUser,
+      isSupport,
+      isJob,
+      isAds,
+      isBooking,
+      isEmpManage,
+      isCategoryManage,
+      isManageService,
     } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(403).send({
+    if (!name || !email || !password || !type || !role) {
+      return res.status(403).json({
         success: false,
         message: "All required fields must be filled",
       });
     }
-
 
     const existingUser = await authModel.findOne({ email });
     if (existingUser) {
@@ -29,8 +42,23 @@ const registerCtrl = async (req, res) => {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
     const user = await authModel.create({
-      name, email, password: hashedPassword, isvendor, isProperties, isInquiry, isBlog, isAppicatoin, isJob, type
+      name,
+      email,
+      password: hashedPassword,
+      type,
+      role,
+      isVendor: isVendor || false,
+      isBlog: isBlog || false,
+      isUser: isUser || false,
+      isSupport: isSupport || false,
+      isJob: isJob || false,
+      isAds: isAds || false,
+      isBooking: isBooking || false,
+      isEmpManage: isEmpManage || false,
+      isCategoryManage: isCategoryManage || false,
+      isManageService: isManageService || false,
     });
 
     const token = jwt.sign(
@@ -42,6 +70,7 @@ const registerCtrl = async (req, res) => {
       expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       httpOnly: true,
     };
+
     res.cookie("token", token, options);
 
     return res.status(200).json({
@@ -51,7 +80,7 @@ const registerCtrl = async (req, res) => {
       message: "User registered successfully",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Registration error:", error);
     return res.status(500).json({
       success: false,
       message: "User cannot be registered. Please try again.",
@@ -147,21 +176,25 @@ const deleteAuthCtrl = async (req, res) => {
   }
 };
 
-
 const editPermissionCtrl = async (req, res) => {
   try {
     const { id } = req.params;
     const {
-      isvendor,
-      isProperties,
-      isInquiry,
+      name,
+      email,
+      type,
+      isVendor,
       isBlog,
-      isAppicatoin,
+      isUser,
+      isSupport,
       isJob,
-      name, email, type
+      isAds,
+      isBooking,
+      isEmpManage,
+      isCategoryManage,
+      isManageService,
     } = req.body;
 
-    console.log(id)
     const user = await authModel.findById(id);
 
     if (!user) {
@@ -171,16 +204,21 @@ const editPermissionCtrl = async (req, res) => {
       });
     }
 
-    // Update permissions
-    user.isvendor = isvendor ?? user.isvendor;
-    user.isProperties = isProperties ?? user.isProperties;
-    user.isInquiry = isInquiry ?? user.isInquiry;
-    user.isBlog = isBlog ?? user.isBlog;
-    user.isAppicatoin = isAppicatoin ?? user.isAppicatoin;
-    user.isJob = isJob ?? user.isJob;
+    // ✅ Update all permissions safely using nullish coalescing (??)
     user.name = name ?? user.name;
     user.email = email ?? user.email;
-    user.type = type ?? user.email;
+    user.type = type ?? user.type;
+
+    user.isVendor = isVendor ?? user.isVendor;
+    user.isBlog = isBlog ?? user.isBlog;
+    user.isUser = isUser ?? user.isUser;
+    user.isSupport = isSupport ?? user.isSupport;
+    user.isJob = isJob ?? user.isJob;
+    user.isAds = isAds ?? user.isAds;
+    user.isBooking = isBooking ?? user.isBooking;
+    user.isEmpManage = isEmpManage ?? user.isEmpManage;
+    user.isCategoryManage = isCategoryManage ?? user.isCategoryManage;
+    user.isManageService = isManageService ?? user.isManageService;
 
     await user.save();
 

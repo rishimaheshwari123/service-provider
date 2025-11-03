@@ -1,9 +1,10 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
+import { getAllCategoriesAPI } from "@/service/operations/category"; // ✅ Import category API
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -15,7 +16,6 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 
-// **अज़्यूम (Assume) करते हैं कि मैक्सिमम पॉसिबल प्राइस यह है, आप इसे अपने डेटा के अनुसार बदल सकते हैं**
 const MAX_PRICE_LIMIT = 50000;
 const MIN_PRICE_LIMIT = 0;
 
@@ -23,9 +23,10 @@ const ServicesPage = () => {
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]); // ✅ category state
   const [filters, setFilters] = useState({
     title: "",
-    price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT], // [min, max]
+    price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
     location: "",
     category: "all",
   });
@@ -48,6 +49,15 @@ const ServicesPage = () => {
     setFilters(newFilters);
   }, [location.search]);
 
+  // ✅ Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getAllCategoriesAPI();
+      setCategories(data);
+    };
+    fetchCategories();
+  }, []);
+
   const fetchServices = async () => {
     try {
       setLoading(true);
@@ -66,7 +76,7 @@ const ServicesPage = () => {
     fetchServices();
   }, []);
 
-  // Apply filters after services are fetched or filters change
+  // Apply filters when services or filters change
   useEffect(() => {
     if (services.length > 0) applyFilters(filters);
   }, [services, filters]);
@@ -128,8 +138,7 @@ const ServicesPage = () => {
             </p>
           </div>
 
-          {/* 🔍 एडवांस फ़िल्टर सेक्शन (Advanced Filter Section) */}
-          {/* 💡 बैकग्राउंड बदला गया: bg-white से bg-gray-50 */}
+          {/* 🔍 Advanced Filter Section */}
           <div className="bg-gray-200 shadow-xl rounded-2xl p-6 mb-10 grid grid-cols-1 md:grid-cols-3 gap-6 border border-gray-200">
             <div className="col-span-1 md:col-span-3">
               <h3 className="text-lg font-semibold mb-3 flex items-center text-primary-dark">
@@ -157,7 +166,7 @@ const ServicesPage = () => {
               className="border rounded-lg px-4 py-3 w-full focus:outline-none focus:ring-2 focus:ring-primary/50 transition duration-150"
             />
 
-            {/* 3. Category Filter */}
+            {/* 3. ✅ Dynamic Category Filter */}
             <Select
               value={filters.category}
               onValueChange={handleCategoryChange}
@@ -167,16 +176,19 @@ const ServicesPage = () => {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="plumbing">Plumbing</SelectItem>
-                <SelectItem value="electrical">Electrical</SelectItem>
-                <SelectItem value="cleaning">Cleaning</SelectItem>
-                <SelectItem value="tutoring">Tutoring</SelectItem>
-                <SelectItem value="support">Support</SelectItem>
-                <SelectItem value="others">Others</SelectItem>
+                {categories.length > 0 ? (
+                  categories.map((cat) => (
+                    <SelectItem key={cat._id} value={cat.name}>
+                      {cat.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem disabled>Loading...</SelectItem>
+                )}
               </SelectContent>
             </Select>
 
-            {/* 4. Price Range Slider (पूरे कॉलम में) */}
+            {/* 4. Price Range Slider */}
             <div className="col-span-1 md:col-span-3 pt-2">
               <label className="text-sm font-medium mb-2 block">
                 Price Range: ₹{filters.price[0].toLocaleString()} - ₹
@@ -186,8 +198,8 @@ const ServicesPage = () => {
                 name="price"
                 min={MIN_PRICE_LIMIT}
                 max={MAX_PRICE_LIMIT}
-                step={500} // ₹500 के स्टेप्स में
-                value={filters.price} // array [min, max]
+                step={500}
+                value={filters.price}
                 onValueChange={handlePriceChange}
                 className="w-full h-2"
               />

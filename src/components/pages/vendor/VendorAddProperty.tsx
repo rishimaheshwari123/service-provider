@@ -1,4 +1,13 @@
 import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/redux/store";
+import { toast } from "react-toastify";
+import Dropzone from "react-dropzone";
+import { createPropertyAPI } from "@/service/operations/property";
+import { getPurchasedCategoriesAPI } from "@/service/operations/category";
+import { imageUpload } from "@/service/operations/image";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,16 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import Dropzone from "react-dropzone";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/redux/store";
-import { createPropertyAPI } from "@/service/operations/property";
-import { getPurchasedCategoriesAPI } from "@/service/operations/category";
-import { imageUpload } from "@/service/operations/image";
 
 const VendorAddService = () => {
+  const { id } = useParams<{ id: string }>(); // vendorId for admin
+  const navigate = useNavigate();
+  const user = useSelector((state: RootState) => state.auth?.user ?? null);
+
   const [formData, setFormData] = useState({
     title: "",
     price: "",
@@ -31,17 +36,31 @@ const VendorAddService = () => {
     vendor: "",
   });
 
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState<any[]>([]);
   const [myCategories, setMyCategories] = useState<any[]>([]);
-  const navigate = useNavigate();
-  const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
-  // Auto-set vendor ID from logged-in user
-  if (user?._id && formData.vendor === "") {
-    setFormData((prev) => ({ ...prev, vendor: user._id }));
-  }
+  // Set vendor ID based on role
+  useEffect(() => {
+    if (user?.role === "vendor" && user._id) {
+      setFormData((prev) => ({ ...prev, vendor: user._id }));
+    } else if (user?.role === "admin" && id) {
+      setFormData((prev) => ({ ...prev, vendor: id }));
+    }
+  }, [user, id]);
 
-  // Upload images to server
+  // Load purchased categories
+  useEffect(() => {
+    const loadCategories = async () => {
+      const vendorId = user?.role === "vendor" ? user._id : id;
+      if (!vendorId) return;
+
+      const cats = await getPurchasedCategoriesAPI(vendorId);
+      setMyCategories(cats);
+    };
+    loadCategories();
+  }, [user, id]);
+
+  // Image upload
   const uploadImage = async (acceptedFiles: File[]) => {
     try {
       const response = await imageUpload(acceptedFiles);
@@ -55,15 +74,6 @@ const VendorAddService = () => {
       toast.error("Image upload failed");
     }
   };
-
-  useEffect(() => {
-    const loadCats = async () => {
-      if (!user?._id) return;
-      const cats = await getPurchasedCategoriesAPI(user._id);
-      setMyCategories(cats);
-    };
-    loadCats();
-  }, [user?._id]);
 
   const removeImage = (publicId: string) => {
     setImages((prev) => prev.filter((img) => img.public_id !== publicId));
@@ -82,6 +92,21 @@ const VendorAddService = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check if category is selected
+    if (!formData.category) {
+      toast.error(
+        "Please purchase a service category before adding a service."
+      );
+
+      if (user?.role === "vendor") {
+        navigate("/vendor/purchase-categories");
+      } else if (user?.role === "admin") {
+        navigate("/admin/categories");
+      }
+
+      return; // stop form submission
+    }
+
     const dataToSend = {
       ...formData,
       images: JSON.stringify(images),
@@ -91,7 +116,11 @@ const VendorAddService = () => {
       const response = await createPropertyAPI(dataToSend);
       if (response?.data?.success) {
         toast.success("Service added successfully!");
-        navigate("/vendor/dashboard");
+        if (user?.role === "vendor") {
+          navigate("/vendor/dashboard");
+        } else {
+          navigate("/admin/vendors");
+        }
       } else {
         toast.error(response?.data?.message || "Failed to add service");
       }
@@ -104,7 +133,9 @@ const VendorAddService = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="flex h-16 items-center border-b px-6">
-        <h1 className="ml-4 text-lg font-semibold">Vendor Dashboard</h1>
+        <h1 className="ml-4 text-lg font-semibold">
+          {user?.role === "vendor" ? "Vendor Dashboard" : "Admin Panel"}
+        </h1>
       </div>
 
       <div className="bg-white shadow-sm border-b">
@@ -115,9 +146,15 @@ const VendorAddService = () => {
             </h1>
             <Button
               variant="outline"
-              onClick={() => navigate("/vendor/dashboard")}
+              onClick={() =>
+                navigate(
+                  user?.role === "vendor"
+                    ? "/vendor/dashboard"
+                    : "/admin/vendors"
+                )
+              }
             >
-              Back to Dashboard
+              Back
             </Button>
           </div>
         </div>
@@ -130,6 +167,7 @@ const VendorAddService = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Title & Price */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="title">Service Name</Label>
@@ -155,6 +193,7 @@ const VendorAddService = () => {
                 </div>
               </div>
 
+              {/* Location & Type */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="location">Service Location</Label>
@@ -185,23 +224,35 @@ const VendorAddService = () => {
                 </div>
               </div>
 
+              {/* Category */}
               <div>
                 <Label htmlFor="category">Category</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => handleSelectChange("category", value)}
+                  onValueChange={(value) =>
+                    handleSelectChange("category", value)
+                  }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={myCategories.length ? "Select category" : "No purchased categories"} />
+                    <SelectValue
+                      placeholder={
+                        myCategories.length
+                          ? "Select category"
+                          : "No purchased categories"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {myCategories.map((c) => (
-                      <SelectItem key={c._id} value={c.name}>{c.name}</SelectItem>
+                      <SelectItem key={c._id} value={c.name}>
+                        {c.name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
+              {/* Images */}
               <div className="mb-6">
                 <Label>Service Images</Label>
                 <div className="border-2 border-dashed border-blue-300 rounded-lg p-8 text-center bg-blue-50">
@@ -239,6 +290,7 @@ const VendorAddService = () => {
                 )}
               </div>
 
+              {/* Description */}
               <div>
                 <Label htmlFor="description">Service Description</Label>
                 <Textarea

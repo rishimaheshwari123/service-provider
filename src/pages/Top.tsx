@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Assuming you have a standard Input component
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -9,16 +9,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// You'll likely need these icons from a library like lucide-react
 import { Search, MapPin, Briefcase } from "lucide-react";
+import { getAllCategoriesAPI } from "@/service/operations/category";
 
 const TopSearchBar = () => {
   const [filters, setFilters] = useState({
     category: "all",
     location: "",
   });
+  const [categories, setCategories] = useState([]);
 
   const navigate = useNavigate();
+
+  // ✅ Fetch categories on mount
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getAllCategoriesAPI();
+      setCategories(data);
+    };
+    fetchCategories();
+  }, []);
 
   const handleCategoryChange = (value) => {
     setFilters({ ...filters, category: value });
@@ -30,18 +40,16 @@ const TopSearchBar = () => {
   };
 
   const handleSearch = () => {
-    // Build URL parameters
     const params = new URLSearchParams();
     if (filters.category && filters.category !== "all")
       params.append("category", filters.category);
     if (filters.location) params.append("location", filters.location);
 
-    // Navigate to /services page with filters
     navigate(`/services?${params.toString()}`);
   };
 
   return (
-    <div className="hidden lg:flex justify-center p-4 bg-primary  border-b border-gray-200">
+    <div className="hidden lg:flex justify-center p-4 bg-primary border-b border-gray-200">
       <div className="flex w-full shadow-xl rounded-xl overflow-hidden border border-gray-300 transition-all duration-300 hover:shadow-2xl">
         {/* Category Select */}
         <div className="flex items-center bg-white border-r border-gray-200 w-1/4">
@@ -52,12 +60,15 @@ const TopSearchBar = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Services</SelectItem>
-              <SelectItem value="plumbing">Plumbing</SelectItem>
-              <SelectItem value="electrical">Electrical</SelectItem>
-              <SelectItem value="cleaning">Cleaning</SelectItem>
-              <SelectItem value="tutoring">Tutoring</SelectItem>
-              <SelectItem value="support">Support</SelectItem>
-              <SelectItem value="others">Others</SelectItem>
+              {categories.length > 0 ? (
+                categories.map((cat) => (
+                  <SelectItem key={cat._id} value={cat.name}>
+                    {cat.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <SelectItem disabled>Loading...</SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -65,7 +76,6 @@ const TopSearchBar = () => {
         {/* Location Input */}
         <div className="flex items-center bg-white w-2/4 px-4 border-r border-gray-200">
           <MapPin className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
-          {/* Using the hypothetical Input component for consistency */}
           <Input
             type="text"
             name="location"
@@ -80,7 +90,6 @@ const TopSearchBar = () => {
         <div className="w-1/4">
           <Button
             onClick={handleSearch}
-            // Use your primary color for a vibrant look
             className="w-full h-full text-base font-semibold rounded-none bg-blue-500 hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center gap-2"
           >
             <Search className="w-5 h-5" />

@@ -46,6 +46,7 @@ import Task from "./components/pages/vendor/Task";
 import { AddRoles } from "./components/pages/admin/AddRoles";
 import ManageCategories from "./components/pages/admin/ManageCategories";
 import PurchaseCategories from "./components/pages/vendor/PurchaseCategories";
+import VendorAddService from "./components/pages/vendor/VendorAddProperty";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -106,6 +107,7 @@ const App = () => {
                 <Route path="bookings" element={<AllBookingsPage />} />
                 <Route path="crm" element={<AddRoles />} />
                 <Route path="categories" element={<ManageCategories />} />
+                <Route path="add-service/:id" element={<VendorAddService />} />
               </Route>
             )}
             {user?.role === "vendor" && (
@@ -124,7 +126,10 @@ const App = () => {
                 <Route path="inquiry-services" element={<VendorGetInquiry />} />
                 <Route path="bookings" element={<VendorBookings />} />
                 <Route path="tasks" element={<Task />} />
-                <Route path="purchase-categories" element={<PurchaseCategories />} />
+                <Route
+                  path="purchase-categories"
+                  element={<PurchaseCategories />}
+                />
                 <Route
                   path="working-hours"
                   element={<UpdateWorkingHoursPage />}
