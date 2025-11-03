@@ -6,6 +6,10 @@ const {
   getPurchasedCategoriesCtrl,
   updateCategoryCtrl,
   getCategoryPurchasersCtrl,
+  getPendingPurchasesCtrl,
+  getVendorPendingPurchasesCtrl,
+  approvePurchaseCtrl,
+  rejectPurchaseCtrl,
 } = require("../controllers/categoryCtrl");
 
 const router = express.Router();
@@ -27,5 +31,15 @@ router.get("/purchased/:vendorId", getPurchasedCategoriesCtrl);
 
 // Admin: list purchasers for a category
 router.get("/purchasers/:categoryId", getCategoryPurchasersCtrl);
+
+// Admin: list all pending cash purchases
+router.get("/pending", getPendingPurchasesCtrl);
+
+// Vendor: list pending purchases
+router.get("/pending/:vendorId", getVendorPendingPurchasesCtrl);
+
+// Admin: approve or reject a pending purchase
+router.put("/approve/:purchaseId", approvePurchaseCtrl);
+router.put("/reject/:purchaseId", rejectPurchaseCtrl);
 
 module.exports = router;

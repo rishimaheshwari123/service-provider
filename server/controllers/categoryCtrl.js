@@ -33,7 +33,7 @@ const getAllCategoriesCtrl = async (req, res) => {
 
 const purchaseCategoryCtrl = async (req, res) => {
   try {
-    const { vendorId, categoryId, transactionId } = req.body;
+    const { vendorId, categoryId, transactionId, paymentMode = "prepaid" } = req.body;
     if (!vendorId || !categoryId) {
       return res.status(400).json({ success: false, message: "vendorId and categoryId are required" });
     }
@@ -43,14 +43,36 @@ const purchaseCategoryCtrl = async (req, res) => {
       return res.status(404).json({ success: false, message: "Category not found or inactive" });
     }
 
-    // Upsert purchase (prevent duplicates)
-    const purchase = await VendorCategoryPurchase.findOneAndUpdate(
-      { vendor: vendorId, category: categoryId },
-      { $setOnInsert: { status: "purchased", transactionId } },
-      { new: true, upsert: true }
-    ).populate("category");
-
-    return res.status(200).json({ success: true, message: "Category purchased", purchase });
+    // Check existing purchase
+    let purchase = await VendorCategoryPurchase.findOne({ vendor: vendorId, category: categoryId });
+    if (purchase) {
+      // Already exists
+      if (purchase.status === "purchased") {
+        return res.status(200).json({ success: true, message: "Already purchased", purchase });
+      }
+      if (paymentMode === "prepaid") {
+        // convert pending/rejected to purchased
+        purchase.status = "purchased";
+        purchase.transactionId = transactionId || purchase.transactionId;
+        purchase.paymentMode = "prepaid";
+        await purchase.save();
+      } else {
+        // cash flow should be pending regardless of previous status
+        purchase.status = "pending";
+        purchase.paymentMode = "cash";
+        await purchase.save();
+      }
+      purchase = await purchase.populate("category");
+      const msg = paymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      return res.status(200).json({ success: true, message: msg, purchase });
+    } else {
+      // Create new purchase
+      const status = paymentMode === "cash" ? "pending" : "purchased";
+      purchase = await VendorCategoryPurchase.create({ vendor: vendorId, category: categoryId, status, transactionId, paymentMode });
+      purchase = await purchase.populate("category");
+      const msg = paymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      return res.status(200).json({ success: true, message: msg, purchase });
+    }
   } catch (error) {
     console.error("Error purchasing category:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -129,3 +151,70 @@ const getCategoryPurchasersCtrl = async (req, res) => {
 };
 
 module.exports.getCategoryPurchasersCtrl = getCategoryPurchasersCtrl;
+
+// List all pending cash purchases (admin overview)
+const getPendingPurchasesCtrl = async (req, res) => {
+  try {
+    const pending = await VendorCategoryPurchase.find({ status: "pending", paymentMode: "cash" })
+      .populate({ path: "vendor", select: "name email company status" })
+      .populate({ path: "category", select: "name price" })
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, pending });
+  } catch (error) {
+    console.error("Error fetching pending purchases:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// List vendor's pending purchases
+const getVendorPendingPurchasesCtrl = async (req, res) => {
+  try {
+    const { vendorId } = req.params;
+    if (!vendorId) return res.status(400).json({ success: false, message: "vendorId is required" });
+    const pending = await VendorCategoryPurchase.find({ vendor: vendorId, status: "pending" })
+      .populate({ path: "category", select: "name price" })
+      .sort({ createdAt: -1 });
+    return res.status(200).json({ success: true, pending });
+  } catch (error) {
+    console.error("Error fetching vendor pending purchases:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Approve a pending purchase
+const approvePurchaseCtrl = async (req, res) => {
+  try {
+    const { purchaseId } = req.params;
+    const purchase = await VendorCategoryPurchase.findById(purchaseId);
+    if (!purchase) return res.status(404).json({ success: false, message: "Purchase not found" });
+    purchase.status = "purchased";
+    purchase.paymentMode = purchase.paymentMode || "cash";
+    await purchase.save();
+    const populated = await purchase.populate([{ path: "vendor", select: "name email" }, { path: "category", select: "name price" }]);
+    return res.status(200).json({ success: true, message: "Purchase approved", purchase: populated });
+  } catch (error) {
+    console.error("Error approving purchase:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Reject a pending purchase
+const rejectPurchaseCtrl = async (req, res) => {
+  try {
+    const { purchaseId } = req.params;
+    const purchase = await VendorCategoryPurchase.findById(purchaseId);
+    if (!purchase) return res.status(404).json({ success: false, message: "Purchase not found" });
+    purchase.status = "rejected";
+    await purchase.save();
+    const populated = await purchase.populate([{ path: "vendor", select: "name email" }, { path: "category", select: "name price" }]);
+    return res.status(200).json({ success: true, message: "Purchase rejected", purchase: populated });
+  } catch (error) {
+    console.error("Error rejecting purchase:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+module.exports.getPendingPurchasesCtrl = getPendingPurchasesCtrl;
+module.exports.getVendorPendingPurchasesCtrl = getVendorPendingPurchasesCtrl;
+module.exports.approvePurchaseCtrl = approvePurchaseCtrl;
+module.exports.rejectPurchaseCtrl = rejectPurchaseCtrl;

@@ -9,6 +9,9 @@ const {
   PURCHASE_CATEGORY_API,
   GET_PURCHASED_CATEGORY_API,
   GET_CATEGORY_PURCHASERS_API,
+  GET_PENDING_CATEGORY_PURCHASES_API,
+  APPROVE_CATEGORY_PURCHASE_API,
+  REJECT_CATEGORY_PURCHASE_API,
 } = category;
 
 export const createCategoryAPI = async (data) => {
@@ -93,5 +96,61 @@ export const getCategoryPurchasersAPI = async (categoryId) => {
     console.error("GET_CATEGORY_PURCHASERS_API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to load purchasers!");
     return [];
+  }
+};
+
+export const getPendingCategoryPurchasesAPI = async () => {
+  try {
+    const res = await apiConnector("GET", GET_PENDING_CATEGORY_PURCHASES_API);
+    if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
+    return res?.data?.pending || [];
+  } catch (error) {
+    console.error("GET_PENDING_CATEGORY_PURCHASES_API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to load pending approvals!");
+    return [];
+  }
+};
+
+export const getVendorPendingCategoryPurchasesAPI = async (vendorId) => {
+  try {
+    const res = await apiConnector("GET", `${GET_PENDING_CATEGORY_PURCHASES_API}/${vendorId}`);
+    if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
+    return res?.data?.pending || [];
+  } catch (error) {
+    console.error("GET_VENDOR_PENDING_CATEGORY_PURCHASES_API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to load pending purchases!");
+    return [];
+  }
+};
+
+export const approveCategoryPurchaseAPI = async (purchaseId) => {
+  const toastId = toast.loading("Approving purchase...");
+  try {
+    const res = await apiConnector("PUT", `${APPROVE_CATEGORY_PURCHASE_API}/${purchaseId}`);
+    if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
+    toast.success(res?.data?.message || "Approved");
+    return res?.data?.purchase;
+  } catch (error) {
+    console.error("APPROVE_CATEGORY_PURCHASE_API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to approve!");
+    return null;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const rejectCategoryPurchaseAPI = async (purchaseId) => {
+  const toastId = toast.loading("Rejecting purchase...");
+  try {
+    const res = await apiConnector("PUT", `${REJECT_CATEGORY_PURCHASE_API}/${purchaseId}`);
+    if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
+    toast.success(res?.data?.message || "Rejected");
+    return res?.data?.purchase;
+  } catch (error) {
+    console.error("REJECT_CATEGORY_PURCHASE_API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to reject!");
+    return null;
+  } finally {
+    toast.dismiss(toastId);
   }
 };

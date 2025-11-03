@@ -14,12 +14,17 @@ const vendorCategoryPurchaseSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["pending", "purchased"],
+      enum: ["pending", "purchased", "rejected"],
       default: "purchased",
     },
     transactionId: {
       type: String,
       trim: true,
+    },
+    paymentMode: {
+      type: String,
+      enum: ["prepaid", "cash"],
+      default: "prepaid",
     },
   },
   { timestamps: true }

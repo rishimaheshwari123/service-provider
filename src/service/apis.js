@@ -45,6 +45,9 @@ export const category = {
   PURCHASE_CATEGORY_API: BASE_URL + "/category/purchase",
   GET_PURCHASED_CATEGORY_API: BASE_URL + "/category/purchased",
   GET_CATEGORY_PURCHASERS_API: BASE_URL + "/category/purchasers",
+  GET_PENDING_CATEGORY_PURCHASES_API: BASE_URL + "/category/pending",
+  APPROVE_CATEGORY_PURCHASE_API: BASE_URL + "/category/approve",
+  REJECT_CATEGORY_PURCHASE_API: BASE_URL + "/category/reject",
 }
 export const contact = {
   CREATE_CONTACT_API: BASE_URL + "/contact/create",
