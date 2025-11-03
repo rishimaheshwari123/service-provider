@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createCategoryAPI, getAllCategoriesAPI, updateCategoryAPI, getCategoryPurchasersAPI } from "@/service/operations/category";
+import { createCategoryAPI, getAllCategoriesAPI, updateCategoryAPI, getCategoryPurchasersAPI, purchaseCategoryAPI } from "@/service/operations/category";
+import { getAllVendorAPI } from "@/service/operations/vendor";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select";
 
 const ManageCategories = () => {
   const [form, setForm] = useState({ name: "", price: "" });
@@ -15,6 +17,9 @@ const ManageCategories = () => {
   const [currentCategory, setCurrentCategory] = useState<any | null>(null);
   const [purchasers, setPurchasers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [vendors, setVendors] = useState<any[]>([]);
+  const [selectedVendorId, setSelectedVendorId] = useState<string>("");
 
   const load = async () => {
     const data = await getAllCategoriesAPI();
@@ -26,6 +31,22 @@ const ManageCategories = () => {
     const list = await getCategoryPurchasersAPI(category._id);
     setPurchasers(list);
     setPurchasersOpen(true);
+  };
+
+  const openAssignToVendor = async (category) => {
+    setCurrentCategory(category);
+    if (vendors.length === 0) {
+      const all = await getAllVendorAPI();
+      setVendors(all);
+    }
+    setSelectedVendorId("");
+    setAssignOpen(true);
+  };
+
+  const handleAssign = async () => {
+    if (!currentCategory?._id || !selectedVendorId) return;
+    await purchaseCategoryAPI({ vendorId: selectedVendorId, categoryId: currentCategory._id });
+    setAssignOpen(false);
   };
 
   useEffect(() => {
@@ -95,6 +116,7 @@ const ManageCategories = () => {
                   <div className="flex gap-2">
                     <Button size="sm" variant="secondary" onClick={() => { setEditingId(c._id); setForm({ name: c.name, price: String(c.price) }); }}>Edit</Button>
                     <Button size="sm" onClick={() => openPurchasers(c)}>View Purchasers</Button>
+                    <Button size="sm" variant="outline" onClick={() => openAssignToVendor(c)}>Assign to Vendor</Button>
                   </div>
                 </div>
               ))
@@ -123,6 +145,34 @@ const ManageCategories = () => {
               ))}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign "{currentCategory?.name}" to Vendor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Label>Select Vendor</Label>
+            <Select value={selectedVendorId} onValueChange={(val) => setSelectedVendorId(val)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose a vendor" />
+              </SelectTrigger>
+              <SelectContent>
+                {vendors.map((v) => (
+                  <SelectItem key={v._id} value={v._id}>
+                    {v.name} {v.company ? `- ${v.company}` : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setAssignOpen(false)}>Cancel</Button>
+              <Button disabled={!selectedVendorId} onClick={handleAssign}>Assign</Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
