@@ -135,18 +135,34 @@ const getCategoryPurchasersCtrl = async (req, res) => {
   try {
     const { categoryId } = req.params;
     if (!categoryId) {
-      return res.status(400).json({ success: false, message: "categoryId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "categoryId is required" });
     }
 
-    const purchases = await VendorCategoryPurchase.find({ category: categoryId, status: "purchased" })
+    // Fetch purchased entries and populate vendor & category
+    const purchases = await VendorCategoryPurchase.find({
+      category: categoryId,
+      status: "purchased",
+    })
       .populate({ path: "vendor", select: "name email phone status" })
       .populate({ path: "category", select: "name price" });
 
-    const purchasers = purchases.map((p) => ({ vendor: p.vendor, purchasedAt: p.createdAt }));
+    // Map required fields including paymentMode and transactionId
+    const purchasers = purchases.map((p) => ({
+      vendor: p.vendor,
+      purchasedAt: p.createdAt,
+      paymentMode: p.paymentMode,
+      transactionId: p.transactionId,
+      category: p.category, // optional, in case you want category name & price on frontend
+    }));
+
     return res.status(200).json({ success: true, purchasers });
   } catch (error) {
     console.error("Error fetching category purchasers:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error" });
   }
 };
 

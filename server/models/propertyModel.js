@@ -42,7 +42,12 @@ const propertySchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Vendor',
         required: true,
-    }
+    },
+    review: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'RatingAndReview',
+        required: true,
+    }]
 }, { timestamps: true });
 
 module.exports = mongoose.model('Property', propertySchema);

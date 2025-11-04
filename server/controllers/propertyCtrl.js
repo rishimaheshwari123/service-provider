@@ -129,7 +129,7 @@ const getPropertiesCtrl = async (req, res) => {
     try {
 
 
-        const properties = await Property.find().populate('vendor');
+        const properties = await Property.find().populate('vendor').populate('review');
 
         res.status(200).json({
             success: true,
@@ -148,7 +148,7 @@ const getPropertiesByIdCtrl = async (req, res) => {
 
         const property = await Property.findById(id).populate({
             path: "vendor", // or whatever the referenced field is
-            select: "name company workingHours ", // include all fields you want
+            select: "name company workingHours review ", // include all fields you want
         });
 
         res.status(200).json({

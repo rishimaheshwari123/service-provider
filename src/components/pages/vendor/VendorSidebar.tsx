@@ -164,7 +164,7 @@ const VendorSidebar = () => {
           <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">A</span>
           </div>
-          <span className="font-bold text-gray-800 text-lg">Vendor Panel</span>
+          <span className="font-bold text-gray-800 text-lg">Partner Panel</span>
         </div>
 
         <Button
@@ -239,7 +239,7 @@ const VendorSidebar = () => {
                 {user?.name?.charAt(0).toUpperCase() + user?.name?.slice(1) ||
                   "User"}
               </p>
-              <p className="text-xs text-gray-500 truncate">Vendor</p>
+              <p className="text-xs text-gray-500 truncate">Partner</p>
             </div>
           )}
         </div>

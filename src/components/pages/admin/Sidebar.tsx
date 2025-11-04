@@ -89,7 +89,7 @@ const Sidebar = () => {
     {
       to: "/admin/vendors",
       icon: UserCog, // vendors = manage users type
-      label: "Manage Vendors",
+      label: "Manage Partners",
       color: "text-orange-600",
       permission: null,
     },

@@ -325,7 +325,7 @@ const Navbar = () => {
                       >
                         <Store className="h-4 w-4 text-green-600" />
                         <div>
-                          <p className="font-medium">Vendor Login</p>
+                          <p className="font-medium">Partner Login</p>
                           <p className="text-xs text-gray-500  hover:text-white">
                             For business owners
                           </p>
@@ -506,7 +506,7 @@ const Navbar = () => {
                 >
                   <Store className="h-5 w-5" />
                   <div className="text-left">
-                    <p className="font-semibold">Vendor Login</p>
+                    <p className="font-semibold">Partner Login</p>
                     <p className="text-xs opacity-90">For business owners</p>
                   </div>
                 </Link>

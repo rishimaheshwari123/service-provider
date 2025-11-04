@@ -37,6 +37,13 @@ const ServicesSlider = () => {
   const handleHireNow = (id) => {
     navigate(`/service/${id}`);
   };
+
+  const getAverageRating = (reviews) => {
+    if (!reviews || reviews.length === 0) return 0;
+    const total = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    return total / reviews.length;
+  };
+
   return (
     <section className="py-24 bg-card">
       <div className="container mx-auto px-4">
@@ -61,67 +68,118 @@ const ServicesSlider = () => {
           <div className="max-w-6xl mx-auto">
             <Carousel className="w-full" opts={{ align: "start", loop: true }}>
               <CarouselContent>
-                {services.map((service, index) => (
-                  <CarouselItem
-                    key={index}
-                    className="md:basis-1/2 lg:basis-1/2"
-                  >
-                    <div className="p-4">
-                      <div className="group rounded-2xl bg-background border border-border overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-elegant">
-                        <div className="relative h-64 overflow-hidden">
-                          <img
-                            src={
-                              service.images?.[0]?.url ||
-                              "https://via.placeholder.com/600x400?text=No+Image"
-                            }
-                            alt={service.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                          />
-                          <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                          <h3 className="text-2xl font-bold">
-                            {service.title}
-                          </h3>
-                          <p className="text-muted-foreground line-clamp-3">
-                            {service.description || "No description available"}
-                          </p>
-
-                          {/* <div className="text-sm text-muted-foreground space-y-1">
-                            <p>
-                              <strong>Type:</strong> {service.type || "N/A"}
-                            </p>
-                            <p>
-                              <strong>Category:</strong>{" "}
-                              {service.category || "N/A"}
-                            </p>
-                            <p>
-                              <strong>Location:</strong>{" "}
-                              {service.location || "N/A"}
-                            </p>
-                            <p>
-                              <strong>Price:</strong>{" "}
-                              {service.price ? `₹${service.price}` : "N/A"}
-                            </p>
-                          </div> */}
-
-                          <Button
-                            variant="outline"
-                            className="w-full group/btn"
-                            onClick={() => handleHireNow(service._id)}
-                          >
-                            Hire Now
-                            <ArrowRight
-                              className="ml-2 group-hover/btn:translate-x-1 transition-transform"
-                              size={16}
+                {services.map((service, index) => {
+                  const avgRating = getAverageRating(service.review);
+                  const percentage = (avgRating / 5) * 100; // Convert to percentage for star width
+                  return (
+                    <CarouselItem
+                      key={index}
+                      className="md:basis-1/2 lg:basis-1/2"
+                    >
+                      <div className="p-4">
+                        <div className="group rounded-2xl bg-background border border-border overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-elegant">
+                          <div className="relative h-64 overflow-hidden">
+                            <img
+                              src={
+                                service.images?.[0]?.url ||
+                                "https://via.placeholder.com/600x400?text=No+Image"
+                              }
+                              alt={service.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
-                          </Button>
+                            <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+                          </div>
+
+                          <div className="p-6 space-y-4">
+                            <h3 className="text-2xl font-bold">
+                              {service.title}
+                            </h3>
+                            <p className="text-muted-foreground line-clamp-3">
+                              {service.description ||
+                                "No description available"}
+                            </p>
+
+                            {/* Stars */}
+                            <div className="relative w-28 h-6">
+                              <div className="absolute top-0 left-0 w-full h-full flex">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <svg
+                                    key={i}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="#ccc"
+                                    strokeWidth={2}
+                                    className="w-5 h-5"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z"
+                                    />
+                                  </svg>
+                                ))}
+                              </div>
+                              <div
+                                className="absolute top-0 left-0 h-full flex overflow-hidden"
+                                style={{ width: `${percentage}%` }}
+                              >
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <svg
+                                    key={i}
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    viewBox="0 0 24 24"
+                                    fill="yellow"
+                                    stroke="yellow"
+                                    strokeWidth={2}
+                                    className="w-5 h-5"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z"
+                                    />
+                                  </svg>
+                                ))}
+                              </div>
+                            </div>
+
+                            {/* Service Details */}
+                            <div className="text-sm text-muted-foreground space-y-1">
+                              <p>
+                                <strong>Type:</strong> {service.type || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Category:</strong>{" "}
+                                {service.category || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Location:</strong>{" "}
+                                {service.location || "N/A"}
+                              </p>
+                              <p>
+                                <strong>Price:</strong>{" "}
+                                {service.price ? `₹${service.price}` : "N/A"}
+                              </p>
+                            </div>
+
+                            <Button
+                              variant="outline"
+                              className="w-full group/btn"
+                              onClick={() => handleHireNow(service._id)}
+                            >
+                              Hire Now
+                              <ArrowRight
+                                className="ml-2 group-hover/btn:translate-x-1 transition-transform"
+                                size={16}
+                              />
+                            </Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CarouselItem>
-                ))}
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
               <CarouselPrevious className="hidden md:flex" />
               <CarouselNext className="hidden md:flex" />

@@ -28,7 +28,7 @@ const VendorLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Vendor Login</CardTitle>
+          <CardTitle className="text-2xl font-bold">Partner Login</CardTitle>
           <p className="text-gray-600">Sign in to your vendor account</p>
         </CardHeader>
         <CardContent>
