@@ -31,7 +31,7 @@ const PurchaseCategories = () => {
   );
 
   // const base_url= base_url
-  const base_url = "http://localhost:8000/api/v1";
+  const base_url = "https://service-provider-6ufz.onrender.com/api/v1";
   const load = async () => {
     const [cats, bought] = await Promise.all([
       getAllCategoriesAPI(),
