@@ -26,6 +26,10 @@ const vendorCategoryPurchaseSchema = new mongoose.Schema(
       enum: ["prepaid", "cash"],
       default: "prepaid",
     },
+    reason: {
+      type: String,
+
+    },
   },
   { timestamps: true }
 );

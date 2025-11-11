@@ -139,11 +139,17 @@ export const approveCategoryPurchaseAPI = async (purchaseId) => {
   }
 };
 
-export const rejectCategoryPurchaseAPI = async (purchaseId) => {
+export const rejectCategoryPurchaseAPI = async (purchaseId, data) => {
   const toastId = toast.loading("Rejecting purchase...");
   try {
-    const res = await apiConnector("PUT", `${REJECT_CATEGORY_PURCHASE_API}/${purchaseId}`);
+    const res = await apiConnector(
+      "PUT",
+      `${REJECT_CATEGORY_PURCHASE_API}/${purchaseId}`,
+      data // ✅ send reason to backend
+    );
+
     if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
+
     toast.success(res?.data?.message || "Rejected");
     return res?.data?.purchase;
   } catch (error) {

@@ -218,17 +218,42 @@ const approvePurchaseCtrl = async (req, res) => {
 const rejectPurchaseCtrl = async (req, res) => {
   try {
     const { purchaseId } = req.params;
+    const { reason } = req.body;  // ✅ receive reason
+
+    if (!reason || reason.trim() === "") {
+      return res
+        .status(400)
+        .json({ success: false, message: "Reason is required" });
+    }
+
     const purchase = await VendorCategoryPurchase.findById(purchaseId);
-    if (!purchase) return res.status(404).json({ success: false, message: "Purchase not found" });
+    if (!purchase)
+      return res
+        .status(404)
+        .json({ success: false, message: "Purchase not found" });
+
     purchase.status = "rejected";
+    purchase.reason = reason.trim(); // ✅ save reason
     await purchase.save();
-    const populated = await purchase.populate([{ path: "vendor", select: "name email" }, { path: "category", select: "name price" }]);
-    return res.status(200).json({ success: true, message: "Purchase rejected", purchase: populated });
+
+    const populated = await purchase.populate([
+      { path: "vendor", select: "name email" },
+      { path: "category", select: "name price" },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Purchase rejected",
+      purchase: populated,
+    });
   } catch (error) {
     console.error("Error rejecting purchase:", error);
-    return res.status(500).json({ success: false, message: "Server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Server error" });
   }
 };
+
 
 module.exports.getPendingPurchasesCtrl = getPendingPurchasesCtrl;
 module.exports.getVendorPendingPurchasesCtrl = getVendorPendingPurchasesCtrl;

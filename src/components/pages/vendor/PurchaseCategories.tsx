@@ -69,9 +69,6 @@ const PurchaseCategories = () => {
           categoryId: selectedCategoryId,
           paymentMode,
         });
-        toast.success(
-          "Cash purchase request sent. Waiting for admin approval."
-        );
       } else {
         await handleRazorpayPayment(selectedCategoryId);
       }

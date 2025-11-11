@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea"; // Textarea component for rejection note
 import {
   createCategoryAPI,
   getAllCategoriesAPI,
@@ -11,7 +12,7 @@ import {
   purchaseCategoryAPI,
   getPendingCategoryPurchasesAPI,
   approveCategoryPurchaseAPI,
-  rejectCategoryPurchaseAPI,
+  rejectCategoryPurchaseAPI, // Assume this API is updated to accept a reason
 } from "@/service/operations/category";
 import { getAllVendorAPI } from "@/service/operations/vendor";
 import {
@@ -19,6 +20,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter, // Added DialogFooter for button placement
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -53,7 +55,15 @@ const ManageCategories = () => {
   const [selectedVendorId, setSelectedVendorId] = useState<string>("");
   const [pendingPurchases, setPendingPurchases] = useState<any[]>([]);
   const [approvingId, setApprovingId] = useState<string | null>(null);
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  // 1. New states for rejection dialog
+  const [rejectingOpen, setRejectingOpen] = useState(false);
+  const [currentRejectPurchaseId, setCurrentRejectPurchaseId] = useState<
+    string | null
+  >(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false); // State to manage loading on reject submit
+  const [searchText, setSearchText] = useState("");
+
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   if (!user?.isCategoryManage) {
     return (
@@ -102,11 +112,34 @@ const ManageCategories = () => {
     setApprovingId(null);
   };
 
-  const reject = async (purchaseId: string) => {
-    setRejectingId(purchaseId);
-    await rejectCategoryPurchaseAPI(purchaseId);
-    await load();
-    setRejectingId(null);
+  // 3. Update 'reject' function to open the dialog
+  const reject = (purchaseId: string) => {
+    setCurrentRejectPurchaseId(purchaseId);
+    setRejectReason(""); // Clear previous reason
+    setRejectingOpen(true); // Open the dialog
+  };
+
+  // 4. New function to handle rejection submission with reason
+  const handleRejectSubmit = async () => {
+    if (!currentRejectPurchaseId || !rejectReason.trim()) return;
+
+    setIsRejecting(true); // Start loading state for dialog button
+    try {
+      // 5. Call the rejection API with the purchase ID and the reason (note)
+      // Assuming rejectCategoryPurchaseAPI now accepts { purchaseId, reason }
+      await rejectCategoryPurchaseAPI(currentRejectPurchaseId, {
+        reason: rejectReason.trim(),
+      });
+      setRejectingOpen(false); // Close dialog on success
+      setCurrentRejectPurchaseId(null);
+      setRejectReason("");
+      await load(); // Reload data
+    } catch (error) {
+      console.error("Error rejecting purchase:", error);
+      // Handle error (e.g., show a toast message)
+    } finally {
+      setIsRejecting(false); // End loading state
+    }
   };
 
   useEffect(() => {
@@ -244,7 +277,7 @@ const ManageCategories = () => {
                             variant="outline"
                             onClick={() => openAssignToVendor(c)}
                           >
-                            Assign to Vendor
+                            Assign to Partner
                           </Button>
                         </div>
                       </div>
@@ -267,7 +300,7 @@ const ManageCategories = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Vendor</TableHead>
+                      <TableHead>Partner</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Mode</TableHead>
@@ -312,16 +345,14 @@ const ManageCategories = () => {
                                 ? "Approving..."
                                 : "Approve"}{" "}
                             </Button>
+                            {/* Call the updated 'reject' function which opens the dialog */}
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => reject(p._id)}
-                              disabled={rejectingId === p._id}
+                              onClick={() => reject(p._id)} // Opens the dialog
+                              disabled={isRejecting} // Disable if any rejection is in progress
                             >
-                              {" "}
-                              {rejectingId === p._id
-                                ? "Rejecting..."
-                                : "Reject"}{" "}
+                              Reject
                             </Button>
                           </div>
                         </TableCell>
@@ -334,6 +365,8 @@ const ManageCategories = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Purchasers Dialog (Existing) */}
       <Dialog open={purchasersOpen} onOpenChange={setPurchasersOpen}>
         <DialogContent className="sm:max-w-lg w-full">
           <DialogHeader>
@@ -416,15 +449,18 @@ const ManageCategories = () => {
         </DialogContent>
       </Dialog>
 
+      {/* Assign Dialog (Existing) */}
       <Dialog open={assignOpen} onOpenChange={setAssignOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              Assign "{currentCategory?.name}" to Vendor
+              Assign "{currentCategory?.name}" to Partner
             </DialogTitle>
           </DialogHeader>
+
           <div className="space-y-4">
-            <Label>Select Vendor</Label>
+            <Label>Select Partner</Label>
+
             <Select
               value={selectedVendorId}
               onValueChange={(val) => setSelectedVendorId(val)}
@@ -432,12 +468,41 @@ const ManageCategories = () => {
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Choose a vendor" />
               </SelectTrigger>
+
               <SelectContent>
-                {vendors.map((v) => (
-                  <SelectItem key={v._id} value={v._id}>
-                    {v.name} {v.company ? `- ${v.company}` : ""}
-                  </SelectItem>
-                ))}
+                {/* ✅ SEARCH BOX */}
+                <div className="px-2 pb-2">
+                  <input
+                    placeholder="Search vendor..."
+                    className="w-full px-2 py-1 border rounded text-sm"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </div>
+
+                {/* ✅ ONLY MATCHED RESULTS */}
+                {vendors
+                  .filter((v) =>
+                    `${v.name} ${v.company ?? ""}`
+                      .toLowerCase()
+                      .includes(searchText.toLowerCase())
+                  )
+                  .map((v) => (
+                    <SelectItem key={v._id} value={v._id}>
+                      {v.name} {v.company ? `- ${v.company}` : ""}
+                    </SelectItem>
+                  ))}
+
+                {/* ✅ No results text */}
+                {vendors.filter((v) =>
+                  `${v.name} ${v.company ?? ""}`
+                    .toLowerCase()
+                    .includes(searchText.toLowerCase())
+                ).length === 0 && (
+                  <div className="px-3 py-2 text-sm text-gray-500">
+                    No vendor found
+                  </div>
+                )}
               </SelectContent>
             </Select>
 
@@ -450,6 +515,54 @@ const ManageCategories = () => {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* 2. New Rejection Dialog */}
+      <Dialog open={rejectingOpen} onOpenChange={setRejectingOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reject Purchase Approval</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-gray-600">
+              कृपया रिजेक्ट करने का कारण दर्ज करें। यह कारण पार्टनर को भेजा
+              जाएगा।
+              <span className="text-red-500">*</span>
+            </p>
+            <div>
+              <Label htmlFor="reject-reason" className="sr-only">
+                Reason for Rejection
+              </Label>
+              <Textarea
+                id="reject-reason"
+                placeholder="रिजेक्ट करने का कारण लिखें..."
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                rows={4}
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectingOpen(false);
+                setCurrentRejectPurchaseId(null);
+                setRejectReason("");
+              }}
+              disabled={isRejecting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleRejectSubmit}
+              disabled={!rejectReason.trim() || isRejecting}
+            >
+              {isRejecting ? "Submitting..." : "Submit and Reject"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
