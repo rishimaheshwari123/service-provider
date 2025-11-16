@@ -44,7 +44,7 @@ const VendorRegister = () => {
 
     const response = await signUp(formData);
     if (response) {
-      navigate("/vendor/login");
+      navigate("/partner/login");
     }
   };
 
@@ -205,7 +205,7 @@ const VendorRegister = () => {
             <p className="text-sm text-gray-600">
               Already have an account?{" "}
               <Link
-                to="/vendor/login"
+                to="/partner/login"
                 className="text-blue-600 hover:underline"
               >
                 Login here

@@ -138,7 +138,7 @@ const App = () => {
             )}
 
             <Route
-              path="/vendor/login"
+              path="/partner/login"
               element={
                 <OpenRoute>
                   <VendorLogin />

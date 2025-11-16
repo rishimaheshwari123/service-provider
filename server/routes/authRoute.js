@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl } = require("../controllers/authCtrl")
+const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl } = require("../controllers/authCtrl")
 const router = express.Router()
 
 
@@ -10,6 +10,7 @@ router.put("/update/:id", editPermissionCtrl)
 router.delete("/delete/:id", deleteAuthCtrl)
 router.get("/my-profile/:id", getUserInquiries)
 router.put("/change-type/:id", changeUserTypeCtrl);
+router.put("/change-password/:id", changePasswordCtrl);
 
 
 
