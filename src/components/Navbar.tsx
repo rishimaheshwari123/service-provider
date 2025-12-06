@@ -135,7 +135,7 @@ const Navbar = () => {
   }, []);
 
   return (
-<header className="bg-background border-b border-border shadow-sm font-sans relative z-50">
+    <header className="bg-background border-b border-border shadow-sm font-sans relative z-50">
       <div className="w-11/12 mx-auto px-1 md:px-0 py-3">
         <div className="flex items-center justify-between">
           {/* Logo */}
@@ -151,7 +151,7 @@ const Navbar = () => {
           </div>
 
           {/* Navigation - Desktop */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden lg:flex items-center space-x-8">
             {menuLinks.map((link) => (
               <div key={link.label} className="flex items-center space-x-2">
                 <a
@@ -172,7 +172,7 @@ const Navbar = () => {
           {/* Right Section */}
           <div className="flex items-center space-x-6">
             {/* Current Location */}
-            <div className="hidden md:flex items-center space-x-2 text-gray-600">
+            <div className="hidden lg:flex items-center space-x-2 text-gray-600">
               {isLoadingLocation ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -207,7 +207,7 @@ const Navbar = () => {
             </div>
 
             {/* Hamburger menu - Mobile only */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <button
                 onClick={toggleSidebar}
                 className="text-gray-600 hover:text-purple-600 p-2 rounded-full transition-colors"
@@ -217,7 +217,7 @@ const Navbar = () => {
             </div>
 
             {/* Desktop Auth Section */}
-            <div className="hidden md:flex items-center space-x-3">
+            <div className="hidden lg:flex items-center space-x-3">
               {user && token ? (
                 // Logged in user dropdown with dashboard access
                 <DropdownMenu>
@@ -355,11 +355,10 @@ const Navbar = () => {
 
       {/* Mobile Sidebar */}
       <div
-  className={`fixed inset-y-0 right-0 w-64 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
-    isSidebarOpen ? "translate-x-0" : "translate-x-full"
-  } md:hidden z-50 overflow-y-auto`}
->
-
+        className={`fixed inset-y-0 right-0 w-64 md:w-[70vw] bg-white md:pr-5 shadow-xl transform transition-transform duration-300 ease-in-out ${
+          isSidebarOpen ? "translate-x-0" : "translate-x-full"
+        } lg:hidden z-50 overflow-y-auto`}
+      >
         <div className="flex justify-between items-center p-4 border-b">
           <div className="flex items-center space-x-2">
             <Link to="/" className="flex items-center">
@@ -563,7 +562,7 @@ const Navbar = () => {
       {/* Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 md:hidden z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-40"
           onClick={toggleSidebar}
         />
       )}
