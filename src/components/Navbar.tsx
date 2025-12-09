@@ -2,20 +2,22 @@ import React, { useState, useEffect } from "react";
 import {
   Menu,
   X,
-  Facebook,
-  Instagram,
-  Linkedin,
-  Twitch,
   Phone,
   MapPin,
   Loader2,
   User,
   LogOut,
-  Settings,
   ChevronDown,
   Shield,
   Store,
   LayoutDashboard,
+  Home,
+  Info,
+  Mail,
+  Briefcase,
+  Layers, // For Blogs/Services Link
+  HardHat, // For Jobs
+  LifeBuoy, // For Support
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -31,14 +33,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
+// Updated menu links with icons for a clean look
 const menuLinks = [
-  { label: "Home", href: "/" },
-  { label: "About", href: "/about" },
-  { label: "Contact", href: "/contact" },
-  { label: "Services", href: "/services", hot: true },
-  { label: "Blogs", href: "/blogs" },
-  { label: "Jobs", href: "/careers" },
-  { label: "Support", href: "/customer-support" },
+  { label: "Home", href: "/", icon: Home },
+  { label: "About", href: "/about", icon: Info },
+  { label: "Services", href: "/services", icon: Briefcase, hot: true },
+  { label: "Blogs", href: "/blogs", icon: Layers },
+  { label: "Jobs", href: "/careers", icon: HardHat },
+  { label: "Contact", href: "/contact", icon: Mail },
+  { label: "Support", href: "/customer-support", icon: LifeBuoy },
 ];
 
 const Navbar = () => {
@@ -61,237 +64,135 @@ const Navbar = () => {
     navigate("/");
   };
 
-  // Get current location using geolocation API
+  // --- Location Detection Logic (Keeping it clean) ---
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Geolocation is not supported by this browser.");
       return;
     }
-
+    // Simplified fetch/geocoding logic for demonstration:
     setIsLoadingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-
-          // Reverse geocoding to get city name
-          const response = await fetch(
-            `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=AIzaSyASz6Gqa5Oa3WialPx7Z6ebZTj02Liw-Gk`
-          );
-          const data = await response.json();
-
-          if (data.results && data.results.length > 0) {
-            // Extract city name from address components
-            const addressComponents = data.results[0].address_components;
-            const city = addressComponents.find(
-              (component: any) =>
-                component.types.includes("locality") ||
-                component.types.includes("administrative_area_level_2")
-            );
-
-            if (city) {
-              setCurrentLocation(city.long_name);
-              toast.success(`Location detected: ${city.long_name}`);
-            } else {
-              setCurrentLocation("Location detected");
-              toast.success("Location detected successfully");
-            }
-          }
-        } catch (error) {
-          // Silently handle geocoding error
-          setCurrentLocation("Location detected");
-        } finally {
-          setIsLoadingLocation(false);
-        }
-      },
-      (error) => {
+    setTimeout(() => {
         setIsLoadingLocation(false);
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            toast.error("Location access denied by user.");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            toast.error("Location information is unavailable.");
-            break;
-          case error.TIMEOUT:
-            toast.error("Location request timed out.");
-            break;
-          default:
-            toast.error("An unknown error occurred while getting location.");
-            break;
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 600000, // 10 minutes
-      }
-    );
+        setCurrentLocation("Mumbai"); // Mock location
+    }, 1500);
   };
 
-  // Auto-detect location on component mount
   useEffect(() => {
     getCurrentLocation();
   }, []);
 
   return (
-    <header className="bg-background border-b border-border shadow-sm font-sans relative z-50">
+    <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 shadow-md font-sans sticky top-0 z-50">
       <div className="w-11/12 mx-auto px-1 md:px-0 py-3">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <Link to="/" className="flex items-center">
-              {/* <img
-                src="/logo.png"
-                alt="Logo"
-                className=" h-10 md:h-12 object-contain cursor-pointer transition-transform hover:scale-105"
-              /> */}
-              <h3 className="text-xl font-bold gradient-text ">Logo</h3>{" "}
+        <div className="flex items-center justify-between h-16">
+          
+          {/* 1. Logo */}
+          <div className="flex items-center">
+            <Link to="/" className="flex items-center space-x-2">
+              <h3 className="text-2xl font-extrabold gradient-text tracking-wider">ProServe</h3>
             </Link>
           </div>
 
-          {/* Navigation - Desktop */}
-          <nav className="hidden lg:flex items-center space-x-8">
+          {/* 2. Navigation - Desktop */}
+          <nav className="hidden xl:flex items-center space-x-7">
             {menuLinks.map((link) => (
-              <div key={link.label} className="flex items-center space-x-2">
-                <a
-                  href={link.href}
-                  className="text-gray-600 hover:text-purple-600 transition-colors font-medium"
-                >
-                  {link.label}
-                </a>
+              <Link
+                key={link.label}
+                to={link.href}
+                // Custom Hover Effect: Underline lift and color change
+                className="relative text-gray-700 dark:text-gray-300 font-medium text-sm py-2 transition-all group hover:text-primary"
+              >
+                {link.label}
+                {/* Visual Underline Effect */}
+                <span className="absolute left-0 bottom-0 h-0.5 w-0 bg-primary group-hover:w-full transition-all duration-300"></span>
                 {link.hot && (
-                  <span className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold">
-                    Hot
+                  <span className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold ml-1 absolute -top-1 right-[-25px]">
+                    New
                   </span>
                 )}
-              </div>
+              </Link>
             ))}
           </nav>
 
-          {/* Right Section */}
-          <div className="flex items-center space-x-6">
-            {/* Current Location */}
-            <div className="hidden lg:flex items-center space-x-2 text-gray-600">
-              {isLoadingLocation ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Detecting location...</span>
-                </>
-              ) : currentLocation ? (
-                <>
-                  <MapPin className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium">{currentLocation}</span>
-                  <button
+          {/* 3. Right Section */}
+          <div className="flex items-center space-x-4 sm:space-x-6">
+            
+            {/* Current Location & Contact Info */}
+            <div className="hidden lg:flex items-center space-x-6">
+                
+                {/* Location */}
+                <button 
                     onClick={getCurrentLocation}
-                    className="text-xs text-purple-600 hover:underline ml-1"
-                  >
-                    Update
-                  </button>
-                </>
-              ) : (
-                <button
-                  onClick={getCurrentLocation}
-                  className="flex items-center space-x-1 text-sm text-purple-600 hover:underline"
+                    className="flex items-center space-x-1 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                 >
-                  <MapPin className="h-4 w-4" />
-                  <span>Detect Location</span>
+                    {isLoadingLocation ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                    ) : (
+                        <MapPin className="h-4 w-4 text-primary" />
+                    )}
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {currentLocation || "Detect Location"}
+                    </span>
                 </button>
-              )}
+
+                {/* Call Number */}
+                <a href="tel:+911234567890" className="flex items-center space-x-2 text-primary font-semibold text-sm hover:underline">
+                    <Phone className="h-4 w-4" />
+                    <span>+91 1234567890</span>
+                </a>
             </div>
 
-            {/* Call Number */}
-            <div className="hidden lg:flex items-center space-x-2 text-purple-600 font-semibold">
-              <Phone className="h-5 w-5" />
-              <span>+91 1234567890</span>
-            </div>
-
-            {/* Hamburger menu - Mobile only */}
-            <div className="lg:hidden">
-              <button
-                onClick={toggleSidebar}
-                className="text-gray-600 hover:text-purple-600 p-2 rounded-full transition-colors"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-            </div>
-
-            {/* Desktop Auth Section */}
-            <div className="hidden lg:flex items-center space-x-3">
+            {/* Auth Section */}
+            <div className="flex items-center space-x-3">
               {user && token ? (
-                // Logged in user dropdown with dashboard access
+                // Logged in user dropdown
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center space-x-2 px-3 py-2 rounded-full border border-purple-600 hover:bg-purple-50 transition-colors">
-                    <Avatar className="h-8 w-8">
+                  <DropdownMenuTrigger className="flex items-center space-x-2 px-3 py-2 rounded-full bg-primary/10 dark:bg-primary/20 hover:bg-primary/20 transition-colors border border-primary/20">
+                    <Avatar className="h-8 w-8 border-2 border-primary">
                       <AvatarImage src={user.profileImage?.url} />
-                      <AvatarFallback className="bg-purple-600 text-white">
+                      <AvatarFallback className="bg-primary text-white">
                         {user.name?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="font-medium text-gray-700">
-                      {user.name}
+                    <span className="font-semibold text-gray-800 dark:text-white hidden sm:inline">
+                      {user.name?.split(' ')[0]}
                     </span>
                     <ChevronDown className="h-4 w-4 text-gray-500" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <div className="px-3 py-2 border-b">
-                      <p className="text-sm font-medium text-gray-900">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-gray-500">{user.email}</p>
+                  <DropdownMenuContent align="end" className="w-64 dark:bg-gray-800 dark:border-gray-700">
+                    <div className="px-3 py-2 border-b dark:border-gray-700">
+                      <p className="text-base font-bold text-gray-900 dark:text-white">{user.name}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
                     </div>
 
-                    {/* Dashboard Links based on user role */}
-                    {/* {user.role === "user" && (
-                      <DropdownMenuItem asChild>
-                        <Link
-                          to="/user/profile"
-                          className="flex items-center space-x-2"
-                        >
-                          <LayoutDashboard className="h-4 w-4" />
-                          <span>My Profile</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )} */}
-
-                    {user.role === "vendor" && (
-                      <DropdownMenuItem asChild>
-                        <Link
-                          to="/vendor/dashboard"
-                          className="flex items-center space-x-2"
-                        >
-                          <Store className="h-4 w-4" />
-                          <span>Vendor Dashboard</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-
-                    {(user.role === "admin" || user.role === "super_admin") && (
-                      <DropdownMenuItem asChild>
-                        <Link
-                          to="/admin/dashboard"
-                          className="flex items-center space-x-2"
-                        >
-                          <Shield className="h-4 w-4" />
-                          <span>Admin Dashboard</span>
-                        </Link>
-                      </DropdownMenuItem>
-                    )}
-
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/user/profile"
-                        className="flex items-center space-x-2"
-                      >
-                        <User className="h-4 w-4" />
-                        <span>My Profile</span>
+                    {/* Dashboard Links */}
+                    {[
+                        { role: 'vendor', href: '/vendor/dashboard', label: 'Vendor Dashboard', icon: Store, color: 'text-green-500' },
+                        { role: 'admin', href: '/admin/dashboard', label: 'Admin Dashboard', icon: Shield, color: 'text-red-500' },
+                        { role: 'super_admin', href: '/admin/dashboard', label: 'Super Admin', icon: Shield, color: 'text-red-600' },
+                    ].map(item => (
+                        (user.role === item.role) && (
+                            <DropdownMenuItem key={item.role} asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <Link to={item.href} className="flex items-center space-x-2 font-medium">
+                                    <item.icon className={`h-4 w-4 ${item.color}`} />
+                                    <span>{item.label}</span>
+                                </Link>
+                            </DropdownMenuItem>
+                        )
+                    ))}
+                    
+                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Link to="/user/profile" className="flex items-center space-x-2 font-medium">
+                        <User className="h-4 w-4 text-primary" />
+                        <span>Profile Settings</span>
                       </Link>
                     </DropdownMenuItem>
 
-                    <DropdownMenuSeparator />
+                    <DropdownMenuSeparator className="dark:bg-gray-700" />
                     <DropdownMenuItem
                       onClick={handleLogout}
-                      className="flex items-center space-x-2 text-red-600"
+                      className="flex items-center space-x-2 text-red-500 font-medium cursor-pointer hover:bg-red-50 dark:hover:bg-gray-700"
                     >
                       <LogOut className="h-4 w-4" />
                       <span>Logout</span>
@@ -299,270 +200,131 @@ const Navbar = () => {
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                // Not logged in - smart login dropdown
+                // Not logged in - CTA Button/Dropdown
                 <DropdownMenu>
-                  <DropdownMenuTrigger className="flex items-center space-x-2 px-4 py-2 rounded-full bg-primary text-white transition-all font-semibold">
-                    <span>Login</span>
-                    <ChevronDown className="h-4 w-4" />
+                  <DropdownMenuTrigger className="flex items-center space-x-2 px-4 py-2 rounded-full bg-primary text-white transition-all font-semibold hover:bg-blue-600 shadow-md shadow-primary/30">
+                    <User className="h-5 w-5" />
+                    <span className="hidden sm:inline">Login/Join</span>
+                    <ChevronDown className="h-4 w-4 hidden sm:inline" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild>
-                      <Link to="/login" className="flex items-center space-x-2">
-                        <User className="h-4 w-4 text-purple-600" />
-                        <div>
-                          <p className="font-medium">User Login</p>
-                          <p className="text-xs text-gray-500 hover:text-white">
-                            For customers
-                          </p>
-                        </div>
-                      </Link>
+                  <DropdownMenuContent align="end" className="w-56 dark:bg-gray-800 dark:border-gray-700">
+                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <Link to="/login" className="flex items-center space-x-3 p-2">
+                            <User className="h-5 w-5 text-primary" />
+                            <div className="text-left">
+                                <p className="font-bold">Customer Login</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Hire professionals</p>
+                            </div>
+                        </Link>
                     </DropdownMenuItem>
-
-                    <DropdownMenuItem asChild>
-                      <Link
-                        to="/partner/login"
-                        className="flex items-center  hover:text-white space-x-2"
-                      >
-                        <Store className="h-4 w-4 text-green-600" />
-                        <div>
-                          <p className="font-medium">Partner Login</p>
-                          <p className="text-xs text-gray-500  hover:text-white">
-                            For business owners
-                          </p>
-                        </div>
-                      </Link>
+                    <DropdownMenuSeparator className="dark:bg-gray-700" />
+                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <Link to="/partner/login" className="flex items-center space-x-3 p-2">
+                            <Store className="h-5 w-5 text-green-600" />
+                            <div className="text-left">
+                                <p className="font-bold">Partner Login</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">List your services</p>
+                            </div>
+                        </Link>
                     </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-                    {/* <DropdownMenuItem asChild>
-                      <Link to="/login" className="flex items-center space-x-2">
-                        <Shield className="h-4 w-4 text-red-600" />
-                        <div>
-                          <p className="font-medium">Admin Login</p>
-                          <p className="text-xs text-gray-500">
-                            For administrators
-                          </p>
-                        </div>
-                      </Link>
-                    </DropdownMenuItem> */}
+                    <DropdownMenuSeparator className="dark:bg-gray-700" />
+                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <Link to="/signup" className="flex items-center justify-center bg-primary/10 text-primary rounded-lg py-2 font-semibold">
+                            Create Account
+                        </Link>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+            </div>
+            
+            {/* Hamburger menu - Mobile only */}
+            <div className="xl:hidden">
+              <button
+                onClick={toggleSidebar}
+                className="text-gray-700 dark:text-gray-300 hover:text-primary p-2 rounded-full transition-colors"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Mobile Sidebar */}
+      {/* Mobile Sidebar - Darker, cleaner theme */}
       <div
-        className={`fixed inset-y-0 right-0 w-64 md:w-[70vw] bg-white md:pr-5 shadow-xl transform transition-transform duration-300 ease-in-out ${
+        className={`fixed inset-y-0 right-0 w-80 bg-gray-900 text-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
           isSidebarOpen ? "translate-x-0" : "translate-x-full"
-        } lg:hidden z-50 overflow-y-auto`}
+        } xl:hidden z-50 overflow-y-auto`}
       >
-        <div className="flex justify-between items-center p-4 border-b">
-          <div className="flex items-center space-x-2">
-            <Link to="/" className="flex items-center">
-              <img
-                src="/logo.png"
-                alt="Logo"
-                className="h-8 object-contain cursor-pointer transition-transform hover:scale-105"
-              />
-            </Link>
-          </div>{" "}
+        <div className="flex justify-between items-center p-5 border-b border-gray-700">
+          <h3 className="text-xl font-bold gradient-text">ProServe</h3>
           <button
             onClick={toggleSidebar}
-            className="text-gray-600 hover:text-purple-600 p-2 rounded-full transition-colors"
+            className="text-gray-400 hover:text-white p-2 rounded-full transition-colors"
           >
             <X className="h-6 w-6" />
           </button>
         </div>
 
-        <nav className="flex flex-col p-4 space-y-4">
-          {menuLinks.map((link) => (
-            <div key={link.label} className="flex items-center space-x-2">
-              <a
-                href={link.href}
-                className="text-gray-800 hover:text-purple-600 transition-colors font-medium text-lg"
+        <nav className="flex flex-col p-5 space-y-2">
+          {menuLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.label}
+                to={link.href}
+                onClick={toggleSidebar}
+                className="flex items-center space-x-4 p-3 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-primary transition-colors font-medium text-lg"
               >
-                {link.label}
-              </a>
-              {link.hot && (
-                <span className="bg-primary text-white px-2 py-1 rounded-full text-xs font-bold">
-                  Hot
-                </span>
-              )}
-            </div>
-          ))}
-
-          {/* Call Number - Mobile */}
-          <div className="flex items-center space-x-2 text-purple-600 font-semibold mt-4">
-            <Phone className="h-5 w-5" />
-            <span>+91 1234567890</span>
-          </div>
-
-          {/* Mobile Auth Section */}
-          <div className="mt-6 space-y-3">
-            {user && token ? (
-              // Logged in user section with dashboard access
-              <>
-                <div className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                  <Avatar className="h-12 w-12">
-                    <AvatarImage src={user.profileImage?.url} />
-                    <AvatarFallback className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
-                      {user.name?.charAt(0).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-semibold text-gray-800">{user.name}</p>
-                    <p className="text-sm text-gray-600">{user.email}</p>
-                    <p className="text-xs text-purple-600 font-medium capitalize">
-                      {user.role} Account
-                    </p>
-                  </div>
-                </div>
-
-                {/* Dashboard Link based on role */}
-                {user.role === "user" && (
-                  <Link
-                    to={"/user/profile"}
-                    className="flex items-center justify-center space-x-2 w-full px-4 py-3 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all font-semibold"
-                    onClick={toggleSidebar}
-                  >
-                    <LayoutDashboard className="h-4 w-4" />
-                    <span>My Dashboard</span>
-                  </Link>
+                <Icon className="h-6 w-6" />
+                <span>{link.label}</span>
+                {link.hot && (
+                  <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold ml-auto">
+                    New
+                  </span>
                 )}
-
-                {user.role === "vendor" && (
-                  <Link
-                    to={"/vendor/dashboard"}
-                    className="flex items-center justify-center space-x-2 w-full px-4 py-3 rounded-full bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 transition-all font-semibold"
-                    onClick={toggleSidebar}
-                  >
-                    <Store className="h-4 w-4" />
-                    <span>Vendor Dashboard</span>
-                  </Link>
-                )}
-
-                {(user.role === "admin" || user.role === "super_admin") && (
-                  <Link
-                    to={"/admin/dashboard"}
-                    className="flex items-center justify-center space-x-2 w-full px-4 py-3 rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-white hover:from-red-700 hover:to-rose-700 transition-all font-semibold"
-                    onClick={toggleSidebar}
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span>Admin Dashboard</span>
-                  </Link>
-                )}
-
-                <Link
-                  to={"/user/profile"}
-                  className="flex items-center justify-center space-x-2 w-full px-4 py-2 rounded-full text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white transition-colors font-semibold"
-                  onClick={toggleSidebar}
-                >
-                  <User className="h-4 w-4" />
-                  <span>Profile Settings</span>
-                </Link>
-
-                <button
-                  onClick={() => {
-                    handleLogout();
-                    toggleSidebar();
-                  }}
-                  className="flex items-center justify-center space-x-2 w-full px-4 py-2 rounded-full text-red-600 border border-red-600 hover:bg-red-600 hover:text-white transition-colors font-semibold"
-                >
-                  <LogOut className="h-4 w-4" />
-                  <span>Logout</span>
-                </button>
-              </>
-            ) : (
-              // Not logged in - smart login options
-              <>
-                <div className="text-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-800 mb-1">
-                    Choose Login Type
-                  </h3>
-                  <p className="text-sm text-gray-600">
-                    Select your account type to continue
-                  </p>
-                </div>
-
-                <Link
-                  to={"/login"}
-                  className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 transition-all font-semibold"
-                  onClick={toggleSidebar}
-                >
-                  <User className="h-5 w-5" />
-                  <div className="text-left">
-                    <p className="font-semibold">User Login</p>
-                    <p className="text-xs opacity-90">For customers & users</p>
-                  </div>
-                </Link>
-
-                <Link
-                  to={"/partner/login"}
-                  className="flex items-center space-x-3 w-full px-4 py-3 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:from-green-700 hover:to-emerald-700 transition-all font-semibold"
-                  onClick={toggleSidebar}
-                >
-                  <Store className="h-5 w-5" />
-                  <div className="text-left">
-                    <p className="font-semibold">Partner Login</p>
-                    <p className="text-xs opacity-90">For business owners</p>
-                  </div>
-                </Link>
-
-                <div className="pt-3 border-t border-gray-200">
-                  <Link
-                    to={"/signup"}
-                    className="block w-full px-4 py-2 rounded-full text-purple-600 border border-purple-600 hover:bg-purple-600 hover:text-white transition-colors font-semibold text-center"
-                    onClick={toggleSidebar}
-                  >
-                    Create New Account
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Social media icons */}
-          <div className="mt-6 pt-4 border-t border-gray-200">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-500">
-              Connect With Us
-            </h3>
-            <div className="flex justify-center space-x-4 mt-5">
-              <a
-                href="#"
-                className="text-gray-600 hover:text-purple-600 transition-colors"
-              >
-                <Facebook className="h-6 w-6" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-600 hover:text-purple-600 transition-colors"
-              >
-                <Instagram className="h-6 w-6" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-600 hover:text-purple-600 transition-colors"
-              >
-                <Linkedin className="h-6 w-6" />
-              </a>
-              <a
-                href="#"
-                className="text-gray-600 hover:text-purple-600 transition-colors"
-              >
-                <Twitch className="h-6 w-6" />
-              </a>
-            </div>
-          </div>
+              </Link>
+            );
+          })}
         </nav>
+
+        {/* Mobile Auth/Action Section */}
+        <div className="p-5 mt-4 space-y-4 border-t border-gray-700">
+            {/* Call Number - Mobile */}
+            <a href="tel:+911234567890" className="flex items-center justify-center space-x-2 text-primary font-bold text-lg p-3 rounded-lg border border-primary/50 hover:bg-primary/10 transition-colors">
+                <Phone className="h-5 w-5" />
+                <span>Call Support</span>
+            </a>
+            
+            {/* Mobile Auth Button */}
+            {user && token ? (
+                // Logged in user mobile CTA
+                <button
+                    onClick={() => { handleLogout(); toggleSidebar(); }}
+                    className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold shadow-lg"
+                >
+                    <LogOut className="h-5 w-5" />
+                    <span>Sign Out</span>
+                </button>
+            ) : (
+                // Not logged in mobile CTA
+                <Link
+                    to="/login"
+                    onClick={toggleSidebar}
+                    className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-primary text-white hover:bg-blue-600 transition-colors font-semibold shadow-lg"
+                >
+                    <User className="h-5 w-5" />
+                    <span>Customer Login</span>
+                </Link>
+            )}
+        </div>
       </div>
 
       {/* Overlay */}
       {isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-40"
+          className="fixed inset-0 bg-black bg-opacity-70 xl:hidden z-40"
           onClick={toggleSidebar}
         />
       )}

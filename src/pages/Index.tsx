@@ -24,9 +24,9 @@ const Index = () => {
         <ServicesSlider />
         <FeaturesSection />
         <ProcessSection />
-        <SuccessStories />
         <StatsSection />
         <TestimonialsSection />
+        <SuccessStories />
         <ContactSection />
       </main>
       <Footer />

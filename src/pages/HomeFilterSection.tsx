@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -9,7 +10,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { getAllCategoriesAPI } from "@/service/operations/category"; // ✅ same API as in TopSearchBar
+import { Search, MapPin, Briefcase, DollarSign, Tag } from "lucide-react";
+import { getAllCategoriesAPI } from "@/service/operations/category";
 
 const MIN_PRICE_LIMIT = 0;
 const MAX_PRICE_LIMIT = 50000;
@@ -61,87 +63,137 @@ const HomeFilterSection = () => {
     navigate(`/services?${params.toString()}`);
   };
 
+  const formatPrice = (price) => `₹${price.toLocaleString('en-IN')}`;
+
   return (
-    <div className="bg-primary py-10 px-6 shadow-lg mb-10">
-      {/* Title & Description */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2">
-          Find the Best Services Near You
-        </h2>
-        <p className="text-white max-w-2xl mx-auto">
-          Search, filter, and explore local service providers by category,
-          location, and price range. Get what you need quickly and easily!
-        </p>
-      </div>
+    // 💡 Outer container: Attractive light background
+    <div className="w-full bg-gray-50 dark:bg-gray-900 py-16 px-4 mb-10">
+      <div className="max-w-7xl mx-auto">
+        
+        {/* Title & Description */}
+        <div className="text-center mb-12">
+          <p className="text-sm font-semibold text-primary uppercase tracking-wider">
+            Smart Filter
+          </p>
+          <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-2">
+            Refine Your Service Search
+          </h2>
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mt-3">
+            Use advanced filters to pinpoint the exact professional you need.
+          </p>
+        </div>
 
-      {/* Filter Box */}
-      <div className="bg-white shadow-md rounded-2xl p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
-        {/* Title */}
-        <input
-          type="text"
-          name="title"
-          value={filters.title}
-          onChange={handleChange}
-          placeholder="Search by title"
-          className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        {/* Filter Layout - Two Card Structure */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          {/* Card 1: Core Inputs (2/3 width) */}
+          <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700">
+            <h3 className="text-xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
+                <Search className="w-5 h-5 mr-2 text-primary" />
+                What Are You Looking For?
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              
+              {/* Service Title Search */}
+              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg focus-within:ring-2 focus-within:ring-primary transition-shadow bg-white dark:bg-gray-900">
+                <Tag className="w-5 h-5 ml-3 text-gray-500 flex-shrink-0" />
+                <Input
+                  type="text"
+                  name="title"
+                  value={filters.title}
+                  onChange={handleChange}
+                  placeholder="Service Name/Keyword"
+                  className="border-none shadow-none focus-visible:ring-0 text-base py-3 bg-transparent"
+                />
+              </div>
 
-        {/* Location */}
-        <input
-          type="text"
-          name="location"
-          value={filters.location}
-          onChange={handleChange}
-          placeholder="Search by location"
-          className="border rounded-lg px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+              {/* Location Search */}
+              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg focus-within:ring-2 focus-within:ring-primary transition-shadow bg-white dark:bg-gray-900">
+                <MapPin className="w-5 h-5 ml-3 text-gray-500 flex-shrink-0" />
+                <Input
+                  type="text"
+                  name="location"
+                  value={filters.location}
+                  onChange={handleChange}
+                  placeholder="Location (City or State)"
+                  className="border-none shadow-none focus-visible:ring-0 text-base py-3 bg-transparent"
+                />
+              </div>
 
-        {/* Dynamic Category Select */}
-        <Select value={filters.category} onValueChange={handleCategoryChange}>
-          <SelectTrigger className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500">
-            <SelectValue placeholder="Select Category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            {categories.length > 0 ? (
-              categories.map((cat) => (
-                <SelectItem key={cat._id} value={cat.name}>
-                  {cat.name}
-                </SelectItem>
-              ))
-            ) : (
-              <SelectItem disabled>Loading...</SelectItem>
-            )}
-          </SelectContent>
-        </Select>
+              {/* Category Select */}
+              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg focus-within:ring-2 focus-within:ring-primary transition-shadow bg-white dark:bg-gray-900">
+                <Briefcase className="w-5 h-5 ml-3 text-gray-500 flex-shrink-0" />
+                <Select value={filters.category} onValueChange={handleCategoryChange}>
+                  <SelectTrigger className="w-full border-none shadow-none focus:ring-0 text-base py-3 h-full bg-transparent">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">⭐ All Categories</SelectItem>
+                    {categories.length > 0 ? (
+                      categories.map((cat) => (
+                        <SelectItem key={cat._id} value={cat.name}>
+                          {cat.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem disabled>Loading Categories...</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {/* Price Slider Section (Part of the main card) */}
+            <div className="mt-8 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                        <DollarSign className="w-5 h-5 text-gray-600 dark:text-gray-400 mr-2" />
+                        <label className="text-base font-semibold text-gray-800 dark:text-white">
+                            Budget Range
+                        </label>
+                    </div>
+                    <span className="text-xl font-bold text-primary dark:text-blue-400 bg-primary/10 dark:bg-blue-900/50 px-3 py-1 rounded-full">
+                        {formatPrice(filters.price[0])} - {formatPrice(filters.price[1])}
+                    </span>
+                </div>
 
-        {/* Search Button */}
-        <Button
-          onClick={handleSearch}
-          className="w-full bg-blue-600 text-white hover:bg-blue-700 transition-all"
-        >
-          Search
-        </Button>
-
-        {/* Price Range */}
-        <div className="col-span-1 md:col-span-4 pt-2">
-          <label className="text-sm font-medium mb-2 block">
-            Price Range: ₹{filters.price[0].toLocaleString()} - ₹
-            {filters.price[1].toLocaleString()}
-          </label>
-          <Slider
-            name="price"
-            min={MIN_PRICE_LIMIT}
-            max={MAX_PRICE_LIMIT}
-            step={500}
-            value={filters.price}
-            onValueChange={handlePriceChange}
-            className="w-full h-2"
-          />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>₹{MIN_PRICE_LIMIT.toLocaleString()}</span>
-            <span>₹{MAX_PRICE_LIMIT.toLocaleString()}</span>
+                <Slider
+                  name="price"
+                  min={MIN_PRICE_LIMIT}
+                  max={MAX_PRICE_LIMIT}
+                  step={1000}
+                  value={filters.price}
+                  onValueChange={handlePriceChange}
+                  // Customizing slider track and thumb color using Tailwind utility classes
+                  className="w-full [&>span:first-child]:bg-gray-300 [&>span:nth-child(3)]:bg-primary [&>span:nth-child(3)]:shadow-primary/50 [&>span:nth-child(3)>span]:bg-white"
+                />
+                
+                <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  <span>{formatPrice(MIN_PRICE_LIMIT)}</span>
+                  <span>{formatPrice(MAX_PRICE_LIMIT)}</span>
+                </div>
+            </div>
           </div>
+          
+          {/* Card 2: CTA/Search Button (1/3 width) */}
+          <div className="lg:col-span-1 flex flex-col justify-center items-center bg-primary dark:bg-blue-700 p-8 rounded-xl shadow-2xl shadow-primary/40 dark:shadow-blue-700/50">
+            <Search className="w-12 h-12 text-white mb-4" />
+            <h3 className="text-2xl font-bold text-white mb-2 text-center">
+                Ready to Find?
+            </h3>
+            <p className="text-white/80 text-center mb-6">
+                Click the button to see services matching your criteria.
+            </p>
+            <Button
+              onClick={handleSearch}
+              className="w-full bg-white text-primary text-xl font-extrabold hover:bg-gray-100 transition-all shadow-lg py-7"
+            >
+              <Search className="w-6 h-6 mr-3" />
+              Start Searching
+            </Button>
+          </div>
+          
         </div>
       </div>
     </div>

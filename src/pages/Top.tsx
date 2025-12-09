@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, MapPin, Briefcase } from "lucide-react";
-import { getAllCategoriesAPI } from "@/service/operations/category";
+import { getAllCategoriesAPI } from "@/service/operations/category"; // Assuming this path is correct
 
 const TopSearchBar = () => {
   const [filters, setFilters] = useState({
@@ -24,6 +24,7 @@ const TopSearchBar = () => {
   // ✅ Fetch categories on mount
   useEffect(() => {
     const fetchCategories = async () => {
+      // Assuming getAllCategoriesAPI returns data
       const data = await getAllCategoriesAPI();
       setCategories(data);
     };
@@ -49,17 +50,24 @@ const TopSearchBar = () => {
   };
 
   return (
-    <div className="hidden lg:flex justify-center p-4 bg-primary border-b border-gray-200">
-      <div className="flex w-full shadow-xl rounded-xl overflow-hidden border border-gray-300 transition-all duration-300 hover:shadow-2xl">
-        {/* Category Select */}
-        <div className="flex items-center bg-white border-r border-gray-200 w-1/4">
+    // 💡 Outer container for full width background and padding
+    <div className="hidden lg:flex justify-center w-full bg-primary/5 py-3 px-4"> 
+      
+      {/* 💡 Inner Content Wrapper: Full width look with max-width and strong visual presence */}
+      <div className="flex w-full max-w-7xl h-16 bg-white shadow-2xl shadow-primary/20 rounded-xl overflow-hidden border border-gray-200 transition-all duration-300">
+        
+        {/* 1. Category Select - Styled as a prominent dropdown */}
+        <div className="flex items-center w-1/4 min-w-[220px] bg-white border-r border-gray-200 group focus-within:ring-2 focus-within:ring-primary focus-within:z-10 transition-shadow">
           <Briefcase className="w-5 h-5 ml-4 text-primary" />
           <Select value={filters.category} onValueChange={handleCategoryChange}>
-            <SelectTrigger className="w-full border-none shadow-none focus:ring-0 text-base font-medium">
-              <SelectValue placeholder="Category" />
+            <SelectTrigger 
+              className="w-full h-full border-none shadow-none focus:ring-0 text-base font-semibold bg-transparent placeholder:font-normal"
+              aria-label="Select Category"
+            >
+              <SelectValue placeholder="Select Service Category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Services</SelectItem>
+              <SelectItem value="all">⭐ All Categories</SelectItem>
               {categories.length > 0 ? (
                 categories.map((cat) => (
                   <SelectItem key={cat._id} value={cat.name}>
@@ -67,33 +75,37 @@ const TopSearchBar = () => {
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem disabled>Loading...</SelectItem>
+                <SelectItem disabled value="loading">Loading Categories...</SelectItem>
               )}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Location Input */}
-        <div className="flex items-center bg-white w-2/4 px-4 border-r border-gray-200">
-          <MapPin className="w-5 h-5 text-gray-500 mr-2 flex-shrink-0" />
+        {/* 2. Location Input - Main search field, flexible width */}
+        <div className="flex items-center w-2/4 px-6 border-r border-gray-200 focus-within:ring-2 focus-within:ring-primary focus-within:z-10 transition-shadow">
+          <MapPin className="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" />
           <Input
             type="text"
             name="location"
             value={filters.location}
             onChange={handleChange}
-            placeholder="Enter Location (e.g., City, Zip)"
-            className="w-full border-none shadow-none focus-visible:ring-0 placeholder:text-gray-500 text-base"
+            placeholder="Enter City, State, or Zip Code"
+            className="w-full h-full border-none shadow-none focus-visible:ring-0 placeholder:text-gray-500 text-base font-medium"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
           />
         </div>
 
-        {/* Search Button */}
-        <div className="w-1/4">
+        {/* 3. Search Button - High contrast, impactful button */}
+        <div className="w-1/4 min-w-[180px]">
           <Button
             onClick={handleSearch}
-            className="w-full h-full text-base font-semibold rounded-none bg-blue-500 hover:bg-primary/90 transition-colors duration-200 flex items-center justify-center gap-2"
+            className="w-full h-full text-lg font-bold rounded-none bg-primary hover:bg-blue-600 transition-colors duration-300 flex items-center justify-center gap-2 uppercase"
+            aria-label="Search"
           >
             <Search className="w-5 h-5" />
-            Search Now
+            Find Services
           </Button>
         </div>
       </div>

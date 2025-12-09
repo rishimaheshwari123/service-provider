@@ -8,7 +8,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Star, MapPin, DollarSign, Briefcase } from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
 import { useNavigate } from "react-router-dom";
 
@@ -37,141 +37,133 @@ const ServicesSlider = () => {
   const handleHireNow = (id) => {
     navigate(`/service/${id}`);
   };
+  
+  // New handler for the global CTA button
+  const handleBrowseAll = () => {
+    navigate("/services"); // Navigates to the /services page
+  };
 
   const getAverageRating = (reviews) => {
     if (!reviews || reviews.length === 0) return 0;
     const total = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    return total / reviews.length;
+    return parseFloat((total / reviews.length).toFixed(1));
+  };
+  
+  const RatingStars = ({ rating }) => {
+    const fullStars = Math.floor(rating);
+    const hasHalfStar = rating % 1 !== 0;
+    
+    return (
+      <div className="flex items-center space-x-0.5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Star 
+            key={i} 
+            className="w-4 h-4 transition-colors"
+            fill={i < fullStars ? "#FFC107" : (i === fullStars && hasHalfStar ? "#FFC107" : "none")}
+            stroke={i < rating ? "#FFC107" : "#B0B0B0"}
+            strokeWidth={1.5}
+          />
+        ))}
+        <span className="ml-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
+            {rating > 0 ? rating : 'No ratings'}
+        </span>
+      </div>
+    );
   };
 
   return (
-    <section className="py-24 bg-card">
+    <section className="py-5 md:py-10 bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Browse <span className="gradient-text">Services</span>
-          </h2>
-          <p className="text-xl text-muted-foreground">
-            Find qualified service providers across multiple categories
-          </p>
+        <div className="max-w-4xl mx-auto text-center mb-16">
+            <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-2">
+                TOP-RATED PROFESSIONALS
+            </p>
+            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+                Explore Our Featured <span className="gradient-text">Services</span>
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300">
+                Don't settle for less. Find pre-vetted, qualified service providers across popular categories.
+            </p>
         </div>
 
         {loading ? (
-          <p className="text-center text-muted-foreground">
-            Loading services...
+          <p className="text-center text-primary font-medium">
+            Loading services, please wait...
           </p>
         ) : services.length === 0 ? (
-          <p className="text-center text-muted-foreground">
-            No services available.
+          <p className="text-center text-gray-500">
+            No featured services are available at the moment.
           </p>
         ) : (
-          <div className="max-w-6xl mx-auto">
-            <Carousel className="w-full" opts={{ align: "start", loop: true }}>
-              <CarouselContent>
+          <div className="max-w-7xl mx-auto relative">
+            <Carousel className="w-full" opts={{ align: "start", loop: true, dragFree: true }}>
+              <CarouselContent className="-ml-4">
                 {services.map((service, index) => {
                   const avgRating = getAverageRating(service.review);
-                  const percentage = (avgRating / 5) * 100; // Convert to percentage for star width
                   return (
                     <CarouselItem
                       key={index}
-                      className="md:basis-1/2 lg:basis-1/2"
+                      // 💡 Changed basis: Two cards per view on large screens
+                      className="pl-4 basis-full sm:basis-1/2 lg:basis-1/2" 
                     >
-                      <div className="p-4">
-                        <div className="group rounded-2xl bg-background border border-border overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-elegant">
-                          <div className="relative h-64 overflow-hidden">
+                      <div className="p-1">
+                        {/* Service Card: Thin, Compact, and Hoverable */}
+                        <div className="group rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 transform hover:-translate-y-1">
+                          
+                          {/* Image Area: Reduced Height for 'Thin' look */}
+                          <div className="relative h-40 sm:h-48 overflow-hidden">
                             <img
                               src={
                                 service.images?.[0]?.url ||
-                                "https://via.placeholder.com/600x400?text=No+Image"
+                                "https://via.placeholder.com/600x400?text=Service+Image+Unavailable"
                               }
                               alt={service.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
                           </div>
 
-                          <div className="p-6 space-y-4">
-                            <h3 className="text-2xl font-bold">
-                              {service.title}
-                            </h3>
-                            <p className="text-muted-foreground line-clamp-3">
-                              {service.description ||
-                                "No description available"}
-                            </p>
-
-                            {/* Stars */}
-                            <div className="relative w-28 h-6">
-                              <div className="absolute top-0 left-0 w-full h-full flex">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <svg
-                                    key={i}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="#ccc"
-                                    strokeWidth={2}
-                                    className="w-5 h-5"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z"
-                                    />
-                                  </svg>
-                                ))}
-                              </div>
-                              <div
-                                className="absolute top-0 left-0 h-full flex overflow-hidden"
-                                style={{ width: `${percentage}%` }}
-                              >
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <svg
-                                    key={i}
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                    fill="yellow"
-                                    stroke="yellow"
-                                    strokeWidth={2}
-                                    className="w-5 h-5"
-                                  >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      d="M12 17.27L18.18 21 16.54 13.97 22 9.24 14.81 8.63 12 2 9.19 8.63 2 9.24 7.46 13.97 5.82 21z"
-                                    />
-                                  </svg>
-                                ))}
-                              </div>
+                          {/* Content Area: Reduced Padding */}
+                          <div className="p-4 space-y-3">
+                            <div className="flex justify-between items-start">
+                                <h3 className="text-xl font-bold line-clamp-2 text-gray-900 dark:text-white">
+                                    {service.title}
+                                </h3>
+                            </div>
+                            
+                            {/* Rating and Reviews */}
+                            <div className="flex items-center justify-between border-b pb-2 border-gray-100 dark:border-gray-700">
+                                <RatingStars rating={avgRating} />
+                                <span className="text-xs text-gray-500 dark:text-gray-400">
+                                    ({service.review?.length || 0} Reviews)
+                                </span>
                             </div>
 
-                            {/* Service Details */}
-                            <div className="text-sm text-muted-foreground space-y-1">
-                              <p>
-                                <strong>Type:</strong> {service.type || "N/A"}
-                              </p>
-                              <p>
-                                <strong>Category:</strong>{" "}
-                                {service.category || "N/A"}
-                              </p>
-                              <p>
-                                <strong>Location:</strong>{" "}
-                                {service.location || "N/A"}
-                              </p>
-                              <p>
-                                <strong>Price:</strong>{" "}
-                                {service.price ? `₹${service.price}` : "N/A"}
-                              </p>
+                            {/* Key Details */}
+                            <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                                <p className="flex items-center">
+                                    <Briefcase className="w-4 h-4 mr-2 text-primary" />
+                                    {service.category || "General Service"}
+                                </p>
+                                <p className="flex items-center">
+                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
+                                    {service.location || "Online/Remote"}
+                                </p>
+                                <p className="flex items-center font-bold text-lg text-green-600 dark:text-green-400 pt-1">
+                                    <DollarSign className="w-5 h-5 mr-1" />
+                                    {service.price ? `Starts from ₹${service.price.toLocaleString('en-IN')}` : "Price Varies"}
+                                </p>
                             </div>
-
+                            
+                            {/* CTA Button */}
                             <Button
-                              variant="outline"
-                              className="w-full group/btn"
+                              variant="default"
+                              className="w-full mt-3 group/btn bg-primary hover:bg-blue-600 text-base font-semibold transition-all shadow-md shadow-primary/30 py-2.5 h-auto"
                               onClick={() => handleHireNow(service._id)}
                             >
-                              Hire Now
+                              View Details & Hire
                               <ArrowRight
-                                className="ml-2 group-hover/btn:translate-x-1 transition-transform"
-                                size={16}
+                                className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform"
                               />
                             </Button>
                           </div>
@@ -181,11 +173,24 @@ const ServicesSlider = () => {
                   );
                 })}
               </CarouselContent>
-              <CarouselPrevious className="hidden md:flex" />
-              <CarouselNext className="hidden md:flex" />
+              {/* Carousel Navigation */}
+              <CarouselPrevious className="left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-white/80 border shadow-md hidden sm:flex" />
+              <CarouselNext className="right-0 translate-x-1/2 top-1/2 -translate-y-1/2 bg-white/80 border shadow-md hidden sm:flex" />
             </Carousel>
           </div>
         )}
+        
+        {/* Global CTA - Now navigates to /services */}
+        <div className="text-center mt-16">
+            <Button 
+                onClick={handleBrowseAll} // 💡 New click handler
+                variant="outline" 
+                className="text-lg font-semibold py-6 px-10 border-2 border-primary text-primary hover:bg-primary/10 group"
+            >
+                Browse All Services Categories
+                <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
+            </Button>
+        </div>
       </div>
     </section>
   );

@@ -1,85 +1,121 @@
-import { FileSearch, Lightbulb, Code, Rocket } from "lucide-react";
+import { FileSearch, Lightbulb, Code, Rocket, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const ProcessSection = () => {
   const steps = [
     {
       number: "01",
       icon: FileSearch,
-      title: "Create Your Service",
+      title: "Create Your Service Profile",
       description:
-        "Vendors can easily list their services with details like pricing, description, and expertise areas to reach potential clients.",
+        "Vendors list their professional services, defining their scope, competitive pricing, and key areas of expertise.",
     },
     {
       number: "02",
       icon: Lightbulb,
-      title: "Get Discovered",
+      title: "Maximize Discovery",
       description:
-        "Your services become visible to users looking for professionals. Get noticed through ratings, reviews, and categories.",
+        "Your services are prominently featured to targeted clients. Optimize visibility through high ratings and detailed profiles.",
     },
     {
       number: "03",
       icon: Code,
-      title: "Receive Bookings",
+      title: "Secure Client Booking",
       description:
-        "Users can hire you directly through the platform. Manage requests, chat with clients, and confirm service details securely.",
+        "Clients hire you directly via the platform. Seamlessly manage requests, use the integrated chat, and confirm details.",
     },
     {
       number: "04",
       icon: Rocket,
-      title: "Deliver & Get Paid",
+      title: "Complete & Receive Instant Payment",
       description:
-        "Complete the service, get client approval, and receive payments quickly and safely through our secure payment system.",
+        "Deliver the service, receive final client approval, and get paid quickly and securely through our protected escrow system.",
     },
   ];
 
   return (
-    <section className="py-24 bg-card relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-accent-green rounded-full blur-3xl" />
+    // Dark background for a high-contrast, professional look
+    <section className="py-8 md:py-20 bg-gray-950 dark:bg-black relative overflow-hidden">
+      
+      {/* Background Decoration - Subtle Glows */}
+      <div className="absolute inset-0 opacity-10">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-green-500/20 rounded-full blur-[120px]" />
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="max-w-3xl mx-auto text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            How It <span className="gradient-text">Works</span>
+        
+        {/* Header Section */}
+        <div className="max-w-4xl mx-auto text-center mb-20 animate-fade-in-up">
+          <p className="text-sm font-semibold text-blue-400 uppercase tracking-widest mb-2">
+            SIMPLIFIED GROWTH
+          </p>
+          <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
+            Our <span className="gradient-text">Vendor Onboarding</span> Flow
           </h2>
-          <p className="text-xl text-muted-foreground">
-            Simple steps for service providers to grow and get hired
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            A clear, efficient path for service providers to join the platform, acquire clients, and get paid.
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {/* Process Flow Layout: Vertical Alignment with Step-by-Step Connectors */}
+        <div className="max-w-4xl mx-auto">
+          <div className="relative">
+            
+            {/* Main Vertical Connector Line (The backbone of the flow) */}
+            <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-gray-700 dark:bg-gray-800 hidden md:block"></div>
+
             {steps.map((step, index) => (
               <div
                 key={index}
-                className="relative animate-fade-in"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className={`flex mb-12 md:mb-16 last:mb-0 relative animate-fade-in-up`}
+                style={{ 
+                    animationDelay: `${index * 0.2}s`,
+                    // Alternating layout for visual interest (Zig-Zag)
+                    justifyContent: index % 2 === 0 ? 'flex-start' : 'flex-end'
+                }}
               >
-                {/* Connecting line (hidden on mobile, shown on desktop) */}
-                {index < steps.length - 1 && (
-                  <div className="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-primary to-transparent z-0" />
-                )}
-
-                <div className="relative z-10 p-6 rounded-xl bg-background border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-elegant group">
-                  <div className="text-5xl font-bold text-primary/20 mb-4">
-                    {step.number}
-                  </div>
-
-                  <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center mb-4 group-hover:scale-110 transition-transform shadow-glow">
-                    <step.icon className="text-primary-foreground" size={28} />
-                  </div>
-
-                  <h3 className="text-xl font-bold mb-3">{step.title}</h3>
-                  <p className="text-muted-foreground text-sm">
-                    {step.description}
-                  </p>
+                
+                {/* 1. The Step Card (Alternating Side) */}
+                <div 
+                    className={`w-full md:w-[45%] p-6 rounded-xl bg-white dark:bg-gray-800 transition-all duration-500 shadow-2xl shadow-black/40 border border-gray-100 dark:border-gray-700 group hover:shadow-blue-500/30 transform hover:-translate-y-1`}
+                >
+                    <div className="flex items-center space-x-4 mb-4">
+                        {/* Icon Container: Primary color, rotating on hover */}
+                        <div className="w-12 h-12 rounded-full gradient-primary flex items-center justify-center shadow-md shadow-primary/30 transition-transform duration-500 group-hover:rotate-6">
+                            <step.icon className="text-white" size={24} strokeWidth={2.5} />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors">{step.title}</h3>
+                    </div>
+                    <p className="text-gray-600 dark:text-gray-400 text-base">
+                        {step.description}
+                    </p>
                 </div>
+                
+                {/* 2. Central Connector Point (The large Number) */}
+                <div className="absolute left-1/2 top-0 transform -translate-x-1/2 hidden md:flex flex-col items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-2xl font-extrabold text-white shadow-xl shadow-primary/60 border-4 border-gray-950 z-20 transition-all duration-300 group-hover:scale-110">
+                        {step.number}
+                    </div>
+                    {/* Dashed line connecting card to main line (for zig-zag flow) */}
+                    {/* Line is styled by position in the main container */}
+                </div>
+                
+                {/* 3. Mobile Connector Line (If on small screens) */}
+                {index < steps.length - 1 && (
+                    <div className="block md:hidden absolute left-0 top-full w-full h-0.5 bg-gray-700 dark:bg-gray-800" />
+                )}
               </div>
             ))}
           </div>
+        </div>
+        
+        {/* Final CTA */}
+        <div className="text-center mt-5">
+            <Button className="group text-lg font-semibold py-7 bg-green-500 hover:bg-green-600 shadow-xl shadow-green-500/40">
+                Join the Network and Start Earning
+                <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </Button>
         </div>
       </div>
     </section>
