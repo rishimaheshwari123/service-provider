@@ -163,6 +163,13 @@ const Sidebar = () => {
       color: "text-indigo-600",
       permission: null,
     },
+    {
+      to: "/admin/logs",
+      icon: Files,
+      label: "Logs",
+      color: "text-indigo-600",
+      permission: null,
+    },
   ];
 
   // Filter menu items based on user permissions

@@ -48,6 +48,7 @@ app.use("/api/v1/ads", require("./routes/adsRoute"));
 app.use("/api/v1/booking", require("./routes/bookingRoute"));
 app.use("/api/v1/category", require("./routes/categoryRoute"));
 app.use("/api/v1/razorpay", require("./routes/razorpayRoute"))
+app.use("/api/v1/audit", require("./routes/auditLogs"))
 
 
 

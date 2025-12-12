@@ -47,6 +47,8 @@ import { AddRoles } from "./components/pages/admin/AddRoles";
 import ManageCategories from "./components/pages/admin/ManageCategories";
 import PurchaseCategories from "./components/pages/vendor/PurchaseCategories";
 import VendorAddService from "./components/pages/vendor/VendorAddProperty";
+import AuditLogsPage from "./components/pages/vendor/AuditLogs";
+import AdminAuditLogs from "./components/pages/admin/AdminAuditLogs";
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -107,6 +109,7 @@ const App = () => {
                 <Route path="bookings" element={<AllBookingsPage />} />
                 <Route path="crm" element={<AddRoles />} />
                 <Route path="categories" element={<ManageCategories />} />
+                <Route path="logs" element={<AdminAuditLogs />} />
                 <Route path="add-service/:id" element={<VendorAddService />} />
               </Route>
             )}
@@ -126,6 +129,7 @@ const App = () => {
                 <Route path="inquiry-services" element={<VendorGetInquiry />} />
                 <Route path="bookings" element={<VendorBookings />} />
                 <Route path="tasks" element={<Task />} />
+                <Route path="logs" element={<AuditLogsPage />} />
                 <Route
                   path="purchase-categories"
                   element={<PurchaseCategories />}

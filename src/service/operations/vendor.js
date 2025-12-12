@@ -15,7 +15,7 @@ const {
   REQUST_FOR_THE_UPDATE_PROFILE_API
 } = vendor;
 
-export async function login(email, password, dispatch) {
+export async function login(phone, password, dispatch) {
   Swal.fire({
     title: "Loading",
     allowOutsideClick: false,
@@ -29,7 +29,7 @@ export async function login(email, password, dispatch) {
 
   try {
     const response = await apiConnector("POST", LOGIN_API, {
-      email,
+      phone,
       password,
     });
     Swal.close();

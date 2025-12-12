@@ -141,6 +141,13 @@ const VendorSidebar = () => {
       color: "text-indigo-600",
       permission: null,
     },
+    {
+      to: "/vendor/logs",
+      icon: Building2,
+      label: "Logs",
+      color: "text-indigo-600",
+      permission: null,
+    },
   ];
   // Filter menu items based on user permissions
   const menuItems = allMenuItems.filter(

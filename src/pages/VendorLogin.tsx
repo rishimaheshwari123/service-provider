@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,22 +9,40 @@ import { Label } from "@/components/ui/label";
 import { useNavigate, Link } from "react-router-dom";
 import { login } from "../service/operations/vendor";
 import { useDispatch } from "react-redux";
+import { Eye, EyeOff } from "lucide-react";
+
+// Zod schema
+const loginSchema = z.object({
+  phone: z
+    .string()
+    .regex(
+      /^[1-9]\d{9}$/,
+      "Phone must be 10 digits and cannot start with 0 or +"
+    ),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type LoginFormData = z.infer<typeof loginSchema>;
 
 const VendorLogin = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await login(email, password, dispatch);
-    // Static login check (in real app, this would be API call)
-    // if (email === "vendor@propcorn.com" && password === "vendor123") {
-    //   toast.success("Login successful!");
-    //   navigate("/vendor/dashboard");
-    // } else {
-    //   toast.error("Invalid credentials");
-    // }
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const onSubmit = async (data: LoginFormData) => {
+    try {
+      await login(data.phone, data.password, dispatch);
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   };
 
   return (
@@ -32,33 +53,63 @@ const VendorLogin = () => {
           <p className="text-gray-600">Sign in to your vendor account</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="phone">
+                Phone Number <span className="text-red-500">*</span>
+              </Label>
               <Input
-                id="email"
-                type="email"
-                placeholder="Enter Your Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                id="phone"
+                type="tel"
+                placeholder="Enter your 10-digit phone number"
+                {...register("phone")}
+                className={errors.phone ? "border-destructive" : ""}
               />
+              {errors.phone && (
+                <p className="text-sm text-destructive">
+                  {errors.phone.message}
+                </p>
+              )}
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
+              <Label htmlFor="password">
+                Password <span className="text-red-500">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter password"
+                  {...register("password")}
+                  className={
+                    errors.password ? "border-destructive pr-10" : "pr-10"
+                  }
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
+              </div>
+              {errors.password && (
+                <p className="text-sm text-destructive">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
-            <Button type="submit" className="w-full gradient-gold text-white">
-              Login
+
+            <Button
+              type="submit"
+              className="w-full gradient-gold text-white"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Logging in..." : "Login"}
             </Button>
           </form>
+
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
               Don't have an account?{" "}

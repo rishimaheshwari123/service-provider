@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { getAllUsersAPI, changeUserType } from "@/service/operations/auth";
 import { getUserInquiryApi } from "@/service/operations/contact";
 import { toast } from "sonner";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
 import {
   Loader2,
   Users,
@@ -40,6 +43,38 @@ const AllUsers = () => {
   useEffect(() => {
     fetchUsers();
   }, []);
+
+  const downloadPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("All Users", 14, 18);
+
+    const tableColumn = ["#", "Name", "Email", "Type", "Created At"];
+
+    const tableRows = [];
+
+    users.forEach((u, index) => {
+      const row = [
+        index + 1,
+        u.name || "—",
+        u.email,
+        u.type === "active" ? "Active" : "Inactive",
+        new Date(u.createdAt).toLocaleDateString(),
+      ];
+      tableRows.push(row);
+    });
+
+    autoTable(doc, {
+      startY: 28,
+      head: [tableColumn],
+      body: tableRows,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [99, 102, 241] }, // Indigo color
+    });
+
+    doc.save("all-users.pdf");
+  };
 
   // Change user type (Active/Inactive)
   const handleChangeType = async (id, newType) => {
@@ -88,6 +123,14 @@ const AllUsers = () => {
         <Users className="w-7 h-7 mr-3 text-indigo-600" />
         All Registered Users
       </h2>
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={downloadPDF}
+          className="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700"
+        >
+          Download PDF
+        </button>
+      </div>
 
       <div className="bg-white shadow-xl rounded-xl p-4 sm:p-6 lg:p-8">
         {loading ? (

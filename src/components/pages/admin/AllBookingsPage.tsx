@@ -5,6 +5,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface Booking {
   _id: string;
@@ -58,6 +60,51 @@ const AllBookingsPage: React.FC = () => {
     fetchBookings();
   }, []);
 
+  const downloadBookingsPDF = () => {
+    const doc = new jsPDF();
+
+    doc.setFontSize(16);
+    doc.text("All Bookings Report", 14, 15);
+
+    const tableColumn = [
+      "Service",
+      "User",
+      "Vendor",
+      "Date",
+      "Time",
+      "Price",
+      "Payment",
+      "Status",
+    ];
+
+    const tableRows: any[] = [];
+
+    bookings.forEach((b) => {
+      const row = [
+        b.service?.title || "-",
+        `${b.user?.name}\n${b.user?.email}`,
+        `${b.service.vendor?.name} (${b.service.vendor?.company})\n${b.service.vendor?.phone}`,
+        formatDate(b.date),
+        formatTime(b.time),
+        `${Number(b.service?.price).toLocaleString("en-IN")}`,
+        `${b.payment?.paymentStatus} (${b.payment?.paymentType})`,
+        b.status,
+      ];
+
+      tableRows.push(row);
+    });
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 25,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [40, 40, 140] },
+    });
+
+    doc.save(`all-bookings-${Date.now()}.pdf`);
+  };
+
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleDateString("en-IN", {
@@ -87,6 +134,14 @@ const AllBookingsPage: React.FC = () => {
       <h1 className="text-3xl font-bold mb-6 border-b pb-2 text-gray-800">
         All Bookings
       </h1>
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={downloadBookingsPDF}
+          className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg shadow hover:bg-indigo-700"
+        >
+          Download Bookings PDF
+        </button>
+      </div>
 
       {loading ? (
         <div className="flex justify-center items-center py-10">

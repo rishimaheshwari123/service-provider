@@ -1,5 +1,6 @@
 const Property = require('../models/propertyModel');
 const { uploadImageToCloudinary } = require("../config/imageUploader");
+const AuditLogs = require("../models/auditLogs");  // correct path use karna
 
 const createPropertyCtrl = async (req, res) => {
     try {
@@ -144,20 +145,34 @@ const getPropertiesCtrl = async (req, res) => {
 
 const getPropertiesByIdCtrl = async (req, res) => {
     try {
-        const { id } = req.params;
+        const { id } = req.params; // propertyId
+        const { userId } = req.query; // userId from query
 
+        // ----------------------------
+        // 🔥 Direct save audit log
+        // ----------------------------
+        if (userId) {
+            await AuditLogs.create({
+                userId,
+                propertyId: id
+            });
+        }
+
+        // ----------------------------
+        // Fetch property
+        // ----------------------------
         const property = await Property.findById(id).populate({
-            path: "vendor", // or whatever the referenced field is
-            select: "name company workingHours review ", // include all fields you want
+            path: "vendor",
+            select: "name company workingHours review phone email",
         });
 
         res.status(200).json({
             success: true,
-            property
+            property,
         });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Something went wrong' });
+        res.status(500).json({ message: "Something went wrong" });
     }
 };
 

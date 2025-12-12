@@ -20,7 +20,7 @@ const vendorRegisterCtrl = async (req, res) => {
     }
 
 
-    const existingUser = await vendorModel.findOne({ email });
+    const existingUser = await vendorModel.findOne({ phone });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -61,16 +61,16 @@ const vendorRegisterCtrl = async (req, res) => {
 
 const vendorLoginCtrl = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (!email || !password) {
+    if (!phone || !password) {
       return res.status(400).json({
         success: false,
         message: `Please Fill up All the Required Fields`,
       });
     }
 
-    const user = await vendorModel.findOne({ email });
+    const user = await vendorModel.findOne({ phone });
 
     if (!user) {
       return res.status(401).json({
