@@ -76,18 +76,22 @@ const PropertyDetails = () => {
       try {
         setLoading(true);
 
-        const response = await getPropertyBYIDAPI(id, user._id);
-        console.log(response);
+        // ✅ Safely get userId only if user exists
+        const userId = user?._id; // undefined if user is not logged in
+
+        // Call API with optional userId
+        const response = await getPropertyBYIDAPI(id, userId);
+
         if (response) {
           setProperty(response);
         } else {
           toast.error("Property not found");
-          navigate("/properties");
+          // navigate("/properties");
         }
       } catch (error) {
         console.error("Error fetching property:", error);
         toast.error("Failed to load property details");
-        navigate("/properties");
+        // navigate("/properties");
       } finally {
         setLoading(false);
       }
@@ -96,7 +100,7 @@ const PropertyDetails = () => {
     if (id) {
       fetchProperty();
     }
-  }, [id, navigate]);
+  }, [id, navigate, user]); // include 'user' in dependencies
 
   // Function to check if property type is residential
   const isResidentialType = (type) => {

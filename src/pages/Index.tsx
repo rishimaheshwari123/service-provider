@@ -12,6 +12,7 @@ import ContactSection from "@/components/home/ContactSection";
 import HomeFilterSection from "./HomeFilterSection";
 import TopSearchBar from "./Top";
 import TopBar from "@/components/TopBar";
+import CategoryGrid from "@/components/home/CategoryGrid";
 
 const Index = () => {
   return (
@@ -20,14 +21,15 @@ const Index = () => {
       <Navbar />
       <main>
         <HeroSection />
-        <HomeFilterSection />
-        <AboutSection />
+        <CategoryGrid />
         <br />
         <TopSearchBar />
 
         <ServicesSlider />
-        <FeaturesSection />
+        <HomeFilterSection />
+        <AboutSection />
         <ProcessSection />
+        <FeaturesSection />
         <StatsSection />
         <TestimonialsSection />
         <SuccessStories />
