@@ -125,7 +125,7 @@ const BlogPopup = ({ isOpen, blogId, onClose, getAllBlogs }) => {
               name="desc"
               value={formData.desc}
               onChange={handleChange}
-              rows="6"
+              rows={6}
               className="w-full border p-3 rounded-md text-lg resize-none"
               placeholder="Enter blog description (max 3000 words)"
               required
