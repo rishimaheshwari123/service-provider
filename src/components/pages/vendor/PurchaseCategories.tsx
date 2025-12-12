@@ -18,6 +18,12 @@ import {
 import axios from "axios";
 import { toast } from "react-toastify";
 
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
+
 const PurchaseCategories = () => {
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const vendorId = user?._id;

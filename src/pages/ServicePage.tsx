@@ -186,7 +186,7 @@ const ServicesPage = () => {
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem disabled>Loading...</SelectItem>
+                  <SelectItem value="loading" disabled>Loading...</SelectItem>
                 )}
               </SelectContent>
             </Select>

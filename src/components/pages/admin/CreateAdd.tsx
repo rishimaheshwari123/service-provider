@@ -133,7 +133,7 @@ function CreateAdd() {
   };
 
   const sortedAds = [...ads].sort(
-    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   if (!user?.isAds) {
@@ -287,7 +287,7 @@ function CreateAdd() {
                   ) : (
                     <tr>
                       <td
-                        colSpan="3"
+                        colSpan={3}
                         className="text-center py-8 text-gray-500 text-lg"
                       >
                         No ads available. Create one to get started!
