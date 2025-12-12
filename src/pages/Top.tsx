@@ -26,6 +26,7 @@ const TopSearchBar = () => {
     const fetchCategories = async () => {
       // Assuming getAllCategoriesAPI returns data
       const data = await getAllCategoriesAPI();
+
       setCategories(data);
     };
     fetchCategories();
@@ -51,16 +52,14 @@ const TopSearchBar = () => {
 
   return (
     // 💡 Outer container for full width background and padding
-    <div className="hidden lg:flex justify-center w-full bg-primary/5 py-3 px-4"> 
-      
+    <div className="hidden lg:flex justify-center w-full bg-primary/5 py-3 px-4">
       {/* 💡 Inner Content Wrapper: Full width look with max-width and strong visual presence */}
       <div className="flex w-full max-w-7xl h-16 bg-white shadow-2xl shadow-primary/20 rounded-xl overflow-hidden border border-gray-200 transition-all duration-300">
-        
         {/* 1. Category Select - Styled as a prominent dropdown */}
         <div className="flex items-center w-1/4 min-w-[220px] bg-white border-r border-gray-200 group focus-within:ring-2 focus-within:ring-primary focus-within:z-10 transition-shadow">
           <Briefcase className="w-5 h-5 ml-4 text-primary" />
           <Select value={filters.category} onValueChange={handleCategoryChange}>
-            <SelectTrigger 
+            <SelectTrigger
               className="w-full h-full border-none shadow-none focus:ring-0 text-base font-semibold bg-transparent placeholder:font-normal"
               aria-label="Select Category"
             >
@@ -75,7 +74,9 @@ const TopSearchBar = () => {
                   </SelectItem>
                 ))
               ) : (
-                <SelectItem disabled value="loading">Loading Categories...</SelectItem>
+                <SelectItem disabled value="loading">
+                  Loading Categories...
+                </SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -92,7 +93,7 @@ const TopSearchBar = () => {
             placeholder="Enter City, State, or Zip Code"
             className="w-full h-full border-none shadow-none focus-visible:ring-0 placeholder:text-gray-500 text-base font-medium"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSearch();
+              if (e.key === "Enter") handleSearch();
             }}
           />
         </div>

@@ -69,10 +69,13 @@ export const getAllPropertyAPI = async (vendor) => {
 
 export const getPropertyBYIDAPI = async (id, userId) => {
   try {
-    const response = await apiConnector(
-      "GET",
-      `${GET_PROPERTY_BY_ID_API}/${id}?userId=${userId}`
-    );
+    // ✅ Build URL conditionally
+    let url = `${GET_PROPERTY_BY_ID_API}/${id}`;
+    if (userId) {
+      url += `?userId=${userId}`;
+    }
+
+    const response = await apiConnector("GET", url);
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -85,6 +88,7 @@ export const getPropertyBYIDAPI = async (id, userId) => {
     return [];
   }
 };
+
 
 
 
