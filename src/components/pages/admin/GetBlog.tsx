@@ -50,8 +50,8 @@ const GetBlog = () => {
     getAllBlogs();
   }, []);
 
-  const formatDate = (dateString) => {
-    const options = { year: "numeric", month: "long", day: "numeric" };
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
   if (!user?.isBlog) {
@@ -131,7 +131,7 @@ const GetBlog = () => {
               ))
             ) : (
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap" colSpan="5">
+                <td className="px-6 py-4 whitespace-nowrap" colSpan={5}>
                   <p className="text-sm text-gray-500">No Blog available</p>
                 </td>
               </tr>
