@@ -61,9 +61,9 @@ interface VendorData {
     fields?: string[];
     totalYears?: number;
   };
-  profilePhoto?: File | string; // ✅ Added
-  document1?: File | string; // ✅ Added
-  document2?: File | string;
+  profilePhoto?: string | File;
+  document1?: string | File;
+  document2?: string | File;
   createdAt: string;
   updatedAt: string;
 }
@@ -286,7 +286,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
               <CardContent className="pt-6">
                 <div className="text-center">
                   <Avatar className="w-24 h-24 mx-auto mb-4">
-                    {vendor.profilePhoto ? (
+                    {vendor.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
                       <AvatarImage
                         src={vendor.profilePhoto}
                         alt={vendor.name}
@@ -659,7 +659,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                           }))
                         }
                       />
-                    ) : vendor.profilePhoto ? (
+                    ) : vendor.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
                       <a
                         href={vendor.profilePhoto}
                         target="_blank"
@@ -687,7 +687,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                           }))
                         }
                       />
-                    ) : vendor.document1 ? (
+                    ) : vendor.document1 && typeof vendor.document1 === 'string' ? (
                       <a
                         href={vendor.document1}
                         target="_blank"
@@ -715,7 +715,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                           }))
                         }
                       />
-                    ) : vendor.document2 ? (
+                    ) : vendor.document2 && typeof vendor.document2 === 'string' ? (
                       <a
                         href={vendor.document2}
                         target="_blank"

@@ -57,8 +57,8 @@ const HomeFilterSection = () => {
     if (filters.category && filters.category !== "all")
       params.append("category", filters.category);
 
-    params.append("minPrice", filters.price[0]);
-    params.append("maxPrice", filters.price[1]);
+    params.append("minPrice", String(filters.price[0]));
+    params.append("maxPrice", String(filters.price[1]));
 
     navigate(`/services?${params.toString()}`);
   };
@@ -137,7 +137,7 @@ const HomeFilterSection = () => {
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem disabled>Loading Categories...</SelectItem>
+                      <SelectItem value="loading" disabled>Loading Categories...</SelectItem>
                     )}
                   </SelectContent>
                 </Select>

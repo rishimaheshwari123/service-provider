@@ -89,7 +89,7 @@ export default function ReviewRating({
               />
               {errors.userReview && (
                 <span className="text-xs text-pink-300">
-                  {errors.userReview.message}
+                  {String(errors.userReview.message)}
                 </span>
               )}
             </div>
