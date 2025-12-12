@@ -850,7 +850,7 @@ const PropertyDetails = () => {
                 <CardContent className="space-y-2">
                   {property.vendor?.workingHours &&
                     Object.entries(property.vendor.workingHours).map(
-                      ([day, info]) => (
+                      ([day, info]: [string, any]) => (
                         <div
                           key={day}
                           className="flex justify-between items-center px-3 py-2 border rounded"

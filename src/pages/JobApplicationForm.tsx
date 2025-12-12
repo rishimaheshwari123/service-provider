@@ -36,7 +36,7 @@ const JobApplicationForm = ({ jobId, jobTitle, job, onClose }) => {
     source: "website",
   });
 
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -73,7 +73,7 @@ const JobApplicationForm = ({ jobId, jobTitle, job, onClose }) => {
 
   // Validate form
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {};
 
     // Required fields
     if (!formData.firstName.trim())

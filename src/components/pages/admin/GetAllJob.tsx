@@ -66,6 +66,7 @@ interface Job {
   deadline: string;
   status: string;
   applicationsCount: number;
+  createdAt?: string;
 }
 
 type SortField =
@@ -125,7 +126,7 @@ export default function GetAllJob() {
   const loadJobs = async () => {
     try {
       setLoading(true);
-      const jobsData = await getAllJobsAPI();
+      const jobsData = await getJobsAPI();
       setJobs(jobsData);
     } catch (error) {
       console.error("Failed to load jobs:", error);

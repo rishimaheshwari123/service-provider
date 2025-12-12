@@ -22,9 +22,10 @@ interface Service {
   type: string;
   price: string;
   description?: string;
-  images?: Array<{ url: string }>;
-  location?: string;
+  images?: Array<{ url: string; public_id: string }>;
+  location: string;
   status?: string;
+  vendor: string;
 }
 
 const VendorServices = () => {

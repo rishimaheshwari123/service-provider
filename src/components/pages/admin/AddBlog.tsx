@@ -97,7 +97,7 @@ const AddBlog = () => {
           <textarea
             name="description"
             id="description"
-            rows="6"
+            rows={6}
             className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-600 leading-tight focus:outline-none focus:shadow-outline text-xl"
             value={formData.description}
             onChange={handleChange}
