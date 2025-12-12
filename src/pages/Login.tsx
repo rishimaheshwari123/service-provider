@@ -11,8 +11,14 @@ import { Card } from "@/components/ui/card";
 import { login } from "@/service/operations/auth";
 import { Eye, EyeOff } from "lucide-react";
 
+// 🔹 Zod schema with phone validation
 const loginSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
+  phone: z
+    .string()
+    .regex(
+      /^[1-9]\d{9}$/,
+      "Phone number must be 10 digits and not start with 0"
+    ),
   password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
@@ -33,7 +39,7 @@ const Login = () => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await login(data.email, data.password, dispatch);
+      await login(data.phone, data.password, dispatch); // phone used instead of email
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -49,16 +55,16 @@ const Login = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="phone">Phone</Label>
             <Input
-              id="email"
-              type="email"
-              placeholder="Enter your email"
-              {...register("email")}
-              className={errors.email ? "border-destructive" : ""}
+              id="phone"
+              type="text"
+              placeholder="Enter your 10-digit phone"
+              {...register("phone")}
+              className={errors.phone ? "border-destructive" : ""}
             />
-            {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+            {errors.phone && (
+              <p className="text-sm text-destructive">{errors.phone.message}</p>
             )}
           </div>
 

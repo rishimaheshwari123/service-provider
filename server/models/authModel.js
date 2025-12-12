@@ -10,6 +10,9 @@ const authSchema = new mongoose.Schema(
         email: {
             type: String,
         },
+        phone: {
+            type: String,
+        },
 
         password: {
             type: String,
@@ -28,6 +31,7 @@ const authSchema = new mongoose.Schema(
 
         type: {
             type: String,
+            default: "active"
         },
 
         isVendor: {

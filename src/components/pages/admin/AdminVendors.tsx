@@ -456,7 +456,7 @@ const VendorManagement = () => {
       styles: { fontSize: 8 },
     });
 
-    doc.save("inquiries.pdf");
+    doc.save("vendor.pdf");
   };
   const filteredVendors = vendors.filter((vendor) => {
     const matchesSearch =
@@ -502,12 +502,12 @@ const VendorManagement = () => {
         </div>
 
         <div className="flex gap-2">
-          {/* <button
+          <button
             onClick={handleDownloadPDF}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
             Download PDF
-          </button> */}
+          </button>
           <Button
             variant="outline"
             onClick={fetchVendors}
@@ -858,6 +858,9 @@ const VendorManagement = () => {
                             <p className="text-sm text-gray-500 flex items-center gap-1">
                               <Mail className="w-3 h-3" />
                               {vendor.email}
+                            </p>
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                              {vendor.phone}
                             </p>
                           </div>
                         </div>

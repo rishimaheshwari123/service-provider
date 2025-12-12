@@ -67,15 +67,50 @@ const Navbar = () => {
   // --- Location Detection Logic (Keeping it clean) ---
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
+      setCurrentLocation("Location not available");
       toast.error("Geolocation is not supported by this browser.");
       return;
     }
-    // Simplified fetch/geocoding logic for demonstration:
+
     setIsLoadingLocation(true);
-    setTimeout(() => {
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+          );
+          const data = await response.json();
+          setCurrentLocation(
+            data.address.city ||
+              data.address.town ||
+              data.address.village ||
+              "Unknown"
+          );
+        } catch (err) {
+          console.error(err);
+          setCurrentLocation("Unknown");
+        } finally {
+          setIsLoadingLocation(false);
+        }
+      },
+      (error) => {
+        console.error(error);
+        // User denied access
+        if (error.code === 1) {
+          setCurrentLocation("Location not available");
+          toast.error("You denied location access. Default location is used.");
+        } else if (error.code === 2) {
+          setCurrentLocation("Location unavailable");
+          toast.error("Location information is unavailable.");
+        } else if (error.code === 3) {
+          setCurrentLocation("Location timed out");
+          toast.error("Location request timed out.");
+        }
         setIsLoadingLocation(false);
-        setCurrentLocation("Mumbai"); // Mock location
-    }, 1500);
+      }
+    );
   };
 
   useEffect(() => {
@@ -86,11 +121,12 @@ const Navbar = () => {
     <header className="bg-white dark:bg-gray-950 border-b border-gray-200 dark:border-gray-800 shadow-md font-sans sticky top-0 z-50">
       <div className="w-11/12 mx-auto px-1 md:px-0 py-3">
         <div className="flex items-center justify-between h-16">
-          
           {/* 1. Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center space-x-2">
-              <h3 className="text-2xl font-extrabold gradient-text tracking-wider">ProServe</h3>
+              <h3 className="text-2xl font-extrabold gradient-text tracking-wider">
+                ProServe
+              </h3>
             </Link>
           </div>
 
@@ -117,30 +153,31 @@ const Navbar = () => {
 
           {/* 3. Right Section */}
           <div className="flex items-center space-x-4 sm:space-x-6">
-            
             {/* Current Location & Contact Info */}
             <div className="hidden lg:flex items-center space-x-6">
-                
-                {/* Location */}
-                <button 
-                    onClick={getCurrentLocation}
-                    className="flex items-center space-x-1 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                >
-                    {isLoadingLocation ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                    ) : (
-                        <MapPin className="h-4 w-4 text-primary" />
-                    )}
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {currentLocation || "Detect Location"}
-                    </span>
-                </button>
+              {/* Location */}
+              <button
+                onClick={getCurrentLocation}
+                className="flex items-center space-x-1 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              >
+                {isLoadingLocation ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                ) : (
+                  <MapPin className="h-4 w-4 text-primary" />
+                )}
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {currentLocation || "Detect Location"}
+                </span>
+              </button>
 
-                {/* Call Number */}
-                <a href="tel:+911234567890" className="flex items-center space-x-2 text-primary font-semibold text-sm hover:underline">
-                    <Phone className="h-4 w-4" />
-                    <span>+91 1234567890</span>
-                </a>
+              {/* Call Number */}
+              <a
+                href="tel:+911234567890"
+                className="flex items-center space-x-2 text-primary font-semibold text-sm hover:underline"
+              >
+                <Phone className="h-4 w-4" />
+                <span>+91 1234567890</span>
+              </a>
             </div>
 
             {/* Auth Section */}
@@ -156,34 +193,73 @@ const Navbar = () => {
                       </AvatarFallback>
                     </Avatar>
                     <span className="font-semibold text-gray-800 dark:text-white hidden sm:inline">
-                      {user.name?.split(' ')[0]}
+                      {user.name?.split(" ")[0]}
                     </span>
                     <ChevronDown className="h-4 w-4 text-gray-500" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64 dark:bg-gray-800 dark:border-gray-700">
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-64 dark:bg-gray-800 dark:border-gray-700"
+                  >
                     <div className="px-3 py-2 border-b dark:border-gray-700">
-                      <p className="text-base font-bold text-gray-900 dark:text-white">{user.name}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">{user.email}</p>
+                      <p className="text-base font-bold text-gray-900 dark:text-white">
+                        {user.name}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {user.email}
+                      </p>
                     </div>
 
                     {/* Dashboard Links */}
                     {[
-                        { role: 'vendor', href: '/vendor/dashboard', label: 'Vendor Dashboard', icon: Store, color: 'text-green-500' },
-                        { role: 'admin', href: '/admin/dashboard', label: 'Admin Dashboard', icon: Shield, color: 'text-red-500' },
-                        { role: 'super_admin', href: '/admin/dashboard', label: 'Super Admin', icon: Shield, color: 'text-red-600' },
-                    ].map(item => (
-                        (user.role === item.role) && (
-                            <DropdownMenuItem key={item.role} asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                                <Link to={item.href} className="flex items-center space-x-2 font-medium">
-                                    <item.icon className={`h-4 w-4 ${item.color}`} />
-                                    <span>{item.label}</span>
-                                </Link>
-                            </DropdownMenuItem>
+                      {
+                        role: "vendor",
+                        href: "/vendor/dashboard",
+                        label: "Vendor Dashboard",
+                        icon: Store,
+                        color: "text-green-500",
+                      },
+                      {
+                        role: "admin",
+                        href: "/admin/dashboard",
+                        label: "Admin Dashboard",
+                        icon: Shield,
+                        color: "text-red-500",
+                      },
+                      {
+                        role: "super_admin",
+                        href: "/admin/dashboard",
+                        label: "Super Admin",
+                        icon: Shield,
+                        color: "text-red-600",
+                      },
+                    ].map(
+                      (item) =>
+                        user.role === item.role && (
+                          <DropdownMenuItem
+                            key={item.role}
+                            asChild
+                            className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <Link
+                              to={item.href}
+                              className="flex items-center space-x-2 font-medium"
+                            >
+                              <item.icon className={`h-4 w-4 ${item.color}`} />
+                              <span>{item.label}</span>
+                            </Link>
+                          </DropdownMenuItem>
                         )
-                    ))}
-                    
-                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                      <Link to="/user/profile" className="flex items-center space-x-2 font-medium">
+                    )}
+
+                    <DropdownMenuItem
+                      asChild
+                      className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Link
+                        to="/user/profile"
+                        className="flex items-center space-x-2 font-medium"
+                      >
                         <User className="h-4 w-4 text-primary" />
                         <span>Profile Settings</span>
                       </Link>
@@ -204,40 +280,65 @@ const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 px-4 py-2 rounded-full bg-primary text-white transition-all font-semibold hover:bg-blue-600 shadow-md shadow-primary/30">
                     <User className="h-5 w-5" />
-                    <span className="hidden sm:inline">Login/Join</span>
+                    <span className="hidden sm:inline">Login</span>
                     <ChevronDown className="h-4 w-4 hidden sm:inline" />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 dark:bg-gray-800 dark:border-gray-700">
-                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <Link to="/login" className="flex items-center space-x-3 p-2">
-                            <User className="h-5 w-5 text-primary" />
-                            <div className="text-left">
-                                <p className="font-bold">Customer Login</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">Hire professionals</p>
-                            </div>
-                        </Link>
+                  <DropdownMenuContent
+                    align="end"
+                    className="w-56 dark:bg-gray-800 dark:border-gray-700"
+                  >
+                    <DropdownMenuItem
+                      asChild
+                      className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Link
+                        to="/login"
+                        className="flex items-center space-x-3 p-2"
+                      >
+                        <User className="h-5 w-5 text-primary" />
+                        <div className="text-left">
+                          <p className="font-bold">Customer Login</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Hire professionals
+                          </p>
+                        </div>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="dark:bg-gray-700" />
-                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <Link to="/partner/login" className="flex items-center space-x-3 p-2">
-                            <Store className="h-5 w-5 text-green-600" />
-                            <div className="text-left">
-                                <p className="font-bold">Partner Login</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-400">List your services</p>
-                            </div>
-                        </Link>
+                    <DropdownMenuItem
+                      asChild
+                      className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Link
+                        to="/partner/login"
+                        className="flex items-center space-x-3 p-2"
+                      >
+                        <Store className="h-5 w-5 text-green-600" />
+                        <div className="text-left">
+                          <p className="font-bold">Partner Login</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            List your services
+                          </p>
+                        </div>
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator className="dark:bg-gray-700" />
-                    <DropdownMenuItem asChild className="hover:bg-gray-100 dark:hover:bg-gray-700">
-                        <Link to="/signup" className="flex items-center justify-center bg-primary/10 text-primary rounded-lg py-2 font-semibold">
-                            Create Account
-                        </Link>
+                    <DropdownMenuItem
+                      asChild
+                      className="hover:bg-gray-100 dark:hover:bg-gray-700"
+                    >
+                      <Link
+                        to="/signup"
+                        className="flex items-center justify-center bg-primary/10 text-primary rounded-lg py-2 font-semibold"
+                      >
+                        Create Account
+                      </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
             </div>
-            
+
             {/* Hamburger menu - Mobile only */}
             <div className="xl:hidden">
               <button
@@ -291,33 +392,39 @@ const Navbar = () => {
 
         {/* Mobile Auth/Action Section */}
         <div className="p-5 mt-4 space-y-4 border-t border-gray-700">
-            {/* Call Number - Mobile */}
-            <a href="tel:+911234567890" className="flex items-center justify-center space-x-2 text-primary font-bold text-lg p-3 rounded-lg border border-primary/50 hover:bg-primary/10 transition-colors">
-                <Phone className="h-5 w-5" />
-                <span>Call Support</span>
-            </a>
-            
-            {/* Mobile Auth Button */}
-            {user && token ? (
-                // Logged in user mobile CTA
-                <button
-                    onClick={() => { handleLogout(); toggleSidebar(); }}
-                    className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold shadow-lg"
-                >
-                    <LogOut className="h-5 w-5" />
-                    <span>Sign Out</span>
-                </button>
-            ) : (
-                // Not logged in mobile CTA
-                <Link
-                    to="/login"
-                    onClick={toggleSidebar}
-                    className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-primary text-white hover:bg-blue-600 transition-colors font-semibold shadow-lg"
-                >
-                    <User className="h-5 w-5" />
-                    <span>Customer Login</span>
-                </Link>
-            )}
+          {/* Call Number - Mobile */}
+          <a
+            href="tel:+911234567890"
+            className="flex items-center justify-center space-x-2 text-primary font-bold text-lg p-3 rounded-lg border border-primary/50 hover:bg-primary/10 transition-colors"
+          >
+            <Phone className="h-5 w-5" />
+            <span>Call Support</span>
+          </a>
+
+          {/* Mobile Auth Button */}
+          {user && token ? (
+            // Logged in user mobile CTA
+            <button
+              onClick={() => {
+                handleLogout();
+                toggleSidebar();
+              }}
+              className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold shadow-lg"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Sign Out</span>
+            </button>
+          ) : (
+            // Not logged in mobile CTA
+            <Link
+              to="/login"
+              onClick={toggleSidebar}
+              className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-primary text-white hover:bg-blue-600 transition-colors font-semibold shadow-lg"
+            >
+              <User className="h-5 w-5" />
+              <span>Customer Login</span>
+            </Link>
+          )}
         </div>
       </div>
 

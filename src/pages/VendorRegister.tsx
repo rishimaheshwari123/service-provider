@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,44 +11,52 @@ import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
 import { toast } from "react-toastify";
 
+// Zod schema
+const vendorSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  phone: z
+    .string()
+    .regex(
+      /^[1-9]\d{9}$/,
+      "Phone must be 10 digits and cannot start with 0 or +"
+    ),
+  company: z.string().min(2, "Company name is required"),
+  address: z.string().min(5, "Business address is required"),
+  adhar: z.string().regex(/^\d{12}$/, "Aadhar must be 12 digits"),
+  pan: z
+    .string()
+    .regex(
+      /^[A-Z]{5}[0-9]{4}[A-Z]$/,
+      "PAN must be 10 characters: 5 letters, 4 digits, 1 letter"
+    ),
+  description: z.string().optional(),
+});
+
+type VendorFormData = z.infer<typeof vendorSchema>;
+
 const VendorRegister = () => {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
-    company: "",
-    address: "",
-    description: "",
-    adhar: "",
-    pan: "",
-  });
   const [showModal, setShowModal] = useState(false);
   const [accepted, setAccepted] = useState(false);
-
   const navigate = useNavigate();
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<VendorFormData>({
+    resolver: zodResolver(vendorSchema),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: VendorFormData) => {
     if (!accepted) {
       toast.error("Please accept the Terms & Conditions before registering.");
       return;
     }
 
-    const response = await signUp(formData);
-    if (response) {
-      navigate("/partner/login");
-    }
+    const response = await signUp(data);
+    if (response) navigate("/partner/login");
   };
 
   return (
@@ -58,116 +69,157 @@ const VendorRegister = () => {
           <p className="text-gray-600">Register to list your properties</p>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Input fields */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
+                <Label htmlFor="name">
+                  Full Name <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="name"
-                  name="name"
+                  {...register("name")}
                   placeholder="Enter your full name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
+                  className={errors.name ? "border-destructive" : ""}
                 />
+                {errors.name && (
+                  <p className="text-sm text-destructive">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">
+                  Email <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="email"
-                  name="email"
                   type="email"
+                  {...register("email")}
                   placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
+                  className={errors.email ? "border-destructive" : ""}
                 />
+                {errors.email && (
+                  <p className="text-sm text-destructive">
+                    {errors.email.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password">
+                  Password <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="password"
-                  name="password"
                   type="password"
+                  {...register("password")}
                   placeholder="Create a password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
+                  className={errors.password ? "border-destructive" : ""}
                 />
+                {errors.password && (
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
+                )}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="phone">
+                  Phone Number <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   id="phone"
-                  name="phone"
-                  placeholder="Enter your phone number"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  required
+                  {...register("phone")}
+                  placeholder="Enter your 10-digit phone number"
+                  className={errors.phone ? "border-destructive" : ""}
                 />
+                {errors.phone && (
+                  <p className="text-sm text-destructive">
+                    {errors.phone.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="adhar">
+                  Aadhar Number <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="adhar"
+                  {...register("adhar")}
+                  placeholder="Enter your 12-digit aadhar number"
+                  className={errors.adhar ? "border-destructive" : ""}
+                />
+                {errors.adhar && (
+                  <p className="text-sm text-destructive">
+                    {errors.adhar.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pan">
+                  PAN Number <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="pan"
+                  {...register("pan")}
+                  placeholder="Enter your 10-character PAN"
+                  className={errors.pan ? "border-destructive" : ""}
+                />
+                {errors.pan && (
+                  <p className="text-sm text-destructive">
+                    {errors.pan.message}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company">Company/Agency Name</Label>
+              <Label htmlFor="company">
+                Company/Agency Name <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="company"
-                name="company"
+                {...register("company")}
                 placeholder="Enter your company name"
-                value={formData.company}
-                onChange={handleChange}
-                required
+                className={errors.company ? "border-destructive" : ""}
               />
+              {errors.company && (
+                <p className="text-sm text-destructive">
+                  {errors.company.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="address">Business Address</Label>
+              <Label htmlFor="address">
+                Business Address <span className="text-red-500">*</span>
+              </Label>
               <Input
                 id="address"
-                name="address"
+                {...register("address")}
                 placeholder="Enter your business address"
-                value={formData.address}
-                onChange={handleChange}
-                required
+                className={errors.address ? "border-destructive" : ""}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="adhar">Adhar Number</Label>
-              <Input
-                id="adhar"
-                name="adhar"
-                placeholder="Enter your adhar number"
-                value={formData.adhar}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="pan">Pan Number</Label>
-              <Input
-                id="pan"
-                name="pan"
-                placeholder="Enter your pan number"
-                value={formData.pan}
-                onChange={handleChange}
-                required
-              />
+              {errors.address && (
+                <p className="text-sm text-destructive">
+                  {errors.address.message}
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Business Description</Label>
               <Textarea
                 id="description"
-                name="description"
+                {...register("description")}
                 placeholder="Tell us about your business"
-                value={formData.description}
-                onChange={handleChange}
                 rows={3}
               />
             </div>
@@ -196,8 +248,9 @@ const VendorRegister = () => {
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white"
+              disabled={isSubmitting}
             >
-              Register
+              {isSubmitting ? "Registering..." : "Register"}
             </Button>
           </form>
 
@@ -215,23 +268,23 @@ const VendorRegister = () => {
         </CardContent>
       </Card>
 
-      {/* Modal for Terms & Conditions */}
+      {/* Terms & Conditions Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
           <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg relative">
             <h2 className="text-xl font-semibold mb-3">Terms & Conditions</h2>
             <div className="max-h-64 overflow-y-auto text-gray-700 text-sm space-y-2">
               <p>
-                1. By registering as a vendor, you agree to provide accurate and
-                truthful information about your business.
+                1. By registering as a vendor, you agree to provide accurate
+                information.
               </p>
               <p>
                 2. All uploaded data and property listings must comply with our
-                platform’s guidelines.
+                platform guidelines.
               </p>
               <p>
-                3. Misuse of the platform or providing false information may
-                result in account suspension.
+                3. Misuse or providing false information may result in account
+                suspension.
               </p>
               <p>
                 4. Your data may be used for communication and verification

@@ -11,11 +11,18 @@ import { Card } from "@/components/ui/card";
 import { signUp } from "@/service/operations/auth";
 import { Eye, EyeOff } from "lucide-react";
 
+// 🔹 Signup schema with phone validation
 const signupSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Please enter a valid email address"),
-    phone: z.string().optional(),
+    phone: z
+      .string()
+      .optional()
+      .refine(
+        (val) => !val || /^[1-9]\d{9}$/.test(val),
+        "Phone must be 10 digits and cannot start with 0, + or +91"
+      ),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
   })
@@ -95,14 +102,11 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">
-              Phone Number{" "}
-              <span className="text-muted-foreground">(Optional)</span>
-            </Label>
+            <Label htmlFor="phone">Phone Number</Label>
             <Input
               id="phone"
               type="tel"
-              placeholder="Enter your phone number"
+              placeholder="Enter 10-digit phone number"
               {...register("phone")}
               className={errors.phone ? "border-destructive" : ""}
             />

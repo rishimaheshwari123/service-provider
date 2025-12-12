@@ -12,6 +12,7 @@ const registerCtrl = async (req, res) => {
       name,
       email,
       password,
+      phone,
       type = "user",
       role = "user",
       isVendor,
@@ -26,14 +27,14 @@ const registerCtrl = async (req, res) => {
       isManageService,
     } = req.body;
 
-    if (!name || !email || !password || !type || !role) {
+    if (!name || !email || !phone || !password || !type || !role) {
       return res.status(403).json({
         success: false,
         message: "All required fields must be filled",
       });
     }
 
-    const existingUser = await authModel.findOne({ email });
+    const existingUser = await authModel.findOne({ phone });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -48,6 +49,7 @@ const registerCtrl = async (req, res) => {
       email,
       password: hashedPassword,
       type,
+      phone,
       role,
       isVendor: isVendor || false,
       isBlog: isBlog || false,
@@ -90,16 +92,16 @@ const registerCtrl = async (req, res) => {
 
 const loginCtrl = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { phone, password } = req.body;
 
-    if (!email || !password) {
+    if (!phone || !password) {
       return res.status(400).json({
         success: false,
         message: `Please Fill up All the Required Fields`,
       });
     }
 
-    const user = await authModel.findOne({ email });
+    const user = await authModel.findOne({ phone });
 
     if (!user) {
       return res.status(401).json({

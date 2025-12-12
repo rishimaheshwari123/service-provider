@@ -1,6 +1,6 @@
 
-export const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
-// export const BASE_URL = "http://localhost:8000/api/v1"
+// export const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
+export const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -96,4 +96,9 @@ export const booking = {
   GET_ALL_BOOKINGS: BASE_URL + "/booking/getAll",
   GET_VENDOR_ALL_BOOKINGS: BASE_URL + "/booking/get",
   UPDATE_BOOKING_STATUS_BOOKINGS: BASE_URL + "/booking/update",
+}
+
+export const audit = {
+  ADD_AUDIT_API: BASE_URL + "/audit/create",
+  GET_ALL_AUDIT_API: BASE_URL + "/audit/getAll",
 }

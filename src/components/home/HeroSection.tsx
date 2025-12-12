@@ -4,8 +4,6 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import heroSlide1 from "@/assets/success1.jpg";
@@ -20,85 +18,91 @@ const HeroSection = () => {
   ];
 
   return (
-    <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent-green/10" />
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Mobile background image */}
+      <div
+        className="absolute inset-0 w-full h-full sm:hidden bg-cover bg-center"
+        style={{ backgroundImage: `url(${heroSlide1})` }}
+      />
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center max-w-7xl mx-auto">
-          {/* Text Content */}
-          <div className="space-y-8 animate-fade-in-up">
-            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold leading-tight">
-              Hire Expert Professionals &{" "}
-              <span className="gradient-text">Get Your Job Done</span>
-            </h1>
-
-            <p className="text-xl md:text-2xl text-muted-foreground">
-              Save your time and money by connecting with verified service
-              providers who deliver quality results
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button variant="hero" size="lg" className="group">
-                Find Experts Now
-                <ArrowRight
-                  className="ml-2 group-hover:translate-x-1 transition-transform"
-                  size={20}
+      {/* Carousel background for sm+ */}
+      <div className="absolute inset-0 z-0 w-screen h-full hidden sm:block">
+        <Carousel
+          className="relative w-full h-full"
+          plugins={[Autoplay({ delay: 4000 })]}
+          opts={{ align: "start", loop: true }}
+        >
+          <CarouselContent className="h-full">
+            {heroImages.map((image, index) => (
+              <CarouselItem key={index} className="h-full">
+                <img
+                  src={image.src}
+                  alt={image.alt}
+                  className="w-full h-full object-cover"
                 />
-              </Button>
-              <Button variant="outline" size="lg">
-                Browse Services
-              </Button>
-            </div>
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+        </Carousel>
+      </div>
 
-            <div className="pt-4 flex items-center gap-8 text-sm text-muted-foreground">
-              <div>
-                <div className="text-2xl font-bold text-foreground">1000+</div>
-                <div>Experts</div>
-              </div>
-              <div className="h-12 w-px bg-border" />
-              <div>
-                <div className="text-2xl font-bold text-foreground">98%</div>
-                <div>Satisfaction</div>
-              </div>
-              <div className="h-12 w-px bg-border" />
-              <div>
-                <div className="text-2xl font-bold text-foreground">24/7</div>
-                <div>Available</div>
-              </div>
-            </div>
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-black/60 z-10" />
+
+      {/* Text content */}
+      <div className="container mx-auto px-4 relative z-20 py-16">
+        <div className="flex flex-col items-center text-center max-w-4xl mx-auto space-y-6 animate-fade-in-up text-white">
+          {/* Heading */}
+          <h1 className="text-3xl font-extrabold leading-tight sm:text-5xl lg:text-6xl">
+            Hire Expert Professionals &{" "}
+            <span className="text-accent-green">Get Your Job Done</span>
+          </h1>
+
+          {/* Paragraph */}
+          <p className="text-xl text-gray-200 sm:text-2xl">
+            Save your time and money by connecting with verified service
+            providers who deliver quality results
+          </p>
+
+          {/* Buttons */}
+          <div className="pt-4 w-full sm:flex sm:justify-center sm:gap-4">
+            <Button
+              variant="hero"
+              size="lg"
+              className="group w-full sm:w-auto bg-accent-green hover:bg-accent-green/90 text-black"
+            >
+              Find Experts Now
+              <ArrowRight
+                className="ml-2 group-hover:translate-x-1 transition-transform"
+                size={20}
+              />
+            </Button>
+
+            {/* Desktop-only second button */}
+            <Button
+              variant="outline"
+              size="lg"
+              className="w-full sm:w-auto border-white text-white hover:bg-white/20 hidden sm:inline-flex"
+            >
+              Browse Services
+            </Button>
           </div>
 
-          {/* Hero Image Slider */}
-          <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
-            <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent-green/20 rounded-2xl blur-3xl" />
-              <Carousel
-                className="relative w-full"
-                plugins={[
-                  Autoplay({
-                    delay: 3000,
-                  }),
-                ]}
-                opts={{
-                  align: "start",
-                  loop: true,
-                }}
-              >
-                <CarouselContent>
-                  {heroImages.map((image, index) => (
-                    <CarouselItem key={index}>
-                      <img
-                        src={image.src}
-                        alt={image.alt}
-                        className="relative rounded-2xl shadow-elegant w-full h-auto"
-                      />
-                    </CarouselItem>
-                  ))}
-                </CarouselContent>
-                <CarouselPrevious className="left-4" />
-                <CarouselNext className="right-4" />
-              </Carousel>
+          {/* Desktop-only statistics */}
+          <div className="pt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-4 text-sm text-gray-300 hidden sm:flex">
+            <div className="flex flex-col items-center">
+              <div className="text-3xl font-bold text-white">1000+</div>
+              <div>Experts</div>
+            </div>
+            <div className="h-12 w-px bg-gray-500" />
+            <div className="flex flex-col items-center">
+              <div className="text-3xl font-bold text-white">98%</div>
+              <div>Satisfaction</div>
+            </div>
+            <div className="h-12 w-px bg-gray-500" />
+            <div className="flex flex-col items-center">
+              <div className="text-3xl font-bold text-white">24/7</div>
+              <div>Available</div>
             </div>
           </div>
         </div>

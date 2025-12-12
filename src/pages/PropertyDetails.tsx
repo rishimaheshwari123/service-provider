@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getPropertyBYIDAPI } from "@/service/operations/property";
+import { createAuditForPropertyCallAndEmailAPI } from "@/service/operations/audit";
 import { createContactAPI } from "@/service/operations/contact";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -74,7 +75,8 @@ const PropertyDetails = () => {
     const fetchProperty = async () => {
       try {
         setLoading(true);
-        const response = await getPropertyBYIDAPI(id);
+
+        const response = await getPropertyBYIDAPI(id, user._id);
         console.log(response);
         if (response) {
           setProperty(response);
@@ -323,19 +325,53 @@ const PropertyDetails = () => {
       setIsModalOpen(true);
     }
   };
-  const handleCall = () => {
-    if (property?.vendor?.phone) {
-      window.location.href = `tel:${property.vendor.phone}`;
-    } else {
+  const handleCall = async () => {
+    if (!property?.vendor?.phone) {
       toast.error("Phone number not available");
+      return;
+    }
+
+    if (!user?._id) {
+      toast.error("User not logged in");
+      return;
+    }
+
+    try {
+      // 🔹 Create audit log for call
+      let type = "phone";
+      await createAuditForPropertyCallAndEmailAPI(id, user._id, type);
+
+      // 🔹 Then initiate call
+      window.location.href = `tel:${property.vendor.phone}`;
+    } catch (error) {
+      console.error("Error creating audit log for call:", error);
     }
   };
 
-  const handleEmail = () => {
-    if (property?.vendor?.email) {
-      window.location.href = `mailto:${property.vendor.email}?subject=Inquiry about ${property.title}`;
-    } else {
+  const handleEmail = async () => {
+    if (!property?.vendor?.email) {
       toast.error("Email address not available");
+      return;
+    }
+
+    if (!user?._id) {
+      toast.error("User not logged in");
+      return;
+    }
+
+    try {
+      // 🔹 Create audit log for email
+      await createAuditForPropertyCallAndEmailAPI(
+        property._id,
+        user._id,
+        "email"
+      );
+
+      // 🔹 Then initiate email
+      const email = property.vendor.email.trim();
+      window.location.href = `mailto:${email}`;
+    } catch (error) {
+      console.error("Error creating audit log for email:", error);
     }
   };
 

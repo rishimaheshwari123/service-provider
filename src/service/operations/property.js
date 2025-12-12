@@ -66,11 +66,13 @@ export const getAllPropertyAPI = async (vendor) => {
   }
 
 };
-export const getPropertyBYIDAPI = async (id) => {
 
+export const getPropertyBYIDAPI = async (id, userId) => {
   try {
-    const response = await apiConnector("GET", `${GET_PROPERTY_BY_ID_API}/${id}`)
-
+    const response = await apiConnector(
+      "GET",
+      `${GET_PROPERTY_BY_ID_API}/${id}?userId=${userId}`
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -82,7 +84,6 @@ export const getPropertyBYIDAPI = async (id) => {
     toast.error(error?.response?.data?.message || "Failed to get vendor property!");
     return [];
   }
-
 };
 
 
