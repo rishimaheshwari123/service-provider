@@ -72,7 +72,7 @@ const ServicesSlider = () => {
   };
 
   return (
-    <section className="py-5 md:py-10 bg-gray-50 dark:bg-gray-900">
+    <section className="py-5 md:py-10 ">
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-2">

@@ -51,7 +51,7 @@ const FeaturesSection = () => {
 
   return (
     // Increased padding for better visual separation
-    <section id="features" className="py-5 md:py-5 bg-gray-50 dark:bg-gray-900">
+    <section id="features" className="py-5 md:py-5 ">
       <div className="container mx-auto px-4">
         
         {/* Header Section */}

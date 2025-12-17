@@ -52,7 +52,7 @@ const TopSearchBar = () => {
 
   return (
     // 💡 Outer container for full width background and padding
-    <div className="hidden lg:flex justify-center w-full bg-primary/5 py-3 px-4">
+    <div className="hidden lg:flex justify-center w-full  py-3 px-4">
       {/* 💡 Inner Content Wrapper: Full width look with max-width and strong visual presence */}
       <div className="flex w-full max-w-7xl h-16 bg-white shadow-2xl shadow-primary/20 rounded-xl overflow-hidden border border-gray-200 transition-all duration-300">
         {/* 1. Category Select - Styled as a prominent dropdown */}
