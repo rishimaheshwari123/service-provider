@@ -1,45 +1,107 @@
 import { Link } from "react-router-dom";
-import { Megaphone } from "lucide-react";
+import { motion } from "framer-motion";
+import { Sparkles, ArrowRight, Star } from "lucide-react";
 
 export default function TopBar() {
   return (
-    <div className="w-full bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 text-white shadow-lg relative overflow-hidden">
-      {/* Decorative background shapes */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute -top-6 -left-10 w-24 h-24 bg-white rounded-full blur-2xl"></div>
-        <div className="absolute bottom-0 right-0 w-32 h-32 bg-indigo-400 rounded-full blur-3xl"></div>
+    <motion.div 
+      initial={{ y: -50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="w-full bg-gradient-to-r from-orange-500 via-rose-500 to-pink-500 text-white shadow-lg relative overflow-hidden"
+    >
+      {/* Animated background elements */}
+      <div className="absolute inset-0 opacity-30">
+        <motion.div 
+          animate={{ 
+            scale: [1, 1.2, 1],
+            rotate: [0, 180, 360]
+          }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity, 
+            ease: "easeInOut" 
+          }}
+          className="absolute -top-4 -left-8 w-20 h-20 bg-white/20 rounded-full blur-xl"
+        />
+        <motion.div 
+          animate={{ 
+            scale: [1.2, 1, 1.2],
+            rotate: [360, 180, 0]
+          }}
+          transition={{ 
+            duration: 10, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: 2
+          }}
+          className="absolute bottom-0 right-0 w-28 h-28 bg-orange-300/20 rounded-full blur-2xl"
+        />
+        <motion.div 
+          animate={{ 
+            x: [0, 100, 0],
+            opacity: [0.3, 0.6, 0.3]
+          }}
+          transition={{ 
+            duration: 6, 
+            repeat: Infinity, 
+            ease: "easeInOut",
+            delay: 1
+          }}
+          className="absolute top-1/2 left-1/4 w-16 h-16 bg-yellow-300/20 rounded-full blur-lg"
+        />
       </div>
 
-      <div className="relative max-w-7xl mx-auto flex items-center justify-between px-4 py-2 z-10">
+      <div className="relative max-w-7xl mx-auto flex items-center justify-between px-4 py-3 z-10">
         {/* Left Content */}
-        <div className="flex items-center gap-2 flex-wrap md:flex-nowrap text-center md:text-left">
-          {/* Mobile: one line text + link together */}
+        <div className="flex items-center gap-3 flex-wrap md:flex-nowrap text-center md:text-left">
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Sparkles className="w-5 h-5 text-yellow-300" />
+          </motion.div>
+          
+          {/* Mobile: compact text */}
           <p className="font-medium text-sm md:text-base leading-snug md:hidden">
-            🚀 <span className="font-semibold">Grow your business</span> — list
-            your products with us today!{" "}
+            <span className="font-bold">Join 1000+ Service Providers!</span> Start earning today.{" "}
             <Link
               to="/vendor/register"
-              className="text-yellow-300 font-semibold hover:text-yellow-200 transition"
+              className="text-yellow-200 font-bold hover:text-yellow-100 transition-colors underline decoration-2 underline-offset-2"
             >
-              Register Now →
+              Register Free →
             </Link>
           </p>
 
-          {/* Desktop: normal text */}
+          {/* Desktop: full text */}
           <p className="hidden md:block font-medium text-base leading-snug">
-            🚀 <span className="font-semibold">Grow your business</span> — list
-            your products with us today!
+            <span className="font-bold">🎯 Join 1000+ Service Providers!</span> List your services and start earning with India's fastest-growing platform.
           </p>
+          
+          <div className="hidden md:flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+            <Star className="w-4 h-4 text-yellow-300 fill-current" />
+            <span className="text-sm font-semibold">4.8/5 Rating</span>
+          </div>
         </div>
 
         {/* Desktop Button */}
-        <Link
-          to="/vendor/register"
-          className="hidden md:block bg-white/90 backdrop-blur-sm text-indigo-700 font-semibold px-5 py-2 rounded-full shadow-md hover:bg-white hover:scale-105 transition-all duration-300"
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="hidden md:block"
         >
-          Register Now
-        </Link>
+          <Link
+            to="/vendor/register"
+            className="group flex items-center gap-2 bg-white text-orange-600 font-bold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-orange-50"
+          >
+            <span>Register Free</span>
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </Link>
+        </motion.div>
       </div>
-    </div>
+
+      {/* Subtle bottom border gradient */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+    </motion.div>
   );
 }

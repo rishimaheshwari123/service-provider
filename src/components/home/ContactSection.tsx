@@ -15,7 +15,7 @@ const ContactSection = () => {
 
   return (
     // Light background for a clean, professional look
-    <section id="contact" className="py-24 md:py-36 bg-gray-50 dark:bg-gray-900">
+    <section id="contact" className="py-5 md:py-10">
       <div className="container mx-auto px-4">
         
         {/* Header Section */}

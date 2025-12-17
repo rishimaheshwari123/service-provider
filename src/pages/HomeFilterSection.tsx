@@ -67,7 +67,7 @@ const HomeFilterSection = () => {
 
   return (
     // 💡 Outer container: Attractive light background
-    <div className="w-full bg-gray-50 dark:bg-gray-900 py-16 px-4 mb-10">
+    <div className="w-full  py-16 px-4 mb-10">
       <div className="max-w-7xl mx-auto">
         
         {/* Title & Description */}

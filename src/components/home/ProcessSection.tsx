@@ -35,7 +35,7 @@ const ProcessSection = () => {
 
   return (
     // Dark background for a high-contrast, professional look
-    <section className="py-8 md:py-20 bg-gray-950 dark:bg-black relative overflow-hidden">
+    <section className="py-8 md:py-20  dark:bg-black relative overflow-hidden">
       {/* Background Decoration - Subtle Glows */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-[120px]" />
