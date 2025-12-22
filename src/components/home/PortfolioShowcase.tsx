@@ -1,59 +1,79 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Star, Clock, Users, Award } from "lucide-react";
-
+import hero4 from "@/assets/hero-slide-4.jpg";
+import serviceSupport from "@/assets/service-support.jpg";
+import success3 from "@/assets/success3.jpg";
 const PortfolioShowcase = () => {
   const portfolioItems = [
     {
       id: 1,
       title: "Premium Plumbing Services Network",
-      image: "/src/assets/hero-slide-4.jpg",
+      image: hero4,
       category: "Plumbing Services",
       vendor: "AquaFix Pro Solutions",
       experience: "8+ years",
       services: "50+ services",
       rating: 4.9,
-      description: "Professional plumbing network with certified experts offering emergency repairs, installations, and maintenance services across the city.",
-      specialties: ["Emergency Repairs", "Pipe Installation", "Leak Detection", "Bathroom Fitting"],
+      description:
+        "Professional plumbing network with certified experts offering emergency repairs, installations, and maintenance services across the city.",
+      specialties: [
+        "Emergency Repairs",
+        "Pipe Installation",
+        "Leak Detection",
+        "Bathroom Fitting",
+      ],
       achievements: [
         "500+ satisfied customers",
         "24/7 emergency service",
-        "Same-day service guarantee"
-      ]
+        "Same-day service guarantee",
+      ],
     },
     {
       id: 2,
       title: "Elite Housekeeping & Cleaning",
-      image: "/src/assets/service-support.jpg",
+      image: serviceSupport,
       category: "Housekeeping Services",
       vendor: "CleanPro Experts",
       experience: "5+ years",
       services: "30+ services",
       rating: 4.8,
-      description: "Comprehensive housekeeping services with trained professionals offering deep cleaning, regular maintenance, and specialized cleaning solutions.",
-      specialties: ["Deep Cleaning", "Regular Maintenance", "Carpet Cleaning", "Kitchen Sanitization"],
+      description:
+        "Comprehensive housekeeping services with trained professionals offering deep cleaning, regular maintenance, and specialized cleaning solutions.",
+      specialties: [
+        "Deep Cleaning",
+        "Regular Maintenance",
+        "Carpet Cleaning",
+        "Kitchen Sanitization",
+      ],
       achievements: [
         "1000+ homes serviced",
         "Eco-friendly products used",
-        "Insured & background-verified staff"
-      ]
+        "Insured & background-verified staff",
+      ],
     },
     {
       id: 3,
       title: "Expert Electrical Solutions Hub",
-      image: "/src/assets/success3.jpg",
+      image: success3,
       category: "Electrical Services",
       vendor: "PowerTech Electricians",
       experience: "10+ years",
       services: "40+ services",
       rating: 4.9,
-      description: "Licensed electrical contractors providing residential and commercial electrical services with safety-first approach and modern solutions.",
-      specialties: ["Wiring & Rewiring", "Smart Home Setup", "Panel Upgrades", "Emergency Repairs"],
+      description:
+        "Licensed electrical contractors providing residential and commercial electrical services with safety-first approach and modern solutions.",
+      specialties: [
+        "Wiring & Rewiring",
+        "Smart Home Setup",
+        "Panel Upgrades",
+        "Emergency Repairs",
+      ],
       achievements: [
         "Zero safety incidents",
         "Licensed & certified team",
-        "Smart home specialists"
-      ]
-    }
+        "Smart home specialists",
+      ],
+    },
   ];
 
   return (
@@ -71,7 +91,8 @@ const PortfolioShowcase = () => {
             Featured Service Providers
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Meet our top-rated vendors who deliver exceptional services across multiple categories
+            Meet our top-rated vendors who deliver exceptional services across
+            multiple categories
           </p>
         </motion.div>
 
@@ -84,7 +105,9 @@ const PortfolioShowcase = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
-              className={`flex flex-col ${index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'} gap-8 items-center`}
+              className={`flex flex-col ${
+                index % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"
+              } gap-8 items-center`}
             >
               {/* Image Section */}
               <div className="lg:w-1/2">
@@ -130,12 +153,16 @@ const PortfolioShowcase = () => {
                   <div className="text-center p-3 bg-white rounded-xl shadow-md">
                     <Clock className="w-5 h-5 text-orange-500 mx-auto mb-1" />
                     <div className="text-xs text-gray-500">Experience</div>
-                    <div className="font-bold text-gray-900 text-sm">{item.experience}</div>
+                    <div className="font-bold text-gray-900 text-sm">
+                      {item.experience}
+                    </div>
                   </div>
                   <div className="text-center p-3 bg-white rounded-xl shadow-md">
                     <Users className="w-5 h-5 text-orange-500 mx-auto mb-1" />
                     <div className="text-xs text-gray-500">Services</div>
-                    <div className="font-bold text-gray-900 text-sm">{item.services}</div>
+                    <div className="font-bold text-gray-900 text-sm">
+                      {item.services}
+                    </div>
                   </div>
                   <div className="text-center p-3 bg-white rounded-xl shadow-md">
                     <Star className="w-5 h-5 text-orange-500 mx-auto mb-1" />
@@ -149,7 +176,9 @@ const PortfolioShowcase = () => {
 
                 {/* Specialties */}
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Specialties:</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Specialties:
+                  </h4>
                   <div className="flex flex-wrap gap-2">
                     {item.specialties.map((specialty, specialtyIndex) => (
                       <span
@@ -164,10 +193,15 @@ const PortfolioShowcase = () => {
 
                 {/* Achievements */}
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Key Achievements:</h4>
+                  <h4 className="font-semibold text-gray-900 mb-2">
+                    Key Achievements:
+                  </h4>
                   <ul className="space-y-1">
                     {item.achievements.map((achievement, achievementIndex) => (
-                      <li key={achievementIndex} className="flex items-center text-gray-600 text-sm">
+                      <li
+                        key={achievementIndex}
+                        className="flex items-center text-gray-600 text-sm"
+                      >
                         <div className="w-2 h-2 bg-gradient-to-r from-orange-500 to-rose-500 rounded-full mr-2"></div>
                         {achievement}
                       </li>
@@ -201,7 +235,8 @@ const PortfolioShowcase = () => {
             Want to Join Our Service Provider Network?
           </h3>
           <p className="text-gray-600 mb-4 max-w-2xl mx-auto">
-            Register your business and connect with thousands of customers looking for quality services
+            Register your business and connect with thousands of customers
+            looking for quality services
           </p>
           <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
             Register as Vendor
