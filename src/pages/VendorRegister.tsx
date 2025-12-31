@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,7 +12,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
 import { toast } from "react-toastify";
 
-// Zod schema
+// Zod schema - PAN is now optional
 const vendorSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
@@ -30,13 +31,16 @@ const vendorSchema = z.object({
     .regex(
       /^[A-Z]{5}[0-9]{4}[A-Z]$/,
       "PAN must be 10 characters: 5 letters, 4 digits, 1 letter"
-    ),
+    )
+    .optional()
+    .or(z.literal("")),
   description: z.string().optional(),
 });
 
 type VendorFormData = z.infer<typeof vendorSchema>;
 
 const VendorRegister = () => {
+  const { t } = useTranslation();
   const [showModal, setShowModal] = useState(false);
   const [accepted, setAccepted] = useState(false);
   const navigate = useNavigate();
@@ -51,7 +55,7 @@ const VendorRegister = () => {
 
   const onSubmit = async (data: VendorFormData) => {
     if (!accepted) {
-      toast.error("Please accept the Terms & Conditions before registering.");
+      toast.error(t('partnerRegister.acceptTermsError'));
       return;
     }
 
@@ -64,21 +68,21 @@ const VendorRegister = () => {
       <Card className="w-full max-w-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">
-            Partner Registration
+            {t('partnerRegister.title')}
           </CardTitle>
-          <p className="text-gray-600">Register to list your properties</p>
+          <p className="text-gray-600">{t('partnerRegister.subtitle')}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">
-                  Full Name <span className="text-red-500">*</span>
+                  {t('partnerRegister.fullName')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="name"
                   {...register("name")}
-                  placeholder="Enter your full name"
+                  placeholder={t('partnerRegister.fullNamePlaceholder')}
                   className={errors.name ? "border-destructive" : ""}
                 />
                 {errors.name && (
@@ -90,13 +94,13 @@ const VendorRegister = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="email">
-                  Email <span className="text-red-500">*</span>
+                  {t('partnerRegister.email')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="email"
                   type="email"
                   {...register("email")}
-                  placeholder="Enter your email"
+                  placeholder={t('partnerRegister.emailPlaceholder')}
                   className={errors.email ? "border-destructive" : ""}
                 />
                 {errors.email && (
@@ -110,13 +114,13 @@ const VendorRegister = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="password">
-                  Password <span className="text-red-500">*</span>
+                  {t('partnerRegister.password')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="password"
                   type="password"
                   {...register("password")}
-                  placeholder="Create a password"
+                  placeholder={t('partnerRegister.passwordPlaceholder')}
                   className={errors.password ? "border-destructive" : ""}
                 />
                 {errors.password && (
@@ -128,12 +132,12 @@ const VendorRegister = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="phone">
-                  Phone Number <span className="text-red-500">*</span>
+                  {t('partnerRegister.phoneNumber')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="phone"
                   {...register("phone")}
-                  placeholder="Enter your 10-digit phone number"
+                  placeholder={t('partnerRegister.phonePlaceholder')}
                   className={errors.phone ? "border-destructive" : ""}
                 />
                 {errors.phone && (
@@ -147,12 +151,12 @@ const VendorRegister = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="adhar">
-                  Aadhar Number <span className="text-red-500">*</span>
+                  {t('partnerRegister.aadharNumber')} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="adhar"
                   {...register("adhar")}
-                  placeholder="Enter your 12-digit aadhar number"
+                  placeholder={t('partnerRegister.aadharPlaceholder')}
                   className={errors.adhar ? "border-destructive" : ""}
                 />
                 {errors.adhar && (
@@ -164,12 +168,12 @@ const VendorRegister = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="pan">
-                  PAN Number <span className="text-red-500">*</span>
+                  {t('partnerRegister.panNumber')} <span className="text-gray-400">({t('common.optional')})</span>
                 </Label>
                 <Input
                   id="pan"
                   {...register("pan")}
-                  placeholder="Enter your 10-character PAN"
+                  placeholder={t('partnerRegister.panPlaceholder')}
                   className={errors.pan ? "border-destructive" : ""}
                 />
                 {errors.pan && (
@@ -182,12 +186,12 @@ const VendorRegister = () => {
 
             <div className="space-y-2">
               <Label htmlFor="company">
-                Company/Agency Name <span className="text-red-500">*</span>
+                {t('partnerRegister.companyName')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="company"
                 {...register("company")}
-                placeholder="Enter your company name"
+                placeholder={t('partnerRegister.companyPlaceholder')}
                 className={errors.company ? "border-destructive" : ""}
               />
               {errors.company && (
@@ -199,12 +203,12 @@ const VendorRegister = () => {
 
             <div className="space-y-2">
               <Label htmlFor="address">
-                Business Address <span className="text-red-500">*</span>
+                {t('partnerRegister.businessAddress')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="address"
                 {...register("address")}
-                placeholder="Enter your business address"
+                placeholder={t('partnerRegister.addressPlaceholder')}
                 className={errors.address ? "border-destructive" : ""}
               />
               {errors.address && (
@@ -215,11 +219,11 @@ const VendorRegister = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Business Description</Label>
+              <Label htmlFor="description">{t('partnerRegister.businessDescription')}</Label>
               <Textarea
                 id="description"
                 {...register("description")}
-                placeholder="Tell us about your business"
+                placeholder={t('partnerRegister.descriptionPlaceholder')}
                 rows={3}
               />
             </div>
@@ -234,13 +238,13 @@ const VendorRegister = () => {
                 className="cursor-pointer"
               />
               <label htmlFor="terms" className="text-sm text-gray-700">
-                I agree to the{" "}
+                {t('partnerRegister.agreeToTerms')}{" "}
                 <button
                   type="button"
                   onClick={() => setShowModal(true)}
                   className="text-blue-600 hover:underline"
                 >
-                  Terms & Conditions
+                  {t('partnerRegister.termsAndConditions')}
                 </button>
               </label>
             </div>
@@ -250,18 +254,18 @@ const VendorRegister = () => {
               className="w-full bg-gradient-to-r from-yellow-500 to-yellow-700 text-white"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Registering..." : "Register"}
+              {isSubmitting ? t('partnerRegister.registering') : t('partnerRegister.register')}
             </Button>
           </form>
 
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
-              Already have an account?{" "}
+              {t('partnerRegister.alreadyHaveAccount')}{" "}
               <Link
                 to="/partner/login"
                 className="text-blue-600 hover:underline"
               >
-                Login here
+                {t('partnerRegister.loginHere')}
               </Link>
             </p>
           </div>
@@ -272,28 +276,13 @@ const VendorRegister = () => {
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
           <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg relative">
-            <h2 className="text-xl font-semibold mb-3">Terms & Conditions</h2>
+            <h2 className="text-xl font-semibold mb-3">{t('partnerRegister.termsAndConditions')}</h2>
             <div className="max-h-64 overflow-y-auto text-gray-700 text-sm space-y-2">
-              <p>
-                1. By registering as a vendor, you agree to provide accurate
-                information.
-              </p>
-              <p>
-                2. All uploaded data and property listings must comply with our
-                platform guidelines.
-              </p>
-              <p>
-                3. Misuse or providing false information may result in account
-                suspension.
-              </p>
-              <p>
-                4. Your data may be used for communication and verification
-                purposes only.
-              </p>
-              <p>
-                5. The company reserves the right to update or modify terms at
-                any time.
-              </p>
+              <p>{t('partnerRegister.term1')}</p>
+              <p>{t('partnerRegister.term2')}</p>
+              <p>{t('partnerRegister.term3')}</p>
+              <p>{t('partnerRegister.term4')}</p>
+              <p>{t('partnerRegister.term5')}</p>
             </div>
             <div className="flex justify-end gap-3 mt-4">
               <Button
@@ -301,7 +290,7 @@ const VendorRegister = () => {
                 onClick={() => setShowModal(false)}
                 className="px-4"
               >
-                Close
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={() => {
@@ -310,7 +299,7 @@ const VendorRegister = () => {
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white px-4"
               >
-                Accept
+                {t('partnerRegister.accept')}
               </Button>
             </div>
           </div>

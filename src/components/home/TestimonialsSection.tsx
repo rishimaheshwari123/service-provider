@@ -1,23 +1,26 @@
 import { Star } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const TestimonialsSection = () => {
+  const { t } = useTranslation();
+  
   const testimonials = [
     {
       name: "Sarah Johnson",
       role: "CEO, TechCorp",
-      content: "I found an amazing developer within 24 hours. The quality of experts on this platform is outstanding. My project was completed on time and within budget!",
+      content: t('pages.home.testimonial1'),
       rating: 5,
     },
     {
       name: "Michael Chen",
       role: "Founder, StartupHub",
-      content: "Best platform for hiring service providers! The verification process ensures you only work with professionals. Saved me time and money.",
+      content: t('pages.home.testimonial2'),
       rating: 5,
     },
     {
       name: "Emily Rodriguez",
       role: "Marketing Director, GlobalBrand",
-      content: "Hired a marketing consultant who transformed our campaigns. The escrow payment system made me feel secure throughout the entire project.",
+      content: t('pages.home.testimonial3'),
       rating: 5,
     },
   ];
@@ -27,10 +30,10 @@ const TestimonialsSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            What Our <span className="gradient-text">Clients Say</span>
+            {t('pages.home.whatOurClients')} <span className="gradient-text">{t('pages.home.clientsSay')}</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            Hear from businesses who found their perfect service providers
+            {t('pages.home.hearFromBusinesses')}
           </p>
         </div>
 

@@ -1,30 +1,33 @@
 import { Users, Award, Globe, Clock } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const StatsSection = () => {
+  const { t } = useTranslation();
+  
   const stats = [
     {
       icon: Users,
       value: "1000+",
-      label: "Verified Experts",
-      description: "Skilled professionals ready to work",
+      label: t('pages.home.verifiedExperts'),
+      description: t('pages.home.skilledProfessionals'),
     },
     {
       icon: Award,
       value: "95%",
-      label: "Client Satisfaction",
-      description: "Jobs completed successfully",
+      label: t('pages.home.clientSatisfaction'),
+      description: t('pages.home.jobsCompleted'),
     },
     {
       icon: Globe,
       value: "2000+",
-      label: "Projects Completed",
-      description: "Successful collaborations",
+      label: t('pages.home.projectsCompleted'),
+      description: t('pages.home.successfulCollaborations'),
     },
     {
       icon: Clock,
       value: "< 24hrs",
-      label: "Average Response",
-      description: "Get proposals fast",
+      label: t('pages.home.averageResponse'),
+      description: t('pages.home.getProposalsFast'),
     },
   ];
 

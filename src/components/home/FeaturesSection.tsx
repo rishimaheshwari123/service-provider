@@ -7,45 +7,43 @@ import {
   Clock,
   CheckCircle,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 // **NOTE:** Ensure your project has the 'gradient-text' and relevant animation classes defined.
 
 const FeaturesSection = () => {
+  const { t } = useTranslation();
+  
   const features = [
     {
       icon: Zap,
-      title: "Instant Hiring",
-      description:
-        "Post your requirement and receive competitive proposals from qualified experts within just a few hours.",
+      title: t('pages.home.instantHiring'),
+      description: t('pages.home.instantHiringDesc'),
     },
     {
       icon: Shield,
-      title: "Secure Escrow",
-      description:
-        "Payments are held securely in escrow and released only upon your complete satisfaction with the delivered work.",
+      title: t('pages.home.secureEscrow'),
+      description: t('pages.home.secureEscrowDesc'),
     },
     {
       icon: Rocket,
-      title: "High Quality Output",
-      description:
-        "Work exclusively with pre-vetted professionals who have verifiable records of delivering excellent results.",
+      title: t('pages.home.highQualityOutput'),
+      description: t('pages.home.highQualityOutputDesc'),
     },
     {
       icon: HeadphonesIcon,
-      title: "24/7 Expert Support",
-      description: "Our dedicated support team is available around the clock to assist you with any platform or project issues.",
+      title: t('pages.home.expertSupport'),
+      description: t('pages.home.expertSupportDesc'),
     },
     {
       icon: TrendingUp,
-      title: "Transparent Pricing",
-      description:
-        "Easily compare quotes and choose service providers that fit your exact budget without hidden fees.",
+      title: t('pages.home.transparentPricing'),
+      description: t('pages.home.transparentPricingDesc'),
     },
     {
       icon: Clock,
-      title: "Maximized Time Savings",
-      description:
-        "Stop wasting time searching. Our matching system connects you with the right experts instantly.",
+      title: t('pages.home.timeSavings'),
+      description: t('pages.home.timeSavingsDesc'),
     },
   ];
 
@@ -57,13 +55,13 @@ const FeaturesSection = () => {
         {/* Header Section */}
         <div className="max-w-4xl mx-auto text-center mb-16 animate-fade-in-up">
           <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-2">
-            WHY HIRE ON OUR PLATFORM
+            {t('pages.home.whyHireOnPlatform')}
           </p>
           <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-            Unlock Key <span className="gradient-text">Benefits</span>
+            {t('pages.home.unlockBenefits')} <span className="gradient-text">{t('pages.home.benefits')}</span>
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-300">
-            We provide all the tools and assurance needed to find, hire, and manage top-tier talent effortlessly.
+            {t('pages.home.platformDescription')}
           </p>
         </div>
 
@@ -95,7 +93,7 @@ const FeaturesSection = () => {
         <div className="mt-16 text-center">
              <p className="text-lg font-medium text-gray-700 dark:text-gray-300 flex items-center justify-center gap-3">
                  <CheckCircle className="w-6 h-6 text-green-500" />
-                 Ready to experience the difference? Start hiring today!
+                 {t('pages.home.readyToExperience')}
              </p>
         </div>
 

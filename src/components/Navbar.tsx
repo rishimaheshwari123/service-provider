@@ -22,6 +22,7 @@ import {
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSelector, useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { RootState } from "@/redux/store";
 import { logout } from "@/redux/authSlice";
 import {
@@ -32,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 // Updated menu links with icons for a clean look
 const menuLinks = [
@@ -45,12 +47,24 @@ const menuLinks = [
 ];
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<string>("");
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const { user, token } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Updated menu links with translations
+  const menuLinks = [
+    { label: t("nav.home"), href: "/", icon: Home },
+    { label: t("nav.about"), href: "/about", icon: Info },
+    { label: t("nav.services"), href: "/services", icon: Briefcase, hot: true },
+    { label: t("nav.blogs"), href: "/blogs", icon: Layers },
+    { label: t("nav.jobs"), href: "/careers", icon: HardHat },
+    { label: t("nav.contact"), href: "/contact", icon: Mail },
+    { label: t("nav.support"), href: "/customer-support", icon: LifeBuoy },
+  ];
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -60,15 +74,15 @@ const Navbar = () => {
     dispatch(logout());
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    toast.success("Logged out successfully");
+    toast.success(t("messages.loggedOut"));
     navigate("/");
   };
 
   // --- Location Detection Logic (Keeping it clean) ---
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      setCurrentLocation("Location not available");
-      toast.error("Geolocation is not supported by this browser.");
+      setCurrentLocation(t("nav.locationNotAvailable"));
+      toast.error(t("messages.geolocationNotSupported"));
       return;
     }
 
@@ -99,14 +113,14 @@ const Navbar = () => {
         console.error(error);
         // User denied access
         if (error.code === 1) {
-          setCurrentLocation("Location not available");
-          toast.error("You denied location access. Default location is used.");
+          setCurrentLocation(t("nav.locationNotAvailable"));
+          toast.error(t("messages.locationDenied"));
         } else if (error.code === 2) {
           setCurrentLocation("Location unavailable");
-          toast.error("Location information is unavailable.");
+          toast.error(t("messages.locationUnavailable"));
         } else if (error.code === 3) {
           setCurrentLocation("Location timed out");
-          toast.error("Location request timed out.");
+          toast.error(t("messages.locationTimeout"));
         }
         setIsLoadingLocation(false);
       }
@@ -144,7 +158,7 @@ const Navbar = () => {
                 <span className="absolute left-0 bottom-0 h-0.5 w-0 bg-primary group-hover:w-full transition-all duration-300"></span>
                 {link.hot && (
                   <span className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold ml-1 absolute -top-1 right-[-25px]">
-                    New
+                    {t("common.new")}
                   </span>
                 )}
               </Link>
@@ -166,22 +180,25 @@ const Navbar = () => {
                   <MapPin className="h-4 w-4 text-primary" />
                 )}
                 <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  {currentLocation || "Detect Location"}
+                  {currentLocation || t("nav.detectLocation")}
                 </span>
               </button>
 
               {/* Call Number */}
               <a
-                href="tel:+911234567890"
+                href="tel:+917879884363"
                 className="flex items-center space-x-2 text-primary font-semibold text-sm hover:underline"
               >
                 <Phone className="h-4 w-4" />
-                <span>+91 1234567890</span>
+                <span>+91 78798 84363</span>
               </a>
             </div>
 
             {/* Auth Section */}
             <div className="flex items-center space-x-3">
+              {/* Language Switcher */}
+              <LanguageSwitcher />
+              
               {user && token ? (
                 // Logged in user dropdown
                 <DropdownMenu>
@@ -215,21 +232,21 @@ const Navbar = () => {
                       {
                         role: "vendor",
                         href: "/vendor/dashboard",
-                        label: "Vendor Dashboard",
+                        label: t("dashboard.vendor"),
                         icon: Store,
                         color: "text-green-500",
                       },
                       {
                         role: "admin",
                         href: "/admin/dashboard",
-                        label: "Admin Dashboard",
+                        label: t("dashboard.admin"),
                         icon: Shield,
                         color: "text-red-500",
                       },
                       {
                         role: "super_admin",
                         href: "/admin/dashboard",
-                        label: "Super Admin",
+                        label: t("dashboard.superAdmin"),
                         icon: Shield,
                         color: "text-red-600",
                       },
@@ -261,7 +278,7 @@ const Navbar = () => {
                         className="flex items-center space-x-2 font-medium"
                       >
                         <User className="h-4 w-4 text-primary" />
-                        <span>Profile Settings</span>
+                        <span>{t("nav.profile")}</span>
                       </Link>
                     </DropdownMenuItem>
 
@@ -271,7 +288,7 @@ const Navbar = () => {
                       className="flex items-center space-x-2 text-red-500 font-medium cursor-pointer hover:bg-red-50 dark:hover:bg-gray-700"
                     >
                       <LogOut className="h-4 w-4" />
-                      <span>Logout</span>
+                      <span>{t("nav.logout")}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -280,7 +297,7 @@ const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger className="flex items-center space-x-2 px-4 py-2 rounded-full bg-primary text-white transition-all font-semibold hover:bg-blue-600 shadow-md shadow-primary/30">
                     <User className="h-5 w-5" />
-                    <span className="hidden sm:inline">Login</span>
+                    <span className="hidden sm:inline">{t("nav.login")}</span>
                     <ChevronDown className="h-4 w-4 hidden sm:inline" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -297,9 +314,9 @@ const Navbar = () => {
                       >
                         <User className="h-5 w-5 text-primary" />
                         <div className="text-left">
-                          <p className="font-bold">Customer Login</p>
+                          <p className="font-bold">{t("nav.customerLogin")}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Hire professionals
+                            {t("nav.hireProf")}
                           </p>
                         </div>
                       </Link>
@@ -315,9 +332,9 @@ const Navbar = () => {
                       >
                         <Store className="h-5 w-5 text-green-600" />
                         <div className="text-left">
-                          <p className="font-bold">Partner Login</p>
+                          <p className="font-bold">{t("nav.partnerLogin")}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
-                            List your services
+                            {t("nav.listServices")}
                           </p>
                         </div>
                       </Link>
@@ -331,7 +348,7 @@ const Navbar = () => {
                         to="/signup"
                         className="flex items-center justify-center bg-primary/10 text-primary rounded-lg py-2 font-semibold"
                       >
-                        Create Account
+                        {t("nav.createAccount")}
                       </Link>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -382,7 +399,7 @@ const Navbar = () => {
                 <span>{link.label}</span>
                 {link.hot && (
                   <span className="bg-red-500 text-white px-2 py-0.5 rounded-full text-xs font-bold ml-auto">
-                    New
+                    {t("common.new")}
                   </span>
                 )}
               </Link>
@@ -394,11 +411,11 @@ const Navbar = () => {
         <div className="p-5 mt-4 space-y-4 border-t border-gray-700">
           {/* Call Number - Mobile */}
           <a
-            href="tel:+911234567890"
+            href="tel:+917879884363"
             className="flex items-center justify-center space-x-2 text-primary font-bold text-lg p-3 rounded-lg border border-primary/50 hover:bg-primary/10 transition-colors"
           >
             <Phone className="h-5 w-5" />
-            <span>Call Support</span>
+            <span>{t("nav.callSupport")}</span>
           </a>
 
           {/* Mobile Auth Button */}
@@ -412,7 +429,7 @@ const Navbar = () => {
               className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors font-semibold shadow-lg"
             >
               <LogOut className="h-5 w-5" />
-              <span>Sign Out</span>
+              <span>{t("nav.signOut")}</span>
             </button>
           ) : (
             // Not logged in mobile CTA
@@ -422,7 +439,7 @@ const Navbar = () => {
               className="flex items-center justify-center space-x-3 w-full p-3 rounded-lg bg-primary text-white hover:bg-blue-600 transition-colors font-semibold shadow-lg"
             >
               <User className="h-5 w-5" />
-              <span>Customer Login</span>
+              <span>{t("nav.customerLogin")}</span>
             </Link>
           )}
         </div>

@@ -39,7 +39,7 @@ import {
   Users,
   Clock,
   PhoneCall,
-  DollarSign,
+  IndianRupee,
   Star,
   Calendar,
 } from "lucide-react";
@@ -482,9 +482,9 @@ const PropertyDetails = () => {
                     {property.location}
                   </p>
                   <div className="flex items-center gap-6 mb-4">
-                    <div className="text-3xl md:text-4xl font-bold text-green-400">
+                    {/* <div className="text-3xl md:text-4xl font-bold text-green-400">
                       {property.price}
-                    </div>
+                    </div> */}
                     <Badge
                       variant="secondary"
                       className="bg-white/20 text-white border-white/30 capitalize"
@@ -585,7 +585,7 @@ const PropertyDetails = () => {
                         available: !!property.location,
                       },
                       {
-                        icon: DollarSign,
+                        icon: IndianRupee,
                         label: "Affordable Pricing",
                         available: !!property.price,
                       },
@@ -680,9 +680,9 @@ const PropertyDetails = () => {
                                   <MapPin className="w-4 h-4 mr-1" />
                                   {property.location}
                                 </p>
-                                <p className="text-xl font-bold text-green-600 mt-2">
+                                {/* <p className="text-xl font-bold text-green-600 mt-2">
                                   {property.price}
-                                </p>
+                                </p> */}
                                 {renderPropertySummary()}
                               </div>
                             </div>

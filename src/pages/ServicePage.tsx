@@ -295,13 +295,13 @@ const ServicesPage = () => {
                         </div>
                       </div>
 
-                      <div className="text-sm space-y-1">
+                      {/* <div className="text-sm space-y-1">
                         <p className="text-xl font-bold text-primary">
                           {service.price
                             ? `₹${service.price.toLocaleString()}`
                             : "N/A"}
                         </p>
-                      </div>
+                      </div> */}
 
                       <Button
                         variant="outline"

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/home/HeroSection";
@@ -72,7 +73,10 @@ const ScrollToTopButton = () => {
   );
 };
 
-const LoadingSpinner = () => (
+const LoadingSpinner = () => {
+  const { t } = useTranslation();
+  
+  return (
   <div className="fixed inset-0 bg-gradient-to-br from-orange-50 via-rose-50 to-amber-50 z-50">
     <div className="flex items-center justify-center min-h-screen">
       <div className="text-center space-y-6">
@@ -91,7 +95,7 @@ const LoadingSpinner = () => (
           transition={{ delay: 0.5 }}
           className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent"
         >
-          Loading Amazing Experience...
+          {t('pages.home.loadingExperience', 'Loading Amazing Experience...')}
         </motion.h2>
         <motion.div
           initial={{ opacity: 0 }}
@@ -104,7 +108,7 @@ const LoadingSpinner = () => (
       </div>
     </div>
   </div>
-);
+);};
 
 const ParallaxBackground = () => (
   <div className="fixed inset-0 -z-10 overflow-hidden">
@@ -146,7 +150,9 @@ const Index = () => {
   return (
     <PageTransition>
       <div className="min-h-screen relative overflow-x-hidden">
+        
         <ScrollProgress />
+        <TopSearchBar />
         <ParallaxBackground />
         
         {/* Header Section */}

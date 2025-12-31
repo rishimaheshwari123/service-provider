@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -25,6 +26,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const VendorLogin = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -49,19 +51,19 @@ const VendorLogin = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold">Partner Login</CardTitle>
-          <p className="text-gray-600">Sign in to your vendor account</p>
+          <CardTitle className="text-2xl font-bold">{t('partnerLogin.title')}</CardTitle>
+          <p className="text-gray-600">{t('partnerLogin.subtitle')}</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="phone">
-                Phone Number <span className="text-red-500">*</span>
+                {t('partnerLogin.phoneNumber')} <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="phone"
                 type="tel"
-                placeholder="Enter your 10-digit phone number"
+                placeholder={t('partnerLogin.phonePlaceholder')}
                 {...register("phone")}
                 className={errors.phone ? "border-destructive" : ""}
               />
@@ -74,13 +76,13 @@ const VendorLogin = () => {
 
             <div className="space-y-2">
               <Label htmlFor="password">
-                Password <span className="text-red-500">*</span>
+                {t('partnerLogin.password')} <span className="text-red-500">*</span>
               </Label>
               <div className="relative">
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter password"
+                  placeholder={t('partnerLogin.passwordPlaceholder')}
                   {...register("password")}
                   className={
                     errors.password ? "border-destructive pr-10" : "pr-10"
@@ -106,18 +108,18 @@ const VendorLogin = () => {
               className="w-full gradient-gold text-white"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Logging in..." : "Login"}
+              {isSubmitting ? t('partnerLogin.loggingIn') : t('partnerLogin.login')}
             </Button>
           </form>
 
           <div className="mt-4 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
+              {t('partnerLogin.noAccount')}{" "}
               <Link
                 to="/vendor/register"
                 className="text-blue-600 hover:underline"
               >
-                Register here
+                {t('partnerLogin.registerHere')}
               </Link>
             </p>
           </div>

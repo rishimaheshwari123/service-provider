@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TopBar from "@/components/TopBar";
@@ -6,54 +7,56 @@ import { Users, Target, Heart, Award, Rocket, Globe, Shield, Zap } from "lucide-
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 const About = () => {
+  const { t } = useTranslation();
+  
   const values = [
     {
       icon: Target,
-      title: "Mission Driven",
-      description: "We're committed to helping businesses achieve their full potential through innovative solutions.",
+      title: t('pages.about.missionDriven'),
+      description: t('pages.about.missionDrivenDesc'),
     },
     {
       icon: Heart,
-      title: "Passion",
-      description: "Our team is passionate about technology and dedicated to delivering excellence in every project.",
+      title: t('pages.about.passion'),
+      description: t('pages.about.passionDesc'),
     },
     {
       icon: Users,
-      title: "Collaboration",
-      description: "We believe in the power of teamwork and building strong partnerships with our clients.",
+      title: t('pages.about.collaboration'),
+      description: t('pages.about.collaborationDesc'),
     },
     {
       icon: Award,
-      title: "Excellence",
-      description: "Quality is at the core of everything we do, from initial consultation to final delivery.",
+      title: t('pages.about.excellence'),
+      description: t('pages.about.excellenceDesc'),
     },
   ];
 
   const achievements = [
-    { icon: Rocket, number: "1000+", label: "Projects Completed", color: "from-orange-500 to-rose-500" },
-    { icon: Users, number: "500+", label: "Happy Clients", color: "from-rose-500 to-pink-500" },
-    { icon: Globe, number: "25+", label: "Countries Served", color: "from-amber-500 to-orange-500" },
-    { icon: Shield, number: "99.9%", label: "Uptime Guarantee", color: "from-emerald-500 to-teal-500" },
+    { icon: Rocket, number: "1000+", label: t('pages.about.projectsCompleted'), color: "from-orange-500 to-rose-500" },
+    { icon: Users, number: "500+", label: t('pages.about.happyClients'), color: "from-rose-500 to-pink-500" },
+    { icon: Globe, number: "25+", label: t('pages.about.countriesServed'), color: "from-amber-500 to-orange-500" },
+    { icon: Shield, number: "99.9%", label: t('pages.about.uptimeGuarantee'), color: "from-emerald-500 to-teal-500" },
   ];
 
   const teamMembers = [
     { 
       name: "Rajesh Kumar", 
-      role: "CEO & Founder",
+      role: t('pages.about.ceoFounder'),
       image: "/src/assets/hero-slide-1.jpg",
-      description: "Visionary leader with 15+ years in tech industry"
+      description: t('pages.about.visionaryLeader')
     },
     { 
       name: "Priya Sharma", 
-      role: "CTO",
+      role: t('pages.about.cto'),
       image: "/src/assets/hero-slide-2.jpg",
-      description: "Technology expert specializing in scalable solutions"
+      description: t('pages.about.technologyExpert')
     },
     { 
       name: "Amit Patel", 
-      role: "Lead Designer",
+      role: t('pages.about.leadDesigner'),
       image: "/src/assets/hero-slide-3.jpg",
-      description: "Creative designer with passion for user experience"
+      description: t('pages.about.creativeDesigner')
     },
   ];
 
@@ -95,10 +98,10 @@ const About = () => {
               className="max-w-4xl mx-auto text-center"
             >
               <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                About <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">HireExpert</span>
+                {t('pages.about.aboutTitle')} <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">HireExpert</span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 leading-relaxed">
-                We're on a mission to revolutionize how businesses connect with top talent and achieve extraordinary results through innovative solutions.
+                {t('pages.about.missionStatement')}
               </p>
             </motion.div>
           </div>
@@ -123,17 +126,17 @@ const About = () => {
                   transition={{ duration: 0.8 }}
                 >
                   <h2 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                    Our Journey
+                    {t('pages.about.ourJourney')}
                   </h2>
                   <div className="space-y-6 text-lg text-gray-600 leading-relaxed">
                     <p>
-                      Founded in 2020, HireExpert emerged from a simple yet powerful idea: businesses deserve access to exceptional talent without the traditional barriers and complexities.
+                      {t('pages.about.foundedStory')}
                     </p>
                     <p>
-                      What started as a small team of passionate professionals has evolved into a leading platform, trusted by thousands of businesses worldwide to find, hire, and collaborate with top-tier service providers.
+                      {t('pages.about.evolutionStory')}
                     </p>
                     <p>
-                      Today, we continue to innovate, breaking down barriers between talent and opportunity, and creating a future where exceptional work knows no boundaries.
+                      {t('pages.about.todayStory')}
                     </p>
                   </div>
                 </motion.div>
@@ -192,10 +195,10 @@ const About = () => {
               className="max-w-3xl mx-auto text-center mb-10"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                Our Core Values
+                {t('pages.about.ourCoreValues')}
               </h2>
               <p className="text-xl text-gray-600">
-                These fundamental principles guide every decision we make and every relationship we build
+                {t('pages.about.valuesDescription')}
               </p>
             </motion.div>
 
@@ -241,10 +244,10 @@ const About = () => {
               className="max-w-3xl mx-auto text-center mb-10"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                Meet Our Leadership
+                {t('pages.about.meetLeadership')}
               </h2>
               <p className="text-xl text-gray-600">
-                The visionary minds driving innovation and excellence at HireExpert
+                {t('pages.about.leadershipDescription')}
               </p>
             </motion.div>
 
@@ -298,18 +301,19 @@ const About = () => {
               className="max-w-4xl mx-auto text-center text-white"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                Ready to Transform Your Business?
+                {t('pages.about.readyToTransform')}
               </h2>
               <p className="text-xl mb-8 opacity-90">
-                Join thousands of businesses that trust HireExpert to connect them with exceptional talent
+                {t('pages.about.joinThousands')}
               </p>
+              <a href="/vendor/register">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 className="px-8 py-4 bg-white text-orange-600 font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg"
               >
-                Get Started Today
-              </motion.button>
+                {t('pages.about.getStartedToday')}
+              </motion.button></a>
             </motion.div>
           </div>
         </motion.section>

@@ -1,24 +1,24 @@
 import { Target, Award, Users } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 const AboutSection = () => {
+  const { t } = useTranslation();
+  
   const features = [
     {
       icon: Target,
-      title: "Find Perfect Match",
-      description:
-        "Connect with pre-vetted service providers who match your specific requirements and budget.",
+      title: t('pages.home.findPerfectMatch'),
+      description: t('pages.home.findPerfectMatchDesc'),
     },
     {
       icon: Award,
-      title: "Verified Experts",
-      description:
-        "All our service providers are thoroughly verified with proven track records and client reviews.",
+      title: t('pages.home.verifiedExperts'),
+      description: t('pages.home.verifiedExpertsDesc'),
     },
     {
       icon: Users,
-      title: "Easy Collaboration",
-      description:
-        "Seamlessly communicate, share files, and manage projects with your chosen service provider.",
+      title: t('pages.home.easyCollaboration'),
+      description: t('pages.home.easyCollaborationDesc'),
     },
   ];
 
@@ -27,11 +27,10 @@ const AboutSection = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-3xl mx-auto text-center mb-16 animate-fade-in-up">
           <h2 className="text-4xl md:text-5xl font-bold mb-4">
-            Why Choose <span className="gradient-text">HireExpert</span>
+            {t('pages.home.whyChoose')} <span className="gradient-text">HireExpert</span>
           </h2>
           <p className="text-xl text-muted-foreground">
-            The fastest and most reliable way to find and hire top service providers
-            for any project or task.
+            {t('pages.home.whyChooseDesc')}
           </p>
         </div>
 

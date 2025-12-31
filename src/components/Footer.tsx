@@ -1,15 +1,17 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { 
     Mail, 
     Phone, 
     MapPin, 
     Facebook, 
-    Twitter, 
-    Linkedin, 
+    Instagram, 
     ChevronRight 
 } from "lucide-react";
 
 const Footer = () => {
+  const { t } = useTranslation();
+  
   return (
     // Dark Background for a premium finish
     <footer className="bg-gray-900 border-t border-gray-700 dark:bg-black text-gray-300">
@@ -25,26 +27,23 @@ const Footer = () => {
               ProServe
             </h3>
             <p className="text-gray-400 text-base mb-6">
-              Connect with verified experts instantly. Your project success is our top priority.
+              {t('footer.connectWithExperts', 'Connect with verified experts instantly. Your project success is our top priority.')}
             </p>
             
             {/* Social Media Icons */}
             <div className="flex space-x-4">
-                <a href="#" aria-label="Facebook" className="text-gray-400 hover:text-blue-500 transition-colors">
+                <a href="https://www.facebook.com/profile.php?id=61585232704468" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="text-gray-400 hover:text-blue-500 transition-colors">
                     <Facebook size={22} />
                 </a>
-                <a href="#" aria-label="Twitter" className="text-gray-400 hover:text-blue-400 transition-colors">
-                    <Twitter size={22} />
-                </a>
-                <a href="#" aria-label="LinkedIn" className="text-gray-400 hover:text-blue-700 transition-colors">
-                    <Linkedin size={22} />
+                <a href="https://www.instagram.com/gharsansaar25/" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="text-gray-400 hover:text-pink-500 transition-colors">
+                    <Instagram size={22} />
                 </a>
             </div>
           </div>
 
           {/* 2. Quick Links */}
           <div>
-            <h4 className="font-bold text-lg text-white mb-6 border-b border-primary/20 pb-2">Quick Links</h4>
+            <h4 className="font-bold text-lg text-white mb-6 border-b border-primary/20 pb-2">{t('footer.quickLinks')}</h4>
             <ul className="space-y-3">
               <li>
                 <Link
@@ -52,7 +51,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    Home
+                    {t('nav.home')}
                 </Link>
               </li>
               <li>
@@ -61,7 +60,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    About Us
+                    {t('nav.about')}
                 </Link>
               </li>
               <li>
@@ -70,7 +69,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    Careers
+                    {t('nav.jobs')}
                 </Link>
               </li>
               <li>
@@ -79,7 +78,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    Contact
+                    {t('nav.contact')}
                 </Link>
               </li>
             </ul>
@@ -87,7 +86,7 @@ const Footer = () => {
 
           {/* 3. Resources & Services */}
           <div>
-            <h4 className="font-bold text-lg text-white mb-6 border-b border-primary/20 pb-2">Resources</h4>
+            <h4 className="font-bold text-lg text-white mb-6 border-b border-primary/20 pb-2">{t('footer.resources', 'Resources')}</h4>
             <ul className="space-y-3">
               <li>
                 <Link
@@ -95,7 +94,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    Our Services
+                    {t('nav.services')}
                 </Link>
               </li>
               <li>
@@ -104,7 +103,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    Blog & News
+                    {t('nav.blogs')}
                 </Link>
               </li>
               <li>
@@ -113,7 +112,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    Customer Support
+                    {t('nav.support')}
                 </Link>
               </li>
               <li>
@@ -122,7 +121,7 @@ const Footer = () => {
                   className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
                 >
                     <ChevronRight size={16} className="mr-2 text-primary/70" />
-                    Terms of Service
+                    {t('footer.termsOfService')}
                 </Link>
               </li>
             </ul>
@@ -130,7 +129,7 @@ const Footer = () => {
 
           {/* 4. Contact Information */}
           <div>
-            <h4 className="font-bold text-lg text-white mb-6 border-b border-primary/20 pb-2">Get in Touch</h4>
+            <h4 className="font-bold text-lg text-white mb-6 border-b border-primary/20 pb-2">{t('pages.contact.getInTouch')}</h4>
             <ul className="space-y-4">
               <li className="flex items-center gap-3 text-gray-400 text-base hover:text-white transition-colors">
                 <Mail size={18} className="text-primary/70 flex-shrink-0" />
@@ -138,11 +137,11 @@ const Footer = () => {
               </li>
               <li className="flex items-center gap-3 text-gray-400 text-base hover:text-white transition-colors">
                 <Phone size={18} className="text-primary/70 flex-shrink-0" />
-                <a href="tel:+911234567890">+91 1234567890</a>
+                <a href="tel:+917879884363">+91 78798 84363</a>
               </li>
               <li className="flex items-start gap-3 text-gray-400 text-base">
                 <MapPin size={18} className="text-primary/70 flex-shrink-0 mt-1" />
-                <span>123 Business Street, Tech City, ST 12345</span>
+                <span>Sagar, MP</span>
               </li>
             </ul>
           </div>
@@ -150,7 +149,7 @@ const Footer = () => {
 
         {/* Copyright and Bottom Line */}
         <div className="border-t border-gray-700/50 mt-12 pt-8 text-center text-gray-500 text-sm">
-          <p>&copy; 2025 ProServe. All rights reserved. | Built with ❤️ for Modern Web</p>
+          <p>&copy; 2025 {t('footer.allRightsReserved')}. </p>
         </div>
       </div>
     </footer>

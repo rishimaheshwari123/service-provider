@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { getAllCategoriesAPI } from "@/service/operations/category";
-import { FaBicycle, FaWrench, FaToilet, FaTools } from "react-icons/fa"; // 4 fixed icons
+import { FaBicycle, FaWrench, FaToilet, FaTools } from "react-icons/fa";
 
 const icons = [FaBicycle, FaWrench, FaToilet, FaTools]; // Fixed 4 icons
 
 export default function CategoryGrid() {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
   const navigate = useNavigate();
 
@@ -27,7 +29,7 @@ export default function CategoryGrid() {
   return (
     <div className="p-6">
       <h2 className="text-3xl font-bold text-center mb-8 text-gray-800">
-        Explore our categories
+        {t('pages.home.exploreCategories')}
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 max-w-7xl mx-auto gap-6">
         {categories.map((cat, index) => {
@@ -42,7 +44,7 @@ export default function CategoryGrid() {
                 <Icon className="text-4xl" />
               </div>
               <h3 className="font-bold text-xl mb-1 text-center">{cat.name}</h3>
-              <p className="text-white/90 text-sm text-center">₹{cat.price}</p>
+              {/* <p className="text-white/90 text-sm text-center">₹{cat.price}</p> */}
             </div>
           );
         })}

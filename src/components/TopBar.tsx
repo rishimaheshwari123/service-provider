@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Sparkles, ArrowRight, Star } from "lucide-react";
 
 export default function TopBar() {
+  const { t } = useTranslation();
+  
   return (
     <motion.div 
       initial={{ y: -50, opacity: 0 }}
@@ -64,23 +67,23 @@ export default function TopBar() {
           
           {/* Mobile: compact text */}
           <p className="font-medium text-sm md:text-base leading-snug md:hidden">
-            <span className="font-bold">Join 1000+ Service Providers!</span> Start earning today.{" "}
+            <span className="font-bold">{t('pages.home.join1000Providers')}!</span> {t('pages.home.startEarningToday')}.{" "}
             <Link
               to="/vendor/register"
               className="text-yellow-200 font-bold hover:text-yellow-100 transition-colors underline decoration-2 underline-offset-2"
             >
-              Register Free →
+              {t('pages.home.registerFree')} →
             </Link>
           </p>
 
           {/* Desktop: full text */}
           <p className="hidden md:block font-medium text-base leading-snug">
-            <span className="font-bold">🎯 Join 1000+ Service Providers!</span> List your services and start earning with India's fastest-growing platform.
+            <span className="font-bold">🎯 {t('pages.home.join1000Providers')}!</span> {t('pages.home.listServicesEarn')}.
           </p>
           
           <div className="hidden md:flex items-center gap-1 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
             <Star className="w-4 h-4 text-yellow-300 fill-current" />
-            <span className="text-sm font-semibold">4.8/5 Rating</span>
+            <span className="text-sm font-semibold">{t('pages.home.rating48')}</span>
           </div>
         </div>
 
@@ -94,7 +97,7 @@ export default function TopBar() {
             to="/vendor/register"
             className="group flex items-center gap-2 bg-white text-orange-600 font-bold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:bg-orange-50"
           >
-            <span>Register Free</span>
+            <span>{t('pages.home.registerFree')}</span>
             <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
           </Link>
         </motion.div>

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,7 @@ const signupSchema = z
 type SignupFormData = z.infer<typeof signupSchema>;
 
 const Signup = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
@@ -68,17 +70,17 @@ const Signup = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">Create Account</h1>
-          <p className="text-muted-foreground mt-2">Sign up to get started</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('pages.signup.createAccount')}</h1>
+          <p className="text-muted-foreground mt-2">{t('pages.signup.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">{t('pages.signup.fullName')}</Label>
             <Input
               id="name"
               type="text"
-              placeholder="Enter your full name"
+              placeholder={t('pages.signup.fullNamePlaceholder')}
               {...register("name")}
               className={errors.name ? "border-destructive" : ""}
             />
@@ -88,11 +90,11 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('pages.signup.email')}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t('pages.signup.emailPlaceholder')}
               {...register("email")}
               className={errors.email ? "border-destructive" : ""}
             />
@@ -102,11 +104,11 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone Number</Label>
+            <Label htmlFor="phone">{t('pages.signup.phoneNumber')}</Label>
             <Input
               id="phone"
               type="tel"
-              placeholder="Enter 10-digit phone number"
+              placeholder={t('pages.signup.phonePlaceholder')}
               {...register("phone")}
               className={errors.phone ? "border-destructive" : ""}
             />
@@ -116,12 +118,12 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('pages.signup.password')}</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Create a password"
+                placeholder={t('pages.signup.passwordPlaceholder')}
                 {...register("password")}
                 className={
                   errors.password ? "border-destructive pr-10" : "pr-10"
@@ -143,12 +145,12 @@ const Signup = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">{t('pages.signup.confirmPassword')}</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
-                placeholder="Confirm your password"
+                placeholder={t('pages.signup.confirmPasswordPlaceholder')}
                 {...register("confirmPassword")}
                 className={
                   errors.confirmPassword ? "border-destructive pr-10" : "pr-10"
@@ -175,18 +177,18 @@ const Signup = () => {
             disabled={isSubmitting}
             variant="hero"
           >
-            {isSubmitting ? "Creating Account..." : "Create Account"}
+            {isSubmitting ? t('pages.signup.creatingAccount') : t('pages.signup.createAccountBtn')}
           </Button>
         </form>
 
         <div className="text-center">
           <p className="text-muted-foreground">
-            Already have an account?{" "}
+            {t('pages.signup.alreadyHaveAccount')}{" "}
             <Link
               to="/login"
               className="text-primary hover:underline font-medium"
             >
-              Sign in
+              {t('pages.signup.signIn')}
             </Link>
           </p>
         </div>

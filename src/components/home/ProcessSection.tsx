@@ -1,35 +1,38 @@
 import { FileSearch, Lightbulb, Code, Rocket, ArrowRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const ProcessSection = () => {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const handleNavigate = () =>{
+    navigate("/vendor/register")
+  }
   const steps = [
     {
       number: "01",
       icon: FileSearch,
-      title: "Create Your Service Profile",
-      description:
-        "Vendors list their professional services, defining their scope, competitive pricing, and key areas of expertise.",
+      title: t('pages.home.createServiceProfile'),
+      description: t('pages.home.createServiceProfileDesc'),
     },
     {
       number: "02",
       icon: Lightbulb,
-      title: "Maximize Discovery",
-      description:
-        "Your services are prominently featured to targeted clients. Optimize visibility through high ratings and detailed profiles.",
+      title: t('pages.home.maximizeDiscovery'),
+      description: t('pages.home.maximizeDiscoveryDesc'),
     },
     {
       number: "03",
       icon: Code,
-      title: "Secure Client Booking",
-      description:
-        "Clients hire you directly via the platform. Seamlessly manage requests, use the integrated chat, and confirm details.",
+      title: t('pages.home.secureClientBooking'),
+      description: t('pages.home.secureClientBookingDesc'),
     },
     {
       number: "04",
       icon: Rocket,
-      title: "Complete & Receive Instant Payment",
-      description:
-        "Deliver the service, receive final client approval, and get paid quickly and securely through our protected escrow system.",
+      title: t('pages.home.completeReceivePayment'),
+      description: t('pages.home.completeReceivePaymentDesc'),
     },
   ];
 
@@ -46,14 +49,13 @@ const ProcessSection = () => {
         {/* Header Section */}
         <div className="max-w-4xl mx-auto text-center mb-20 animate-fade-in-up">
           <p className="text-sm font-semibold text-blue-400 uppercase tracking-widest mb-2">
-            SIMPLIFIED GROWTH
+            {t('pages.home.simplifiedGrowth')}
           </p>
           <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-4">
-            Our <span className="gradient-text">Vendor Onboarding</span> Flow
+            {t('pages.home.ourVendor')} <span className="gradient-text">{t('pages.home.onboardingFlow')}</span>
           </h2>
           <p className="text-xl text-gray-400 max-w-3xl mx-auto">
-            A clear, efficient path for service providers to join the platform,
-            acquire clients, and get paid.
+            {t('pages.home.vendorFlowDescription')}
           </p>
         </div>
 
@@ -115,8 +117,8 @@ const ProcessSection = () => {
 
         {/* Final CTA */}
         <div className="text-center mt-5">
-          <Button className="group text-lg font-semibold py-7 bg-pink-500 hover:bg-pink-600 shadow-xl shadow-green-500/40">
-            Join the Network and Start Earning
+          <Button onClick={handleNavigate} className="group text-lg font-semibold py-7 bg-pink-500 hover:bg-pink-600 shadow-xl shadow-green-500/40">
+            {t('pages.home.joinNetworkEarn')}
             <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Button>
         </div>
