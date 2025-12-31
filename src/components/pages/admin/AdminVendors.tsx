@@ -602,12 +602,12 @@ const VendorManagement = () => {
                 <div className="space-y-2">
                   <Label htmlFor="company" className="flex items-center gap-2">
                     <Building2 className="w-4 h-4" />
-                    Company/Agency Name *
+                    Company/Agency Name / Your Name*
                   </Label>
                   <Input
                     id="company"
                     name="company"
-                    placeholder="Enter company name"
+                    placeholder="Enter company name/ Agency Name / Your Name"
                     value={formData.company}
                     onChange={handleFormChange}
                     required

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -49,19 +50,30 @@ import PurchaseCategories from "./components/pages/vendor/PurchaseCategories";
 import VendorAddService from "./components/pages/vendor/VendorAddProperty";
 import AuditLogsPage from "./components/pages/vendor/AuditLogs";
 import AdminAuditLogs from "./components/pages/admin/AdminAuditLogs";
+import TermsAndConditions from "./pages/TermsAndConditions";
 const queryClient = new QueryClient();
+
+// Loading component for Suspense fallback
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+  </div>
+);
 
 const App = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
+    <Suspense fallback={<LoadingFallback />}>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
+            <Route path="/terms" element={<TermsAndConditions />} />
+
             <Route path="/contact" element={<Contact />} />
             <Route path="/services" element={<ServicesPage />} />
             <Route path="/service/:id" element={<PropertyDetails />} />
@@ -162,6 +174,7 @@ const App = () => {
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
+    </Suspense>
   );
 };
 

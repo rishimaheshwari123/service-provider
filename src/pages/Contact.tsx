@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TopBar from "@/components/TopBar";
@@ -9,6 +10,8 @@ import { Mail, Phone, MapPin, Clock, Send, MessageCircle, HeadphonesIcon, Globe 
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 const Contact = () => {
+  const { t } = useTranslation();
+  
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle form submission
@@ -17,38 +20,38 @@ const Contact = () => {
   const contactMethods = [
     {
       icon: Mail,
-      title: "Email Us",
-      description: "Send us an email anytime",
+      title: t('pages.contact.emailUs', 'Email Us'),
+      description: t('pages.contact.sendEmailAnytime', 'Send us an email anytime'),
       details: ["contact@hireexpert.com", "support@hireexpert.com"],
       color: "from-orange-500 to-rose-500"
     },
     {
       icon: Phone,
-      title: "Call Us",
-      description: "Speak with our team",
-      details: ["+91 98765 43210", "+91 87654 32109"],
+      title: t('pages.contact.callUs', 'Call Us'),
+      description: t('pages.contact.speakWithTeam', 'Speak with our team'),
+      details: ["+91 78798 84363"],
       color: "from-rose-500 to-pink-500"
     },
     {
       icon: MapPin,
-      title: "Visit Us",
-      description: "Come to our office",
-      details: ["123 Tech Hub, Sector 5", "Gurgaon, Haryana 122001", "India"],
+      title: t('pages.contact.visitUs', 'Visit Us'),
+      description: t('pages.contact.comeToOffice', 'Come to our office'),
+      details: ["Sagar, MP", "India"],
       color: "from-amber-500 to-orange-500"
     },
     {
       icon: Clock,
-      title: "Business Hours",
-      description: "We're available",
+      title: t('pages.contact.businessHours'),
+      description: t('pages.contact.weAreAvailable', "We're available"),
       details: ["Mon - Fri: 9:00 AM - 7:00 PM", "Sat: 10:00 AM - 4:00 PM", "Sun: Closed"],
       color: "from-emerald-500 to-teal-500"
     }
   ];
 
   const quickActions = [
-    { icon: MessageCircle, title: "Live Chat", description: "Chat with our support team" },
-    { icon: HeadphonesIcon, title: "Schedule Call", description: "Book a consultation" },
-    { icon: Globe, title: "Help Center", description: "Browse our knowledge base" }
+    { icon: MessageCircle, title: t('pages.support.livechat'), description: t('pages.contact.chatWithSupport', 'Chat with our support team') },
+    { icon: HeadphonesIcon, title: t('pages.contact.scheduleCall', 'Schedule Call'), description: t('pages.contact.bookConsultation', 'Book a consultation') },
+    { icon: Globe, title: t('pages.support.helpCenter'), description: t('pages.contact.browseKnowledge', 'Browse our knowledge base') }
   ];
 
   return (
@@ -89,10 +92,10 @@ const Contact = () => {
               className="max-w-4xl mx-auto text-center"
             >
               <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                Get In <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">Touch</span>
+                {t('pages.contact.getInTouch')} <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent"></span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 leading-relaxed">
-                Have a question or ready to start your project? We'd love to hear from you and help bring your vision to life.
+                {t('pages.contact.heroDescription', 'Have a question or ready to start your project? We\'d love to hear from you and help bring your vision to life.')}
               </p>
             </motion.div>
           </div>
@@ -151,13 +154,13 @@ const Contact = () => {
                 className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100"
               >
                 <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                  Send us a message
+                  {t('pages.contact.sendMessage')}
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-700">
-                        First Name *
+                        {t('pages.signup.firstName')} *
                       </label>
                       <Input
                         placeholder="John"
@@ -167,7 +170,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-700">
-                        Last Name *
+                        {t('pages.signup.lastName')} *
                       </label>
                       <Input
                         placeholder="Doe"
@@ -178,41 +181,41 @@ const Contact = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      Email Address *
+                      {t('pages.signup.email')} *
                     </label>
                     <Input
                       type="email"
-                      placeholder="john@example.com"
+                      placeholder={t('forms.placeholders.enterEmail')}
                       className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      Phone Number
+                      {t('pages.signup.phone')}
                     </label>
                     <Input
                       type="tel"
-                      placeholder="+91 98765 43210"
+                      placeholder={t('forms.placeholders.enterPhone')}
                       className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      Subject *
+                      {t('pages.contact.subject')} *
                     </label>
                     <Input
-                      placeholder="How can we help you?"
+                      placeholder={t('pages.contact.howCanWeHelp', 'How can we help you?')}
                       className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      Message *
+                      {t('pages.contact.message')} *
                     </label>
                     <Textarea
-                      placeholder="Tell us more about your project or inquiry..."
+                      placeholder={t('forms.placeholders.enterMessage')}
                       className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl min-h-[150px] resize-none"
                       required
                     />
@@ -224,7 +227,7 @@ const Contact = () => {
                     className="w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     <Send size={20} />
-                    Send Message
+                    {t('pages.contact.sendNow')}
                   </motion.button>
                 </form>
               </motion.div>
@@ -237,10 +240,10 @@ const Contact = () => {
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
                 <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                  Let's Connect
+                  {t('pages.contact.letsConnect', "Let's Connect")}
                 </h2>
                 <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                  We're here to help and answer any question you might have. We look forward to hearing from you and discussing how we can help bring your ideas to life.
+                  {t('pages.contact.connectDescription', "We're here to help and answer any question you might have. We look forward to hearing from you and discussing how we can help bring your ideas to life.")}
                 </p>
 
                 <div className="space-y-6">
@@ -292,10 +295,10 @@ const Contact = () => {
               className="text-center mb-8"
             >
               <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                Find Our Office
+                {t('pages.contact.findOffice', 'Find Our Office')}
               </h2>
               <p className="text-xl text-gray-600">
-                Visit us at our headquarters in the heart of Gurgaon's tech district
+                {t('pages.contact.visitHeadquarters', 'Visit us at our headquarters in Sagar, MP')}
               </p>
             </motion.div>
             <div className="max-w-6xl mx-auto">

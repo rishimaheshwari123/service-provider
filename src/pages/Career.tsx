@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +26,10 @@ import {
 import { getJobsAPI } from "@/service/operations/job";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import HeroSection from "@/components/home/HeroSection";
 
 const Careers = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +42,6 @@ const Careers = () => {
   const [uniqueTypes, setUniqueTypes] = useState([]);
   const [uniqueLocations, setUniqueLocations] = useState([]);
 
-  // Extract unique values for filters
   const extractUniqueValues = (jobs) => {
     const departments = [
       ...new Set(jobs.map((job) => job.department).filter(Boolean)),
@@ -54,7 +56,6 @@ const Careers = () => {
     setUniqueLocations(locations);
   };
 
-  // Fetch all jobs
   const fetchAllJobs = async () => {
     try {
       setLoading(true);
@@ -63,7 +64,7 @@ const Careers = () => {
       extractUniqueValues(response);
     } catch (error) {
       console.error("Error fetching jobs:", error);
-      setError("Failed to load job listings. Please try again.");
+      setError(t('careers.loadError'));
     } finally {
       setLoading(false);
     }
@@ -73,22 +74,19 @@ const Careers = () => {
     fetchAllJobs();
   }, []);
 
-  // Format date
   const formatDate = (dateString: string) => {
     const options: Intl.DateTimeFormatOptions = { year: "numeric", month: "long", day: "numeric" };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
-  // Calculate days remaining until deadline
   const calculateDaysRemaining = (deadline: string) => {
     const today = new Date();
     const deadlineDate = new Date(deadline);
     const diffTime = deadlineDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays > 0 ? `${diffDays} days remaining` : "Deadline passed";
+    return diffDays > 0 ? `${diffDays} ${t('careers.daysRemaining')}` : t('careers.deadlinePassed');
   };
 
-  // Filter jobs
   const filteredJobs = jobs.filter((job) => {
     const matchesSearch =
       searchTerm === "" ||
@@ -104,7 +102,6 @@ const Careers = () => {
     return matchesSearch && matchesDepartment && matchesType && matchesLocation;
   });
 
-  // Clear filters
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedDepartment("all");
@@ -112,7 +109,6 @@ const Careers = () => {
     setSelectedLocation("all");
   };
 
-  // Handle job click
   const handleJobClick = (jobId) => {
     navigate(`/careers/${jobId}`);
   };
@@ -122,7 +118,7 @@ const Careers = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading job opportunities...</p>
+          <p className="text-gray-600">{t('careers.loadingJobs')}</p>
         </div>
       </div>
     );
@@ -133,7 +129,7 @@ const Careers = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={fetchAllJobs}>Try Again</Button>
+          <Button onClick={fetchAllJobs}>{t('messages.tryAgain')}</Button>
         </div>
       </div>
     );
@@ -143,17 +139,18 @@ const Careers = () => {
     <>
       <Navbar />
 
+          <HeroSection />
+
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <section className="py-16 gradient-primary text-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
               <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Join Our Team
+                {t('careers.joinOurTeam')}
               </h1>
               <p className="text-xl max-w-3xl mx-auto">
-                Discover exciting career opportunities and be part of our
-                mission to transform .
+                {t('careers.discoverOpportunities')}
               </p>
             </div>
           </div>
@@ -164,12 +161,10 @@ const Careers = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Why Join Us
+                {t('careers.whyJoinUs')}
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                We offer a dynamic work environment with opportunities for
-                growth, competitive benefits, and a chance to make a real impact
-                .
+                {t('careers.whyJoinUsDesc')}
               </p>
             </div>
 
@@ -192,11 +187,10 @@ const Careers = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Professional Growth
+                  {t('careers.professionalGrowth')}
                 </h3>
                 <p className="text-gray-600">
-                  We invest in our team's development with training programs,
-                  mentorship, and opportunities for advancement.
+                  {t('careers.professionalGrowthDesc')}
                 </p>
               </div>
 
@@ -220,11 +214,10 @@ const Careers = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Collaborative Culture
+                  {t('careers.collaborativeCulture')}
                 </h3>
                 <p className="text-gray-600">
-                  Join a team that values collaboration, innovation, and
-                  creating exceptional experiences for our clients.
+                  {t('careers.collaborativeCultureDesc')}
                 </p>
               </div>
 
@@ -246,11 +239,10 @@ const Careers = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Competitive Benefits
+                  {t('careers.competitiveBenefits')}
                 </h3>
                 <p className="text-gray-600">
-                  We offer competitive salaries, health benefits, flexible work
-                  arrangements, and performance incentives.
+                  {t('careers.competitiveBenefitsDesc')}
                 </p>
               </div>
             </div>
@@ -262,11 +254,10 @@ const Careers = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Current Openings
+                {t('careers.currentOpenings')}
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                Explore our current job opportunities and find the perfect role
-                for your skills and career goals.
+                {t('careers.currentOpeningsDesc')}
               </p>
             </div>
 
@@ -275,7 +266,7 @@ const Careers = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="md:col-span-1">
                   <Input
-                    placeholder="Search jobs..."
+                    placeholder={t('careers.searchJobs')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="h-12 text-black placeholder:text-gray-500"
@@ -286,10 +277,10 @@ const Careers = () => {
                   onValueChange={setSelectedDepartment}
                 >
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Department" />
+                    <SelectValue placeholder={t('careers.department')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectItem value="all">{t('careers.allDepartments')}</SelectItem>
                     {uniqueDepartments.map((department) => (
                       <SelectItem key={department} value={department}>
                         {department}
@@ -299,10 +290,10 @@ const Careers = () => {
                 </Select>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Job Type" />
+                    <SelectValue placeholder={t('careers.jobType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="all">{t('careers.allTypes')}</SelectItem>
                     {uniqueTypes.map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
@@ -315,10 +306,10 @@ const Careers = () => {
                   onValueChange={setSelectedLocation}
                 >
                   <SelectTrigger className="h-12">
-                    <SelectValue placeholder="Location" />
+                    <SelectValue placeholder={t('careers.location')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Locations</SelectItem>
+                    <SelectItem value="all">{t('careers.allLocations')}</SelectItem>
                     {uniqueLocations.map((location) => (
                       <SelectItem key={location} value={location}>
                         {location}
@@ -335,7 +326,7 @@ const Careers = () => {
                 selectedLocation !== "all") && (
                 <div className="mt-4 flex justify-center">
                   <Button variant="outline" onClick={clearFilters}>
-                    Clear All Filters
+                    {t('careers.clearFilters')}
                   </Button>
                 </div>
               )}
@@ -348,7 +339,7 @@ const Careers = () => {
               selectedLocation !== "all") && (
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-700 mb-2">
-                  Active Filters:
+                  {t('careers.activeFilters')}:
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {searchTerm && (
@@ -356,7 +347,7 @@ const Careers = () => {
                       variant="secondary"
                       className="bg-amber-100 text-amber-800"
                     >
-                      Search: {searchTerm}
+                      {t('common.search')}: {searchTerm}
                     </Badge>
                   )}
                   {selectedDepartment !== "all" && (
@@ -364,7 +355,7 @@ const Careers = () => {
                       variant="secondary"
                       className="bg-amber-100 text-amber-800"
                     >
-                      Department: {selectedDepartment}
+                      {t('careers.department')}: {selectedDepartment}
                     </Badge>
                   )}
                   {selectedType !== "all" && (
@@ -372,7 +363,7 @@ const Careers = () => {
                       variant="secondary"
                       className="bg-amber-100 text-amber-800"
                     >
-                      Type: {selectedType}
+                      {t('careers.type')}: {selectedType}
                     </Badge>
                   )}
                   {selectedLocation !== "all" && (
@@ -380,7 +371,7 @@ const Careers = () => {
                       variant="secondary"
                       className="bg-amber-100 text-amber-800"
                     >
-                      Location: {selectedLocation}
+                      {t('careers.location')}: {selectedLocation}
                     </Badge>
                   )}
                 </div>
@@ -390,7 +381,7 @@ const Careers = () => {
             {/* Results */}
             <div className="mb-6">
               <h3 className="text-xl font-semibold text-gray-900">
-                {filteredJobs.length} Jobs Found
+                {filteredJobs.length} {t('careers.jobsFound')}
               </h3>
             </div>
 
@@ -433,7 +424,7 @@ const Careers = () => {
                           <div className="flex items-center text-sm">
                             <Calendar className="w-4 h-4 mr-1 text-amber-600" />
                             <span className="text-gray-600 mr-2">
-                              Posted: {job.deadline}
+                              {t('careers.posted')}: {job.deadline}
                             </span>
                             <span className="text-amber-600 font-medium">
                               {calculateDaysRemaining(job.deadline)}
@@ -442,7 +433,7 @@ const Careers = () => {
                         </div>
                         <div className="mt-4 md:mt-0">
                           <Button className="gradient-gold text-white">
-                            View Details
+                            {t('common.viewDetails')}
                             <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
                         </div>
@@ -457,13 +448,13 @@ const Careers = () => {
                   <Search className="w-12 h-12 text-gray-400" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No jobs found
+                  {t('careers.noJobsFound')}
                 </h3>
                 <p className="text-gray-600 mb-4">
-                  Try adjusting your search criteria
+                  {t('careers.tryAdjusting')}
                 </p>
                 <Button onClick={clearFilters} variant="outline">
-                  Clear All Filters
+                  {t('careers.clearFilters')}
                 </Button>
               </div>
             )}

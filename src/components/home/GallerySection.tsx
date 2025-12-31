@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ZoomIn, ExternalLink } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import hero1 from "@/assets/hero-slide-1.jpg";
 import serviceDev from "@/assets/service-development.jpg";
 import success1 from "@/assets/success1.jpg";
@@ -11,77 +12,86 @@ import success2 from "@/assets/success2.jpg";
 import hero3 from "@/assets/hero-slide-3.jpg";
 
 const GallerySection = () => {
+  const { t } = useTranslation();
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
 
   const galleryImages = [
     {
       id: 1,
       src: hero1,
-      title: "Professional Services",
+      title: t('gallery.professionalServices'),
       category: "Business",
-      description: "Expert consulting and business solutions",
+      categoryLabel: t('gallery.business'),
+      description: t('gallery.expertConsulting'),
     },
     {
       id: 2,
       src: serviceDev,
-      title: "Development Projects",
+      title: t('gallery.developmentProjects'),
       category: "Technology",
-      description: "Custom software development and solutions",
+      categoryLabel: t('gallery.technology'),
+      description: t('gallery.customSoftware'),
     },
     {
       id: 3,
       src: success1,
-      title: "Success Stories",
+      title: t('gallery.successStories'),
       category: "Achievement",
-      description: "Client success and project completions",
+      categoryLabel: t('gallery.achievement'),
+      description: t('gallery.clientSuccess'),
     },
     {
       id: 4,
       src: consulting,
-      title: "Consulting Excellence",
+      title: t('gallery.consultingExcellence'),
       category: "Strategy",
-      description: "Strategic planning and business consulting",
+      categoryLabel: t('gallery.strategy'),
+      description: t('gallery.strategicPlanning'),
     },
     {
       id: 5,
       src: hero2,
-      title: "Innovation Hub",
+      title: t('gallery.innovationHub'),
       category: "Innovation",
-      description: "Cutting-edge solutions and technologies",
+      categoryLabel: t('gallery.innovation'),
+      description: t('gallery.cuttingEdge'),
     },
     {
       id: 6,
       src: training,
-      title: "Training Programs",
+      title: t('gallery.trainingPrograms'),
       category: "Education",
-      description: "Professional training and skill development",
+      categoryLabel: t('gallery.education'),
+      description: t('gallery.professionalTraining'),
     },
     {
       id: 7,
       src: success2,
-      title: "Project Excellence",
+      title: t('gallery.projectExcellence'),
       category: "Quality",
-      description: "High-quality project delivery",
+      categoryLabel: t('gallery.quality'),
+      description: t('gallery.highQuality'),
     },
     {
       id: 8,
       src: hero3,
-      title: "Digital Solutions",
+      title: t('gallery.digitalSolutions'),
       category: "Digital",
-      description: "Modern digital transformation services",
+      categoryLabel: t('gallery.digital'),
+      description: t('gallery.modernDigital'),
     },
   ];
 
   const categories = [
-    "All",
-    "Business",
-    "Technology",
-    "Achievement",
-    "Strategy",
-    "Innovation",
-    "Education",
-    "Quality",
-    "Digital",
+    { key: "All", label: t('gallery.all') },
+    { key: "Business", label: t('gallery.business') },
+    { key: "Technology", label: t('gallery.technology') },
+    { key: "Achievement", label: t('gallery.achievement') },
+    { key: "Strategy", label: t('gallery.strategy') },
+    { key: "Innovation", label: t('gallery.innovation') },
+    { key: "Education", label: t('gallery.education') },
+    { key: "Quality", label: t('gallery.quality') },
+    { key: "Digital", label: t('gallery.digital') },
   ];
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -102,11 +112,10 @@ const GallerySection = () => {
           className="text-center mb-8"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-            Our Work Gallery
+            {t('gallery.ourWorkGallery')}
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Explore our portfolio of successful projects and see the quality of
-            work we deliver
+            {t('gallery.gallerySubtitle')}
           </p>
         </motion.div>
 
@@ -120,15 +129,15 @@ const GallerySection = () => {
         >
           {categories.map((category) => (
             <button
-              key={category}
-              onClick={() => setActiveCategory(category)}
+              key={category.key}
+              onClick={() => setActiveCategory(category.key)}
               className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
-                activeCategory === category
+                activeCategory === category.key
                   ? "bg-gradient-to-r from-orange-500 to-rose-500 text-white shadow-lg"
                   : "bg-white text-gray-600 hover:bg-orange-50 border border-gray-200"
               }`}
             >
-              {category}
+              {category.label}
             </button>
           ))}
         </motion.div>
@@ -162,7 +171,7 @@ const GallerySection = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                     <span className="inline-block px-3 py-1 bg-orange-500 rounded-full text-xs font-medium mb-2">
-                      {image.category}
+                      {image.categoryLabel}
                     </span>
                     <h3 className="font-bold text-lg mb-1">{image.title}</h3>
                     <p className="text-sm opacity-90">{image.description}</p>
@@ -186,7 +195,7 @@ const GallerySection = () => {
           className="text-center mt-12"
         >
           <button className="group px-8 py-4 bg-gradient-to-r from-orange-500 to-rose-500 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
-            View Complete Portfolio
+            {t('gallery.viewCompletePortfolio')}
             <ExternalLink className="inline-block ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </motion.div>
@@ -232,7 +241,7 @@ const GallerySection = () => {
                     <span className="inline-block px-3 py-1 bg-orange-500 text-white rounded-full text-sm font-medium mb-3">
                       {
                         galleryImages.find((img) => img.id === selectedImage)
-                          ?.category
+                          ?.categoryLabel
                       }
                     </span>
                     <h3 className="text-2xl font-bold mb-2">

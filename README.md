@@ -70,3 +70,68 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Internationalization (i18n) Support
+
+This project supports multiple languages using react-i18next. Currently supported languages:
+
+- **English (en)** - Default language
+- **Hindi (hi)** - हिंदी भाषा समर्थन
+
+### How to Use Translations
+
+1. **In Components:**
+```tsx
+import { useTranslation } from 'react-i18next';
+
+const MyComponent = () => {
+  const { t } = useTranslation();
+  
+  return (
+    <div>
+      <h1>{t('nav.home')}</h1>
+      <p>{t('pages.home.subtitle')}</p>
+    </div>
+  );
+};
+```
+
+2. **Language Switcher:**
+The language switcher is available in the navbar. Users can switch between English and Hindi.
+
+3. **Adding New Languages:**
+- Add new language resources in `src/i18n/index.ts`
+- Create new locale files in `src/i18n/locales/`
+- Update the language switcher component
+
+4. **Adding New Translation Keys:**
+- Add keys to both `en.json` and `hi.json` files
+- Use nested objects for better organization
+- Follow the existing naming convention
+
+### Translation File Structure
+
+```
+src/
+├── i18n/
+│   ├── index.ts          # Main i18n configuration
+│   └── locales/
+│       ├── en.json       # English translations
+│       └── hi.json       # Hindi translations
+├── components/
+│   └── LanguageSwitcher.tsx  # Language switching component
+└── hooks/
+    └── useTranslation.ts     # Custom translation hook
+```
+
+### Features
+
+- **Automatic Language Detection:** Detects user's browser language
+- **Persistent Language Selection:** Saves language preference in localStorage
+- **Fallback Support:** Falls back to English if translation is missing
+- **Dynamic Language Switching:** No page reload required
+- **RTL Support Ready:** Framework ready for RTL languages
+
+### Browser Language Detection
+
+The app automatically detects the user's browser language and sets it as default if supported. Otherwise, it falls back to English.

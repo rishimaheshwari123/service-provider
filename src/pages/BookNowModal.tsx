@@ -91,9 +91,9 @@ const BookNowModal = ({ property }) => {
                 {property.title}
               </h3>
               <p className="text-gray-600 text-sm">{property.location}</p>
-              <p className="text-gray-800 font-semibold mt-1">
+              {/* <p className="text-gray-800 font-semibold mt-1">
                 ₹{property.price}
-              </p>
+              </p> */}
             </div>
           </div>
 

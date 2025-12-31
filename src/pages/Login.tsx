@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +26,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 const Login = () => {
+  const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -49,17 +51,17 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-foreground">Welcome Back</h1>
-          <p className="text-muted-foreground mt-2">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-foreground">{t('pages.login.welcomeBack')}</h1>
+          <p className="text-muted-foreground mt-2">{t('pages.login.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">{t('pages.login.phone')}</Label>
             <Input
               id="phone"
               type="text"
-              placeholder="Enter your 10-digit phone"
+              placeholder={t('forms.placeholders.enterPhone')}
               {...register("phone")}
               className={errors.phone ? "border-destructive" : ""}
             />
@@ -69,12 +71,12 @@ const Login = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('pages.login.password')}</Label>
             <div className="relative">
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Enter your password"
+                placeholder={t('forms.placeholders.enterPassword')}
                 {...register("password")}
                 className={
                   errors.password ? "border-destructive pr-10" : "pr-10"
@@ -101,18 +103,18 @@ const Login = () => {
             disabled={isSubmitting}
             variant="hero"
           >
-            {isSubmitting ? "Signing in..." : "Sign In"}
+            {isSubmitting ? t('common.loading') : t('pages.login.signIn')}
           </Button>
         </form>
 
         <div className="text-center">
           <p className="text-muted-foreground">
-            Don't have an account?{" "}
+            {t('pages.login.noAccount')}{" "}
             <Link
               to="/signup"
               className="text-primary hover:underline font-medium"
             >
-              Sign up
+              {t('pages.login.signUp')}
             </Link>
           </p>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import {
   Carousel,
   CarouselContent,
@@ -8,11 +9,12 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Star, MapPin, DollarSign, Briefcase } from "lucide-react";
+import { ArrowRight, Star, MapPin, IndianRupee, Briefcase } from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
 import { useNavigate } from "react-router-dom";
 
 const ServicesSlider = () => {
+  const { t } = useTranslation();
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -24,7 +26,7 @@ const ServicesSlider = () => {
       setServices(allServices);
     } catch (error) {
       console.error("Error fetching services:", error);
-      toast.error("Failed to fetch services");
+      toast.error(t('messages.errorOccurred', 'Failed to fetch services'));
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ const ServicesSlider = () => {
           />
         ))}
         <span className="ml-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
-            {rating > 0 ? rating : 'No ratings'}
+            {rating > 0 ? rating : t('pages.home.noRatings', 'No ratings')}
         </span>
       </div>
     );
@@ -76,23 +78,23 @@ const ServicesSlider = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-4xl mx-auto text-center mb-16">
             <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-2">
-                TOP-RATED PROFESSIONALS
+                {t('pages.home.topRatedProfessionals')}
             </p>
             <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-                Explore Our Featured <span className="gradient-text">Services</span>
+                {t('pages.home.exploreFeatured')} <span className="gradient-text">{t('nav.services')}</span>
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-                Don't settle for less. Find pre-vetted, qualified service providers across popular categories.
+                {t('pages.home.dontSettleForLess')}
             </p>
         </div>
 
         {loading ? (
           <p className="text-center text-primary font-medium">
-            Loading services, please wait...
+            {t('common.loading')}...
           </p>
         ) : services.length === 0 ? (
           <p className="text-center text-gray-500">
-            No featured services are available at the moment.
+            {t('pages.home.noFeaturedServices')}
           </p>
         ) : (
           <div className="max-w-7xl mx-auto relative">
@@ -143,16 +145,16 @@ const ServicesSlider = () => {
                             <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
                                 <p className="flex items-center">
                                     <Briefcase className="w-4 h-4 mr-2 text-primary" />
-                                    {service.category || "General Service"}
+                                    {service.category || t('pages.home.generalService')}
                                 </p>
                                 <p className="flex items-center">
                                     <MapPin className="w-4 h-4 mr-2 text-primary" />
-                                    {service.location || "Online/Remote"}
+                                    {service.location || t('pages.home.onlineRemote')}
                                 </p>
-                                <p className="flex items-center font-bold text-lg text-green-600 dark:text-green-400 pt-1">
-                                    <DollarSign className="w-5 h-5 mr-1" />
-                                    {service.price ? `Starts from ₹${service.price.toLocaleString('en-IN')}` : "Price Varies"}
-                                </p>
+                                {/* <p className="flex items-center font-bold text-lg text-green-600 dark:text-green-400 pt-1">
+                                    <IndianRupee className="w-5 h-5 mr-1" />
+                                    {service.price ? `${t('pages.home.startsFrom')} ₹${service.price.toLocaleString('en-IN')}` : t('pages.home.priceVaries')}
+                                </p> */}
                             </div>
                             
                             {/* CTA Button */}
@@ -161,7 +163,7 @@ const ServicesSlider = () => {
                               className="w-full mt-3 group/btn bg-primary hover:bg-blue-600 text-base font-semibold transition-all shadow-md shadow-primary/30 py-2.5 h-auto"
                               onClick={() => handleHireNow(service._id)}
                             >
-                              View Details & Hire
+                              {t('pages.home.viewDetailsHire')}
                               <ArrowRight
                                 className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform"
                               />
@@ -187,7 +189,7 @@ const ServicesSlider = () => {
                 variant="outline" 
                 className="text-lg font-semibold py-6 px-10 border-2 border-primary text-primary hover:bg-primary/10 group"
             >
-                Browse All Services Categories
+                {t('pages.home.browseAllServices')}
                 <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
             </Button>
         </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -10,9 +11,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search, MapPin, Briefcase } from "lucide-react";
-import { getAllCategoriesAPI } from "@/service/operations/category"; // Assuming this path is correct
+import { getAllCategoriesAPI } from "@/service/operations/category";
 
 const TopSearchBar = () => {
+  const { t } = useTranslation();
   const [filters, setFilters] = useState({
     category: "all",
     location: "",
@@ -61,12 +63,12 @@ const TopSearchBar = () => {
           <Select value={filters.category} onValueChange={handleCategoryChange}>
             <SelectTrigger
               className="w-full h-full border-none shadow-none focus:ring-0 text-base font-semibold bg-transparent placeholder:font-normal"
-              aria-label="Select Category"
+              aria-label={t('pages.home.selectCategory')}
             >
-              <SelectValue placeholder="Select Service Category" />
+              <SelectValue placeholder={t('pages.home.selectServiceCategory')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">⭐ All Categories</SelectItem>
+              <SelectItem value="all">⭐ {t('pages.home.allCategories')}</SelectItem>
               {categories.length > 0 ? (
                 categories.map((cat) => (
                   <SelectItem key={cat._id} value={cat.name}>
@@ -75,7 +77,7 @@ const TopSearchBar = () => {
                 ))
               ) : (
                 <SelectItem disabled value="loading">
-                  Loading Categories...
+                  {t('pages.home.loadingCategories')}...
                 </SelectItem>
               )}
             </SelectContent>
@@ -90,7 +92,7 @@ const TopSearchBar = () => {
             name="location"
             value={filters.location}
             onChange={handleChange}
-            placeholder="Enter City, State, or Zip Code"
+            placeholder={t('pages.home.enterLocation')}
             className="w-full h-full border-none shadow-none focus-visible:ring-0 placeholder:text-gray-500 text-base font-medium"
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSearch();
@@ -103,10 +105,10 @@ const TopSearchBar = () => {
           <Button
             onClick={handleSearch}
             className="w-full h-full text-lg font-bold rounded-none bg-primary hover:bg-blue-600 transition-colors duration-300 flex items-center justify-center gap-2 uppercase"
-            aria-label="Search"
+            aria-label={t('common.search')}
           >
             <Search className="w-5 h-5" />
-            Find Services
+            {t('pages.home.findServices')}
           </Button>
         </div>
       </div>

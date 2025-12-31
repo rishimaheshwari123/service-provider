@@ -17,6 +17,7 @@ import { getAllBlogsAPI } from "@/service/operations/blog";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import HeroSection from "@/components/home/HeroSection";
 
 const Blogs = () => {
   const navigate = useNavigate();
@@ -132,6 +133,8 @@ const Blogs = () => {
   return (
     <>
       <Navbar />
+                <HeroSection />
+
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <section className="py-12 gradient-gold text-black">
