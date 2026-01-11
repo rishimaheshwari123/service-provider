@@ -8,6 +8,11 @@ const categorySchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    autoFilled: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     price: {
       type: Number,
       required: true,

@@ -67,7 +67,7 @@ const HomeFilterSection = () => {
   const formatPrice = (price) => `₹${price.toLocaleString('en-IN')}`;
 
   return (
-    <div className="w-full py-16 px-4 mb-10">
+    <div className="w-full py-16 px-4 mb-10 hidden">
       <div className="max-w-7xl mx-auto">
         
         {/* Title & Description */}

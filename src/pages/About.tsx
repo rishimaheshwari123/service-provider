@@ -3,60 +3,89 @@ import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TopBar from "@/components/TopBar";
-import { Users, Target, Heart, Award, Rocket, Globe, Shield, Zap } from "lucide-react";
+import {
+  Users,
+  Target,
+  Heart,
+  Award,
+  Rocket,
+  Globe,
+  Shield,
+  Zap,
+} from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
 
 const About = () => {
   const { t } = useTranslation();
-  
+
   const values = [
     {
       icon: Target,
-      title: t('pages.about.missionDriven'),
-      description: t('pages.about.missionDrivenDesc'),
+      title: t("pages.about.missionDriven"),
+      description: t("pages.about.missionDrivenDesc"),
     },
     {
       icon: Heart,
-      title: t('pages.about.passion'),
-      description: t('pages.about.passionDesc'),
+      title: t("pages.about.passion"),
+      description: t("pages.about.passionDesc"),
     },
     {
       icon: Users,
-      title: t('pages.about.collaboration'),
-      description: t('pages.about.collaborationDesc'),
+      title: t("pages.about.collaboration"),
+      description: t("pages.about.collaborationDesc"),
     },
     {
       icon: Award,
-      title: t('pages.about.excellence'),
-      description: t('pages.about.excellenceDesc'),
+      title: t("pages.about.excellence"),
+      description: t("pages.about.excellenceDesc"),
     },
   ];
 
   const achievements = [
-    { icon: Rocket, number: "1000+", label: t('pages.about.projectsCompleted'), color: "from-orange-500 to-rose-500" },
-    { icon: Users, number: "500+", label: t('pages.about.happyClients'), color: "from-rose-500 to-pink-500" },
-    { icon: Globe, number: "25+", label: t('pages.about.countriesServed'), color: "from-amber-500 to-orange-500" },
-    { icon: Shield, number: "99.9%", label: t('pages.about.uptimeGuarantee'), color: "from-emerald-500 to-teal-500" },
+    {
+      icon: Rocket,
+      number: "1000+",
+      label: t("pages.about.projectsCompleted"),
+      color: "from-orange-500 to-rose-500",
+    },
+    {
+      icon: Users,
+      number: "500+",
+      label: t("pages.about.happyClients"),
+      color: "from-rose-500 to-pink-500",
+    },
+    {
+      icon: Globe,
+      number: "25+",
+      label: t("pages.about.countriesServed"),
+      color: "from-amber-500 to-orange-500",
+    },
+    {
+      icon: Shield,
+      number: "99.9%",
+      label: t("pages.about.uptimeGuarantee"),
+      color: "from-emerald-500 to-teal-500",
+    },
   ];
 
   const teamMembers = [
-    { 
-      name: "Rajesh Kumar", 
-      role: t('pages.about.ceoFounder'),
+    {
+      name: "Rajesh Kumar",
+      role: t("pages.about.ceoFounder"),
       image: "/src/assets/hero-slide-1.jpg",
-      description: t('pages.about.visionaryLeader')
+      description: t("pages.about.visionaryLeader"),
     },
-    { 
-      name: "Priya Sharma", 
-      role: t('pages.about.cto'),
+    {
+      name: "Priya Sharma",
+      role: t("pages.about.cto"),
       image: "/src/assets/hero-slide-2.jpg",
-      description: t('pages.about.technologyExpert')
+      description: t("pages.about.technologyExpert"),
     },
-    { 
-      name: "Amit Patel", 
-      role: t('pages.about.leadDesigner'),
+    {
+      name: "Amit Patel",
+      role: t("pages.about.leadDesigner"),
       image: "/src/assets/hero-slide-3.jpg",
-      description: t('pages.about.creativeDesigner')
+      description: t("pages.about.creativeDesigner"),
     },
   ];
 
@@ -77,7 +106,7 @@ const About = () => {
         />
       </div>
 
-      <TopBar />
+      {/* <TopBar /> */}
       <Navbar />
 
       <main className="relative z-10">
@@ -98,10 +127,13 @@ const About = () => {
               className="max-w-4xl mx-auto text-center"
             >
               <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                {t('pages.about.aboutTitle')} <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">HireExpert</span>
+                {t("pages.about.aboutTitle")}{" "}
+                <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
+                  HireExpert
+                </span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 leading-relaxed">
-                {t('pages.about.missionStatement')}
+                {t("pages.about.missionStatement")}
               </p>
             </motion.div>
           </div>
@@ -126,18 +158,12 @@ const About = () => {
                   transition={{ duration: 0.8 }}
                 >
                   <h2 className="text-4xl md:text-5xl font-bold mb-8 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                    {t('pages.about.ourJourney')}
+                    {t("pages.about.ourJourney")}
                   </h2>
                   <div className="space-y-6 text-lg text-gray-600 leading-relaxed">
-                    <p>
-                      {t('pages.about.foundedStory')}
-                    </p>
-                    <p>
-                      {t('pages.about.evolutionStory')}
-                    </p>
-                    <p>
-                      {t('pages.about.todayStory')}
-                    </p>
+                    <p>{t("pages.about.foundedStory")}</p>
+                    <p>{t("pages.about.evolutionStory")}</p>
+                    <p>{t("pages.about.todayStory")}</p>
                   </div>
                 </motion.div>
 
@@ -158,10 +184,14 @@ const About = () => {
                         transition={{ duration: 0.6, delay: index * 0.1 }}
                         className="p-6 rounded-2xl bg-white shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100"
                       >
-                        <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${achievement.color} flex items-center justify-center mb-4 shadow-lg`}>
+                        <div
+                          className={`w-12 h-12 rounded-xl bg-gradient-to-r ${achievement.color} flex items-center justify-center mb-4 shadow-lg`}
+                        >
                           <achievement.icon className="text-white" size={24} />
                         </div>
-                        <div className={`text-3xl font-bold bg-gradient-to-r ${achievement.color} bg-clip-text text-transparent mb-2`}>
+                        <div
+                          className={`text-3xl font-bold bg-gradient-to-r ${achievement.color} bg-clip-text text-transparent mb-2`}
+                        >
                           {achievement.number}
                         </div>
                         <div className="text-gray-600 text-sm font-medium">
@@ -195,10 +225,10 @@ const About = () => {
               className="max-w-3xl mx-auto text-center mb-10"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {t('pages.about.ourCoreValues')}
+                {t("pages.about.ourCoreValues")}
               </h2>
               <p className="text-xl text-gray-600">
-                {t('pages.about.valuesDescription')}
+                {t("pages.about.valuesDescription")}
               </p>
             </motion.div>
 
@@ -216,7 +246,9 @@ const About = () => {
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <value.icon className="text-white" size={28} />
                   </div>
-                  <h3 className="text-xl font-bold mb-4 text-gray-900">{value.title}</h3>
+                  <h3 className="text-xl font-bold mb-4 text-gray-900">
+                    {value.title}
+                  </h3>
                   <p className="text-gray-600 leading-relaxed">
                     {value.description}
                   </p>
@@ -244,10 +276,10 @@ const About = () => {
               className="max-w-3xl mx-auto text-center mb-10"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {t('pages.about.meetLeadership')}
+                {t("pages.about.meetLeadership")}
               </h2>
               <p className="text-xl text-gray-600">
-                {t('pages.about.leadershipDescription')}
+                {t("pages.about.leadershipDescription")}
               </p>
             </motion.div>
 
@@ -270,8 +302,12 @@ const About = () => {
                     />
                   </div>
                   <div className="p-8">
-                    <h3 className="text-2xl font-bold mb-2 text-gray-900">{member.name}</h3>
-                    <p className="text-orange-600 font-semibold mb-3">{member.role}</p>
+                    <h3 className="text-2xl font-bold mb-2 text-gray-900">
+                      {member.name}
+                    </h3>
+                    <p className="text-orange-600 font-semibold mb-3">
+                      {member.role}
+                    </p>
                     <p className="text-gray-600">{member.description}</p>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -301,19 +337,20 @@ const About = () => {
               className="max-w-4xl mx-auto text-center text-white"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
-                {t('pages.about.readyToTransform')}
+                {t("pages.about.readyToTransform")}
               </h2>
               <p className="text-xl mb-8 opacity-90">
-                {t('pages.about.joinThousands')}
+                {t("pages.about.joinThousands")}
               </p>
               <a href="/vendor/register">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 bg-white text-orange-600 font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg"
-              >
-                {t('pages.about.getStartedToday')}
-              </motion.button></a>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 bg-white text-orange-600 font-bold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 text-lg"
+                >
+                  {t("pages.about.getStartedToday")}
+                </motion.button>
+              </a>
             </motion.div>
           </div>
         </motion.section>

@@ -9,10 +9,14 @@ const { uploadImageToCloudinary } = require("../config/imageUploader")
 const vendorRegisterCtrl = async (req, res) => {
   try {
     const {
-      name, email, password, phone, company, address, adhar, pan, description, status = "pending"
+      name, email, password, phone, company, address, adhar, pan, description, status = "pending",
+      // New fields
+      typeOfService, category, subCategory, yearOfEstablishment, serviceLocation,
+      alternatePhone, whatsappNumber, businessType, gstNumber, tradeLicense,
+      numberOfStaff, referralCode, referralName, workingDays, bankDetail, experience
     } = req.body;
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !phone) {
       return res.status(403).send({
         success: false,
         message: "All required fields must be filled",
@@ -30,7 +34,11 @@ const vendorRegisterCtrl = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await vendorModel.create({
-      name, email, password: hashedPassword, phone, company, address, adhar, pan, description, status
+      name, email, password: hashedPassword, phone, company, address, adhar, pan, description, status,
+      // New fields
+      typeOfService, category, subCategory, yearOfEstablishment, serviceLocation,
+      alternatePhone, whatsappNumber, businessType, gstNumber, tradeLicense,
+      numberOfStaff, referralCode, referralName, workingDaysTimings: workingDays, bankDetail, experience
     });
 
     const token = jwt.sign(
