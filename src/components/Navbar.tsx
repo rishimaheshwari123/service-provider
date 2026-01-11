@@ -18,6 +18,7 @@ import {
   Layers, // For Blogs/Services Link
   HardHat, // For Jobs
   LifeBuoy, // For Support
+  FileText, // For Terms
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import LanguageSwitcher from "./LanguageSwitcher";
-
+import logo from "@/assets/logo.png";
 // Updated menu links with icons for a clean look
 const menuLinks = [
   { label: "Home", href: "/", icon: Home },
@@ -137,10 +138,12 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           {/* 1. Logo */}
           <div className="flex items-center">
-            <Link to="/" className="flex items-center space-x-2">
-              <h3 className="text-2xl font-extrabold gradient-text tracking-wider">
-                ProServe
-              </h3>
+            <Link to="/" className="flex items-center">
+              <img
+                src={logo}
+                alt="ProServe Logo"
+                className="h-20 w-auto object-contain"
+              />
             </Link>
           </div>
 
@@ -198,7 +201,7 @@ const Navbar = () => {
             <div className="flex items-center space-x-3">
               {/* Language Switcher */}
               <LanguageSwitcher />
-              
+
               {user && token ? (
                 // Logged in user dropdown
                 <DropdownMenu>

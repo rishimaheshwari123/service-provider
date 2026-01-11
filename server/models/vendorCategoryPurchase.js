@@ -23,7 +23,7 @@ const vendorCategoryPurchaseSchema = new mongoose.Schema(
     },
     paymentMode: {
       type: String,
-      enum: ["prepaid", "cash"],
+      enum: ["prepaid", "cash", "qr"],
       default: "prepaid",
     },
     reason: {

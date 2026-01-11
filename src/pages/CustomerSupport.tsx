@@ -1,6 +1,19 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Phone, Wrench, Zap, Home, ClipboardList, MessageCircle, HeadphonesIcon, Clock, CheckCircle, HelpCircle, Send } from "lucide-react";
+import {
+  Mail,
+  Phone,
+  Wrench,
+  Zap,
+  Home,
+  ClipboardList,
+  MessageCircle,
+  HeadphonesIcon,
+  Clock,
+  CheckCircle,
+  HelpCircle,
+  Send,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { createCustomerSupportAPI } from "@/service/operations/customerSupport";
 import Footer from "@/components/Footer";
@@ -46,65 +59,65 @@ const CustomerSupport = () => {
   const supportOptions = [
     {
       icon: MessageCircle,
-      title: t('support.liveChat'),
-      description: t('support.liveChatDesc'),
-      availability: t('support.available247'),
-      color: "from-orange-500 to-rose-500"
+      title: t("support.liveChat"),
+      description: t("support.liveChatDesc"),
+      availability: t("support.available247"),
+      color: "from-orange-500 to-rose-500",
     },
     {
       icon: HeadphonesIcon,
-      title: t('support.phoneSupport'),
-      description: t('support.phoneSupportDesc'),
-      availability: t('support.monSat'),
-      color: "from-rose-500 to-pink-500"
+      title: t("support.phoneSupport"),
+      description: t("support.phoneSupportDesc"),
+      availability: t("support.monSat"),
+      color: "from-rose-500 to-pink-500",
     },
     {
       icon: Mail,
-      title: t('support.emailSupport'),
-      description: t('support.emailSupportDesc'),
-      availability: t('support.responseWithin24'),
-      color: "from-amber-500 to-orange-500"
+      title: t("support.emailSupport"),
+      description: t("support.emailSupportDesc"),
+      availability: t("support.responseWithin24"),
+      color: "from-amber-500 to-orange-500",
     },
     {
       icon: HelpCircle,
-      title: t('support.helpCenter'),
-      description: t('support.helpCenterDesc'),
-      availability: t('support.selfService'),
-      color: "from-emerald-500 to-teal-500"
-    }
+      title: t("support.helpCenter"),
+      description: t("support.helpCenterDesc"),
+      availability: t("support.selfService"),
+      color: "from-emerald-500 to-teal-500",
+    },
   ];
 
   const faqs = [
     {
       icon: Home,
-      question: t('support.faqBookHomeCleaning'),
-      answer: t('support.faqBookHomeCleaningAnswer')
+      question: t("support.faqBookHomeCleaning"),
+      answer: t("support.faqBookHomeCleaningAnswer"),
     },
     {
       icon: Zap,
-      question: t('support.faqEmergencyElectrician'),
-      answer: t('support.faqEmergencyElectricianAnswer')
+      question: t("support.faqEmergencyElectrician"),
+      answer: t("support.faqEmergencyElectricianAnswer"),
     },
     {
       icon: Wrench,
-      question: t('support.faqReschedule'),
-      answer: t('support.faqRescheduleAnswer')
+      question: t("support.faqReschedule"),
+      answer: t("support.faqRescheduleAnswer"),
     },
     {
       icon: ClipboardList,
-      question: t('support.faqHiddenFees'),
-      answer: t('support.faqHiddenFeesAnswer')
+      question: t("support.faqHiddenFees"),
+      answer: t("support.faqHiddenFeesAnswer"),
     },
     {
       icon: CheckCircle,
-      question: t('support.faqTrackRequest'),
-      answer: t('support.faqTrackRequestAnswer')
+      question: t("support.faqTrackRequest"),
+      answer: t("support.faqTrackRequestAnswer"),
     },
     {
       icon: Clock,
-      question: t('support.faqProviderLate'),
-      answer: t('support.faqProviderLateAnswer')
-    }
+      question: t("support.faqProviderLate"),
+      answer: t("support.faqProviderLateAnswer"),
+    },
   ];
 
   return (
@@ -124,7 +137,7 @@ const CustomerSupport = () => {
         />
       </div>
 
-      <TopBar />
+      {/* <TopBar /> */}
       <Navbar />
 
       <main className="relative z-10 pt-5">
@@ -145,10 +158,14 @@ const CustomerSupport = () => {
               className="max-w-4xl mx-auto text-center"
             >
               <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                {t('support.customerSupport').split(' ')[0]} <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">{t('support.customerSupport').split(' ').slice(1).join(' ') || 'Support'}</span>
+                {t("support.customerSupport").split(" ")[0]}{" "}
+                <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
+                  {t("support.customerSupport").split(" ").slice(1).join(" ") ||
+                    "Support"}
+                </span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 leading-relaxed">
-                {t('support.supportSubtitle')}
+                {t("support.supportSubtitle")}
               </p>
             </motion.div>
           </div>
@@ -172,10 +189,10 @@ const CustomerSupport = () => {
               className="text-center mb-10"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {t('support.howCanWeHelp')}
+                {t("support.howCanWeHelp")}
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                {t('support.chooseOption')}
+                {t("support.chooseOption")}
               </p>
             </motion.div>
 
@@ -190,10 +207,14 @@ const CustomerSupport = () => {
                   whileHover={{ scale: 1.05, y: -5 }}
                   className="text-center p-8 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 cursor-pointer group"
                 >
-                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${option.color} flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <div
+                    className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${option.color} flex items-center justify-center mx-auto mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                  >
                     <option.icon className="text-white" size={28} />
                   </div>
-                  <h3 className="text-xl font-bold mb-3 text-gray-900">{option.title}</h3>
+                  <h3 className="text-xl font-bold mb-3 text-gray-900">
+                    {option.title}
+                  </h3>
                   <p className="text-gray-600 mb-4">{option.description}</p>
                   <span className="text-sm font-medium text-orange-600 bg-orange-50 px-3 py-1 rounded-full">
                     {option.availability}
@@ -223,10 +244,10 @@ const CustomerSupport = () => {
               className="text-center mb-10"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {t('support.faq')}
+                {t("support.faq")}
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                {t('support.faqSubtitle')}
+                {t("support.faqSubtitle")}
               </p>
             </motion.div>
 
@@ -278,10 +299,10 @@ const CustomerSupport = () => {
               className="text-center mb-10"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {t('support.stillNeedHelp')}
+                {t("support.stillNeedHelp")}
               </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                {t('support.stillNeedHelpDesc')}
+                {t("support.stillNeedHelpDesc")}
               </p>
             </motion.div>
 
@@ -296,7 +317,7 @@ const CustomerSupport = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold mb-3 text-gray-700">
-                      {t('support.yourName')} *
+                      {t("support.yourName")} *
                     </label>
                     <input
                       type="text"
@@ -305,12 +326,12 @@ const CustomerSupport = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition duration-200 bg-gray-50"
-                      placeholder={t('forms.placeholders.enterName')}
+                      placeholder={t("forms.placeholders.enterName")}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-3 text-gray-700">
-                      {t('support.yourEmail')} *
+                      {t("support.yourEmail")} *
                     </label>
                     <input
                       type="email"
@@ -319,7 +340,7 @@ const CustomerSupport = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition duration-200 bg-gray-50"
-                      placeholder={t('forms.placeholders.enterEmail')}
+                      placeholder={t("forms.placeholders.enterEmail")}
                     />
                   </div>
                 </div>
@@ -327,7 +348,7 @@ const CustomerSupport = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold mb-3 text-gray-700">
-                      {t('support.subject')} *
+                      {t("support.subject")} *
                     </label>
                     <input
                       type="text"
@@ -336,12 +357,12 @@ const CustomerSupport = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition duration-200 bg-gray-50"
-                      placeholder={t('forms.placeholders.howCanWeHelp')}
+                      placeholder={t("forms.placeholders.howCanWeHelp")}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-3 text-gray-700">
-                      {t('support.category')} *
+                      {t("support.category")} *
                     </label>
                     <select
                       name="category"
@@ -350,22 +371,36 @@ const CustomerSupport = () => {
                       required
                       className="w-full px-4 py-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-gray-50 appearance-none cursor-pointer transition duration-200"
                     >
-                      <option value="">{t('support.selectCategory')}</option>
-                      <option value="home_cleaning">{t('support.homeCleaningSupport')}</option>
-                      <option value="hire_electrician">{t('support.electricianServices')}</option>
-                      <option value="hire_plumber">{t('support.plumbingServices')}</option>
-                      <option value="booking_issue">{t('support.bookingIssues')}</option>
-                      <option value="payment_billing">{t('support.paymentBilling')}</option>
-                      <option value="technical_issue">{t('support.technicalIssues')}</option>
-                      <option value="general_feedback">{t('support.generalFeedback')}</option>
-                      <option value="other">{t('support.other')}</option>
+                      <option value="">{t("support.selectCategory")}</option>
+                      <option value="home_cleaning">
+                        {t("support.homeCleaningSupport")}
+                      </option>
+                      <option value="hire_electrician">
+                        {t("support.electricianServices")}
+                      </option>
+                      <option value="hire_plumber">
+                        {t("support.plumbingServices")}
+                      </option>
+                      <option value="booking_issue">
+                        {t("support.bookingIssues")}
+                      </option>
+                      <option value="payment_billing">
+                        {t("support.paymentBilling")}
+                      </option>
+                      <option value="technical_issue">
+                        {t("support.technicalIssues")}
+                      </option>
+                      <option value="general_feedback">
+                        {t("support.generalFeedback")}
+                      </option>
+                      <option value="other">{t("support.other")}</option>
                     </select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-semibold mb-3 text-gray-700">
-                    {t('support.yourMessage')} *
+                    {t("support.yourMessage")} *
                   </label>
                   <textarea
                     name="message"
@@ -374,7 +409,7 @@ const CustomerSupport = () => {
                     onChange={handleChange}
                     required
                     className="w-full px-4 py-4 border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition duration-200 bg-gray-50 resize-none"
-                    placeholder={t('forms.placeholders.describeIssue')}
+                    placeholder={t("forms.placeholders.describeIssue")}
                   />
                 </div>
 
@@ -385,7 +420,7 @@ const CustomerSupport = () => {
                   className="w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3 text-lg"
                 >
                   <Send size={20} />
-                  {t('support.sendSupportRequest')}
+                  {t("support.sendSupportRequest")}
                 </motion.button>
               </form>
             </motion.div>
@@ -412,20 +447,26 @@ const CustomerSupport = () => {
               className="text-center text-white"
             >
               <h2 className="text-4xl md:text-5xl font-bold mb-8">
-                {t('support.needImmediateAssistance')}
+                {t("support.needImmediateAssistance")}
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                 <div className="text-center">
                   <Mail className="w-12 h-12 mx-auto mb-4 opacity-90" />
-                  <h3 className="text-xl font-bold mb-2">{t('support.emailSupportTitle')}</h3>
+                  <h3 className="text-xl font-bold mb-2">
+                    {t("support.emailSupportTitle")}
+                  </h3>
                   <p className="opacity-90 mb-2">support@hireexpert.com</p>
-                  <p className="text-sm opacity-75">{t('support.responseWithin24')}</p>
+                  <p className="text-sm opacity-75">
+                    {t("support.responseWithin24")}
+                  </p>
                 </div>
                 <div className="text-center">
                   <Phone className="w-12 h-12 mx-auto mb-4 opacity-90" />
-                  <h3 className="text-xl font-bold mb-2">{t('support.phoneSupportTitle')}</h3>
+                  <h3 className="text-xl font-bold mb-2">
+                    {t("support.phoneSupportTitle")}
+                  </h3>
                   <p className="opacity-90 mb-2">+91 78798 84363</p>
-                  <p className="text-sm opacity-75">{t('support.monSat')}</p>
+                  <p className="text-sm opacity-75">{t("support.monSat")}</p>
                 </div>
               </div>
             </motion.div>

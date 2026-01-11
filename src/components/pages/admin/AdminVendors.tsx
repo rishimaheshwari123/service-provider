@@ -1136,9 +1136,19 @@ const VendorManagement = () => {
                       <span>{selectedVendor.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Phone:</span>
+                      <span>{selectedVendor.phone}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Company:</span>
                       <span>{selectedVendor.company}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Address:</span>
+                      <span>{selectedVendor.address || "-"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Status:</span>
@@ -1156,7 +1166,105 @@ const VendorManagement = () => {
                   </CardContent>
                 </Card>
 
-                {/* ... Additional Details Card */}
+                {/* Service Information Card - NEW */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-purple-600" />
+                      Service Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Type of Service:</span>
+                      <span>{selectedVendor.typeOfService || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Category:</span>
+                      <span>{selectedVendor.subCategory || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Service Location:</span>
+                      <span>{selectedVendor.serviceLocation || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Business Type:</span>
+                      <span>{selectedVendor.businessType || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Year Established:</span>
+                      <span>{selectedVendor.yearOfEstablishment || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Working Hours:</span>
+                      <span>{selectedVendor.workingDaysTimings || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Staff Count:</span>
+                      <span>{selectedVendor.numberOfStaff || "-"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Contact Details Card - NEW */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Phone className="w-5 h-5 text-green-600" />
+                      Contact Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">WhatsApp:</span>
+                      <span>{selectedVendor.whatsappNumber || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Alternate Phone:</span>
+                      <span>{selectedVendor.alternatePhone || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">GST Number:</span>
+                      <span>{selectedVendor.gstNumber || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Trade License:</span>
+                      <span>{selectedVendor.tradeLicense || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Referral Code:</span>
+                      <span>{selectedVendor.referralCode || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Referral Name:</span>
+                      <span>{selectedVendor.referralName || "-"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Documents Card - NEW */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <IdCard className="w-5 h-5 text-orange-600" />
+                      Documents & IDs
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Aadhaar:</span>
+                      <span>{selectedVendor.adhar || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">PAN:</span>
+                      <span>{selectedVendor.pan || "-"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Commission:</span>
+                      <span>{selectedVendor.percentage ? `${selectedVendor.percentage}%` : "-"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
 
               {/* Properties Section */}

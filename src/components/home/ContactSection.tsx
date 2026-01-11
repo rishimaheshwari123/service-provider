@@ -56,8 +56,8 @@ const ContactSection = () => {
                 </div>
                 <div>
                   <div className="font-bold text-lg mb-0.5 text-gray-900 dark:text-white">{t('pages.contact.emailUs')}</div>
-                  <a href="mailto:support@email.com" className="text-primary hover:text-blue-600 transition-colors font-medium">
-                    support@email.com
+                  <a href="mailto:solutions.niyati@gmail.com" className="text-primary hover:text-blue-600 transition-colors font-medium">
+                    solutions.niyati@gmail.com
                   </a>
                 </div>
               </div>
@@ -83,7 +83,7 @@ const ContactSection = () => {
                 <div>
                   <div className="font-bold text-lg mb-0.5 text-gray-900 dark:text-white">{t('pages.home.visitOffice')}</div>
                   <div className="text-gray-600 dark:text-gray-400 font-medium">
-                    Sagar, MP
+                    104, RNT Complex Opp Excellence School Sagar
                   </div>
                 </div>
               </div>

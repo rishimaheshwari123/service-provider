@@ -3,7 +3,7 @@ const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
 
 const createCategoryCtrl = async (req, res) => {
   try {
-    const { name, price } = req.body;
+    const { name, price, autoFilled } = req.body;
     if (!name || price === undefined) {
       return res.status(400).json({ success: false, message: "Name and price are required" });
     }
@@ -13,7 +13,7 @@ const createCategoryCtrl = async (req, res) => {
       return res.status(400).json({ success: false, message: "Category already exists" });
     }
 
-    const category = await Category.create({ name, price });
+    const category = await Category.create({ name, price, autoFilled: autoFilled || "" });
     return res.status(201).json({ success: true, message: "Category created", category });
   } catch (error) {
     console.error("Error creating category:", error);
@@ -33,7 +33,10 @@ const getAllCategoriesCtrl = async (req, res) => {
 
 const purchaseCategoryCtrl = async (req, res) => {
   try {
-    const { vendorId, categoryId, transactionId, paymentMode = "prepaid" } = req.body;
+    const { vendorId, categoryId, transactionId, paymentMode = "prepaid", paymentMethod } = req.body;
+    // Support both paymentMode (old) and paymentMethod (new from admin assign)
+    const finalPaymentMode = paymentMethod || paymentMode;
+    
     if (!vendorId || !categoryId) {
       return res.status(400).json({ success: false, message: "vendorId and categoryId are required" });
     }
@@ -50,11 +53,11 @@ const purchaseCategoryCtrl = async (req, res) => {
       if (purchase.status === "purchased") {
         return res.status(200).json({ success: true, message: "Already purchased", purchase });
       }
-      if (paymentMode === "prepaid") {
-        // convert pending/rejected to purchased
+      if (finalPaymentMode === "prepaid" || finalPaymentMode === "qr") {
+        // convert pending/rejected to purchased for prepaid or QR
         purchase.status = "purchased";
         purchase.transactionId = transactionId || purchase.transactionId;
-        purchase.paymentMode = "prepaid";
+        purchase.paymentMode = finalPaymentMode;
         await purchase.save();
       } else {
         // cash flow should be pending regardless of previous status
@@ -63,14 +66,14 @@ const purchaseCategoryCtrl = async (req, res) => {
         await purchase.save();
       }
       purchase = await purchase.populate("category");
-      const msg = paymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      const msg = finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
       return res.status(200).json({ success: true, message: msg, purchase });
     } else {
       // Create new purchase
-      const status = paymentMode === "cash" ? "pending" : "purchased";
-      purchase = await VendorCategoryPurchase.create({ vendor: vendorId, category: categoryId, status, transactionId, paymentMode });
+      const status = finalPaymentMode === "cash" ? "pending" : "purchased";
+      purchase = await VendorCategoryPurchase.create({ vendor: vendorId, category: categoryId, status, transactionId, paymentMode: finalPaymentMode });
       purchase = await purchase.populate("category");
-      const msg = paymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      const msg = finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
       return res.status(200).json({ success: true, message: msg, purchase });
     }
   } catch (error) {
@@ -100,7 +103,7 @@ const getPurchasedCategoriesCtrl = async (req, res) => {
 const updateCategoryCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, active } = req.body;
+    const { name, price, active, autoFilled } = req.body;
     if (!id) {
       return res.status(400).json({ success: false, message: "Category id is required" });
     }
@@ -113,6 +116,7 @@ const updateCategoryCtrl = async (req, res) => {
     if (name !== undefined) category.name = name;
     if (price !== undefined) category.price = price;
     if (active !== undefined) category.active = active;
+    if (autoFilled !== undefined) category.autoFilled = autoFilled;
 
     await category.save();
     return res.status(200).json({ success: true, message: "Category updated", category });

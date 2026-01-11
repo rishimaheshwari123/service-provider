@@ -77,7 +77,7 @@ const PortfolioShowcase = () => {
   ];
 
   return (
-    <section className="py-10 relative">
+    <section className="py-10 relative hidden">
       <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div

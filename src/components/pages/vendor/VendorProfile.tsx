@@ -51,6 +51,21 @@ interface VendorData {
   pan: string;
   percentage?: string;
   updateProfileRequest?: string;
+  // New fields
+  typeOfService?: string;
+  category?: string | { _id: string; name: string };
+  subCategory?: string;
+  yearOfEstablishment?: string;
+  serviceLocation?: string;
+  alternatePhone?: string;
+  whatsappNumber?: string;
+  businessType?: string;
+  gstNumber?: string;
+  tradeLicense?: string;
+  numberOfStaff?: number;
+  referralCode?: string;
+  referralName?: string;
+  workingDaysTimings?: string;
   bankDetail?: {
     accountNumber?: string;
     IFSC?: string;
@@ -64,6 +79,9 @@ interface VendorData {
   profilePhoto?: string | File;
   document1?: string | File;
   document2?: string | File;
+  document3?: string | File;
+  document4?: string | File;
+  document5?: string | File;
   createdAt: string;
   updatedAt: string;
 }
@@ -475,9 +493,85 @@ const VendorProfile = () => {
                   ) : (
                     <p className="mt-1 text-gray-900 flex items-start gap-2">
                       <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
-                      {vendor.description}
+                      {vendor.description || "-"}
                     </p>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Service Information - NEW */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Building className="w-5 h-5" />
+                  Service Information
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Type of Service</Label>
+                    <p className="mt-1 text-gray-900">{vendor.typeOfService || "-"}</p>
+                  </div>
+                  <div>
+                    <Label>Category</Label>
+                    <p className="mt-1 text-gray-900">
+                      {typeof vendor.category === 'object' ? vendor.category?.name : vendor.subCategory || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Service Location / Area Covered</Label>
+                    <p className="mt-1 text-gray-900">{vendor.serviceLocation || "-"}</p>
+                  </div>
+                  <div>
+                    <Label>Year of Establishment</Label>
+                    <p className="mt-1 text-gray-900">{vendor.yearOfEstablishment || "-"}</p>
+                  </div>
+                  <div>
+                    <Label>Business Type</Label>
+                    <p className="mt-1 text-gray-900">{vendor.businessType || "-"}</p>
+                  </div>
+                  <div>
+                    <Label>Number of Staff</Label>
+                    <p className="mt-1 text-gray-900">{vendor.numberOfStaff || "-"}</p>
+                  </div>
+                  <div>
+                    <Label>Working Days & Timings</Label>
+                    <p className="mt-1 text-gray-900">{vendor.workingDaysTimings || "-"}</p>
+                  </div>
+                  <div>
+                    <Label>Referral Code</Label>
+                    <p className="mt-1 text-gray-900">{vendor.referralCode || "-"}</p>
+                  </div>
+                  <div>
+                    <Label>Referral Name</Label>
+                    <p className="mt-1 text-gray-900">{vendor.referralName || "-"}</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label>WhatsApp Number</Label>
+                    <p className="mt-1 text-gray-900 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      {vendor.whatsappNumber || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>Alternate Phone</Label>
+                    <p className="mt-1 text-gray-900 flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      {vendor.alternatePhone || "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <Label>GST Number</Label>
+                    <p className="mt-1 text-gray-900">{vendor.gstNumber || "-"}</p>
+                  </div>
+                </div>
+                <div>
+                  <Label>Trade License</Label>
+                  <p className="mt-1 text-gray-900">{vendor.tradeLicense || "-"}</p>
                 </div>
               </CardContent>
             </Card>

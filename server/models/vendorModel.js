@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 
 const vendorSchema = new mongoose.Schema(
     {
+        // Basic Info
         name: {
             type: String,
             trim: true,
@@ -29,6 +30,66 @@ const vendorSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        
+        // New Service Provider Fields
+        typeOfService: {
+            type: String,
+            trim: true,
+        },
+        category: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category",
+        },
+        subCategory: {
+            type: String,
+            trim: true,
+        },
+        yearOfEstablishment: {
+            type: String,
+            trim: true,
+        },
+        serviceLocation: {
+            type: String,
+            trim: true,
+        },
+        alternatePhone: {
+            type: String,
+            trim: true,
+        },
+        whatsappNumber: {
+            type: String,
+            trim: true,
+        },
+        businessType: {
+            type: String,
+            enum: ["Proprietorship", "Partnership", "LLP", "Private Limited", "Other"],
+            trim: true,
+        },
+        gstNumber: {
+            type: String,
+            trim: true,
+        },
+        tradeLicense: {
+            type: String,
+            trim: true,
+        },
+        numberOfStaff: {
+            type: Number,
+            default: 0,
+        },
+        referralCode: {
+            type: String,
+            trim: true,
+        },
+        referralName: {
+            type: String,
+            trim: true,
+        },
+        workingDaysTimings: {
+            type: String,
+            trim: true,
+        },
+        
         role: {
             type: String,
             enum: ["vendor"],
@@ -80,6 +141,9 @@ const vendorSchema = new mongoose.Schema(
         profilePhoto: { type: String, },
         document1: { type: String, },
         document2: { type: String, },
+        document3: { type: String, },
+        document4: { type: String, },
+        document5: { type: String, },
     },
 
     { timestamps: true }

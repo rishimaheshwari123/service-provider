@@ -42,7 +42,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 
 const ManageCategories = () => {
-  const [form, setForm] = useState({ name: "", price: "" });
+  const [form, setForm] = useState({ name: "", price: "", autoFilled: "" });
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -53,6 +53,8 @@ const ManageCategories = () => {
   const [assignOpen, setAssignOpen] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "qr">("cash");
+  const [transactionId, setTransactionId] = useState<string>("");
   const [pendingPurchases, setPendingPurchases] = useState<any[]>([]);
   const [approvingId, setApprovingId] = useState<string | null>(null);
   // 1. New states for rejection dialog
@@ -93,14 +95,22 @@ const ManageCategories = () => {
       setVendors(all);
     }
     setSelectedVendorId("");
+    setPaymentMethod("cash");
+    setTransactionId("");
     setAssignOpen(true);
   };
 
   const handleAssign = async () => {
     if (!currentCategory?._id || !selectedVendorId) return;
+    if (paymentMethod === "qr" && !transactionId.trim()) {
+      alert("Please enter Transaction ID for QR payment");
+      return;
+    }
     await purchaseCategoryAPI({
       vendorId: selectedVendorId,
       categoryId: currentCategory._id,
+      paymentMethod,
+      transactionId: paymentMethod === "qr" ? transactionId : "",
     });
     setAssignOpen(false);
   };
@@ -155,11 +165,12 @@ const ManageCategories = () => {
       await updateCategoryAPI(editingId, {
         name: form.name.trim(),
         price: priceNum,
+        autoFilled: form.autoFilled.trim(),
       });
     } else {
-      await createCategoryAPI({ name: form.name.trim(), price: priceNum });
+      await createCategoryAPI({ name: form.name.trim(), price: priceNum, autoFilled: form.autoFilled.trim() });
     }
-    setForm({ name: "", price: "" });
+    setForm({ name: "", price: "", autoFilled: "" });
     setEditingId(null);
     await load();
     setLoading(false);
@@ -176,14 +187,24 @@ const ManageCategories = () => {
         <CardContent>
           <form onSubmit={handleCreate} className="space-y-4">
             <div>
-              <Label htmlFor="name">Category Name</Label>
+              <Label htmlFor="name">Category Name (Service Name)</Label>
               <Input
                 id="name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="e.g. Plumbing"
+                placeholder="e.g. A.C. REPAIRING, ADVOCATE - A"
                 required
               />
+            </div>
+            <div>
+              <Label htmlFor="autoFilled">Auto Filled (Parent Category)</Label>
+              <Input
+                id="autoFilled"
+                value={form.autoFilled}
+                onChange={(e) => setForm({ ...form, autoFilled: e.target.value })}
+                placeholder="e.g. Repairing, Legal, Transport, Construction"
+              />
+              <p className="text-xs text-gray-500 mt-1">This will auto-fill in vendor registration when category is selected</p>
             </div>
             <div>
               <Label htmlFor="price">Price</Label>
@@ -211,7 +232,7 @@ const ManageCategories = () => {
                   variant="outline"
                   onClick={() => {
                     setEditingId(null);
-                    setForm({ name: "", price: "" });
+                    setForm({ name: "", price: "", autoFilled: "" });
                   }}
                 >
                   Cancel
@@ -255,7 +276,12 @@ const ManageCategories = () => {
                         className="py-2 flex items-center justify-between"
                       >
                         <div>
-                          <span className="font-medium mr-4">{c.name}</span>
+                          <span className="font-medium mr-2">{c.name}</span>
+                          {c.autoFilled && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded mr-2">
+                              {c.autoFilled}
+                            </span>
+                          )}
                           <span className="text-gray-600">₹{c.price}</span>
                         </div>
                         <div className="flex gap-2">
@@ -264,7 +290,7 @@ const ManageCategories = () => {
                             variant="secondary"
                             onClick={() => {
                               setEditingId(c._id);
-                              setForm({ name: c.name, price: String(c.price) });
+                              setForm({ name: c.name, price: String(c.price), autoFilled: c.autoFilled || "" });
                             }}
                           >
                             Edit
@@ -436,7 +462,7 @@ const ManageCategories = () => {
                     )}
 
                     {/* Transaction ID if online */}
-                    {p.paymentMode === "prepaid" && p.transactionId && (
+                    {(p.paymentMode === "prepaid" || p.paymentMode === "qr") && p.transactionId && (
                       <span className="text-gray-500 text-xs">
                         Txn: {p.transactionId}
                       </span>
@@ -506,11 +532,54 @@ const ManageCategories = () => {
               </SelectContent>
             </Select>
 
+            {/* Payment Method Selection */}
+            <div className="space-y-2">
+              <Label>Payment Method</Label>
+              <div className="flex gap-4">
+                <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "cash" ? "bg-green-100 border-green-500 text-green-700" : "bg-gray-50 border-gray-200"}`}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="cash"
+                    checked={paymentMethod === "cash"}
+                    onChange={() => setPaymentMethod("cash")}
+                    className="sr-only"
+                  />
+                  <span className="font-medium">💵 Cash</span>
+                </label>
+                <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "qr" ? "bg-blue-100 border-blue-500 text-blue-700" : "bg-gray-50 border-gray-200"}`}>
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="qr"
+                    checked={paymentMethod === "qr"}
+                    onChange={() => setPaymentMethod("qr")}
+                    className="sr-only"
+                  />
+                  <span className="font-medium">📱 QR</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Transaction ID - Only show for QR */}
+            {paymentMethod === "qr" && (
+              <div className="space-y-2">
+                <Label>Transaction ID <span className="text-red-500">*</span></Label>
+                <input
+                  type="text"
+                  placeholder="Enter transaction ID"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                />
+              </div>
+            )}
+
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setAssignOpen(false)}>
                 Cancel
               </Button>
-              <Button disabled={!selectedVendorId} onClick={handleAssign}>
+              <Button disabled={!selectedVendorId || (paymentMethod === "qr" && !transactionId.trim())} onClick={handleAssign}>
                 Assign
               </Button>
             </div>
