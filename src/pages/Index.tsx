@@ -17,8 +17,6 @@ import TopSearchBar from "./Top";
 import TopBar from "@/components/TopBar";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import FloatingActionMenu from "@/components/FloatingActionMenu";
-import NotificationToast from "@/components/NotificationToast";
-import CursorFollower from "@/components/CursorFollower";
 import LoadingSkeleton from "@/components/LoadingSkeleton";
 import PageTransition from "@/components/PageTransition";
 import ScrollProgress from "@/components/ScrollProgress";
@@ -407,8 +405,6 @@ const Index = () => {
         {/* Interactive Components */}
         <ScrollToTopButton />
         <FloatingActionMenu />
-        <NotificationToast />
-        <CursorFollower />
 
         {/* Floating Decorative Elements */}
         <div className="fixed top-1/2 left-3 transform -translate-y-1/2 z-30 hidden lg:block">

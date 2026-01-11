@@ -10,6 +10,7 @@ export const AddRoles = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     type: "",
     role: "",
@@ -46,6 +47,7 @@ export const AddRoles = () => {
         setFormData({
           name: "",
           email: "",
+          phone: "",
           password: "",
           type: "",
           role: "",
@@ -139,6 +141,22 @@ export const AddRoles = () => {
                 required
                 className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500"
                 placeholder="employee@example.com"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+                className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500"
+                placeholder="Enter 10-digit phone number"
               />
             </div>
 

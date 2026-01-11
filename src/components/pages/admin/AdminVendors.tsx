@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -59,10 +62,30 @@ import {
   Clock,
   Loader2,
   RefreshCw,
+  Upload,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { signUp } from "@/service/operations/vendor";
+import { getAllCategoriesAPI } from "@/service/operations/category";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+
+interface Category {
+  _id: string;
+  name: string;
+  autoFilled?: string;
+}
+
+const STEPS = [
+  { id: 1, title: "Basic Info", icon: "📋" },
+  { id: 2, title: "Contact", icon: "📞" },
+  { id: 3, title: "Business", icon: "🏢" },
+  { id: 4, title: "Bank", icon: "🏦" },
+  { id: 5, title: "Experience", icon: "⭐" },
+  { id: 6, title: "Documents", icon: "📄" },
+  { id: 7, title: "Submit", icon: "✅" },
+];
 
 // Import your API functions
 import {
@@ -101,21 +124,75 @@ const VendorManagement = () => {
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [accepted, setAccepted] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedAutoFilled, setSelectedAutoFilled] = useState("");
+  const [workingDays, setWorkingDays] = useState({
+    monday: true,
+    tuesday: true,
+    wednesday: true,
+    thursday: true,
+    friday: true,
+    saturday: true,
+    sunday: false,
+  });
+  const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
+  const [documents, setDocuments] = useState<{ [key: string]: File | null }>({
+    document1: null,
+    document2: null,
+    document3: null,
+    document4: null,
+    document5: null,
+  });
   const navigate = useNavigate();
   const { toast } = useToast();
 
   console.log(user);
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    phone: "",
+    // Step 1: Basic Info
     company: "",
-    address: "",
+    typeOfService: "",
     description: "",
-    adhar: "",
+    category: "",
+    subCategory: "",
+    yearOfEstablishment: "",
+    name: "",
+    
+    // Step 2: Contact Details
+    address: "",
+    serviceLocation: "",
+    phone: "",
+    alternatePhone: "",
+    whatsappNumber: "",
+    email: "",
+    
+    // Step 3: Business & Legal
+    businessType: "Proprietorship",
+    gstNumber: "",
     pan: "",
+    adhar: "",
+    tradeLicense: "",
+    
+    // Step 4: Bank Details
+    bankName: "",
+    accountHolderName: "",
+    accountNumber: "",
+    ifscCode: "",
+    
+    // Step 5: Experience
+    totalYears: "",
+    numberOfStaff: "",
+    servicesOffered: "",
+    workingDays: "",
+    
+    // Step 7: Password
+    password: "",
+    confirmPassword: "",
+    referralCode: "",
+    referralName: "",
+    
     status: "approved",
   });
 
@@ -163,6 +240,39 @@ const VendorManagement = () => {
     fetchVendors();
     console.log(user?.isvendor);
   }, []);
+
+  // Fetch categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const data = await getAllCategoriesAPI();
+      setCategories(data || []);
+    };
+    fetchCategories();
+    
+    // Initialize working days value
+    const selectedDays = Object.entries(workingDays)
+      .filter(([, v]) => v)
+      .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
+    setFormData(prev => ({ ...prev, workingDays: `${selectedDays.join(", ")} | ${workingTime}` }));
+  }, []);
+
+  const handleFileChange = (docKey: string, file: File | null) => {
+    setDocuments(prev => ({ ...prev, [docKey]: file }));
+  };
+
+  const nextStep = () => {
+    if (currentStep < 7) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const progress = (currentStep / 7) * 100;
 
   const handlePercentageChange = (id, value) => {
     setPercentages({
@@ -277,6 +387,11 @@ const VendorManagement = () => {
   const handleAddVendor = async (e) => {
     e.preventDefault();
 
+    // Only submit on step 7
+    if (currentStep !== 7) {
+      return;
+    }
+
     if (!accepted) {
       toast({
         title: "Error",
@@ -285,16 +400,23 @@ const VendorManagement = () => {
       });
       return;
     }
+
+    // Validate password match
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate required fields
     const requiredFields = [
       "name",
-      "email",
-      "password",
-      "phone",
       "company",
-      "address",
-      "adhar",
-      "pan",
+      "phone",
+      "password",
     ];
     const missingFields = requiredFields.filter((field) => !formData[field]);
 
@@ -311,7 +433,23 @@ const VendorManagement = () => {
 
     try {
       setSubmitting(true);
-      const response = await signUp(formData);
+      
+      const submitData = {
+        ...formData,
+        numberOfStaff: formData.numberOfStaff ? parseInt(formData.numberOfStaff) : 0,
+        bankDetail: {
+          accountNumber: formData.accountNumber,
+          IFSC: formData.ifscCode,
+          accountHolderName: formData.accountHolderName,
+          branch: formData.bankName,
+        },
+        experience: {
+          totalYears: formData.totalYears ? parseInt(formData.totalYears) : 0,
+          fields: formData.servicesOffered ? formData.servicesOffered.split(",").map(s => s.trim()) : [],
+        },
+      };
+      
+      const response = await signUp(submitData);
 
       if (response) {
         toast({
@@ -321,16 +459,49 @@ const VendorManagement = () => {
 
         // Reset form
         setFormData({
-          name: "",
-          email: "",
-          password: "",
-          phone: "",
           company: "",
-          address: "",
+          typeOfService: "",
           description: "",
-          adhar: "",
+          category: "",
+          subCategory: "",
+          yearOfEstablishment: "",
+          name: "",
+          address: "",
+          serviceLocation: "",
+          phone: "",
+          alternatePhone: "",
+          whatsappNumber: "",
+          email: "",
+          businessType: "Proprietorship",
+          gstNumber: "",
           pan: "",
+          adhar: "",
+          tradeLicense: "",
+          bankName: "",
+          accountHolderName: "",
+          accountNumber: "",
+          ifscCode: "",
+          totalYears: "",
+          numberOfStaff: "",
+          servicesOffered: "",
+          workingDays: "",
+          password: "",
+          confirmPassword: "",
+          referralCode: "",
+          referralName: "",
           status: "approved",
+        });
+        
+        setCurrentStep(1);
+        setAccepted(false);
+        setSelectedCategory("");
+        setSelectedAutoFilled("");
+        setDocuments({
+          document1: null,
+          document2: null,
+          document3: null,
+          document4: null,
+          document5: null,
         });
 
         setIsAddDialogOpen(false);
@@ -526,195 +697,607 @@ const VendorManagement = () => {
               </Button>
             </DialogTrigger>
 
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <User className="w-5 h-5 text-blue-600" />
-                  Add New Partner
+                  Add New Partner - Step {currentStep} of 7
                 </DialogTitle>
                 <DialogDescription>
                   Register a new vendor to list their properties
                 </DialogDescription>
               </DialogHeader>
 
-              <form onSubmit={handleAddVendor} className="space-y-4 mt-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="flex items-center gap-2">
-                      <User className="w-4 h-4" />
-                      Full Name *
-                    </Label>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="Enter full name"
-                      value={formData.name}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      Email *
-                    </Label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Enter email address"
-                      value={formData.email}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password *</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="Create a password"
-                      value={formData.password}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      Phone Number *
-                    </Label>
-                    <Input
-                      id="phone"
-                      name="phone"
-                      placeholder="Enter phone number"
-                      value={formData.phone}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="company" className="flex items-center gap-2">
-                    <Building2 className="w-4 h-4" />
-                    Company/Agency Name / Your Name*
-                  </Label>
-                  <Input
-                    id="company"
-                    name="company"
-                    placeholder="Enter company name/ Agency Name / Your Name"
-                    value={formData.company}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="address" className="flex items-center gap-2">
-                    <MapPin className="w-4 h-4" />
-                    Business Address *
-                  </Label>
-                  <Input
-                    id="address"
-                    name="address"
-                    placeholder="Enter business address"
-                    value={formData.address}
-                    onChange={handleFormChange}
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="adhar" className="flex items-center gap-2">
-                      <IdCard className="w-4 h-4" />
-                      Aadhar Number *
-                    </Label>
-                    <Input
-                      id="adhar"
-                      name="adhar"
-                      placeholder="Enter Aadhar number"
-                      value={formData.adhar}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="pan" className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4" />
-                      PAN Number *
-                    </Label>
-                    <Input
-                      id="pan"
-                      name="pan"
-                      placeholder="Enter PAN number"
-                      value={formData.pan}
-                      onChange={handleFormChange}
-                      required
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="description">Business Description</Label>
-                  <Textarea
-                    id="description"
-                    name="description"
-                    placeholder="Tell us about the business"
-                    value={formData.description}
-                    onChange={handleFormChange}
-                    rows={3}
-                  />
-                </div>
-
-                {/* ✅ Terms & Conditions Checkbox */}
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="terms"
-                    checked={accepted}
-                    onChange={(e) => setAccepted(e.target.checked)}
-                    className="cursor-pointer"
-                  />
-                  <label htmlFor="terms" className="text-sm text-gray-700">
-                    I agree to the{" "}
-                    <button
-                      type="button"
-                      onClick={() => setShowTermsModal(true)}
-                      className="text-blue-600 hover:underline"
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <Progress value={progress} className="h-2 mb-4" />
+                <div className="flex justify-between overflow-x-auto pb-2">
+                  {STEPS.map((step) => (
+                    <div
+                      key={step.id}
+                      className={`flex flex-col items-center min-w-[60px] cursor-pointer ${
+                        currentStep >= step.id ? "text-blue-600" : "text-gray-400"
+                      }`}
+                      onClick={() => step.id < currentStep && setCurrentStep(step.id)}
                     >
-                      Terms & Conditions
-                    </button>
-                  </label>
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm mb-1 ${
+                          currentStep > step.id
+                            ? "bg-green-500 text-white"
+                            : currentStep === step.id
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200"
+                        }`}
+                      >
+                        {currentStep > step.id ? <Check size={16} /> : step.icon}
+                      </div>
+                      <span className="text-xs font-medium hidden sm:block">{step.title}</span>
+                    </div>
+                  ))}
                 </div>
+              </div>
 
+              <form onSubmit={handleAddVendor} className="space-y-4">
+                {/* Step 1: Basic Info */}
+                {currentStep === 1 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Service Provider / Business Name <span className="text-red-500">*</span></Label>
+                        <Input
+                          name="company"
+                          placeholder="Enter business name"
+                          value={formData.company}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Type of Service <span className="text-red-500">*</span></Label>
+                        <Input
+                          name="typeOfService"
+                          placeholder="e.g., Plumbing, Electrical"
+                          value={formData.typeOfService}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Service Description <span className="text-red-500">*</span></Label>
+                      <Textarea
+                        name="description"
+                        placeholder="Describe your services in detail"
+                        value={formData.description}
+                        onChange={handleFormChange}
+                        rows={3}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Category (Service) <span className="text-red-500">*</span></Label>
+                        <Select
+                          value={selectedCategory}
+                          onValueChange={(val) => {
+                            setSelectedCategory(val);
+                            setFormData(prev => ({ ...prev, category: val }));
+                            const selectedCat = categories.find(c => c._id === val);
+                            if (selectedCat?.autoFilled) {
+                              setSelectedAutoFilled(selectedCat.autoFilled);
+                              setFormData(prev => ({ ...prev, subCategory: selectedCat.autoFilled }));
+                            } else {
+                              setSelectedAutoFilled("");
+                              setFormData(prev => ({ ...prev, subCategory: "" }));
+                            }
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Category (Auto Filled) <span className="text-red-500">*</span></Label>
+                        <Input
+                          placeholder="Auto-filled based on category"
+                          value={selectedAutoFilled}
+                          onChange={(e) => {
+                            setSelectedAutoFilled(e.target.value);
+                            setFormData(prev => ({ ...prev, subCategory: e.target.value }));
+                          }}
+                          className="bg-gray-50"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Year of Establishment</Label>
+                        <Input
+                          name="yearOfEstablishment"
+                          placeholder="e.g., 2020"
+                          value={formData.yearOfEstablishment}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Owner / Authorized Person Name <span className="text-red-500">*</span></Label>
+                        <Input
+                          name="name"
+                          placeholder="Enter owner name"
+                          value={formData.name}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 2: Contact Details */}
+                {currentStep === 2 && (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Registered Office / Home Address <span className="text-red-500">*</span></Label>
+                      <Textarea
+                        name="address"
+                        placeholder="Enter complete address"
+                        value={formData.address}
+                        onChange={handleFormChange}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Service Location / Area Covered <span className="text-red-500">*</span></Label>
+                      <Input
+                        name="serviceLocation"
+                        placeholder="e.g., Sagar, Bhopal, All MP"
+                        value={formData.serviceLocation}
+                        onChange={handleFormChange}
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Primary Contact Number <span className="text-red-500">*</span> <span className="text-xs text-blue-600">(Used for Login)</span></Label>
+                        <Input
+                          name="phone"
+                          placeholder="10-digit number"
+                          value={formData.phone}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Alternate Contact Number</Label>
+                        <Input
+                          name="alternatePhone"
+                          placeholder="10-digit number (optional)"
+                          value={formData.alternatePhone}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
+                        <Input
+                          name="whatsappNumber"
+                          placeholder="10-digit WhatsApp number"
+                          value={formData.whatsappNumber}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Email ID</Label>
+                        <Input
+                          name="email"
+                          type="email"
+                          placeholder="email@example.com (optional)"
+                          value={formData.email}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3: Business & Legal */}
+                {currentStep === 3 && (
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <Label>Business Type <span className="text-red-500">*</span></Label>
+                      <RadioGroup
+                        value={formData.businessType}
+                        onValueChange={(val) => setFormData(prev => ({ ...prev, businessType: val }))}
+                        className="grid grid-cols-2 md:grid-cols-3 gap-3"
+                      >
+                        {["Proprietorship", "Partnership", "LLP", "Private Limited", "Other"].map((type) => (
+                          <div key={type} className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50">
+                            <RadioGroupItem value={type} id={`admin-${type}`} />
+                            <Label htmlFor={`admin-${type}`} className="cursor-pointer">{type}</Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Aadhaar Number</Label>
+                        <Input
+                          name="adhar"
+                          placeholder="12-digit Aadhaar number (optional)"
+                          value={formData.adhar}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>PAN Number</Label>
+                        <Input
+                          name="pan"
+                          placeholder="ABCDE1234F (optional)"
+                          value={formData.pan}
+                          onChange={handleFormChange}
+                          className="uppercase"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>GST Number (if applicable)</Label>
+                        <Input
+                          name="gstNumber"
+                          placeholder="Enter GST number"
+                          value={formData.gstNumber}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Trade License / Shop Act Registration No.</Label>
+                        <Input
+                          name="tradeLicense"
+                          placeholder="Enter license number (if applicable)"
+                          value={formData.tradeLicense}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4: Bank Details */}
+                {currentStep === 4 && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+                      💡 Bank details are optional but recommended for faster payment processing.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Bank Name</Label>
+                        <Input
+                          name="bankName"
+                          placeholder="Enter bank name"
+                          value={formData.bankName}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Account Holder Name</Label>
+                        <Input
+                          name="accountHolderName"
+                          placeholder="Name as per bank account"
+                          value={formData.accountHolderName}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Account Number</Label>
+                        <Input
+                          name="accountNumber"
+                          placeholder="Enter account number"
+                          value={formData.accountNumber}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>IFSC Code</Label>
+                        <Input
+                          name="ifscCode"
+                          placeholder="Enter IFSC code"
+                          value={formData.ifscCode}
+                          onChange={handleFormChange}
+                          className="uppercase"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 5: Experience */}
+                {currentStep === 5 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Years of Experience</Label>
+                        <Input
+                          name="totalYears"
+                          type="number"
+                          placeholder="e.g., 5"
+                          value={formData.totalYears}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Number of Technicians / Staff</Label>
+                        <Input
+                          name="numberOfStaff"
+                          type="number"
+                          placeholder="e.g., 3"
+                          value={formData.numberOfStaff}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Services Offered (comma separated)</Label>
+                      <Textarea
+                        name="servicesOffered"
+                        placeholder="e.g., AC Repair, AC Installation, AC Service"
+                        value={formData.servicesOffered}
+                        onChange={handleFormChange}
+                        rows={2}
+                      />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label>Working Days <span className="text-red-500">*</span></Label>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+                        {[
+                          { key: "monday", label: "Mon" },
+                          { key: "tuesday", label: "Tue" },
+                          { key: "wednesday", label: "Wed" },
+                          { key: "thursday", label: "Thu" },
+                          { key: "friday", label: "Fri" },
+                          { key: "saturday", label: "Sat" },
+                          { key: "sunday", label: "Sun" },
+                        ].map((day) => (
+                          <label
+                            key={day.key}
+                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                              workingDays[day.key as keyof typeof workingDays]
+                                ? "bg-blue-100 border-blue-500 text-blue-700"
+                                : "bg-gray-50 border-gray-200 text-gray-500"
+                            }`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={workingDays[day.key as keyof typeof workingDays]}
+                              onChange={(e) => {
+                                const newDays = { ...workingDays, [day.key]: e.target.checked };
+                                setWorkingDays(newDays);
+                                const selectedDays = Object.entries(newDays)
+                                  .filter(([, v]) => v)
+                                  .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
+                                setFormData(prev => ({ ...prev, workingDays: `${selectedDays.join(", ")} | ${workingTime}` }));
+                              }}
+                              className="sr-only"
+                            />
+                            <span className="text-sm font-medium">{day.label}</span>
+                            {workingDays[day.key as keyof typeof workingDays] && (
+                              <Check size={14} className="text-blue-600" />
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Working Timings</Label>
+                      <Input
+                        value={workingTime}
+                        onChange={(e) => {
+                          setWorkingTime(e.target.value);
+                          const selectedDays = Object.entries(workingDays)
+                            .filter(([, v]) => v)
+                            .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
+                          setFormData(prev => ({ ...prev, workingDays: `${selectedDays.join(", ")} | ${e.target.value}` }));
+                        }}
+                        placeholder="e.g., 9 AM - 7 PM"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 6: Documents */}
+                {currentStep === 6 && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+                      📄 All documents are optional. You can upload up to 5 documents (Aadhaar, PAN, GST Certificate, Address Proof, Business Registration, etc.)
+                    </p>
+
+                    {[1, 2, 3, 4, 5].map((num) => (
+                      <div key={num} className="space-y-2">
+                        <Label>Document {num}</Label>
+                        <div className="flex items-center gap-3">
+                          <label className="flex-1 cursor-pointer">
+                            <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors">
+                              {documents[`document${num}`] ? (
+                                <div className="flex items-center justify-center gap-2 text-green-600">
+                                  <Check size={20} />
+                                  <span className="truncate max-w-[200px]">
+                                    {documents[`document${num}`]?.name}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-2 text-gray-500">
+                                  <Upload size={20} />
+                                  <span>Click to upload</span>
+                                </div>
+                              )}
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*,.pdf"
+                              onChange={(e) => handleFileChange(`document${num}`, e.target.files?.[0] || null)}
+                            />
+                          </label>
+                          {documents[`document${num}`] && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => handleFileChange(`document${num}`, null)}
+                            >
+                              <X size={16} />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Step 7: Declaration & Submit */}
+                {currentStep === 7 && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Password <span className="text-red-500">*</span></Label>
+                        <Input
+                          name="password"
+                          type="password"
+                          placeholder="Create password"
+                          value={formData.password}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Confirm Password <span className="text-red-500">*</span></Label>
+                        <Input
+                          name="confirmPassword"
+                          type="password"
+                          placeholder="Confirm password"
+                          value={formData.confirmPassword}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Referral Code (optional)</Label>
+                        <Input
+                          name="referralCode"
+                          placeholder="Enter referral code if any"
+                          value={formData.referralCode}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Referral Name (optional)</Label>
+                        <Input
+                          name="referralName"
+                          placeholder="Enter referral name if any"
+                          value={formData.referralName}
+                          onChange={handleFormChange}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <h4 className="font-semibold text-gray-800">Declaration & Undertaking</h4>
+                      <p className="text-sm text-gray-600">
+                        I, <span className="font-semibold text-gray-800">{formData.name || "_______________"}</span>, hereby declare that the information provided above is true, correct, and complete.
+                        I understand that Niyati Solutions reserves the right to verify the details and take
+                        necessary action, including suspension or removal of listing, in case of false information.
+                      </p>
+                    </div>
+
+                    {/* Terms & Conditions Checkbox */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        checked={accepted}
+                        onChange={(e) => setAccepted(e.target.checked)}
+                        className="cursor-pointer"
+                      />
+                      <label htmlFor="terms" className="text-sm text-gray-700">
+                        I agree to the{" "}
+                        <button
+                          type="button"
+                          onClick={() => setShowTermsModal(true)}
+                          className="text-blue-600 hover:underline"
+                        >
+                          Terms & Conditions
+                        </button>
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation Buttons */}
                 <div className="flex gap-3 pt-4">
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                  >
-                    {submitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Registering...
-                      </>
-                    ) : (
-                      <>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Register Vendor
-                      </>
-                    )}
-                  </Button>
+                  {currentStep > 1 && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={prevStep}
+                      className="flex items-center gap-2"
+                    >
+                      <ChevronLeft size={16} />
+                      Previous
+                    </Button>
+                  )}
+                  
+                  <div className="flex-1" />
+                  
+                  {currentStep < 7 ? (
+                    <Button
+                      type="button"
+                      onClick={nextStep}
+                      className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 flex items-center gap-2"
+                    >
+                      Next
+                      <ChevronRight size={16} />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={submitting}
+                      className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Registering...
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 mr-2" />
+                          Register Partner
+                        </>
+                      )}
+                    </Button>
+                  )}
+                  
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setIsAddDialogOpen(false)}
+                    onClick={() => {
+                      setIsAddDialogOpen(false);
+                      setCurrentStep(1);
+                    }}
                     disabled={submitting}
                   >
                     Cancel
