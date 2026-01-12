@@ -37,7 +37,7 @@ const vendorSchema = z.object({
   // Step 3: Business & Legal
   businessType: z.enum(["Proprietorship", "Partnership", "LLP", "Private Limited", "Other"]),
   gstNumber: z.string().optional().or(z.literal("")),
-  pan: z.string().regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, "Invalid PAN format").optional().or(z.literal("")),
+  pan: z.string().optional(),
   adhar: z.string().regex(/^\d{12}$/, "Aadhar must be 12 digits").optional().or(z.literal("")),
   tradeLicense: z.string().optional().or(z.literal("")),
   

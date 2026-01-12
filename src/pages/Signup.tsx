@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -38,6 +38,7 @@ const Signup = () => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -50,6 +51,10 @@ const Signup = () => {
   });
 
   const onSubmit = async (data: SignupFormData) => {
+    if (!acceptedTerms) {
+      alert("Please accept Terms & Conditions and Privacy Policy");
+      return;
+    }
     try {
       const formData = {
         name: data.name,
@@ -171,10 +176,31 @@ const Signup = () => {
             )}
           </div>
 
+          <div className="flex items-start gap-2">
+            <input
+              type="checkbox"
+              id="termsAndPrivacy"
+              checked={acceptedTerms}
+              onChange={(e) => setAcceptedTerms(e.target.checked)}
+              className="w-4 h-4 mt-1 cursor-pointer"
+            />
+            <label htmlFor="termsAndPrivacy" className="text-sm text-muted-foreground">
+              I agree to the{" "}
+              <Link to="/terms" target="_blank" className="text-primary hover:underline">
+                Terms & Conditions
+              </Link>
+              {" "}and{" "}
+              <Link to="/privacy-policy" target="_blank" className="text-primary hover:underline">
+                Privacy Policy
+              </Link>
+              <span className="text-destructive"> *</span>
+            </label>
+          </div>
+
           <Button
             type="submit"
             className="w-full"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !acceptedTerms}
             variant="hero"
           >
             {isSubmitting ? t('pages.signup.creatingAccount') : t('pages.signup.createAccountBtn')}
