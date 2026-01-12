@@ -6,28 +6,29 @@ const { cloudinaryConnect } = require("./config/cloudinary")
 const fileUpload = require("express-fileupload");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
-const bodyParser = require("body-parser");
 
 dotenv.config();
 
 const PORT = process.env.PORT || 8000
 connectDB();
 
-
-app.use(express.json())
-app.use(cookieParser());
-app.use(bodyParser.json());
+// CORS first
 app.use(cors({
   origin: "*",
   credentials: true,
 }))
 
+// File upload middleware BEFORE json parsers
 app.use(
   fileUpload({
     useTempFiles: true,
     tempFileDir: "/tmp"
   })
 )
+
+// Then JSON parsers
+app.use(express.json())
+app.use(cookieParser());
 
 cloudinaryConnect();
 

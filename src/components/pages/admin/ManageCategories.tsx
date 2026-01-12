@@ -43,6 +43,8 @@ import { RootState } from "@/redux/store";
 
 const ManageCategories = () => {
   const [form, setForm] = useState({ name: "", price: "", autoFilled: "" });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -160,20 +162,38 @@ const ManageCategories = () => {
     e.preventDefault();
     if (!form.name || !form.price) return;
     setLoading(true);
-    const priceNum = Number(form.price);
+    
+    // Create FormData in component like AddBlog does
+    const formData = new FormData();
+    formData.append("name", form.name.trim());
+    formData.append("price", form.price);
+    if (form.autoFilled) formData.append("autoFilled", form.autoFilled.trim());
+    if (imageFile) formData.append("image", imageFile);
+    
     if (editingId) {
-      await updateCategoryAPI(editingId, {
-        name: form.name.trim(),
-        price: priceNum,
-        autoFilled: form.autoFilled.trim(),
-      });
+      await updateCategoryAPI(editingId, formData);
     } else {
-      await createCategoryAPI({ name: form.name.trim(), price: priceNum, autoFilled: form.autoFilled.trim() });
+      await createCategoryAPI(formData);
     }
     setForm({ name: "", price: "", autoFilled: "" });
+    setImageFile(null);
+    setImagePreview("");
     setEditingId(null);
     await load();
     setLoading(false);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview("");
   };
 
   return (
@@ -216,6 +236,34 @@ const ManageCategories = () => {
                 required
               />
             </div>
+            <div>
+              <Label htmlFor="image">Category Image</Label>
+              <Input
+                id="image"
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="cursor-pointer"
+              />
+              {(imagePreview || (editingId && categories.find(c => c._id === editingId)?.image)) && (
+                <div className="mt-2 relative inline-block">
+                  <img
+                    src={imagePreview || categories.find(c => c._id === editingId)?.image}
+                    alt="Preview"
+                    className="w-24 h-24 object-cover rounded border"
+                  />
+                  {imagePreview && (
+                    <button
+                      type="button"
+                      onClick={clearImage}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={loading}>
                 {loading
@@ -233,6 +281,8 @@ const ManageCategories = () => {
                   onClick={() => {
                     setEditingId(null);
                     setForm({ name: "", price: "", autoFilled: "" });
+                    setImageFile(null);
+                    setImagePreview("");
                   }}
                 >
                   Cancel
@@ -275,14 +325,27 @@ const ManageCategories = () => {
                         key={c._id}
                         className="py-2 flex items-center justify-between"
                       >
-                        <div>
-                          <span className="font-medium mr-2">{c.name}</span>
-                          {c.autoFilled && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded mr-2">
-                              {c.autoFilled}
-                            </span>
+                        <div className="flex items-center gap-3">
+                          {c.image ? (
+                            <img
+                              src={c.image}
+                              alt={c.name}
+                              className="w-12 h-12 object-cover rounded border"
+                            />
+                          ) : (
+                            <div className="w-12 h-12 bg-gray-200 rounded border flex items-center justify-center text-gray-400 text-xs">
+                              No img
+                            </div>
                           )}
-                          <span className="text-gray-600">₹{c.price}</span>
+                          <div>
+                            <span className="font-medium mr-2">{c.name}</span>
+                            {c.autoFilled && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded mr-2">
+                                {c.autoFilled}
+                              </span>
+                            )}
+                            <span className="text-gray-600">₹{c.price}</span>
+                          </div>
                         </div>
                         <div className="flex gap-2">
                           <Button
@@ -291,6 +354,8 @@ const ManageCategories = () => {
                             onClick={() => {
                               setEditingId(c._id);
                               setForm({ name: c.name, price: String(c.price), autoFilled: c.autoFilled || "" });
+                              setImageFile(null);
+                              setImagePreview("");
                             }}
                           >
                             Edit
