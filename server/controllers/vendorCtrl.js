@@ -16,7 +16,7 @@ const vendorRegisterCtrl = async (req, res) => {
       numberOfStaff, referralCode, referralName, workingDays, bankDetail, experience
     } = req.body;
 
-    if (!name || !email || !password || !phone) {
+    if (!name  || !password || !phone) {
       return res.status(403).send({
         success: false,
         message: "All required fields must be filled",

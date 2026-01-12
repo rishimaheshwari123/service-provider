@@ -5,7 +5,7 @@ import TopBar from "@/components/TopBar";
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <TopBar />
+      {/* <TopBar /> */}
       <Navbar />
       
       <div className="py-10 px-4">
