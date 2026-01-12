@@ -14,10 +14,10 @@ const {
   REJECT_CATEGORY_PURCHASE_API,
 } = category;
 
-export const createCategoryAPI = async (data) => {
+export const createCategoryAPI = async (formData) => {
   const toastId = toast.loading("Creating category...");
   try {
-    const res = await apiConnector("POST", CREATE_CATEGORY_API, data);
+    const res = await apiConnector("POST", CREATE_CATEGORY_API, formData);
     if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
     toast.success(res?.data?.message || "Category created");
     return res?.data?.category;
@@ -30,11 +30,11 @@ export const createCategoryAPI = async (data) => {
   }
 };
 
-export const updateCategoryAPI = async (id, data) => {
+export const updateCategoryAPI = async (id, formData) => {
   const toastId = toast.loading("Updating category...");
   try {
     const url = `${UPDATE_CATEGORY_API}/${id}`;
-    const res = await apiConnector("PUT", url, data);
+    const res = await apiConnector("PUT", url, formData);
     if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
     toast.success(res?.data?.message || "Category updated");
     return res?.data?.category;

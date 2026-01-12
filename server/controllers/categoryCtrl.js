@@ -1,9 +1,16 @@
 const Category = require("../models/categoryModel");
 const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
+const { uploadImageToCloudinary } = require("../config/imageUploader");
 
 const createCategoryCtrl = async (req, res) => {
   try {
     const { name, price, autoFilled } = req.body;
+    
+    // Debug logs
+    console.log("=== CREATE CATEGORY DEBUG ===");
+    console.log("req.body:", req.body);
+    console.log("req.files:", req.files);
+    
     if (!name || price === undefined) {
       return res.status(400).json({ success: false, message: "Name and price are required" });
     }
@@ -13,7 +20,18 @@ const createCategoryCtrl = async (req, res) => {
       return res.status(400).json({ success: false, message: "Category already exists" });
     }
 
-    const category = await Category.create({ name, price, autoFilled: autoFilled || "" });
+    let imageUrl = "";
+    if (req.files && req.files.image) {
+      console.log("Uploading image to cloudinary...");
+      const result = await uploadImageToCloudinary(req.files.image, "categories", 400, 80);
+      console.log("Cloudinary result:", result);
+      imageUrl = result.secure_url;
+    } else {
+      console.log("No image file received");
+    }
+
+    const category = await Category.create({ name, price, autoFilled: autoFilled || "", image: imageUrl });
+    console.log("Category created:", category);
     return res.status(201).json({ success: true, message: "Category created", category });
   } catch (error) {
     console.error("Error creating category:", error);
@@ -104,6 +122,12 @@ const updateCategoryCtrl = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, price, active, autoFilled } = req.body;
+    
+    // Debug logs
+    console.log("=== UPDATE CATEGORY DEBUG ===");
+    console.log("req.body:", req.body);
+    console.log("req.files:", req.files);
+    
     if (!id) {
       return res.status(400).json({ success: false, message: "Category id is required" });
     }
@@ -118,7 +142,18 @@ const updateCategoryCtrl = async (req, res) => {
     if (active !== undefined) category.active = active;
     if (autoFilled !== undefined) category.autoFilled = autoFilled;
 
+    // Handle image upload
+    if (req.files && req.files.image) {
+      console.log("Uploading image to cloudinary...");
+      const result = await uploadImageToCloudinary(req.files.image, "categories", 400, 80);
+      console.log("Cloudinary result:", result);
+      category.image = result.secure_url;
+    } else {
+      console.log("No image file received in update");
+    }
+
     await category.save();
+    console.log("Category updated:", category);
     return res.status(200).json({ success: true, message: "Category updated", category });
   } catch (error) {
     console.error("Error updating category:", error);
