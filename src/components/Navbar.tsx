@@ -379,7 +379,13 @@ const Navbar = () => {
         } xl:hidden z-50 overflow-y-auto`}
       >
         <div className="flex justify-between items-center p-5 border-b border-gray-700">
-          <h3 className="text-xl font-bold gradient-text">ProServe</h3>
+          <Link to="/" onClick={toggleSidebar}>
+            <img
+              src={logo}
+              alt="Logo"
+              className="h-12 w-auto object-contain"
+            />
+          </Link>
           <button
             onClick={toggleSidebar}
             className="text-gray-400 hover:text-white p-2 rounded-full transition-colors"

@@ -1,47 +1,27 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useTranslation } from "react-i18next";
 import {
   MapPin,
-  Home,
-  Bath,
-  Bed,
-  Square,
   Share2,
-  ArrowLeft,
   Send,
   ChevronLeft,
   ChevronRight,
-  Eye,
   Phone,
   Mail,
-  Building,
-  Car,
-  Shield,
-  Zap,
-  Droplets,
-  Wifi,
-  Camera,
-  TreePine,
-  Sofa,
-  Users,
-  Clock,
-  PhoneCall,
-  IndianRupee,
   Star,
+  Clock,
+  CheckCircle,
   Calendar,
+  Eye,
+  Heart,
+  Shield,
+  ThumbsUp,
+  Camera,
+  Globe,
+  MessageSquare,
+  Copy,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getPropertyBYIDAPI } from "@/service/operations/property";
@@ -55,6 +35,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 const PropertyDetails = () => {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
   const [property, setProperty] = useState(null);
@@ -62,6 +43,8 @@ const PropertyDetails = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isSaved, setIsSaved] = useState(false);
+  const [showPhone, setShowPhone] = useState(false);
   const { token, user } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState({
@@ -75,239 +58,59 @@ const PropertyDetails = () => {
     const fetchProperty = async () => {
       try {
         setLoading(true);
-
-        // ✅ Safely get userId only if user exists
-        const userId = user?._id; // undefined if user is not logged in
-
-        // Call API with optional userId
+        const userId = user?._id;
         const response = await getPropertyBYIDAPI(id, userId);
-
         if (response) {
           setProperty(response);
         } else {
-          toast.error("Property not found");
-          // navigate("/properties");
+          toast.error("Service not found");
         }
       } catch (error) {
         console.error("Error fetching property:", error);
-        toast.error("Failed to load property details");
-        // navigate("/properties");
+        toast.error("Failed to load service details");
       } finally {
         setLoading(false);
       }
     };
+    if (id) fetchProperty();
+  }, [id, user]);
 
-    if (id) {
-      fetchProperty();
-    }
-  }, [id, navigate, user]); // include 'user' in dependencies
-
-  // Function to check if property type is residential
-  const isResidentialType = (type) => {
-    return [
-      "apartment",
-      "villa",
-      "buying-a-home",
-      "renting-a-home",
-      "house",
-      "condo",
-      "townhouse",
-    ].includes(type?.toLowerCase() || "");
-  };
-
-  // Function to check if property type is commercial
-  const isCommercialType = (type) => {
-    return ["commercial"].includes(type?.toLowerCase() || "");
-  };
-
-  // Function to check if property type is plot
-  const isPlotType = (type) => {
-    return ["plot"].includes(type?.toLowerCase() || "");
-  };
-
-  // Function to render property stats based on type
-  const renderPropertyStats = () => {
-    return (
-      <>
-        {/* Location */}
-        <div className="text-center">
-          <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-            <Home className="w-6 h-6 text-blue-600" />
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {property.location || "N/A"}
-          </div>
-          <div className="text-sm text-gray-600">Location</div>
-        </div>
-
-        {/* Category */}
-        <div className="text-center">
-          <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-            <Building className="w-6 h-6 text-green-600" />
-          </div>
-          <div className="text-2xl font-bold text-gray-900">
-            {property.category || "N/A"}
-          </div>
-          <div className="text-sm text-gray-600">Category</div>
-        </div>
-
-        {/* Type */}
-        <div className="text-center">
-          <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-            <Square className="w-6 h-6 text-purple-600" />
-          </div>
-          <div className="text-2xl font-bold text-gray-900 capitalize">
-            {property.type || "N/A"}
-          </div>
-          <div className="text-sm text-gray-600">Type</div>
-        </div>
-      </>
-    );
-  };
-
-  // Function to render property summary in modal based on type
-  const renderPropertySummary = () => {
-    if (isResidentialType(property?.type)) {
-      return (
-        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-          <span className="flex items-center">
-            <Bed className="w-4 h-4 mr-1" />
-            {property.bedrooms || 0} BHK
-          </span>
-          <span className="flex items-center">
-            <Bath className="w-4 h-4 mr-1" />
-            {property.bathrooms || 0} Bath
-          </span>
-          <span className="flex items-center">
-            <Square className="w-4 h-4 mr-1" />
-            {property.area || "N/A"}
-          </span>
-        </div>
-      );
-    } else if (isCommercialType(property?.type)) {
-      return (
-        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-          <span className="flex items-center">
-            <Building className="w-4 h-4 mr-1" />
-            {property.floors || 0} Floors
-          </span>
-          <span className="flex items-center">
-            <Car className="w-4 h-4 mr-1" />
-            {property.parking || 0} Parking
-          </span>
-          <span className="flex items-center">
-            <Square className="w-4 h-4 mr-1" />
-            {property.area || "N/A"}
-          </span>
-        </div>
-      );
-    } else if (isPlotType(property?.type)) {
-      return (
-        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-          <span className="flex items-center">
-            <TreePine className="w-4 h-4 mr-1" />
-            {property.plotType || "Residential"} Plot
-          </span>
-          <span className="flex items-center">
-            <Square className="w-4 h-4 mr-1" />
-            {property.area || "N/A"}
-          </span>
-        </div>
-      );
-    } else {
-      return (
-        <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-          <span className="flex items-center">
-            <Square className="w-4 h-4 mr-1" />
-            {property.area || "N/A"}
-          </span>
-        </div>
-      );
-    }
-  };
-
-  // Get property images - use actual property images or fallback to placeholder
   const getPropertyImages = () => {
-    if (
-      property?.images &&
-      Array.isArray(property.images) &&
-      property.images.length > 0
-    ) {
-      return property.images;
-    }
-    // Fallback to single image if no images array
-    if (property?.image) {
-      return [{ url: property.image, public_id: "main" }];
-    }
-    // Default placeholder
-    return [
-      {
-        url: "/placeholder.svg?height=600&width=800",
-        public_id: "placeholder",
-      },
-    ];
+    if (property?.images?.length > 0) return property.images;
+    if (property?.image) return [{ url: property.image }];
+    return [{ url: "https://via.placeholder.com/800x600?text=No+Image" }];
   };
 
   const propertyImages = getPropertyImages();
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % propertyImages.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex(
-      (prev) => (prev - 1 + propertyImages.length) % propertyImages.length
-    );
-  };
+  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % propertyImages.length);
+  const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!formData.name || !formData.email || !formData.phone) {
-      toast.error("Please fill in all required fields");
+    if (!formData.name || !formData.phone) {
+      toast.error("Please fill required fields");
       return;
     }
-
-    if (!property || !property.vendor) {
-      toast.error("Property or vendor information is missing");
-      return;
-    }
-
     try {
       setIsSubmitting(true);
-      const contactData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        message: formData.message,
+      const response = await createContactAPI({
+        ...formData,
         property,
-        user: user._id,
-      };
-      const response = await createContactAPI(contactData);
-
+        user: user?._id,
+      });
       if (response) {
-        toast.success("Inquiry sent successfully! We'll contact you soon.");
+        toast.success("Enquiry sent successfully!");
         setIsModalOpen(false);
-        setFormData({
-          name: "",
-          email: "",
-          phone: "",
-          message: "",
-        });
-      } else {
-        toast.error("Failed to send inquiry. Please try again.");
+        setFormData({ name: "", email: "", phone: "", message: "" });
       }
     } catch (error) {
-      console.error("Error sending inquiry:", error);
-      toast.error("Failed to send inquiry. Please try again.");
+      toast.error("Failed to send enquiry");
     } finally {
       setIsSubmitting(false);
     }
@@ -315,585 +118,384 @@ const PropertyDetails = () => {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success("Property link copied to clipboard!");
+    toast.success("Link copied!");
   };
 
-  const handleBack = () => {
-    navigate("/services");
-  };
-
-  const handleOpenModal = () => {
-    if (!token) {
-      navigate("/login");
-    } else {
-      setIsModalOpen(true);
-    }
-  };
   const handleCall = async () => {
     if (!property?.vendor?.phone) {
-      toast.error("Phone number not available");
+      toast.error("Phone not available");
       return;
     }
-
-    if (!user?._id) {
-      toast.error("User not logged in");
-      return;
-    }
-
     try {
-      // 🔹 Create audit log for call
-      let type = "phone";
-      await createAuditForPropertyCallAndEmailAPI(id, user._id, type);
-
-      // 🔹 Then initiate call
+      if (user?._id) await createAuditForPropertyCallAndEmailAPI(id, user._id, "phone");
       window.location.href = `tel:${property.vendor.phone}`;
     } catch (error) {
-      console.error("Error creating audit log for call:", error);
+      console.error(error);
     }
   };
 
-  const handleEmail = async () => {
-    if (!property?.vendor?.email) {
-      toast.error("Email address not available");
-      return;
-    }
+  const getAverageRating = () => {
+    if (!property?.review?.length) return 0;
+    const total = property.review.reduce((acc, r) => acc + (r.rating || 0), 0);
+    return (total / property.review.length).toFixed(1);
+  };
 
-    if (!user?._id) {
-      toast.error("User not logged in");
-      return;
-    }
-
-    try {
-      // 🔹 Create audit log for email
-      await createAuditForPropertyCallAndEmailAPI(
-        property._id,
-        user._id,
-        "email"
-      );
-
-      // 🔹 Then initiate email
-      const email = property.vendor.email.trim();
-      window.location.href = `mailto:${email}`;
-    } catch (error) {
-      console.error("Error creating audit log for email:", error);
-    }
+  const getRatingColor = (rating: number) => {
+    if (rating >= 4) return "bg-green-600";
+    if (rating >= 3) return "bg-yellow-500";
+    return "bg-orange-500";
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-primary border-t-transparent mx-auto"></div>
-          <p className="mt-4 text-gray-600 text-lg">
-            Loading Services details...
-          </p>
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
         </div>
-      </div>
+      </>
     );
   }
 
   if (!property) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Property Not Found
-          </h2>
-          <Button onClick={handleBack} size="lg">
-            Go Back to Services
-          </Button>
+      <>
+        <Navbar />
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+          <h2 className="text-xl font-bold mb-4">Service Not Found</h2>
+          <button onClick={() => navigate("/services")} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
+            Back to Services
+          </button>
         </div>
-      </div>
+      </>
     );
   }
+
+  const avgRating = Number(getAverageRating());
+  const reviewCount = property.review?.length || 0;
+  const vendorPhone = property.vendor?.phone || "+91 78798 84363";
 
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50">
-        {/* Navigation Header */}
-        <div className="bg-white shadow-sm border-b sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Back to Services
-              </Button>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleShare}>
-                  <Share2 className="w-4 h-4" />
-                </Button>
-              </div>
+      <div className="bg-gray-100 min-h-screen">
+        {/* Breadcrumb */}
+        <div className="bg-white border-b">
+          <div className="max-w-7xl mx-auto px-4 py-3">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <button onClick={() => navigate("/")} className="hover:text-blue-600">Home</button>
+              <span>/</span>
+              <button onClick={() => navigate("/services")} className="hover:text-blue-600">Services</button>
+              <span>/</span>
+              <span className="text-gray-900 font-medium truncate">{property.title}</span>
             </div>
           </div>
         </div>
 
-        {/* Image Gallery Section */}
-        <div className="relative">
-          <div className="relative h-[60vh] overflow-hidden bg-gray-900">
-            <img
-              src={propertyImages[currentImageIndex]?.url || "/placeholder.svg"}
-              alt={`${property.title} - Image ${currentImageIndex + 1}`}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.src = "/placeholder.svg?height=600&width=800";
-              }}
-            />
+        <div className="max-w-7xl mx-auto px-4 py-5">
+          {/* Main Card */}
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            {/* Top Section */}
+            <div className="flex flex-col lg:flex-row">
+              {/* Image Gallery */}
+              <div className="lg:w-[400px] flex-shrink-0">
+                <div className="relative h-[280px] lg:h-[320px] bg-gray-200">
+                  <img
+                    src={propertyImages[currentImageIndex]?.url}
+                    alt={property.title}
+                    className="w-full h-full object-cover"
+                  />
+                  {propertyImages.length > 1 && (
+                    <>
+                      <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white">
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white">
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+                    </>
+                  )}
+                  <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
+                    <Camera className="w-3 h-3" />
+                    {currentImageIndex + 1}/{propertyImages.length}
+                  </div>
+                  <button
+                    onClick={() => setIsSaved(!isSaved)}
+                    className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow"
+                  >
+                    <Heart className={`w-4 h-4 ${isSaved ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
+                  </button>
+                </div>
+                {propertyImages.length > 1 && (
+                  <div className="flex gap-1 p-2 bg-gray-50 overflow-x-auto">
+                    {propertyImages.slice(0, 5).map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentImageIndex(idx)}
+                        className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 ${idx === currentImageIndex ? "border-blue-600" : "border-transparent"}`}
+                      >
+                        <img src={img.url} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
 
-            {/* Image Navigation */}
-            {propertyImages.length > 1 && (
-              <>
-                <button
-                  onClick={prevImage}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                >
-                  <ChevronLeft className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-all"
-                >
-                  <ChevronRight className="w-6 h-6" />
-                </button>
-              </>
-            )}
+              {/* Info Section */}
+              <div className="flex-1 p-5">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">{property.title}</h1>
+                    <p className="text-gray-500 flex items-center gap-1 text-sm">
+                      <MapPin className="w-4 h-4" />
+                      {property.location || "Location not specified"}
+                    </p>
+                  </div>
+                  {avgRating > 0 && (
+                    <div className={`${getRatingColor(avgRating)} text-white px-3 py-1.5 rounded-lg flex items-center gap-1 flex-shrink-0`}>
+                      <span className="font-bold text-lg">{avgRating}</span>
+                      <Star className="w-4 h-4 fill-white" />
+                    </div>
+                  )}
+                </div>
 
-            {/* Image Counter */}
-            <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full flex items-center gap-1">
-              <Camera className="w-4 h-4" />
-              <span className="text-sm">
-                {currentImageIndex + 1} / {propertyImages.length}
-              </span>
+                <div className="flex items-center gap-3 mb-4">
+                  {avgRating > 0 && (
+                    <>
+                      <span className="text-sm text-gray-600">{reviewCount} Ratings</span>
+                      <span className="text-gray-300">|</span>
+                    </>
+                  )}
+                  {property.category && (
+                    <span className="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{property.category}</span>
+                  )}
+                  {property.verified && (
+                    <span className="text-sm text-green-600 flex items-center gap-1">
+                      <CheckCircle className="w-4 h-4" /> Verified
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-4">
+                  <span className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
+                    <Clock className="w-3 h-3" /> Open Now
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                    <ThumbsUp className="w-3 h-3" /> Trusted
+                  </span>
+                  <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
+                    <Shield className="w-3 h-3" /> Safe
+                  </span>
+                </div>
+
+                <div className="flex flex-wrap gap-3 mb-4">
+                  {!showPhone ? (
+                    <button
+                      onClick={() => setShowPhone(true)}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg"
+                    >
+                      <Phone className="w-4 h-4" />
+                      Show Number
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={`tel:${vendorPhone}`}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg"
+                      >
+                        <Phone className="w-4 h-4" />
+                        {vendorPhone}
+                      </a>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(vendorPhone);
+                          toast.success("Number copied!");
+                        }}
+                        className="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        <Copy className="w-4 h-4 text-gray-500" />
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => token ? setIsModalOpen(true) : navigate("/login")}
+                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Send Enquiry
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
+                  <button onClick={handleShare} className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+                    <Share2 className="w-4 h-4" /> Share
+                  </button>
+                  <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+                    <Globe className="w-4 h-4" /> Website
+                  </button>
+                  <span className="flex items-center gap-1 text-sm text-gray-400">
+                    <Eye className="w-4 h-4" /> {property.views || 0} views
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* Property Info Overlay */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-              <div className="max-w-7xl mx-auto">
-                <div className="text-white">
-                  <h1 className="text-4xl md:text-5xl font-bold mb-2">
-                    {property.title}
-                  </h1>
-                  <p className="text-xl mb-3 flex items-center opacity-90">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    {property.location}
-                  </p>
-                  <div className="flex items-center gap-6 mb-4">
-                    {/* <div className="text-3xl md:text-4xl font-bold text-green-400">
-                      {property.price}
-                    </div> */}
-                    <Badge
-                      variant="secondary"
-                      className="bg-white/20 text-white border-white/30 capitalize"
-                    >
-                      {property.type}
-                    </Badge>
-                  </div>
-                </div>
+            <div className="border-t">
+              <div className="flex gap-6 px-5 overflow-x-auto">
+                <button className="py-3 text-blue-600 border-b-2 border-blue-600 font-medium text-sm">Overview</button>
+                <button className="py-3 text-gray-500 hover:text-gray-700 text-sm">Reviews ({reviewCount})</button>
+                <button className="py-3 text-gray-500 hover:text-gray-700 text-sm">Photos ({propertyImages.length})</button>
               </div>
             </div>
           </div>
 
-          {/* Image Thumbnails */}
-          {propertyImages.length > 1 && (
-            <div className="bg-white border-b">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-                <div className="flex gap-2 overflow-x-auto">
-                  {propertyImages.map((image, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCurrentImageIndex(index)}
-                      className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                        index === currentImageIndex
-                          ? "border-primary"
-                          : "border-gray-200"
-                      }`}
-                    >
-                      <img
-                        src={image.url || "/placeholder.svg"}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src =
-                            "/placeholder.svg?height=64&width=80";
-                        }}
-                      />
-                    </button>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
+            <div className="lg:col-span-2 space-y-5">
+              <div className="bg-white rounded-lg p-5 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-3">About</h2>
+                <p className="text-gray-600 text-sm leading-relaxed">
+                  {property.description || "Professional service provider offering quality services at competitive prices."}
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg p-5 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-3">Services Offered</h2>
+                <div className="flex flex-wrap gap-2">
+                  {["Professional Service", "Home Visit", "Online Consultation", "24/7 Support", "Affordable Pricing"].map((s, i) => (
+                    <span key={i} className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full">{s}</span>
                   ))}
                 </div>
               </div>
-            </div>
-          )}
-        </div>
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column - Property Details */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Quick Stats - Conditional based on property type */}
-              <Card className="shadow-lg">
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                    {renderPropertyStats()}
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Working Hours - Always show with default values if data is invalid */}
+              <div className="bg-white rounded-lg p-5 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" /> Working Hours
+                </h2>
+                <div className="space-y-2">
+                  {(() => {
+                    let workingHours = property.vendor?.workingHours;
+                    
+                    // If invalid data, use defaults
+                    if (!workingHours || typeof workingHours === "string" || workingHours === "[object Object]") {
+                      workingHours = {
+                        monday: { start: "09:00 AM", end: "06:00 PM", available: true },
+                        tuesday: { start: "09:00 AM", end: "06:00 PM", available: true },
+                        wednesday: { start: "09:00 AM", end: "06:00 PM", available: true },
+                        thursday: { start: "09:00 AM", end: "06:00 PM", available: true },
+                        friday: { start: "09:00 AM", end: "06:00 PM", available: true },
+                        saturday: { start: "09:00 AM", end: "02:00 PM", available: true },
+                        sunday: { start: "", end: "", available: false },
+                      };
+                    }
 
-              {/* Description */}
-              <Card className="shadow-lg">
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                    About This Property
-                  </h2>
-                  <p className="text-gray-600 leading-relaxed text-lg">
-                    {property.description ||
-                      "No description available for this property."}
-                  </p>
-                </CardContent>
-              </Card>
-
-              {/* Features & Amenities */}
-              <Card className="shadow-lg">
-                <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">
-                    Features & Amenities
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {[
-                      {
-                        icon: Users,
-                        label: "Professional Staff",
-                        available: true,
-                      },
-                      {
-                        icon: Clock,
-                        label: "24/7 Availability",
-                        available: true,
-                      },
-                      {
-                        icon: PhoneCall,
-                        label: "Customer Support",
-                        available: true,
-                      },
-                      {
-                        icon: MapPin,
-                        label: "Service Location",
-                        available: !!property.location,
-                      },
-                      {
-                        icon: IndianRupee,
-                        label: "Affordable Pricing",
-                        available: !!property.price,
-                      },
-                      {
-                        icon: Star,
-                        label: "Verified Experts",
-                        available: true,
-                      },
-                    ].map((feature, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                          <feature.icon className="w-5 h-5 text-green-600" />
+                    const dayOrder = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
+                    
+                    return dayOrder.map((day) => {
+                      const info = workingHours[day] || { available: false };
+                      return (
+                        <div key={day} className="flex justify-between items-center py-2.5 border-b border-gray-100 last:border-0">
+                          <span className="capitalize font-medium text-gray-700">{day}</span>
+                          {info.available ? (
+                            <span className="text-green-600 text-sm font-medium">
+                              {info.start || "09:00 AM"} - {info.end || "06:00 PM"}
+                            </span>
+                          ) : (
+                            <span className="text-red-500 text-sm font-medium">Closed</span>
+                          )}
                         </div>
-                        <span className="font-medium text-gray-900">
-                          {feature.label}
-                        </span>
-                        {feature.available && (
-                          <div className="w-2 h-2 bg-green-500 rounded-full ml-auto"></div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
               <DisplayRating property={id} />
             </div>
 
-            {/* Right Column - Contact & Details */}
-            <div className="space-y-6">
-              {/* Contact Vendor */}
-              <Card className="shadow-lg sticky top-24">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">
-                    Contact Agent
-                  </h3>
-
-                  <div className="flex items-center space-x-4 mb-6">
-                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                      {property.vendor?.name?.charAt(0) || "A"}
+            <div className="space-y-5">
+              <div className="bg-white rounded-lg p-5 shadow-sm">
+                <h3 className="font-bold text-gray-900 mb-4">Quick Contact</h3>
+                <div className="space-y-3">
+                  <a href={`tel:${vendorPhone}`} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100">
+                    <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                      <Phone className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-semibold text-lg">
-                        {property.vendor?.name || "Property Agent"}
-                      </h4>
-                      <p className="text-gray-600">
-                        {property.vendor?.company || "Real Estate Professional"}
-                      </p>
+                      <p className="text-xs text-gray-500">Call Now</p>
+                      <p className="font-semibold text-green-700">{vendorPhone}</p>
                     </div>
-                  </div>
-
-                  <div className="space-y-3 mb-6">
-                    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                      <DialogTrigger asChild>
-                        <Button
-                          onClick={handleOpenModal}
-                          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-                        >
-                          <Send className="w-4 h-4 mr-2" />
-                          Send Inquiry
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                          <DialogTitle className="text-2xl font-bold">
-                            Service Inquiry
-                          </DialogTitle>
-                        </DialogHeader>
-
-                        <div className="space-y-6">
-                          {/* Property Summary */}
-                          <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border">
-                            <div className="flex items-start space-x-4">
-                              <img
-                                src={
-                                  propertyImages[0]?.url || "/placeholder.svg"
-                                }
-                                alt={property.title}
-                                className="w-20 h-20 object-cover rounded-lg"
-                                onError={(e) => {
-                                  e.currentTarget.src =
-                                    "/placeholder.svg?height=80&width=80";
-                                }}
-                              />
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-lg">
-                                  {property.title}
-                                </h4>
-                                <p className="text-gray-600 flex items-center mt-1">
-                                  <MapPin className="w-4 h-4 mr-1" />
-                                  {property.location}
-                                </p>
-                                {/* <p className="text-xl font-bold text-green-600 mt-2">
-                                  {property.price}
-                                </p> */}
-                                {renderPropertySummary()}
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Contact Form */}
-                          <form onSubmit={handleSubmit} className="space-y-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="name">Full Name *</Label>
-                                <Input
-                                  id="name"
-                                  name="name"
-                                  type="text"
-                                  placeholder="Enter your full name"
-                                  value={formData.name}
-                                  onChange={handleInputChange}
-                                  required
-                                  disabled={isSubmitting}
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="phone">Phone Number *</Label>
-                                <Input
-                                  id="phone"
-                                  name="phone"
-                                  type="tel"
-                                  placeholder="Enter your phone number"
-                                  value={formData.phone}
-                                  onChange={handleInputChange}
-                                  required
-                                  disabled={isSubmitting}
-                                />
-                              </div>
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="email">Email Address *</Label>
-                              <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="Enter your email address"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                                required
-                                disabled={isSubmitting}
-                              />
-                            </div>
-
-                            <div className="space-y-2">
-                              <Label htmlFor="message">
-                                Message (Optional)
-                              </Label>
-                              <Textarea
-                                id="message"
-                                name="message"
-                                placeholder="Any specific questions or requirements..."
-                                value={formData.message}
-                                onChange={handleInputChange}
-                                rows={4}
-                                disabled={isSubmitting}
-                              />
-                            </div>
-
-                            <div className="flex space-x-3 pt-4">
-                              <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setIsModalOpen(false)}
-                                className="flex-1"
-                                disabled={isSubmitting}
-                              >
-                                Cancel
-                              </Button>
-                              <Button
-                                type="submit"
-                                className="flex-1"
-                                disabled={isSubmitting}
-                              >
-                                {isSubmitting ? (
-                                  <>
-                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                                    Sending...
-                                  </>
-                                ) : (
-                                  <>
-                                    <Send className="w-4 h-4 mr-2" />
-                                    Send Inquiry
-                                  </>
-                                )}
-                              </Button>
-                            </div>
-                          </form>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <Button variant="outline" size="sm" onClick={handleCall}>
-                        <Phone className="w-4 h-4 mr-2" />
-                        Call
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={handleEmail}>
-                        <Mail className="w-4 h-4 mr-2" />
-                        Email
-                      </Button>
-                    </div>
-                  </div>
-
+                  </a>
+                  {property.vendor?.email && (
+                    <a href={`mailto:${property.vendor.email}`} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100">
+                      <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                        <Mail className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Email</p>
+                        <p className="font-semibold text-blue-700 text-sm truncate">{property.vendor.email}</p>
+                      </div>
+                    </a>
+                  )}
+                </div>
+                <div className="mt-4">
                   <BookNowModal property={property} />
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              {/* Property Stats */}
-              <Card className="shadow-lg">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">
-                    Property Information
-                  </h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Status</span>
-                      <Badge className="bg-green-100 text-green-800">
-                        Available
-                      </Badge>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Property Type</span>
-                      <span className="font-medium capitalize">
-                        {property.type || "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Listed On</span>
-                      <span className="font-medium">
-                        {property.createdAt
-                          ? new Date(property.createdAt).toLocaleDateString()
-                          : "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600">Property ID</span>
-                      <span className="font-medium">
-                        #{property._id?.slice(-6).toUpperCase() || "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-600 flex items-center">
-                        <Eye className="w-4 h-4 mr-1" />
-                        Views
-                      </span>
-                      <span className="font-medium">{property.views || 0}</span>
-                    </div>
+              <div className="bg-white rounded-lg p-5 shadow-sm">
+                <h3 className="font-bold text-gray-900 mb-4">Service Provider</h3>
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                    {property.vendor?.name?.charAt(0) || "S"}
                   </div>
-                </CardContent>
-              </Card>
-
-              {/* Quick Actions */}
-
-              {/* Vendor Working Hours */}
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" />
-                    {property.vendor?.name || "Vendor"}'s Working Hours
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2">
-                  {property.vendor?.workingHours &&
-                    Object.entries(property.vendor.workingHours).map(
-                      ([day, info]: [string, any]) => (
-                        <div
-                          key={day}
-                          className="flex justify-between items-center px-3 py-2 border rounded"
-                        >
-                          <span className="capitalize">{day}</span>
-                          {info.available ? (
-                            <span>
-                              {info.start} - {info.end}
-                            </span>
-                          ) : (
-                            <span className="text-red-500 font-medium">
-                              Closed
-                            </span>
-                          )}
-                        </div>
-                      )
-                    )}
-                </CardContent>
-              </Card>
-              <Card className="shadow-lg">
-                <CardContent className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-4">
-                    Quick Actions
-                  </h3>
-                  <div className="space-y-3">
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={handleShare}
-                    >
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Share Property
-                    </Button>
+                  <div>
+                    <p className="font-semibold text-gray-900">{property.vendor?.name || "Service Provider"}</p>
+                    <p className="text-sm text-gray-500">{property.vendor?.company || "Professional Services"}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-lg p-4 shadow-sm">
+                <p className="text-xs text-gray-400 text-center">ID: #{property._id?.slice(-8).toUpperCase()}</p>
+              </div>
             </div>
           </div>
         </div>
+
+        {isModalOpen && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
+            <div className="bg-white rounded-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center justify-between p-4 border-b">
+                <h2 className="font-bold text-lg">Send Enquiry</h2>
+                <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-100 rounded">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Name *</label>
+                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Phone *</label>
+                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Message</label>
+                  <textarea name="message" value={formData.message} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                </div>
+                <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
+                  {isSubmitting ? "Sending..." : <><Send className="w-4 h-4" /> Send Enquiry</>}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
       <Footer />
     </>

@@ -2,31 +2,32 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Star, MapPin, IndianRupee, Briefcase } from "lucide-react";
+  Star,
+  MapPin,
+  Phone,
+  ChevronRight,
+  ChevronLeft,
+  Shield,
+  Clock,
+} from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
 import { useNavigate } from "react-router-dom";
 
 const ServicesSlider = () => {
   const { t } = useTranslation();
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const navigate = useNavigate();
 
   const fetchServices = async () => {
     try {
       setLoading(true);
       const allServices = await getAllPropertyAPI();
-      setServices(allServices);
+      setServices(allServices || []);
     } catch (error) {
       console.error("Error fetching services:", error);
-      toast.error(t('messages.errorOccurred', 'Failed to fetch services'));
+      toast.error("Failed to fetch services");
     } finally {
       setLoading(false);
     }
@@ -36,162 +37,236 @@ const ServicesSlider = () => {
     fetchServices();
   }, []);
 
-  const handleHireNow = (id) => {
+  const handleViewDetails = (id: string) => {
     navigate(`/service/${id}`);
   };
-  
-  // New handler for the global CTA button
+
   const handleBrowseAll = () => {
-    navigate("/services"); // Navigates to the /services page
+    navigate("/services");
   };
 
-  const getAverageRating = (reviews) => {
+  const getAverageRating = (reviews: any[]) => {
     if (!reviews || reviews.length === 0) return 0;
     const total = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
     return parseFloat((total / reviews.length).toFixed(1));
   };
-  
-  const RatingStars = ({ rating }) => {
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 !== 0;
-    
-    return (
-      <div className="flex items-center space-x-0.5">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Star 
-            key={i} 
-            className="w-4 h-4 transition-colors"
-            fill={i < fullStars ? "#FFC107" : (i === fullStars && hasHalfStar ? "#FFC107" : "none")}
-            stroke={i < rating ? "#FFC107" : "#B0B0B0"}
-            strokeWidth={1.5}
-          />
-        ))}
-        <span className="ml-2 text-sm font-semibold text-gray-800 dark:text-gray-200">
-            {rating > 0 ? rating : t('pages.home.noRatings', 'No ratings')}
-        </span>
-      </div>
-    );
+
+  // Responsive items per view
+  const getItemsPerView = () => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 640) return 1;
+      if (window.innerWidth < 1024) return 2;
+      return 4;
+    }
+    return 4;
   };
 
+  const [itemsPerView, setItemsPerView] = useState(getItemsPerView());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setItemsPerView(getItemsPerView());
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const maxIndex = Math.max(0, services.length - itemsPerView);
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => Math.min(prev + 1, maxIndex));
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  };
+
+  // Card width based on screen size
+  const getCardWidth = () => {
+    if (typeof window !== "undefined") {
+      if (window.innerWidth < 640) return window.innerWidth - 32; // Full width minus padding
+      if (window.innerWidth < 1024) return 300;
+      return 280;
+    }
+    return 280;
+  };
+
+  const [cardWidth, setCardWidth] = useState(getCardWidth());
+
+  useEffect(() => {
+    const handleResize = () => {
+      setCardWidth(getCardWidth());
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <section className="py-5 md:py-10 ">
-      <div className="container mx-auto px-4">
-        <div className="max-w-4xl mx-auto text-center mb-16">
-            <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-2">
-                {t('pages.home.topRatedProfessionals')}
-            </p>
-            <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-                {t('pages.home.exploreFeatured')} <span className="gradient-text">{t('nav.services')}</span>
-            </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300">
-                {t('pages.home.dontSettleForLess')}
-            </p>
+    <section className="py-8 bg-gray-50">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-1 h-8 bg-blue-600 rounded-full"></div>
+            <div>
+              <h2 className="text-lg md:text-xl font-bold text-gray-800">
+                Top Rated Services Near You
+              </h2>
+              <p className="text-gray-500 text-xs md:text-sm">
+                Verified professionals with best ratings
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={prevSlide}
+              disabled={currentIndex === 0}
+              className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-blue-50 hover:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+            </button>
+            <button
+              onClick={nextSlide}
+              disabled={currentIndex >= maxIndex}
+              className="w-8 h-8 md:w-9 md:h-9 rounded-full border border-gray-300 flex items-center justify-center hover:bg-blue-50 hover:border-blue-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-gray-600" />
+            </button>
+          </div>
         </div>
 
         {loading ? (
-          <p className="text-center text-primary font-medium">
-            {t('common.loading')}...
-          </p>
+          <div className="flex gap-4 overflow-hidden">
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className="flex-shrink-0 w-full sm:w-72 h-80 animate-pulse bg-gray-200 rounded-xl"
+              />
+            ))}
+          </div>
         ) : services.length === 0 ? (
-          <p className="text-center text-gray-500">
-            {t('pages.home.noFeaturedServices')}
+          <p className="text-center text-gray-500 py-10">
+            No services available
           </p>
         ) : (
-          <div className="max-w-7xl mx-auto relative">
-            <Carousel className="w-full" opts={{ align: "start", loop: true, dragFree: true }}>
-              <CarouselContent className="-ml-4">
-                {services.map((service, index) => {
-                  const avgRating = getAverageRating(service.review);
-                  return (
-                    <CarouselItem
-                      key={index}
-                      // 💡 Changed basis: Two cards per view on large screens
-                      className="pl-4 basis-full sm:basis-1/2 lg:basis-1/2" 
-                    >
-                      <div className="p-1">
-                        {/* Service Card: Thin, Compact, and Hoverable */}
-                        <div className="group rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 overflow-hidden shadow-lg transition-all duration-300 hover:shadow-2xl hover:shadow-primary/20 transform hover:-translate-y-1">
-                          
-                          {/* Image Area: Reduced Height for 'Thin' look */}
-                          <div className="relative h-40 sm:h-48 overflow-hidden">
-                            <img
-                              src={
-                                service.images?.[0]?.url ||
-                                "https://via.placeholder.com/600x400?text=Service+Image+Unavailable"
-                              }
-                              alt={service.title}
-                              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors" />
-                          </div>
+          <div className="overflow-hidden">
+            <div
+              className="flex gap-4 transition-transform duration-300 ease-out"
+              style={{
+                transform: `translateX(-${currentIndex * (cardWidth + 16)}px)`,
+              }}
+            >
+              {services.map((service, index) => {
+                const avgRating = getAverageRating(service.review);
+                const reviewCount = service.review?.length || 0;
 
-                          {/* Content Area: Reduced Padding */}
-                          <div className="p-4 space-y-3">
-                            <div className="flex justify-between items-start">
-                                <h3 className="text-xl font-bold line-clamp-2 text-gray-900 dark:text-white">
-                                    {service.title}
-                                </h3>
-                            </div>
-                            
-                            {/* Rating and Reviews */}
-                            <div className="flex items-center justify-between border-b pb-2 border-gray-100 dark:border-gray-700">
-                                <RatingStars rating={avgRating} />
-                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                    ({service.review?.length || 0} Reviews)
-                                </span>
-                            </div>
-
-                            {/* Key Details */}
-                            <div className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
-                                <p className="flex items-center">
-                                    <Briefcase className="w-4 h-4 mr-2 text-primary" />
-                                    {service.category || t('pages.home.generalService')}
-                                </p>
-                                <p className="flex items-center">
-                                    <MapPin className="w-4 h-4 mr-2 text-primary" />
-                                    {service.location || t('pages.home.onlineRemote')}
-                                </p>
-                                {/* <p className="flex items-center font-bold text-lg text-green-600 dark:text-green-400 pt-1">
-                                    <IndianRupee className="w-5 h-5 mr-1" />
-                                    {service.price ? `${t('pages.home.startsFrom')} ₹${service.price.toLocaleString('en-IN')}` : t('pages.home.priceVaries')}
-                                </p> */}
-                            </div>
-                            
-                            {/* CTA Button */}
-                            <Button
-                              variant="default"
-                              className="w-full mt-3 group/btn bg-primary hover:bg-blue-600 text-base font-semibold transition-all shadow-md shadow-primary/30 py-2.5 h-auto"
-                              onClick={() => handleHireNow(service._id)}
-                            >
-                              {t('pages.home.viewDetailsHire')}
-                              <ArrowRight
-                                className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform"
-                              />
-                            </Button>
-                          </div>
+                return (
+                  <div
+                    key={index}
+                    onClick={() => handleViewDetails(service._id)}
+                    className="flex-shrink-0 bg-white rounded-xl border border-gray-200 overflow-hidden cursor-pointer hover:shadow-xl transition-all duration-300 group"
+                    style={{ width: cardWidth }}
+                  >
+                    {/* Image */}
+                    <div className="relative h-36 md:h-40 overflow-hidden">
+                      <img
+                        src={
+                          service.images?.[0]?.url ||
+                          "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=300&fit=crop"
+                        }
+                        alt={service.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                      {/* Rating Badge */}
+                      <div className="absolute top-3 left-3">
+                        <div
+                          className={`flex items-center gap-1 px-2 py-1 rounded text-white text-xs md:text-sm font-semibold ${
+                            avgRating >= 4
+                              ? "bg-green-500"
+                              : avgRating >= 3
+                              ? "bg-yellow-500"
+                              : avgRating > 0
+                              ? "bg-orange-500"
+                              : "bg-gray-400"
+                          }`}
+                        >
+                          <Star className="w-3 h-3 fill-white" />
+                          {avgRating > 0 ? avgRating : "New"}
                         </div>
                       </div>
-                    </CarouselItem>
-                  );
-                })}
-              </CarouselContent>
-              {/* Carousel Navigation */}
-              <CarouselPrevious className="left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-white/80 border shadow-md hidden sm:flex" />
-              <CarouselNext className="right-0 translate-x-1/2 top-1/2 -translate-y-1/2 bg-white/80 border shadow-md hidden sm:flex" />
-            </Carousel>
+                      {/* Verified Badge */}
+                      {avgRating >= 4 && (
+                        <div className="absolute top-3 right-3 bg-blue-600 text-white text-[10px] md:text-xs px-2 py-1 rounded flex items-center gap-1">
+                          <Shield className="w-3 h-3" />
+                          Verified
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-3 md:p-4">
+                      {/* Title */}
+                      <h3 className="font-semibold text-gray-800 line-clamp-1 mb-1 text-sm md:text-base group-hover:text-blue-600 transition-colors">
+                        {service.title}
+                      </h3>
+
+                      {/* Category */}
+                      <p className="text-gray-500 text-xs md:text-sm mb-2">
+                        {service.category || "Professional Service"}
+                      </p>
+
+                      {/* Location */}
+                      <div className="flex items-center text-gray-600 text-xs md:text-sm mb-2">
+                        <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1.5 text-red-500 flex-shrink-0" />
+                        <span className="line-clamp-1">
+                          {service.location || "Location not specified"}
+                        </span>
+                      </div>
+
+                      {/* Timing */}
+                      <div className="flex items-center text-xs md:text-sm mb-3">
+                        <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1.5 text-gray-400 flex-shrink-0" />
+                        <span className="text-green-600 font-medium">Open</span>
+                        <span className="text-gray-400 mx-1">·</span>
+                        <span className="text-gray-500">9AM - 9PM</span>
+                      </div>
+
+                      {/* Reviews & Price */}
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                        <span className="text-gray-500 text-xs md:text-sm">
+                          {reviewCount} Reviews
+                        </span>
+                        {service.price && (
+                          <span className="text-green-600 font-semibold text-sm md:text-base">
+                            ₹{service.price.toLocaleString("en-IN")}+
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Action Button */}
+                    <div className="px-3 md:px-4 pb-3 md:pb-4">
+                      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm md:text-base">
+                        <Phone className="w-4 h-4" />
+                        Contact Now
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
-        
-        {/* Global CTA - Now navigates to /services */}
-        <div className="text-center mt-16">
-            <Button 
-                onClick={handleBrowseAll} // 💡 New click handler
-                variant="outline" 
-                className="text-lg font-semibold py-6 px-10 border-2 border-primary text-primary hover:bg-primary/10 group"
-            >
-                {t('pages.home.browseAllServices')}
-                <ArrowRight className="w-5 h-5 ml-3 group-hover:translate-x-1 transition-transform" />
-            </Button>
+
+        {/* View All */}
+        <div className="text-center mt-6 md:mt-8">
+          <button
+            onClick={handleBrowseAll}
+            className="inline-flex items-center gap-2 px-5 md:px-6 py-2 md:py-2.5 border-2 border-blue-600 text-blue-600 font-medium rounded-full hover:bg-blue-600 hover:text-white transition-colors text-sm md:text-base"
+          >
+            View All Services
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </section>

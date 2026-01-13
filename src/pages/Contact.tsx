@@ -29,38 +29,35 @@ const Contact = () => {
   const contactMethods = [
     {
       icon: Mail,
-      title: t("pages.contact.emailUs", "Email Us"),
-      description: t(
-        "pages.contact.sendEmailAnytime",
-        "Send us an email anytime"
-      ),
+      title: t("pages.contact.emailUs"),
+      description: t("pages.contact.sendEmailAnytime"),
       details: ["solutions.niyati@gmail.com"],
-      color: "from-orange-500 to-rose-500",
+      color: "from-blue-500 to-blue-600",
     },
     {
       icon: Phone,
-      title: t("pages.contact.callUs", "Call Us"),
-      description: t("pages.contact.speakWithTeam", "Speak with our team"),
+      title: t("pages.contact.callUs"),
+      description: t("pages.contact.speakWithTeam"),
       details: ["+91 78798 84363"],
-      color: "from-rose-500 to-pink-500",
+      color: "from-blue-600 to-blue-700",
     },
     {
       icon: MapPin,
-      title: t("pages.contact.visitUs", "Visit Us"),
-      description: t("pages.contact.comeToOffice", "Come to our office"),
+      title: t("pages.contact.visitUs"),
+      description: t("pages.contact.comeToOffice"),
       details: ["104, RNT Complex Opp Excellence School Sagar", "India"],
-      color: "from-amber-500 to-orange-500",
+      color: "from-blue-500 to-blue-600",
     },
     {
       icon: Clock,
       title: t("pages.contact.businessHours"),
-      description: t("pages.contact.weAreAvailable", "We're available"),
+      description: t("pages.contact.weAreAvailable"),
       details: [
         "Mon - Fri: 9:00 AM - 7:00 PM",
         "Sat: 10:00 AM - 4:00 PM",
         "Sun: Closed",
       ],
-      color: "from-emerald-500 to-teal-500",
+      color: "from-blue-600 to-blue-700",
     },
   ];
 
@@ -68,23 +65,17 @@ const Contact = () => {
     {
       icon: MessageCircle,
       title: t("pages.support.livechat"),
-      description: t(
-        "pages.contact.chatWithSupport",
-        "Chat with our support team"
-      ),
+      description: t("pages.contact.chatWithSupport"),
     },
     {
       icon: HeadphonesIcon,
-      title: t("pages.contact.scheduleCall", "Schedule Call"),
-      description: t("pages.contact.bookConsultation", "Book a consultation"),
+      title: t("pages.contact.scheduleCall"),
+      description: t("pages.contact.bookConsultation"),
     },
     {
       icon: Globe,
       title: t("pages.support.helpCenter"),
-      description: t(
-        "pages.contact.browseKnowledge",
-        "Browse our knowledge base"
-      ),
+      description: t("pages.contact.browseKnowledge"),
     },
   ];
 
@@ -93,12 +84,12 @@ const Contact = () => {
       {/* Animated Background */}
       <div className="fixed inset-0 -z-10">
         <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-rose-50"
+          className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-50"
           animate={{
             background: [
-              "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fef7ff 100%)",
-              "linear-gradient(135deg, #fef7ff 0%, #ffffff 50%, #fff7ed 100%)",
-              "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fef7ff 100%)",
+              "linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #eff6ff 100%)",
+              "linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #eff6ff 100%)",
+              "linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #eff6ff 100%)",
             ],
           }}
           transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
@@ -114,7 +105,7 @@ const Contact = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 1 }}
-          className="py-12 bg-gradient-to-br from-orange-50/80 via-white to-rose-50/80 relative overflow-hidden"
+          className="py-12 bg-gradient-to-br from-blue-50/80 via-white to-blue-50/80 relative overflow-hidden"
         >
           <AnimatedBackground variant="dots" />
           <div className="absolute inset-0 bg-white/70 backdrop-blur-sm"></div>
@@ -127,13 +118,10 @@ const Contact = () => {
             >
               <h1 className="text-5xl md:text-7xl font-bold mb-6">
                 {t("pages.contact.getInTouch")}{" "}
-                <span className="bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent"></span>
+                <span className="bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent"></span>
               </h1>
               <p className="text-xl md:text-2xl text-gray-600 leading-relaxed">
-                {t(
-                  "pages.contact.heroDescription",
-                  "Have a question or ready to start your project? We'd love to hear from you and help bring your vision to life."
-                )}
+                {t("pages.contact.heroDescription")}
               </p>
             </motion.div>
           </div>
@@ -145,7 +133,7 @@ const Contact = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="py-10 bg-gradient-to-r from-white via-orange-50/30 to-rose-50/30 relative"
+          className="py-10 bg-gradient-to-r from-white via-blue-50/30 to-blue-50/30 relative"
         >
           <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
           <div className="container mx-auto px-4 relative z-10">
@@ -160,7 +148,7 @@ const Contact = () => {
                   whileHover={{ scale: 1.05, y: -5 }}
                   className="text-center p-6 bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-100 cursor-pointer group"
                 >
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-orange-500 to-rose-500 flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <action.icon className="text-white" size={28} />
                   </div>
                   <h3 className="text-xl font-bold mb-2 text-gray-900">
@@ -179,7 +167,7 @@ const Contact = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="py-12 bg-gradient-to-br from-white via-rose-50/30 to-orange-50/30 relative overflow-hidden"
+          className="py-12 bg-gradient-to-br from-white via-blue-50/30 to-blue-50/30 relative overflow-hidden"
         >
           <AnimatedBackground variant="particles" />
           <div className="absolute inset-0 bg-white/85 backdrop-blur-sm"></div>
@@ -193,28 +181,28 @@ const Contact = () => {
                 transition={{ duration: 0.8 }}
                 className="bg-white rounded-3xl p-8 shadow-2xl border border-gray-100"
               >
-                <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
+                <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
                   {t("pages.contact.sendMessage")}
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-700">
-                        {t("pages.signup.firstName")} *
+                        {t("pages.contact.firstName")} *
                       </label>
                       <Input
                         placeholder="John"
-                        className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
+                        className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold mb-2 text-gray-700">
-                        {t("pages.signup.lastName")} *
+                        {t("pages.contact.lastName")} *
                       </label>
                       <Input
                         placeholder="Doe"
-                        className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
+                        className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                         required
                       />
                     </div>
@@ -226,18 +214,18 @@ const Contact = () => {
                     <Input
                       type="email"
                       placeholder={t("forms.placeholders.enterEmail")}
-                      className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
+                      className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      {t("pages.signup.phone")}
+                      {t("pages.contact.phone")}
                     </label>
                     <Input
                       type="tel"
                       placeholder={t("forms.placeholders.enterPhone")}
-                      className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
+                      className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                     />
                   </div>
                   <div>
@@ -245,11 +233,8 @@ const Contact = () => {
                       {t("pages.contact.subject")} *
                     </label>
                     <Input
-                      placeholder={t(
-                        "pages.contact.howCanWeHelp",
-                        "How can we help you?"
-                      )}
-                      className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl h-12"
+                      placeholder={t("pages.contact.howCanWeHelp")}
+                      className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                       required
                     />
                   </div>
@@ -259,7 +244,7 @@ const Contact = () => {
                     </label>
                     <Textarea
                       placeholder={t("forms.placeholders.enterMessage")}
-                      className="bg-gray-50 border-gray-200 focus:border-orange-500 focus:ring-orange-500 rounded-xl min-h-[150px] resize-none"
+                      className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl min-h-[150px] resize-none"
                       required
                     />
                   </div>
@@ -267,7 +252,7 @@ const Contact = () => {
                     type="submit"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
                   >
                     <Send size={20} />
                     {t("pages.contact.sendNow")}
@@ -282,14 +267,11 @@ const Contact = () => {
                 viewport={{ once: true }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               >
-                <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                  {t("pages.contact.letsConnect", "Let's Connect")}
+                <h2 className="text-3xl md:text-4xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                  {t("pages.contact.letsConnect")}
                 </h2>
                 <p className="text-lg text-gray-600 mb-8 leading-relaxed">
-                  {t(
-                    "pages.contact.connectDescription",
-                    "We're here to help and answer any question you might have. We look forward to hearing from you and discussing how we can help bring your ideas to life."
-                  )}
+                  {t("pages.contact.connectDescription")}
                 </p>
 
                 <div className="space-y-6">
@@ -338,7 +320,7 @@ const Contact = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.8 }}
-          className="py-12 bg-gradient-to-br from-gray-50 via-white to-orange-50/30 relative"
+          className="py-12 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 relative"
         >
           <div className="absolute inset-0 bg-white/90 backdrop-blur-sm"></div>
           <div className="container mx-auto px-4 relative z-10">
@@ -349,14 +331,11 @@ const Contact = () => {
               transition={{ duration: 0.6 }}
               className="text-center mb-8"
             >
-              <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-orange-600 to-rose-600 bg-clip-text text-transparent">
-                {t("pages.contact.findOffice", "Find Our Office")}
+              <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-blue-700 bg-clip-text text-transparent">
+                {t("pages.contact.findOffice")}
               </h2>
               <p className="text-xl text-gray-600">
-                {t(
-                  "pages.contact.visitHeadquarters",
-                  "Visit us at our headquarters in 104, RNT Complex Opp Excellence School Sagar"
-                )}
+                {t("pages.contact.visitHeadquarters")}
               </p>
             </motion.div>
             <div className="max-w-6xl mx-auto">
@@ -365,10 +344,10 @@ const Contact = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.8 }}
-                className="rounded-3xl overflow-hidden border border-gray-200 h-96 bg-gradient-to-br from-orange-100 to-rose-100 flex items-center justify-center shadow-2xl"
+                className="rounded-3xl overflow-hidden border border-gray-200 h-96 bg-gradient-to-br from-blue-100 to-blue-200 flex items-center justify-center shadow-2xl"
               >
                 <div className="text-center">
-                  <MapPin className="w-16 h-16 text-orange-500 mx-auto mb-4" />
+                  <MapPin className="w-16 h-16 text-blue-600 mx-auto mb-4" />
                   <p className="text-xl font-semibold text-gray-700 mb-2">
                     Interactive Map
                   </p>

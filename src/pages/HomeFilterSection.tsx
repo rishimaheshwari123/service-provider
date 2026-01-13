@@ -26,27 +26,27 @@ const HomeFilterSection = () => {
     category: "all",
   });
 
-  const [categories, setCategories] = useState([]);
+  const [categories, setCategories] = useState<any[]>([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCategories = async () => {
       const data = await getAllCategoriesAPI();
-      setCategories(data);
+      setCategories(data || []);
     };
     fetchCategories();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
   };
 
-  const handlePriceChange = (value) => {
+  const handlePriceChange = (value: number[]) => {
     setFilters({ ...filters, price: value });
   };
 
-  const handleCategoryChange = (value) => {
+  const handleCategoryChange = (value: string) => {
     setFilters({ ...filters, category: value });
   };
 
@@ -64,72 +64,85 @@ const HomeFilterSection = () => {
     navigate(`/services?${params.toString()}`);
   };
 
-  const formatPrice = (price) => `₹${price.toLocaleString('en-IN')}`;
+  const formatPrice = (price: number) => `₹${price.toLocaleString("en-IN")}`;
 
   return (
-    <div className="w-full py-16 px-4 mb-10 hidden">
+    <div className="w-full py-8 md:py-12 px-4">
       <div className="max-w-7xl mx-auto">
-        
         {/* Title & Description */}
-        <div className="text-center mb-12">
-          <p className="text-sm font-semibold text-primary uppercase tracking-wider">
-            {t('filter.smartFilter')}
+        <div className="text-center mb-8">
+          <p className="text-sm font-semibold text-blue-600 uppercase tracking-wider">
+            {t("filter.smartFilter", "SMART FILTER")}
           </p>
-          <h2 className="text-4xl font-extrabold text-gray-900 dark:text-white mt-2">
-            {t('filter.refineSearch')}
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mt-2">
+            {t("filter.refineSearch", "Refine Your Service Search")}
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto mt-3">
-            {t('filter.useAdvancedFilters')}
+          <p className="text-gray-600 max-w-2xl mx-auto mt-2">
+            {t(
+              "filter.useAdvancedFilters",
+              "Use advanced filters to pinpoint the exact professional you need."
+            )}
           </p>
         </div>
 
-        {/* Filter Layout - Two Card Structure */}
+        {/* Filter Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          
-          {/* Card 1: Core Inputs (2/3 width) */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 sm:p-8 rounded-xl shadow-2xl border border-gray-100 dark:border-gray-700">
-            <h3 className="text-xl font-bold mb-4 flex items-center text-gray-800 dark:text-white">
-                <Search className="w-5 h-5 mr-2 text-primary" />
-                {t('filter.whatLookingFor')}
+          {/* Card 1: Core Inputs */}
+          <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg border border-gray-100">
+            <h3 className="text-lg font-bold mb-4 flex items-center text-gray-800">
+              <Search className="w-5 h-5 mr-2 text-blue-600" />
+              {t("filter.whatLookingFor", "What Are You Looking For?")}
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              
               {/* Service Title Search */}
-              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg focus-within:ring-2 focus-within:ring-primary transition-shadow bg-white dark:bg-gray-900">
-                <Tag className="w-5 h-5 ml-3 text-gray-500 flex-shrink-0" />
+              <div className="flex items-center border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-blue-600 transition-shadow bg-gray-50">
+                <Tag className="w-5 h-5 ml-3 text-gray-400 flex-shrink-0" />
                 <Input
                   type="text"
                   name="title"
                   value={filters.title}
                   onChange={handleChange}
-                  placeholder={t('filter.serviceNameKeyword')}
-                  className="border-none shadow-none focus-visible:ring-0 text-base py-3 bg-transparent"
+                  placeholder={t(
+                    "filter.serviceNameKeyword",
+                    "Service Name/Keyword"
+                  )}
+                  className="border-none shadow-none focus-visible:ring-0 text-sm py-3 bg-transparent"
                 />
               </div>
 
               {/* Location Search */}
-              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg focus-within:ring-2 focus-within:ring-primary transition-shadow bg-white dark:bg-gray-900">
-                <MapPin className="w-5 h-5 ml-3 text-gray-500 flex-shrink-0" />
+              <div className="flex items-center border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-blue-600 transition-shadow bg-gray-50">
+                <MapPin className="w-5 h-5 ml-3 text-gray-400 flex-shrink-0" />
                 <Input
                   type="text"
                   name="location"
                   value={filters.location}
                   onChange={handleChange}
-                  placeholder={t('filter.locationPlaceholder')}
-                  className="border-none shadow-none focus-visible:ring-0 text-base py-3 bg-transparent"
+                  placeholder={t(
+                    "filter.locationPlaceholder",
+                    "Location (City or State)"
+                  )}
+                  className="border-none shadow-none focus-visible:ring-0 text-sm py-3 bg-transparent"
                 />
               </div>
 
               {/* Category Select */}
-              <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg focus-within:ring-2 focus-within:ring-primary transition-shadow bg-white dark:bg-gray-900">
-                <Briefcase className="w-5 h-5 ml-3 text-gray-500 flex-shrink-0" />
-                <Select value={filters.category} onValueChange={handleCategoryChange}>
-                  <SelectTrigger className="w-full border-none shadow-none focus:ring-0 text-base py-3 h-full bg-transparent">
-                    <SelectValue placeholder={t('filter.selectCategory')} />
+              <div className="flex items-center border border-gray-200 rounded-lg focus-within:ring-2 focus-within:ring-blue-600 transition-shadow bg-gray-50">
+                <Briefcase className="w-5 h-5 ml-3 text-gray-400 flex-shrink-0" />
+                <Select
+                  value={filters.category}
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger className="w-full border-none shadow-none focus:ring-0 text-sm py-3 h-full bg-transparent">
+                    <SelectValue
+                      placeholder={t("filter.selectCategory", "All Categories")}
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">⭐ {t('pages.home.allCategories')}</SelectItem>
+                    <SelectItem value="all">
+                      ⭐ {t("pages.home.allCategories", "All Categories")}
+                    </SelectItem>
                     {categories.length > 0 ? (
                       categories.map((cat) => (
                         <SelectItem key={cat._id} value={cat.name}>
@@ -137,62 +150,66 @@ const HomeFilterSection = () => {
                         </SelectItem>
                       ))
                     ) : (
-                      <SelectItem value="loading" disabled>{t('pages.home.loadingCategories')}...</SelectItem>
+                      <SelectItem value="loading" disabled>
+                        {t("pages.home.loadingCategories", "Loading")}...
+                      </SelectItem>
                     )}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            
-            {/* Price Slider Section - Dual Handle */}
-            <div className="mt-8 pt-4 border-t border-dashed border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center">
-                        <IndianRupee className="w-5 h-5 text-gray-600 dark:text-gray-400 mr-2" />
-                        <label className="text-base font-semibold text-gray-800 dark:text-white">
-                            {t('filter.budgetRange')}
-                        </label>
-                    </div>
-                    <span className="text-xl font-bold text-primary dark:text-blue-400 bg-primary/10 dark:bg-blue-900/50 px-3 py-1 rounded-full">
-                        {formatPrice(filters.price[0])} - {formatPrice(filters.price[1])}
-                    </span>
-                </div>
 
-                {/* Dual Handle Slider */}
-                <Slider
-                  min={MIN_PRICE_LIMIT}
-                  max={MAX_PRICE_LIMIT}
-                  step={1000}
-                  value={filters.price}
-                  onValueChange={handlePriceChange}
-                  className="w-full"
-                />
-                
-                <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  <span>{formatPrice(MIN_PRICE_LIMIT)}</span>
-                  <span>{formatPrice(MAX_PRICE_LIMIT)}</span>
+            {/* Price Slider Section */}
+            <div className="mt-6 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <IndianRupee className="w-4 h-4 text-gray-500 mr-2" />
+                  <label className="text-sm font-semibold text-gray-800">
+                    {t("filter.budgetRange", "Budget Range")}
+                  </label>
                 </div>
+                <span className="text-sm font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full">
+                  {formatPrice(filters.price[0])} -{" "}
+                  {formatPrice(filters.price[1])}
+                </span>
+              </div>
+
+              <Slider
+                min={MIN_PRICE_LIMIT}
+                max={MAX_PRICE_LIMIT}
+                step={1000}
+                value={filters.price}
+                onValueChange={handlePriceChange}
+                className="w-full"
+              />
+
+              <div className="flex justify-between text-xs text-gray-400 mt-2">
+                <span>{formatPrice(MIN_PRICE_LIMIT)}</span>
+                <span>{formatPrice(MAX_PRICE_LIMIT)}</span>
+              </div>
             </div>
           </div>
-          
-          {/* Card 2: CTA/Search Button (1/3 width) */}
-          <div className="lg:col-span-1 flex flex-col justify-center items-center bg-primary dark:bg-blue-700 p-8 rounded-xl shadow-2xl shadow-primary/40 dark:shadow-blue-700/50">
-            <Search className="w-12 h-12 text-white mb-4" />
-            <h3 className="text-2xl font-bold text-white mb-2 text-center">
-                {t('filter.readyToFind')}
+
+          {/* Card 2: CTA/Search Button - Blue Theme */}
+          <div className="lg:col-span-1 flex flex-col justify-center items-center bg-blue-600 p-6 rounded-xl shadow-lg">
+            <Search className="w-10 h-10 text-white mb-3" />
+            <h3 className="text-xl font-bold text-white mb-2 text-center">
+              {t("filter.readyToFind", "Ready to Find?")}
             </h3>
-            <p className="text-white/80 text-center mb-6">
-                {t('filter.clickToSeeServices')}
+            <p className="text-white/80 text-sm text-center mb-4">
+              {t(
+                "filter.clickToSeeServices",
+                "Click the button to see services matching your criteria."
+              )}
             </p>
             <Button
               onClick={handleSearch}
-              className="w-full bg-white text-primary text-xl font-extrabold hover:bg-gray-100 transition-all shadow-lg py-7"
+              className="w-full bg-white text-blue-600 font-bold hover:bg-gray-100 transition-all py-3"
             >
-              <Search className="w-6 h-6 mr-3" />
-              {t('filter.startSearching')}
+              <Search className="w-5 h-5 mr-2" />
+              {t("filter.startSearching", "Start Searching")}
             </Button>
           </div>
-          
         </div>
       </div>
     </div>
