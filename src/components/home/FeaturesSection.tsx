@@ -9,94 +9,112 @@ import {
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-// **NOTE:** Ensure your project has the 'gradient-text' and relevant animation classes defined.
-
 const FeaturesSection = () => {
   const { t } = useTranslation();
-  
+
   const features = [
     {
       icon: Zap,
-      title: t('pages.home.instantHiring'),
-      description: t('pages.home.instantHiringDesc'),
+      title: t("pages.home.instantHiring", "Instant Hiring"),
+      description: t(
+        "pages.home.instantHiringDesc",
+        "Post your requirement and receive competitive proposals from qualified experts within just a few hours."
+      ),
     },
     {
       icon: Shield,
-      title: t('pages.home.secureEscrow'),
-      description: t('pages.home.secureEscrowDesc'),
+      title: t("pages.home.secureEscrow", "Secure Escrow"),
+      description: t(
+        "pages.home.secureEscrowDesc",
+        "Payments are held securely in escrow and released only upon your complete satisfaction with the delivered work."
+      ),
     },
     {
       icon: Rocket,
-      title: t('pages.home.highQualityOutput'),
-      description: t('pages.home.highQualityOutputDesc'),
+      title: t("pages.home.highQualityOutput", "High Quality Output"),
+      description: t(
+        "pages.home.highQualityOutputDesc",
+        "Work exclusively with pre-vetted professionals who have verifiable records of delivering excellent results."
+      ),
     },
     {
       icon: HeadphonesIcon,
-      title: t('pages.home.expertSupport'),
-      description: t('pages.home.expertSupportDesc'),
+      title: t("pages.home.expertSupport", "24/7 Expert Support"),
+      description: t(
+        "pages.home.expertSupportDesc",
+        "Our dedicated support team is available around the clock to assist you with any queries or concerns."
+      ),
     },
     {
       icon: TrendingUp,
-      title: t('pages.home.transparentPricing'),
-      description: t('pages.home.transparentPricingDesc'),
+      title: t("pages.home.transparentPricing", "Transparent Pricing"),
+      description: t(
+        "pages.home.transparentPricingDesc",
+        "No hidden fees or surprises. Get clear, upfront pricing for all services before you commit."
+      ),
     },
     {
       icon: Clock,
-      title: t('pages.home.timeSavings'),
-      description: t('pages.home.timeSavingsDesc'),
+      title: t("pages.home.timeSavings", "Maximized Time Savings"),
+      description: t(
+        "pages.home.timeSavingsDesc",
+        "Save valuable time with our streamlined process that connects you with the right professionals quickly."
+      ),
     },
   ];
 
   return (
-    // Increased padding for better visual separation
-    <section id="features" className="py-5 md:py-5 ">
+    <section id="features" className="py-5 md:py-8">
       <div className="container mx-auto px-4">
-        
         {/* Header Section */}
-        <div className="max-w-4xl mx-auto text-center mb-16 animate-fade-in-up">
-          <p className="text-sm font-semibold text-primary uppercase tracking-widest mb-2">
-            {t('pages.home.whyHireOnPlatform')}
+        <div className="max-w-3xl mx-auto text-center mb-12">
+          <p className="text-sm font-semibold text-blue-600 uppercase tracking-widest mb-2">
+            {t("pages.home.whyHireOnPlatform", "WHY HIRE ON OUR PLATFORM")}
           </p>
-          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
-            {t('pages.home.unlockBenefits')} <span className="gradient-text">{t('pages.home.benefits')}</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            {t("pages.home.unlockBenefits", "Unlock Key")}{" "}
+            <span className="text-blue-600">
+              {t("pages.home.benefits", "Benefits")}
+            </span>
           </h2>
-          <p className="text-xl text-gray-600 dark:text-gray-300">
-            {t('pages.home.platformDescription')}
+          <p className="text-gray-600">
+            {t(
+              "pages.home.platformDescription",
+              "We provide all the tools and assurance needed to find, hire, and manage top-tier talent effortlessly."
+            )}
           </p>
         </div>
 
-        {/* Features Grid - 3-Column Layout with Advanced Styling */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Features Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature, index) => (
             <div
               key={index}
-              // Card Styling: Clean, prominent shadow, and lift on hover
-              className="group p-8 rounded-2xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 transition-all duration-500 shadow-xl shadow-gray-200/50 dark:shadow-black/20 transform hover:-translate-y-2 hover:border-primary animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
+              className="group p-6 rounded-xl bg-white border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300"
             >
-              {/* Icon Container: Vibrant, primary color background with subtle shadow */}
-              <div className="w-14 h-14 rounded-xl gradient-primary flex items-center justify-center mb-5 shadow-lg shadow-primary/30 transition-transform duration-500 group-hover:scale-105">
-                <feature.icon className="text-white" size={28} strokeWidth={2.5} />
+              {/* Icon */}
+              <div className="w-12 h-12 rounded-lg bg-blue-600 flex items-center justify-center mb-4">
+                <feature.icon className="text-white w-6 h-6" />
               </div>
-              
-              <h3 className="text-2xl font-bold mb-3 text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+
+              <h3 className="text-lg font-bold mb-2 text-gray-900 group-hover:text-blue-600 transition-colors">
                 {feature.title}
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-base">
-                {feature.description}
-              </p>
+              <p className="text-gray-600 text-sm">{feature.description}</p>
             </div>
           ))}
         </div>
-        
-        {/* Optional: Add a subtle CTA at the bottom */}
-        <div className="mt-16 text-center">
-             <p className="text-lg font-medium text-gray-700 dark:text-gray-300 flex items-center justify-center gap-3">
-                 <CheckCircle className="w-6 h-6 text-green-500" />
-                 {t('pages.home.readyToExperience')}
-             </p>
-        </div>
 
+        {/* Bottom CTA */}
+        <div className="mt-10 text-center">
+          <p className="text-gray-700 flex items-center justify-center gap-2">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            {t(
+              "pages.home.readyToExperience",
+              "Ready to experience the difference? Get started today!"
+            )}
+          </p>
+        </div>
       </div>
     </section>
   );
