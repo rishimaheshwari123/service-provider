@@ -455,7 +455,7 @@ const CustomerSupport = () => {
                   <h3 className="text-xl font-bold mb-2">
                     {t("support.emailSupportTitle")}
                   </h3>
-                  <p className="opacity-90 mb-2">support@hireexpert.com</p>
+                  <p className="opacity-90 mb-2">solutions.niyati@gmail.com</p>
                   <p className="text-sm opacity-75">
                     {t("support.responseWithin24")}
                   </p>
