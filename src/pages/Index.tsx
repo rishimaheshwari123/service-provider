@@ -135,9 +135,9 @@ const Index = () => {
           </section>
 
           {/* Filter Section */}
-          <section className="py-4 md:py-6 bg-gray-50">
+          {/* <section className="py-4 md:py-6 bg-gray-50">
             <HomeFilterSection />
-          </section>
+          </section> */}
 
           {/* Features Section */}
           <section className="py-6 md:py-10 bg-white">

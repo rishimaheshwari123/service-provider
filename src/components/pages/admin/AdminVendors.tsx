@@ -1711,27 +1711,31 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Name:</span>
-                      <span>{selectedVendor.name}</span>
+                      <span>{selectedVendor.name || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Email:</span>
-                      <span>{selectedVendor.email}</span>
+                      <span>{selectedVendor.email || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Phone:</span>
-                      <span>{selectedVendor.phone}</span>
+                      <span>{selectedVendor.phone || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Company:</span>
-                      <span>{selectedVendor.company}</span>
+                      <span>{selectedVendor.company || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Address:</span>
-                      <span>{selectedVendor.address || "-"}</span>
+                      <span>{selectedVendor.address || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Description:</span>
+                      <span className="text-sm">{selectedVendor.description || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Status:</span>
@@ -1760,31 +1764,39 @@ const VendorManagement = () => {
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Type of Service:</span>
-                      <span>{selectedVendor.typeOfService || "-"}</span>
+                      <span>{selectedVendor.typeOfService || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Category:</span>
-                      <span>{selectedVendor.subCategory || "-"}</span>
+                      <span>{selectedVendor.subCategory || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Service Location:</span>
-                      <span>{selectedVendor.serviceLocation || "-"}</span>
+                      <span>{selectedVendor.serviceLocation || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Business Type:</span>
-                      <span>{selectedVendor.businessType || "-"}</span>
+                      <span>{selectedVendor.businessType || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Year Established:</span>
-                      <span>{selectedVendor.yearOfEstablishment || "-"}</span>
+                      <span>{selectedVendor.yearOfEstablishment || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Working Hours:</span>
-                      <span>{selectedVendor.workingDaysTimings || "-"}</span>
+                      <span>{selectedVendor.workingDaysTimings || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Staff Count:</span>
-                      <span>{selectedVendor.numberOfStaff || "-"}</span>
+                      <span>{selectedVendor.numberOfStaff || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Experience:</span>
+                      <span>{selectedVendor.experience?.totalYears ? `${selectedVendor.experience.totalYears} Years` : "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Services Offered:</span>
+                      <span>{selectedVendor.experience?.fields?.length > 0 ? selectedVendor.experience.fields.join(", ") : "Not Added"}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1800,27 +1812,27 @@ const VendorManagement = () => {
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">WhatsApp:</span>
-                      <span>{selectedVendor.whatsappNumber || "-"}</span>
+                      <span>{selectedVendor.whatsappNumber || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Alternate Phone:</span>
-                      <span>{selectedVendor.alternatePhone || "-"}</span>
+                      <span>{selectedVendor.alternatePhone || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">GST Number:</span>
-                      <span>{selectedVendor.gstNumber || "-"}</span>
+                      <span>{selectedVendor.gstNumber || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Trade License:</span>
-                      <span>{selectedVendor.tradeLicense || "-"}</span>
+                      <span>{selectedVendor.tradeLicense || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Referral Code:</span>
-                      <span>{selectedVendor.referralCode || "-"}</span>
+                      <span>{selectedVendor.referralCode || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Referral Name:</span>
-                      <span>{selectedVendor.referralName || "-"}</span>
+                      <span>{selectedVendor.referralName || "Not Added"}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1836,15 +1848,43 @@ const VendorManagement = () => {
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Aadhaar:</span>
-                      <span>{selectedVendor.adhar || "-"}</span>
+                      <span>{selectedVendor.adhar || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">PAN:</span>
-                      <span>{selectedVendor.pan || "-"}</span>
+                      <span>{selectedVendor.pan || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Commission:</span>
-                      <span>{selectedVendor.percentage ? `${selectedVendor.percentage}%` : "-"}</span>
+                      <span>{selectedVendor.percentage ? `${selectedVendor.percentage}%` : "Not Added"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Bank Details Card - NEW */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-indigo-600" />
+                      Bank Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Bank Name:</span>
+                      <span>{selectedVendor.bankDetail?.branch || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Account Holder:</span>
+                      <span>{selectedVendor.bankDetail?.accountHolderName || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Account Number:</span>
+                      <span>{selectedVendor.bankDetail?.accountNumber || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">IFSC Code:</span>
+                      <span>{selectedVendor.bankDetail?.IFSC || "Not Added"}</span>
                     </div>
                   </CardContent>
                 </Card>

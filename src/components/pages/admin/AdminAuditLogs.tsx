@@ -1,26 +1,26 @@
 import { useState, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/redux/store";
 import { getAuditLogsAPI } from "@/service/operations/audit";
 import { Loader2 } from "lucide-react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 interface AuditLog {
   _id: string;
   userId?: {
+    _id?: string;
     name: string;
     email: string;
     phone?: string;
-  };
+  } | null;
   propertyId?: {
+    _id?: string;
     title?: string;
     vendor?: {
+      _id?: string;
       name?: string;
       company?: string;
       phone?: string;
-    };
-  };
+    } | null;
+  } | null;
   type?: string;
   createdAt: string;
 }
@@ -32,12 +32,12 @@ const AdminAuditLogs = () => {
   const [loading, setLoading] = useState(false);
   const limit = 50;
 
-  // Vendor ID derived from logged-in user
-
   const fetchLogs = async (nextPage = 1) => {
     setLoading(true);
     try {
       const data = await getAuditLogsAPI(nextPage, limit, "");
+      console.log("Audit Logs Response:", data);
+      console.log("First log sample:", data.logs?.[0]);
       if (nextPage === 1) setLogs(data.logs);
       else setLogs((prev) => [...prev, ...data.logs]);
 
@@ -54,35 +54,29 @@ const AdminAuditLogs = () => {
     fetchLogs(1);
   }, []);
 
-  const downloadPDF = () => {
-    const doc = new jsPDF();
+  const downloadExcel = () => {
+    const data = logs.map((log) => ({
+      "User Name": log.userId?.name || "Not Added",
+      "User Email": log.userId?.email || "Not Added",
+      "User Phone": log.userId?.phone || "Not Added",
+      "Property": log.propertyId?.title || "Deleted/Not Found",
+      "Vendor Name": log.propertyId?.vendor?.name || "Not Added",
+      "Vendor Company": log.propertyId?.vendor?.company || "Not Added",
+      "Vendor Phone": log.propertyId?.vendor?.phone || "Not Added",
+      "Type": log.type || "Normal business click",
+      "Created At": new Date(log.createdAt).toLocaleString(),
+    }));
 
-    const head = [
-      [
-        "User",
-        "Email",
-        "User Phone",
-        "Property",
-        "Vendor",
-        "Vendor Phone",
-        "Type",
-        "Created At",
-      ],
-    ];
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Logs");
+    
+    // Auto-size columns
+    const maxWidth = 30;
+    const colWidths = Object.keys(data[0] || {}).map(() => ({ wch: maxWidth }));
+    worksheet["!cols"] = colWidths;
 
-    const body = logs.map((log) => [
-      log.userId?.name || "-",
-      log.userId?.email || "-",
-      log.userId?.phone || "-",
-      log.propertyId?.title || "-",
-      log.propertyId?.vendor?.name || "-",
-      log.propertyId?.vendor?.phone || "-",
-      log.type || "Normal business click",
-      new Date(log.createdAt).toLocaleString(),
-    ]);
-
-    autoTable(doc, { head, body });
-    doc.save("audit-logs.pdf");
+    XLSX.writeFile(workbook, "audit-logs.xlsx");
   };
 
   return (
@@ -91,9 +85,9 @@ const AdminAuditLogs = () => {
         <h1 className="text-2xl font-bold">Audit Logs</h1>
         <button
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-          onClick={downloadPDF}
+          onClick={downloadExcel}
         >
-          Download PDF
+          Download Excel
         </button>
       </div>
 
@@ -104,19 +98,23 @@ const AdminAuditLogs = () => {
             className="border p-3 rounded shadow-sm bg-gray-50"
           >
             <p>
-              <strong>User:</strong> {log.userId?.name || "-"} (
-              {log.userId?.email || "-"}) 📞 {log.userId?.phone || "-"}
+              <strong>User:</strong> {log.userId?.name || "Not Added"} (
+              {log.userId?.email || "Not Added"}) 📞 {log.userId?.phone || "Not Added"}
             </p>
 
             <p>
-              <strong>Property:</strong> {log.propertyId?.title || "-"}
+              <strong>Property:</strong> {log.propertyId?.title || "Deleted/Not Found"}
             </p>
 
-            {log.propertyId?.vendor && (
+            {log.propertyId?.vendor ? (
               <p>
-                <strong>Vendor:</strong> {log.propertyId.vendor.name || "-"} (
-                {log.propertyId.vendor.company || "-"}) 📞{" "}
-                {log.propertyId.vendor.phone || "-"}
+                <strong>Vendor:</strong> {log.propertyId.vendor.name || "Not Added"} (
+                {log.propertyId.vendor.company || "Not Added"}) 📞{" "}
+                {log.propertyId.vendor.phone || "Not Added"}
+              </p>
+            ) : (
+              <p>
+                <strong>Vendor:</strong> Not Added
               </p>
             )}
 
