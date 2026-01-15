@@ -18,6 +18,7 @@ const TopSearchBar = () => {
   const [filters, setFilters] = useState({
     category: "all",
     location: "",
+    search: "",
   });
   const [categories, setCategories] = useState<any[]>([]);
   const navigate = useNavigate();
@@ -43,7 +44,8 @@ const TopSearchBar = () => {
     const params = new URLSearchParams();
     if (filters.category && filters.category !== "all")
       params.append("category", filters.category);
-    if (filters.location) params.append("location", filters.location);
+    if (filters.location) params.append("search", filters.location);
+    if (filters.search) params.append("search", filters.search);
     navigate(`/services?${params.toString()}`);
   };
 
@@ -84,18 +86,15 @@ const TopSearchBar = () => {
           </Select>
         </div>
 
-        {/* Location Input */}
+        {/* Search Input */}
         <div className="flex items-center flex-1 px-4 border-r border-gray-200 focus-within:ring-2 focus-within:ring-blue-600 focus-within:z-10 transition-shadow">
-          <MapPin className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+          <Search className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
           <Input
             type="text"
             name="location"
             value={filters.location}
             onChange={handleChange}
-            placeholder={t(
-              "pages.home.enterLocation",
-              "Enter City, State, or Zip Code"
-            )}
+            placeholder="Search your service..."
             className="w-full h-full border-none shadow-none focus-visible:ring-0 placeholder:text-gray-400 text-base"
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSearch();

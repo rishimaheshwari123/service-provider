@@ -113,8 +113,10 @@ const ManageCategories = () => {
       categoryId: currentCategory._id,
       paymentMethod,
       transactionId: paymentMethod === "qr" ? transactionId : "",
+      assignedByAdmin: true, // Admin assign kare to direct approve
     });
     setAssignOpen(false);
+    await load(); // Refresh data
   };
 
   const approve = async (purchaseId: string) => {
@@ -574,19 +576,19 @@ const ManageCategories = () => {
                 {/* ✅ ONLY MATCHED RESULTS */}
                 {vendors
                   .filter((v) =>
-                    `${v.name} ${v.company ?? ""}`
+                    `${v.name} ${v.company ?? ""} ${v.email ?? ""}`
                       .toLowerCase()
                       .includes(searchText.toLowerCase())
                   )
                   .map((v) => (
                     <SelectItem key={v._id} value={v._id}>
-                      {v.name} {v.company ? `- ${v.company}` : ""}
+                      {v.name} {v.company ? `- ${v.company}` : ""} {v.email ? `(${v.email})` : ""}
                     </SelectItem>
                   ))}
 
                 {/* ✅ No results text */}
                 {vendors.filter((v) =>
-                  `${v.name} ${v.company ?? ""}`
+                  `${v.name} ${v.company ?? ""} ${v.email ?? ""}`
                     .toLowerCase()
                     .includes(searchText.toLowerCase())
                 ).length === 0 && (

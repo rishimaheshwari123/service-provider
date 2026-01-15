@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/home/HeroSection";
+import PromoBanner from "@/components/home/PromoBanner";
 
 const Blogs = () => {
   const navigate = useNavigate();
@@ -133,7 +134,8 @@ const Blogs = () => {
   return (
     <>
       <Navbar />
-                <HeroSection />
+                {/* <HeroSection /> */}
+                <PromoBanner/>
 
       <div className="min-h-screen bg-gray-50">
         {/* Header */}

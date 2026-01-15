@@ -391,6 +391,44 @@ export const enTranslations = {
     cookiePolicy: "Cookie Policy",
     resources: "Resources",
     connectWithExperts: "Connect with verified experts instantly. Your project success is our top priority."
+  },
+  promoBanner: {
+    featuredService: "Featured Service",
+    explore: "Explore",
+    getService: "Get Service",
+    joinNow: "Join Now",
+    cleaning: {
+      title: "Professional Cleaning Services",
+      subtitle: "Trained & Verified Cleaners",
+      tagline: "Spotless Homes, Happy Families"
+    },
+    repairing: {
+      title: "Expert Repair Services",
+      subtitle: "Skilled Technicians at Your Doorstep",
+      tagline: "Quick & Reliable Repairs"
+    },
+    yoga: {
+      title: "Yoga & Wellness Sessions",
+      subtitle: "Certified Yoga Instructors",
+      tagline: "Transform Your Mind & Body"
+    },
+    cards: {
+      cleaning: {
+        title: "CLEANING",
+        subtitle: "Home & Office Cleaning",
+        description: "Professional cleaning by trained experts"
+      },
+      repairing: {
+        title: "REPAIRING",
+        subtitle: "All Repair Solutions",
+        description: "Expert technicians for all repairs"
+      },
+      yoga: {
+        title: "YOGA",
+        subtitle: "Personal Yoga Training",
+        description: "Certified trainers for wellness"
+      }
+    }
   }
 };
 
@@ -787,5 +825,43 @@ export const hiTranslations = {
     cookiePolicy: "कुकी नीति",
     resources: "संसाधन",
     connectWithExperts: "सत्यापित विशेषज्ञों से तुरंत जुड़ें। आपकी परियोजना की सफलता हमारी सर्वोच्च प्राथमिकता है।"
+  },
+  promoBanner: {
+    featuredService: "विशेष सेवा",
+    explore: "देखें",
+    getService: "सेवा लें",
+    joinNow: "अभी जुड़ें",
+    cleaning: {
+      title: "प्रोफेशनल सफाई सेवाएं",
+      subtitle: "प्रशिक्षित और सत्यापित सफाईकर्मी",
+      tagline: "साफ-सुथरा घर, खुशहाल परिवार"
+    },
+    repairing: {
+      title: "विशेषज्ञ मरम्मत सेवाएं",
+      subtitle: "कुशल तकनीशियन आपके दरवाजे पर",
+      tagline: "तेज और विश्वसनीय मरम्मत"
+    },
+    yoga: {
+      title: "योग और वेलनेस सत्र",
+      subtitle: "प्रमाणित योग प्रशिक्षक",
+      tagline: "अपने मन और शरीर को बदलें"
+    },
+    cards: {
+      cleaning: {
+        title: "सफाई",
+        subtitle: "घर और ऑफिस की सफाई",
+        description: "प्रशिक्षित विशेषज्ञों द्वारा प्रोफेशनल सफाई"
+      },
+      repairing: {
+        title: "मरम्मत",
+        subtitle: "सभी मरम्मत समाधान",
+        description: "सभी मरम्मत के लिए विशेषज्ञ तकनीशियन"
+      },
+      yoga: {
+        title: "योग",
+        subtitle: "व्यक्तिगत योग प्रशिक्षण",
+        description: "वेलनेस के लिए प्रमाणित प्रशिक्षक"
+      }
+    }
   }
 };

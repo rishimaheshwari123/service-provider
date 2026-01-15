@@ -27,6 +27,7 @@ import { getJobsAPI } from "@/service/operations/job";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import HeroSection from "@/components/home/HeroSection";
+import PromoBanner from "@/components/home/PromoBanner";
 
 const Careers = () => {
   const { t } = useTranslation();
@@ -139,22 +140,12 @@ const Careers = () => {
     <>
       <Navbar />
 
-          <HeroSection />
+          {/* <HeroSection /> */}
+          <PromoBanner/>
 
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <section className="py-16 gradient-primary text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                {t('careers.joinOurTeam')}
-              </h1>
-              <p className="text-xl max-w-3xl mx-auto">
-                {t('careers.discoverOpportunities')}
-              </p>
-            </div>
-          </div>
-        </section>
+        
 
         {/* Why Join Us Section */}
         <section className="py-16 bg-white">

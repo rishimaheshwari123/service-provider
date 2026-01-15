@@ -51,7 +51,7 @@ const getAllCategoriesCtrl = async (req, res) => {
 
 const purchaseCategoryCtrl = async (req, res) => {
   try {
-    const { vendorId, categoryId, transactionId, paymentMode = "prepaid", paymentMethod } = req.body;
+    const { vendorId, categoryId, transactionId, paymentMode = "prepaid", paymentMethod, assignedByAdmin } = req.body;
     // Support both paymentMode (old) and paymentMethod (new from admin assign)
     const finalPaymentMode = paymentMethod || paymentMode;
     
@@ -71,6 +71,18 @@ const purchaseCategoryCtrl = async (req, res) => {
       if (purchase.status === "purchased") {
         return res.status(200).json({ success: true, message: "Already purchased", purchase });
       }
+      
+      // If assigned by admin, directly approve regardless of payment method
+      if (assignedByAdmin) {
+        purchase.status = "purchased";
+        purchase.transactionId = transactionId || purchase.transactionId;
+        purchase.paymentMode = finalPaymentMode;
+        purchase.assignedByAdmin = true;
+        await purchase.save();
+        purchase = await purchase.populate("category");
+        return res.status(200).json({ success: true, message: "Category assigned and approved", purchase });
+      }
+      
       if (finalPaymentMode === "prepaid" || finalPaymentMode === "qr") {
         // convert pending/rejected to purchased for prepaid or QR
         purchase.status = "purchased";
@@ -88,10 +100,18 @@ const purchaseCategoryCtrl = async (req, res) => {
       return res.status(200).json({ success: true, message: msg, purchase });
     } else {
       // Create new purchase
-      const status = finalPaymentMode === "cash" ? "pending" : "purchased";
-      purchase = await VendorCategoryPurchase.create({ vendor: vendorId, category: categoryId, status, transactionId, paymentMode: finalPaymentMode });
+      // If assigned by admin, directly set status as purchased
+      const status = assignedByAdmin ? "purchased" : (finalPaymentMode === "cash" ? "pending" : "purchased");
+      purchase = await VendorCategoryPurchase.create({ 
+        vendor: vendorId, 
+        category: categoryId, 
+        status, 
+        transactionId, 
+        paymentMode: finalPaymentMode,
+        assignedByAdmin: assignedByAdmin || false
+      });
       purchase = await purchase.populate("category");
-      const msg = finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      const msg = assignedByAdmin ? "Category assigned and approved" : (finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased");
       return res.status(200).json({ success: true, message: msg, purchase });
     }
   } catch (error) {

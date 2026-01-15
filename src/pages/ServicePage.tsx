@@ -29,9 +29,8 @@ const ServicesPage = () => {
   const [categories, setCategories] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    title: "",
+    search: "",
     price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
-    location: "",
     category: "all",
   });
 
@@ -44,9 +43,8 @@ const ServicesPage = () => {
     const maxPrice = Number(params.get("maxPrice")) || MAX_PRICE_LIMIT;
 
     const newFilters = {
-      title: params.get("title") || "",
+      search: params.get("search") || params.get("title") || params.get("location") || "",
       price: [minPrice, maxPrice],
-      location: params.get("location") || "",
       category: params.get("category") || "all",
     };
     setFilters(newFilters);
@@ -84,14 +82,22 @@ const ServicesPage = () => {
 
   const applyFilters = (newFilters) => {
     const [minPrice, maxPrice] = newFilters.price;
+    const searchTerm = newFilters.search?.toLowerCase().trim() || "";
 
     const filtered = services.filter((service) => {
-      const matchTitle = service.title
-        ?.toLowerCase()
-        .includes(newFilters.title.toLowerCase());
-      const matchLocation = service.location
-        ?.toLowerCase()
-        .includes(newFilters.location.toLowerCase());
+      // Search in title, description, location, state, city, zipcode, category
+      const matchSearch =
+        !searchTerm ||
+        service.title?.toLowerCase().includes(searchTerm) ||
+        service.description?.toLowerCase().includes(searchTerm) ||
+        service.location?.toLowerCase().includes(searchTerm) ||
+        service.state?.toLowerCase().includes(searchTerm) ||
+        service.city?.toLowerCase().includes(searchTerm) ||
+        service.zipcode?.toLowerCase().includes(searchTerm) ||
+        service.pincode?.toLowerCase().includes(searchTerm) ||
+        service.address?.toLowerCase().includes(searchTerm) ||
+        service.category?.toLowerCase().includes(searchTerm);
+
       const matchCategory =
         newFilters.category === "all" ||
         service.category?.toLowerCase() === newFilters.category.toLowerCase();
@@ -99,7 +105,7 @@ const ServicesPage = () => {
       const servicePrice = Number(service.price);
       const matchPrice = servicePrice >= minPrice && servicePrice <= maxPrice;
 
-      return matchTitle && matchLocation && matchCategory && matchPrice;
+      return matchSearch && matchCategory && matchPrice;
     });
 
     setFilteredServices(filtered);
@@ -135,9 +141,8 @@ const ServicesPage = () => {
 
   const clearFilters = () => {
     setFilters({
-      title: "",
+      search: "",
       price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
-      location: "",
       category: "all",
     });
   };
@@ -156,21 +161,10 @@ const ServicesPage = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
-                    name="title"
-                    value={filters.title}
+                    name="search"
+                    value={filters.search}
                     onChange={handleInputChange}
-                    placeholder={t("common.search") + "..."}
-                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
-                  />
-                </div>
-                <div className="relative flex-1">
-                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    name="location"
-                    value={filters.location}
-                    onChange={handleInputChange}
-                    placeholder={t("filter.locationPlaceholder")}
+                    placeholder="Search your service..."
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                   />
                 </div>
@@ -198,7 +192,7 @@ const ServicesPage = () => {
                   <span className="hidden sm:inline">{t("common.filter")}</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
                 </button>
-                {(filters.title || filters.location || filters.category !== "all") && (
+                {(filters.search || filters.category !== "all") && (
                   <button
                     onClick={clearFilters}
                     className="flex items-center gap-1 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"

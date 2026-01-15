@@ -530,5 +530,43 @@
     "term3": "3. Misuse or providing false information may result in account suspension.",
     "term4": "4. Your data may be used for communication and verification purposes only.",
     "term5": "5. The company reserves the right to update or modify terms at any time."
+  },
+  "promoBanner": {
+    "featuredService": "Featured Service",
+    "explore": "Explore",
+    "getService": "Get Service",
+    "joinNow": "Join Now",
+    "cleaning": {
+      "title": "Professional Cleaning Services",
+      "subtitle": "Trained & Verified Cleaners",
+      "tagline": "Spotless Homes, Happy Families"
+    },
+    "repairing": {
+      "title": "Expert Repair Services",
+      "subtitle": "Skilled Technicians at Your Doorstep",
+      "tagline": "Quick & Reliable Repairs"
+    },
+    "yoga": {
+      "title": "Yoga & Wellness Sessions",
+      "subtitle": "Certified Yoga Instructors",
+      "tagline": "Transform Your Mind & Body"
+    },
+    "cards": {
+      "cleaning": {
+        "title": "CLEANING",
+        "subtitle": "Home & Office Cleaning",
+        "description": "Professional cleaning by trained experts"
+      },
+      "repairing": {
+        "title": "REPAIRING",
+        "subtitle": "All Repair Solutions",
+        "description": "Expert technicians for all repairs"
+      },
+      "yoga": {
+        "title": "YOGA",
+        "subtitle": "Personal Yoga Training",
+        "description": "Certified trainers for wellness"
+      }
+    }
   }
 }

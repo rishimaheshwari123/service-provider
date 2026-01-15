@@ -28,7 +28,10 @@ const vendorCategoryPurchaseSchema = new mongoose.Schema(
     },
     reason: {
       type: String,
-
+    },
+    assignedByAdmin: {
+      type: Boolean,
+      default: false,
     },
   },
   { timestamps: true }
