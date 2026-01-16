@@ -101,7 +101,8 @@ const PurchaseCategories = () => {
       if (!data?.order) throw new Error("Failed to initiate payment");
 
       const options = {
-        key: "rzp_test_lQz64anllWjB83",
+        // key: "rzp_test_lQz64anllWjB83", 
+        key: "rzp_live_S4TPRyX5ae0LZA", 
         amount: data.order.amount,
         currency: data.order.currency,
         name: "Service Provider",
