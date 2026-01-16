@@ -100,7 +100,7 @@ import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 import AllBooking from "./AllBooking";
 import VendorProfileMangeByAdmin from "./VendorProfileMangeByAdmin";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 const VendorManagement = () => {
   const [vendors, setVendors] = useState([]);
   const [percentages, setPercentages] = useState({});
@@ -123,7 +123,6 @@ const VendorManagement = () => {
   const [updatingPercentage, setUpdatingPercentage] = useState({});
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [accepted, setAccepted] = useState(false);
-  const [showTermsModal, setShowTermsModal] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -1217,7 +1216,7 @@ const VendorManagement = () => {
                     <div className="bg-gray-50 p-4 rounded-lg space-y-3">
                       <h4 className="font-semibold text-gray-800">Declaration & Undertaking</h4>
                       <p className="text-sm text-gray-600">
-                        I, <span className="font-semibold text-gray-800">{formData.name || "_______________"}</span>, hereby declare that the information provided above is true, correct, and complete.
+                        I, <span className="font-semibold text-gray-800">{formData.company || "_______________"}</span>, hereby declare that the information provided above is true, correct, and complete.
                         I understand that Niyati Solutions reserves the right to verify the details and take
                         necessary action, including suspension or removal of listing, in case of false information.
                       </p>
@@ -1230,17 +1229,17 @@ const VendorManagement = () => {
                         id="terms"
                         checked={accepted}
                         onChange={(e) => setAccepted(e.target.checked)}
-                        className="cursor-pointer"
+                        className="w-4 h-4 cursor-pointer"
                       />
                       <label htmlFor="terms" className="text-sm text-gray-700">
                         I agree to the{" "}
-                        <button
-                          type="button"
-                          onClick={() => setShowTermsModal(true)}
-                          className="text-blue-600 hover:underline"
-                        >
+                        <Link to="/terms" target="_blank" className="text-blue-600 hover:underline">
                           Terms & Conditions
-                        </button>
+                        </Link>
+                        {" "}and{" "}
+                        <Link to="/privacy-policy" target="_blank" className="text-blue-600 hover:underline">
+                          Privacy Policy
+                        </Link>
                       </label>
                     </div>
                   </div>
@@ -1304,56 +1303,6 @@ const VendorManagement = () => {
                   </Button>
                 </div>
               </form>
-
-              {/* ✅ Terms & Conditions Modal */}
-              {showTermsModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-                  <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-lg">
-                    <h2 className="text-xl font-semibold mb-3">
-                      Terms & Conditions
-                    </h2>
-                    <div className="max-h-64 overflow-y-auto text-gray-700 text-sm space-y-2">
-                      <p>
-                        1. By registering, you confirm that all provided details
-                        are accurate and valid.
-                      </p>
-                      <p>
-                        2. Vendors must comply with platform rules and maintain
-                        the quality of listings.
-                      </p>
-                      <p>
-                        3. Misuse, spam, or false data will lead to account
-                        termination.
-                      </p>
-                      <p>
-                        4. Data collected will be used for communication and
-                        verification purposes only.
-                      </p>
-                      <p>
-                        5. The platform reserves the right to modify these terms
-                        at any time.
-                      </p>
-                    </div>
-                    <div className="flex justify-end gap-3 mt-4">
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowTermsModal(false)}
-                      >
-                        Close
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setAccepted(true);
-                          setShowTermsModal(false);
-                        }}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        Accept
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </DialogContent>
           </Dialog>
         </div>
