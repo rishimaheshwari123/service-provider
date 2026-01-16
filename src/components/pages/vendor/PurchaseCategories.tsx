@@ -105,7 +105,7 @@ const PurchaseCategories = () => {
         key: "rzp_live_S4TPRyX5ae0LZA", 
         amount: data.order.amount,
         currency: data.order.currency,
-        name: "Service Provider",
+        name: "Mera GharSansaar",
         description: `Purchase Category`,
         order_id: data.order.id,
         handler: async (response: any) => {
