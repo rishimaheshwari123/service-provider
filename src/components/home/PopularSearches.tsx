@@ -98,13 +98,26 @@ export default function PopularSearches() {
                 {/* Card */}
                 <div className="rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                   {/* Image */}
-                  <div className="h-32 overflow-hidden">
-                    <img
-                      src={cat.image || placeholderImages[index % placeholderImages.length]}
-                      alt={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                    />
-                  </div>
+                <div className="h-32 overflow-hidden flex items-center justify-center bg-gray-100">
+  {cat?.image ? (
+    <img
+      src={cat.image}
+      alt={cat.name}
+      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+    />
+  ) : (
+    <div className="w-12 h-12 text-gray-400">
+      {/* Grid Icon (example: react-icons) */}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm10 0h8v8h-8v-8z" />
+      </svg>
+    </div>
+  )}
+</div>
 
                   {/* Blue Footer */}
                   <div className="bg-blue-600 p-3">
