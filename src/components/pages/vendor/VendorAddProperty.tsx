@@ -5,7 +5,7 @@ import type { RootState } from "@/redux/store";
 import { toast } from "react-toastify";
 import Dropzone from "react-dropzone";
 import { createPropertyAPI } from "@/service/operations/property";
-import { getPurchasedCategoriesAPI } from "@/service/operations/category";
+import { getPurchasedCategoriesAPI, getAllCategoriesAPI, purchaseCategoryAPI } from "@/service/operations/category";
 import { imageUpload } from "@/service/operations/image";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 const VendorAddService = () => {
   const { id } = useParams<{ id: string }>(); // vendorId for admin
@@ -38,6 +45,12 @@ const VendorAddService = () => {
 
   const [images, setImages] = useState<any[]>([]);
   const [myCategories, setMyCategories] = useState<any[]>([]);
+  const [allCategories, setAllCategories] = useState<any[]>([]);
+  const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
+  const [selectedCategoryToPurchase, setSelectedCategoryToPurchase] = useState<any | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "qr">("cash");
+  const [transactionId, setTransactionId] = useState<string>("");
+  const [purchaseLoading, setPurchaseLoading] = useState(false);
 
   // Set vendor ID based on role
   useEffect(() => {
@@ -48,7 +61,7 @@ const VendorAddService = () => {
     }
   }, [user, id]);
 
-  // Load purchased categories
+  // Load purchased categories and all categories
   useEffect(() => {
     const loadCategories = async () => {
       const vendorId = user?.role === "vendor" ? user._id : id;
@@ -56,6 +69,10 @@ const VendorAddService = () => {
 
       const cats = await getPurchasedCategoriesAPI(vendorId);
       setMyCategories(cats);
+      
+      // Load all categories for purchase option
+      const allCats = await getAllCategoriesAPI();
+      setAllCategories(allCats);
     };
     loadCategories();
   }, [user, id]);
@@ -127,6 +144,52 @@ const VendorAddService = () => {
     } catch (error) {
       console.error("Error adding service:", error);
       toast.error("An error occurred while adding the service.");
+    }
+  };
+
+  const openPurchaseModal = (category?: any) => {
+    setSelectedCategoryToPurchase(category || null);
+    setPaymentMethod("cash");
+    setTransactionId("");
+    setPurchaseModalOpen(true);
+  };
+
+  const handlePurchaseCategory = async () => {
+    if (!selectedCategoryToPurchase?._id) return;
+    
+    const vendorId = user?.role === "vendor" ? user._id : id;
+    if (!vendorId) return;
+
+    if (paymentMethod === "qr" && !transactionId.trim()) {
+      toast.error("Please enter Transaction ID for QR payment");
+      return;
+    }
+
+    setPurchaseLoading(true);
+    try {
+      await purchaseCategoryAPI({
+        vendorId: vendorId,
+        categoryId: selectedCategoryToPurchase._id,
+        paymentMethod,
+        transactionId: paymentMethod === "qr" ? transactionId : "",
+        assignedByAdmin: user?.role === "admin", // If admin is purchasing, auto-approve
+      });
+      
+      // toast.success("Category purchased successfully!");
+      setPurchaseModalOpen(false);
+      
+      // Reload categories
+      const cats = await getPurchasedCategoriesAPI(vendorId);
+      setMyCategories(cats);
+      
+      // Auto-select the purchased category
+      setFormData(prev => ({ ...prev, category: selectedCategoryToPurchase.name }));
+      
+    } catch (error) {
+      console.error("Error purchasing category:", error);
+      toast.error("Failed to purchase category");
+    } finally {
+      setPurchaseLoading(false);
     }
   };
 
@@ -226,7 +289,20 @@ const VendorAddService = () => {
 
               {/* Category */}
               <div>
-                <Label htmlFor="category">Category</Label>
+                <div className="flex justify-between items-center mb-2">
+                  <Label htmlFor="category">Category</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => {
+                      // Show available categories to purchase
+                      openPurchaseModal(); // Open modal without pre-selecting category
+                    }}
+                  >
+                    + Purchase Category
+                  </Button>
+                </div>
                 <Select
                   value={formData.category}
                   onValueChange={(value) =>
@@ -238,7 +314,7 @@ const VendorAddService = () => {
                       placeholder={
                         myCategories.length
                           ? "Select category"
-                          : "No purchased categories"
+                          : "No purchased categories - Purchase one first"
                       }
                     />
                   </SelectTrigger>
@@ -250,6 +326,66 @@ const VendorAddService = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                
+                {myCategories.length === 0 ? (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-800 mb-2">
+                      No categories purchased yet. Choose from available categories:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {allCategories.slice(0, 5).map((cat) => (
+                        <Button
+                          key={cat._id}
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          className="text-xs"
+                          onClick={() => openPurchaseModal(cat)}
+                        >
+                          {cat.name} - ₹{cat.price}
+                        </Button>
+                      ))}
+                      {allCategories.length > 5 && (
+                        <span className="text-xs text-gray-500 self-center">
+                          +{allCategories.length - 5} more...
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800 mb-2">
+                      Available categories to purchase:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {allCategories
+                        .filter(cat => !myCategories.some(myCat => myCat._id === cat._id))
+                        .slice(0, 5)
+                        .map((cat) => (
+                          <Button
+                            key={cat._id}
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="text-xs border-green-300 text-green-700 hover:bg-green-100"
+                            onClick={() => openPurchaseModal(cat)}
+                          >
+                            {cat.name} - ₹{cat.price}
+                          </Button>
+                        ))}
+                      {allCategories.filter(cat => !myCategories.some(myCat => myCat._id === cat._id)).length > 5 && (
+                        <span className="text-xs text-gray-500 self-center">
+                          +{allCategories.filter(cat => !myCategories.some(myCat => myCat._id === cat._id)).length - 5} more...
+                        </span>
+                      )}
+                      {allCategories.filter(cat => !myCategories.some(myCat => myCat._id === cat._id)).length === 0 && (
+                        <span className="text-xs text-gray-500">
+                          All categories already purchased!
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Images */}
@@ -310,6 +446,123 @@ const VendorAddService = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Purchase Category Modal */}
+      <Dialog open={purchaseModalOpen} onOpenChange={setPurchaseModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Purchase Category
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            {/* Category Selection */}
+            <div className="space-y-2">
+              <Label>Select Category to Purchase</Label>
+              <Select
+                value={selectedCategoryToPurchase?._id || ""}
+                onValueChange={(value) => {
+                  const category = allCategories.find(cat => cat._id === value);
+                  setSelectedCategoryToPurchase(category || null);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {allCategories
+                    .filter(cat => !myCategories.some(myCat => myCat._id === cat._id))
+                    .map((cat) => (
+                      <SelectItem key={cat._id} value={cat._id}>
+                        {cat.name} - ₹{cat.price}
+                        {cat.autoFilled && ` (${cat.autoFilled})`}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {selectedCategoryToPurchase && (
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <h4 className="font-medium text-blue-900">Category Details</h4>
+                <p className="text-sm text-blue-700 mt-1">
+                  <strong>Name:</strong> {selectedCategoryToPurchase.name}
+                </p>
+                <p className="text-sm text-blue-700">
+                  <strong>Price:</strong> ₹{selectedCategoryToPurchase.price}
+                </p>
+                {selectedCategoryToPurchase.autoFilled && (
+                  <p className="text-sm text-blue-700">
+                    <strong>Type:</strong> {selectedCategoryToPurchase.autoFilled}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Payment Method Selection */}
+            {selectedCategoryToPurchase && (
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <div className="flex gap-4">
+                  <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "cash" ? "bg-green-100 border-green-500 text-green-700" : "bg-gray-50 border-gray-200"}`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash"
+                      checked={paymentMethod === "cash"}
+                      onChange={() => setPaymentMethod("cash")}
+                      className="sr-only"
+                    />
+                    <span className="font-medium">💵 Cash</span>
+                  </label>
+                  <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "qr" ? "bg-blue-100 border-blue-500 text-blue-700" : "bg-gray-50 border-gray-200"}`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="qr"
+                      checked={paymentMethod === "qr"}
+                      onChange={() => setPaymentMethod("qr")}
+                      className="sr-only"
+                    />
+                    <span className="font-medium">📱 QR</span>
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Transaction ID - Only show for QR */}
+            {selectedCategoryToPurchase && paymentMethod === "qr" && (
+              <div className="space-y-2">
+                <Label>Transaction ID <span className="text-red-500">*</span></Label>
+                <Input
+                  type="text"
+                  placeholder="Enter transaction ID"
+                  value={transactionId}
+                  onChange={(e) => setTransactionId(e.target.value)}
+                />
+              </div>
+            )}
+
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setPurchaseModalOpen(false)}
+                disabled={purchaseLoading}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handlePurchaseCategory}
+                disabled={purchaseLoading || !selectedCategoryToPurchase || (paymentMethod === "qr" && !transactionId.trim())}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                {purchaseLoading ? "Purchasing..." : selectedCategoryToPurchase ? `Purchase for ₹${selectedCategoryToPurchase.price}` : "Select Category"}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

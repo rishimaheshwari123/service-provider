@@ -40,13 +40,10 @@ import {
 } from "@/components/ui/table";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import * as XLSX from "xlsx";
 
 const ManageCategories = () => {
-  const [form, setForm] = useState({ name: "", price: "", autoFilled: "" });
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [purchasersOpen, setPurchasersOpen] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<any | null>(null);
@@ -67,6 +64,16 @@ const ManageCategories = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [isRejecting, setIsRejecting] = useState(false); // State to manage loading on reject submit
   const [searchText, setSearchText] = useState("");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalForm, setModalForm] = useState({ name: "", price: "", autoFilled: "" });
+  const [modalImageFile, setModalImageFile] = useState<File | null>(null);
+  const [modalImagePreview, setModalImagePreview] = useState<string>("");
+  const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [purchaseOpen, setPurchaseOpen] = useState(false);
+  const [purchaseVendorId, setPurchaseVendorId] = useState<string>("");
+  const [purchasePaymentMethod, setPurchasePaymentMethod] = useState<"cash" | "qr">("cash");
+  const [purchaseTransactionId, setPurchaseTransactionId] = useState<string>("");
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   if (!user?.isCategoryManage) {
@@ -119,6 +126,97 @@ const ManageCategories = () => {
     await load(); // Refresh data
   };
 
+  const openEditModal = (category: any) => {
+    setEditingCategory(category);
+    setModalForm({ 
+      name: category.name, 
+      price: String(category.price), 
+      autoFilled: category.autoFilled || "" 
+    });
+    setModalImageFile(null);
+    setModalImagePreview("");
+    setIsEditMode(true);
+    setModalOpen(true);
+  };
+
+  const openAddModal = () => {
+    setEditingCategory(null);
+    setModalForm({ name: "", price: "", autoFilled: "" });
+    setModalImageFile(null);
+    setModalImagePreview("");
+    setIsEditMode(false);
+    setModalOpen(true);
+  };
+
+  const handleModalSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!modalForm.name || !modalForm.price) return;
+    
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("name", modalForm.name.trim());
+    formData.append("price", modalForm.price);
+    if (modalForm.autoFilled) formData.append("autoFilled", modalForm.autoFilled.trim());
+    if (modalImageFile) formData.append("image", modalImageFile);
+    
+    if (isEditMode && editingCategory?._id) {
+      await updateCategoryAPI(editingCategory._id, formData);
+    } else {
+      await createCategoryAPI(formData);
+    }
+    
+    setModalOpen(false);
+    setEditingCategory(null);
+    setModalForm({ name: "", price: "", autoFilled: "" });
+    setModalImageFile(null);
+    setModalImagePreview("");
+    setIsEditMode(false);
+    await load();
+    setLoading(false);
+  };
+
+  const handleModalImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setModalImageFile(file);
+      setModalImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const clearModalImage = () => {
+    setModalImageFile(null);
+    setModalImagePreview("");
+  };
+
+  const openPurchaseCategory = async (category: any) => {
+    setCurrentCategory(category);
+    if (vendors.length === 0) {
+      const all = await getAllVendorAPI();
+      setVendors(all);
+    }
+    setPurchaseVendorId("");
+    setPurchasePaymentMethod("cash");
+    setPurchaseTransactionId("");
+    setPurchaseOpen(true);
+  };
+
+  const handlePurchase = async () => {
+    if (!currentCategory?._id || !purchaseVendorId) return;
+    if (purchasePaymentMethod === "qr" && !purchaseTransactionId.trim()) {
+      alert("Please enter Transaction ID for QR payment");
+      return;
+    }
+    await purchaseCategoryAPI({
+      vendorId: purchaseVendorId,
+      categoryId: currentCategory._id,
+      paymentMethod: purchasePaymentMethod,
+      transactionId: purchasePaymentMethod === "qr" ? purchaseTransactionId : "",
+      assignedByAdmin: true, // Admin purchase kare to direct approve
+    });
+    setPurchaseOpen(false);
+    await load(); // Refresh data
+  };
+
   const approve = async (purchaseId: string) => {
     setApprovingId(purchaseId);
     await approveCategoryPurchaseAPI(purchaseId);
@@ -160,145 +258,57 @@ const ManageCategories = () => {
     load();
   }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name || !form.price) return;
-    setLoading(true);
-    
-    // Create FormData in component like AddBlog does
-    const formData = new FormData();
-    formData.append("name", form.name.trim());
-    formData.append("price", form.price);
-    if (form.autoFilled) formData.append("autoFilled", form.autoFilled.trim());
-    if (imageFile) formData.append("image", imageFile);
-    
-    if (editingId) {
-      await updateCategoryAPI(editingId, formData);
-    } else {
-      await createCategoryAPI(formData);
-    }
-    setForm({ name: "", price: "", autoFilled: "" });
-    setImageFile(null);
-    setImagePreview("");
-    setEditingId(null);
-    await load();
-    setLoading(false);
-  };
+  const downloadCategoriesExcel = () => {
+    const data = categories.map((category) => ({
+      "Category Name": category.name,
+      "Auto Filled": category.autoFilled || "",
+      "Price": category.price,
+    }));
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Categories");
 
-  const clearImage = () => {
-    setImageFile(null);
-    setImagePreview("");
+    // Auto-size columns
+    const colWidths = [
+      { wch: 30 }, // Category Name
+      { wch: 20 }, // Auto Filled
+      { wch: 10 }, // Price
+    ];
+    worksheet["!cols"] = colWidths;
+
+    XLSX.writeFile(workbook, "categories.xlsx");
   };
 
   return (
     <div className="p-6">
-      <Card className="max-w-xl">
-        <CardHeader>
-          <CardTitle>
-            {editingId ? "Edit Category" : "Create Category"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleCreate} className="space-y-4">
-            <div>
-              <Label htmlFor="name">Category Name (Service Name)</Label>
-              <Input
-                id="name"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                placeholder="e.g. A.C. REPAIRING, ADVOCATE - A"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="autoFilled">Auto Filled (Parent Category)</Label>
-              <Input
-                id="autoFilled"
-                value={form.autoFilled}
-                onChange={(e) => setForm({ ...form, autoFilled: e.target.value })}
-                placeholder="e.g. Repairing, Legal, Transport, Construction"
-              />
-              <p className="text-xs text-gray-500 mt-1">This will auto-fill in vendor registration when category is selected</p>
-            </div>
-            <div>
-              <Label htmlFor="price">Price</Label>
-              <Input
-                id="price"
-                value={form.price}
-                onChange={(e) => setForm({ ...form, price: e.target.value })}
-                placeholder="e.g. 499"
-                required
-              />
-            </div>
-            <div>
-              <Label htmlFor="image">Category Image</Label>
-              <Input
-                id="image"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                className="cursor-pointer"
-              />
-              {(imagePreview || (editingId && categories.find(c => c._id === editingId)?.image)) && (
-                <div className="mt-2 relative inline-block">
-                  <img
-                    src={imagePreview || categories.find(c => c._id === editingId)?.image}
-                    alt="Preview"
-                    className="w-24 h-24 object-cover rounded border"
-                  />
-                  {imagePreview && (
-                    <button
-                      type="button"
-                      onClick={clearImage}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" disabled={loading}>
-                {loading
-                  ? editingId
-                    ? "Updating..."
-                    : "Creating..."
-                  : editingId
-                  ? "Update"
-                  : "Create"}
-              </Button>
-              {editingId && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setEditingId(null);
-                    setForm({ name: "", price: "", autoFilled: "" });
-                    setImageFile(null);
-                    setImagePreview("");
-                  }}
-                >
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Manage Categories</h1>
+        <div className="flex gap-3">
+          <Button 
+            onClick={downloadCategoriesExcel} 
+            variant="outline"
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            📥 Download Excel
+          </Button>
+          <Button onClick={openAddModal} className="bg-blue-600 hover:bg-blue-700">
+            + Add Category
+          </Button>
+        </div>
+      </div>
 
       <Tabs defaultValue="categories" className="mt-6">
         <TabsList>
           <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="approvals">Approvals</TabsTrigger>
+          <TabsTrigger value="approvals">
+            Approvals
+            {pendingPurchases.length > 0 && (
+              <span className="ml-2 bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                {pendingPurchases.length}
+              </span>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="categories">
@@ -353,12 +363,7 @@ const ManageCategories = () => {
                           <Button
                             size="sm"
                             variant="secondary"
-                            onClick={() => {
-                              setEditingId(c._id);
-                              setForm({ name: c.name, price: String(c.price), autoFilled: c.autoFilled || "" });
-                              setImageFile(null);
-                              setImagePreview("");
-                            }}
+                            onClick={() => openEditModal(c)}
                           >
                             Edit
                           </Button>
@@ -372,6 +377,15 @@ const ManageCategories = () => {
                           >
                             Assign to Partner
                           </Button>
+                          {user?.role === "admin" && (
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white"
+                              onClick={() => openPurchaseCategory(c)}
+                            >
+                              Purchase Category
+                            </Button>
+                          )}
                         </div>
                       </div>
                     ))
@@ -699,6 +713,206 @@ const ManageCategories = () => {
               {isRejecting ? "Submitting..." : "Submit and Reject"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Category Modal */}
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{isEditMode ? "Edit Category" : "Add Category"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleModalSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="modal-name">Category Name (Service Name)</Label>
+              <Input
+                id="modal-name"
+                value={modalForm.name}
+                onChange={(e) => setModalForm({ ...modalForm, name: e.target.value })}
+                placeholder="e.g. A.C. REPAIRING, ADVOCATE - A"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="modal-autoFilled">Auto Filled (Parent Category)</Label>
+              <Input
+                id="modal-autoFilled"
+                value={modalForm.autoFilled}
+                onChange={(e) => setModalForm({ ...modalForm, autoFilled: e.target.value })}
+                placeholder="e.g. Repairing, Legal, Transport, Construction"
+              />
+              <p className="text-xs text-gray-500 mt-1">This will auto-fill in vendor registration when category is selected</p>
+            </div>
+            <div>
+              <Label htmlFor="modal-price">Price</Label>
+              <Input
+                id="modal-price"
+                value={modalForm.price}
+                onChange={(e) => setModalForm({ ...modalForm, price: e.target.value })}
+                placeholder="e.g. 499"
+                required
+              />
+            </div>
+            <div>
+              <Label htmlFor="modal-image">Category Image</Label>
+              <Input
+                id="modal-image"
+                type="file"
+                accept="image/*"
+                onChange={handleModalImageChange}
+                className="cursor-pointer"
+              />
+              {(modalImagePreview || editingCategory?.image) && (
+                <div className="mt-2 relative inline-block">
+                  <img
+                    src={modalImagePreview || editingCategory?.image}
+                    alt="Preview"
+                    className="w-24 h-24 object-cover rounded border"
+                  />
+                  {modalImagePreview && (
+                    <button
+                      type="button"
+                      onClick={clearModalImage}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                    >
+                      ×
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setModalOpen(false);
+                  setEditingCategory(null);
+                  setModalForm({ name: "", price: "", autoFilled: "" });
+                  setModalImageFile(null);
+                  setModalImagePreview("");
+                  setIsEditMode(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update" : "Create")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase Category Modal */}
+      <Dialog open={purchaseOpen} onOpenChange={setPurchaseOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Purchase "{currentCategory?.name}" for Partner
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <Label>Select Partner</Label>
+
+            <Select
+              value={purchaseVendorId}
+              onValueChange={(val) => setPurchaseVendorId(val)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose a vendor" />
+              </SelectTrigger>
+
+              <SelectContent>
+                {/* SEARCH BOX */}
+                <div className="px-2 pb-2">
+                  <input
+                    placeholder="Search vendor..."
+                    className="w-full px-2 py-1 border rounded text-sm"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                  />
+                </div>
+
+                {/* ONLY MATCHED RESULTS */}
+                {vendors
+                  .filter((v) =>
+                    `${v.name} ${v.company ?? ""} ${v.email ?? ""}`
+                      .toLowerCase()
+                      .includes(searchText.toLowerCase())
+                  )
+                  .map((v) => (
+                    <SelectItem key={v._id} value={v._id}>
+                      {v.name} {v.company ? `- ${v.company}` : ""} {v.email ? `(${v.email})` : ""}
+                    </SelectItem>
+                  ))}
+
+                {/* No results text */}
+                {vendors.filter((v) =>
+                  `${v.name} ${v.company ?? ""} ${v.email ?? ""}`
+                    .toLowerCase()
+                    .includes(searchText.toLowerCase())
+                ).length === 0 && (
+                  <div className="px-3 py-2 text-sm text-gray-500">
+                    No vendor found
+                  </div>
+                )}
+              </SelectContent>
+            </Select>
+
+            {/* Payment Method Selection */}
+            <div className="space-y-2">
+              <Label>Payment Method</Label>
+              <div className="flex gap-4">
+                <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${purchasePaymentMethod === "cash" ? "bg-green-100 border-green-500 text-green-700" : "bg-gray-50 border-gray-200"}`}>
+                  <input
+                    type="radio"
+                    name="purchasePaymentMethod"
+                    value="cash"
+                    checked={purchasePaymentMethod === "cash"}
+                    onChange={() => setPurchasePaymentMethod("cash")}
+                    className="sr-only"
+                  />
+                  <span className="font-medium">💵 Cash</span>
+                </label>
+                <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${purchasePaymentMethod === "qr" ? "bg-blue-100 border-blue-500 text-blue-700" : "bg-gray-50 border-gray-200"}`}>
+                  <input
+                    type="radio"
+                    name="purchasePaymentMethod"
+                    value="qr"
+                    checked={purchasePaymentMethod === "qr"}
+                    onChange={() => setPurchasePaymentMethod("qr")}
+                    className="sr-only"
+                  />
+                  <span className="font-medium">📱 QR</span>
+                </label>
+              </div>
+            </div>
+
+            {/* Transaction ID - Only show for QR */}
+            {purchasePaymentMethod === "qr" && (
+              <div className="space-y-2">
+                <Label>Transaction ID <span className="text-red-500">*</span></Label>
+                <input
+                  type="text"
+                  placeholder="Enter transaction ID"
+                  className="w-full px-3 py-2 border rounded-lg"
+                  value={purchaseTransactionId}
+                  onChange={(e) => setPurchaseTransactionId(e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setPurchaseOpen(false)}>
+                Cancel
+              </Button>
+              <Button disabled={!purchaseVendorId || (purchasePaymentMethod === "qr" && !purchaseTransactionId.trim())} onClick={handlePurchase}>
+                Purchase
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -41,7 +41,7 @@ const createCategoryCtrl = async (req, res) => {
 
 const getAllCategoriesCtrl = async (req, res) => {
   try {
-    const categories = await Category.find({ active: true }).sort({ createdAt: -1 });
+    const categories = await Category.find({ active: true }).sort({ name: 1 });
     return res.status(200).json({ success: true, categories });
   } catch (error) {
     console.error("Error fetching categories:", error);

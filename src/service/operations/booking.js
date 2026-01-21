@@ -55,7 +55,7 @@ export const getVendorAllBookingAPI = async (vendorId) => {
     return response?.data?.bookings || [];
   } catch (error) {
     console.error("GET VENDOR BOOKINGS API ERROR:", error);
-    toast.error(error?.response?.data?.message || "Failed to get vendor bookings!");
+    // toast.error(error?.response?.data?.message || "Failed to get vendor bookings!");
     return [];
   }
 };
