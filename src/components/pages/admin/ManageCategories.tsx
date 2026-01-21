@@ -377,7 +377,7 @@ const ManageCategories = () => {
                           >
                             Assign to Partner
                           </Button>
-                          {user?.role === "admin" && (
+                          {/* {user?.role === "admin" && (
                             <Button
                               size="sm"
                               className="bg-green-600 hover:bg-green-700 text-white"
@@ -385,7 +385,7 @@ const ManageCategories = () => {
                             >
                               Purchase Category
                             </Button>
-                          )}
+                          )} */}
                         </div>
                       </div>
                     ))
