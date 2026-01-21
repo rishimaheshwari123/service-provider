@@ -537,9 +537,9 @@
     "getService": "Get Service",
     "joinNow": "Join Now",
     "cleaning": {
-      "title": "Professional Cleaning Services",
-      "subtitle": "Trained & Verified Cleaners",
-      "tagline": "Spotless Homes, Happy Families"
+      "title": "Professional Home Services",
+      "subtitle": "Trained & Verified Professionals",
+      "tagline": "Quality Home Services, Happy Families"
     },
     "repairing": {
       "title": "Expert Repair Services",
@@ -547,15 +547,15 @@
       "tagline": "Quick & Reliable Repairs"
     },
     "yoga": {
-      "title": "Yoga & Wellness Sessions",
-      "subtitle": "Certified Yoga Instructors",
-      "tagline": "Transform Your Mind & Body"
+      "title": "Health Care & Wellness",
+      "subtitle": "Certified Health Professionals",
+      "tagline": "Transform Your Health & Wellness"
     },
     "cards": {
       "cleaning": {
-        "title": "CLEANING",
-        "subtitle": "Home & Office Cleaning",
-        "description": "Professional cleaning by trained experts"
+        "title": "HOME SERVICE",
+        "subtitle": "Home & Office Services",
+        "description": "Professional home services by trained experts"
       },
       "repairing": {
         "title": "REPAIRING",
@@ -563,9 +563,9 @@
         "description": "Expert technicians for all repairs"
       },
       "yoga": {
-        "title": "YOGA",
-        "subtitle": "Personal Yoga Training",
-        "description": "Certified trainers for wellness"
+        "title": "HEALTH CARE",
+        "subtitle": "Health & Wellness Care",
+        "description": "Certified health professionals for wellness"
       }
     }
   }
