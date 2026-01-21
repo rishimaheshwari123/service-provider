@@ -43,7 +43,7 @@ export const getVendorPropertyAPI = async (vendor) => {
     return response?.data?.properties || [];
   } catch (error) {
     console.error("GET vendor property API ERROR:", error);
-    toast.error(error?.response?.data?.message || "Failed to get vendor property!");
+    // toast.error(error?.response?.data?.message || "Failed to get vendor property!");
     return [];
   }
 
