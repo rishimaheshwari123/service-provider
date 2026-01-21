@@ -48,11 +48,16 @@ export const getVendorPropertyAPI = async (vendor) => {
   }
 
 };
-export const getAllPropertyAPI = async (vendor) => {
-
+export const getAllPropertyAPI = async (filters = {}) => {
   try {
-    const response = await apiConnector("GET", GET_ALL_PROPERTY_API)
-
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (filters.category && filters.category !== 'all') {
+      params.append('category', filters.category);
+    }
+    
+    const url = params.toString() ? `${GET_ALL_PROPERTY_API}?${params.toString()}` : GET_ALL_PROPERTY_API;
+    const response = await apiConnector("GET", url);
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -64,7 +69,6 @@ export const getAllPropertyAPI = async (vendor) => {
     toast.error(error?.response?.data?.message || "Failed to get vendor property!");
     return [];
   }
-
 };
 
 export const getPropertyBYIDAPI = async (id, userId) => {

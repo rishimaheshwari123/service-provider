@@ -128,9 +128,17 @@ const updatePropertyCtrl = async (req, res) => {
 
 const getPropertiesCtrl = async (req, res) => {
     try {
+        const { category } = req.query;
 
+        let query = {};
+        
+        // Add category filter if provided
+        if (category && category !== 'all') {
+            // Use case-insensitive regex to match category names
+            query.category = { $regex: new RegExp(category, 'i') };
+        }
 
-        const properties = await Property.find().populate('vendor').populate('review');
+        const properties = await Property.find(query).populate('vendor').populate('review');
 
         res.status(200).json({
             success: true,

@@ -58,10 +58,15 @@ const ServicesPage = () => {
     fetchCategories();
   }, []);
 
-  const fetchServices = async () => {
+  const fetchServices = async (categoryFilter = null) => {
     try {
       setLoading(true);
-      const allServices = await getAllPropertyAPI();
+      const filterParams = {};
+      if (categoryFilter && categoryFilter !== 'all') {
+        filterParams.category = categoryFilter;
+      }
+      const allServices = await getAllPropertyAPI(filterParams);
+      console.log(allServices, "test")
       setServices(allServices);
       setFilteredServices(allServices);
     } catch (error) {
@@ -73,7 +78,13 @@ const ServicesPage = () => {
   };
 
   useEffect(() => {
-    fetchServices();
+    fetchServices(filters.category);
+  }, [filters.category]);
+
+  useEffect(() => {
+    if (filters.category === 'all') {
+      fetchServices();
+    }
   }, []);
 
   useEffect(() => {
@@ -102,12 +113,18 @@ const ServicesPage = () => {
         newFilters.category === "all" ||
         service.category?.toLowerCase() === newFilters.category.toLowerCase();
 
+      // Handle price filtering - skip if price is "NA" or not a valid number
       const servicePrice = Number(service.price);
-      const matchPrice = servicePrice >= minPrice && servicePrice <= maxPrice;
+      const matchPrice = 
+        service.price === "NA" || 
+        service.price === "N/A" || 
+        isNaN(servicePrice) || 
+        (servicePrice >= minPrice && servicePrice <= maxPrice);
 
       return matchSearch && matchCategory && matchPrice;
     });
 
+    console.log("Filtered services:", filtered);
     setFilteredServices(filtered);
   };
 
@@ -339,10 +356,16 @@ const ServicesPage = () => {
 
                           {/* Price & Actions */}
                           <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-2 pt-3 md:pt-0 border-t md:border-t-0 md:border-l md:pl-5">
-                            {service.price && (
+                            {service.price && service.price !== "NA" && service.price !== "N/A" && (
                               <div className="text-right">
                                 <p className="text-xs text-gray-500">{t("pages.home.startsFrom")}</p>
-                                <p className="text-xl font-bold text-gray-900">₹{service.price?.toLocaleString()}</p>
+                                <p className="text-xl font-bold text-gray-900">₹{isNaN(Number(service.price)) ? service.price : Number(service.price).toLocaleString()}</p>
+                              </div>
+                            )}
+                            {(service.price === "NA" || service.price === "N/A" || !service.price) && (
+                              <div className="text-right">
+                                <p className="text-xs text-gray-500">Price</p>
+                                <p className="text-xl font-bold text-gray-900">Contact for Price</p>
                               </div>
                             )}
                             <div className="flex gap-2">
@@ -353,7 +376,7 @@ const ServicesPage = () => {
                                 {t("common.viewDetails")}
                               </button>
                               <a
-                                href={`tel:${service.phone || "+917879884363"}`}
+                                href={`tel:${service.vendor?.phone || service.phone || "+917879884363"}`}
                                 className="p-2.5 border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
                               >
                                 <Phone className="w-5 h-5" />
