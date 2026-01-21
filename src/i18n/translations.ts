@@ -398,9 +398,9 @@ export const enTranslations = {
     getService: "Get Service",
     joinNow: "Join Now",
     cleaning: {
-      title: "Professional Cleaning Services",
-      subtitle: "Trained & Verified Cleaners",
-      tagline: "Spotless Homes, Happy Families"
+      title: "Professional Home Services",
+      subtitle: "Trained & Verified Professionals",
+      tagline: "Quality Home Services, Happy Families"
     },
     repairing: {
       title: "Expert Repair Services",
@@ -408,15 +408,15 @@ export const enTranslations = {
       tagline: "Quick & Reliable Repairs"
     },
     yoga: {
-      title: "Yoga & Wellness Sessions",
-      subtitle: "Certified Yoga Instructors",
-      tagline: "Transform Your Mind & Body"
+      title: "Health Care & Wellness",
+      subtitle: "Certified Health Professionals",
+      tagline: "Transform Your Health & Wellness"
     },
     cards: {
       cleaning: {
-        title: "CLEANING",
-        subtitle: "Home & Office Cleaning",
-        description: "Professional cleaning by trained experts"
+        title: "HOME SERVICE",
+        subtitle: "Home & Office Services",
+        description: "Professional home services by trained experts"
       },
       repairing: {
         title: "REPAIRING",
@@ -424,9 +424,9 @@ export const enTranslations = {
         description: "Expert technicians for all repairs"
       },
       yoga: {
-        title: "YOGA",
-        subtitle: "Personal Yoga Training",
-        description: "Certified trainers for wellness"
+        title: "HEALTH CARE",
+        subtitle: "Health & Wellness Care",
+        description: "Certified health professionals for wellness"
       }
     }
   }
@@ -832,9 +832,9 @@ export const hiTranslations = {
     getService: "सेवा लें",
     joinNow: "अभी जुड़ें",
     cleaning: {
-      title: "प्रोफेशनल सफाई सेवाएं",
-      subtitle: "प्रशिक्षित और सत्यापित सफाईकर्मी",
-      tagline: "साफ-सुथरा घर, खुशहाल परिवार"
+      title: "प्रोफेशनल होम सर्विसेज",
+      subtitle: "प्रशिक्षित और सत्यापित पेशेवर",
+      tagline: "गुणवत्तापूर्ण होम सर्विसेज, खुश परिवार"
     },
     repairing: {
       title: "विशेषज्ञ मरम्मत सेवाएं",
@@ -842,15 +842,15 @@ export const hiTranslations = {
       tagline: "तेज और विश्वसनीय मरम्मत"
     },
     yoga: {
-      title: "योग और वेलनेस सत्र",
-      subtitle: "प्रमाणित योग प्रशिक्षक",
-      tagline: "अपने मन और शरीर को बदलें"
+      title: "स्वास्थ्य देखभाल और कल्याण",
+      subtitle: "प्रमाणित स्वास्थ्य पेशेवर",
+      tagline: "अपने स्वास्थ्य और कल्याण को बदलें"
     },
     cards: {
       cleaning: {
-        title: "सफाई",
-        subtitle: "घर और ऑफिस की सफाई",
-        description: "प्रशिक्षित विशेषज्ञों द्वारा प्रोफेशनल सफाई"
+        title: "होम सर्विस",
+        subtitle: "घर और ऑफिस की सेवाएं",
+        description: "प्रशिक्षित विशेषज्ञों द्वारा प्रोफेशनल होम सर्विसेज"
       },
       repairing: {
         title: "मरम्मत",
@@ -858,9 +858,9 @@ export const hiTranslations = {
         description: "सभी मरम्मत के लिए विशेषज्ञ तकनीशियन"
       },
       yoga: {
-        title: "योग",
-        subtitle: "व्यक्तिगत योग प्रशिक्षण",
-        description: "वेलनेस के लिए प्रमाणित प्रशिक्षक"
+        title: "स्वास्थ्य देखभाल",
+        subtitle: "स्वास्थ्य और कल्याण देखभाल",
+        description: "कल्याण के लिए प्रमाणित स्वास्थ्य पेशेवर"
       }
     }
   }

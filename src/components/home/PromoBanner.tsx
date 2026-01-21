@@ -45,7 +45,7 @@ export default function PromoBanner() {
       description: t("promoBanner.cards.cleaning.description", "Professional cleaning by trained experts"),
       icon: FaBroom,
       bgColor: "from-blue-600 via-blue-500 to-cyan-500",
-      link: "/services?category=Cleaning",
+      link: "/services?category=Home Service",
     },
     {
       title: t("promoBanner.cards.repairing.title", "REPAIRING"),
@@ -61,7 +61,7 @@ export default function PromoBanner() {
       description: t("promoBanner.cards.yoga.description", "Certified trainers for wellness"),
       icon: FaSpa,
       bgColor: "from-emerald-600 via-green-500 to-teal-500",
-      link: "/services?category=Yoga",
+      link: "/services?category=Health Care",
     },
   ];
 
