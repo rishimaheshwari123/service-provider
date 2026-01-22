@@ -6,6 +6,7 @@ const {
   CREATE_CATEGORY_API,
   GET_ALL_CATEGORY_API,
   UPDATE_CATEGORY_API,
+  DELETE_CATEGORY_API,
   PURCHASE_CATEGORY_API,
   GET_PURCHASED_CATEGORY_API,
   GET_CATEGORY_PURCHASERS_API,
@@ -41,6 +42,23 @@ export const updateCategoryAPI = async (id, formData) => {
   } catch (error) {
     console.error("UPDATE_CATEGORY_API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to update category!");
+    return null;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const deleteCategoryAPI = async (id) => {
+  const toastId = toast.loading("Deleting category...");
+  try {
+    const url = `${DELETE_CATEGORY_API}/${id}`;
+    const res = await apiConnector("DELETE", url);
+    if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
+    toast.success(res?.data?.message || "Category deleted successfully");
+    return res?.data;
+  } catch (error) {
+    console.error("DELETE_CATEGORY_API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to delete category!");
     return null;
   } finally {
     toast.dismiss(toastId);

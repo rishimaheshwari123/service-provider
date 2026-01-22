@@ -65,6 +65,7 @@ import {
   Upload,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { signUp } from "@/service/operations/vendor";
 import { getAllCategoriesAPI } from "@/service/operations/category";
@@ -95,7 +96,7 @@ import {
   updateVendorProfileAPI,
   requestForTheUpdateProfileAPI,
 } from "@/service/operations/vendor";
-import { getVendorPropertyAPI } from "@/service/operations/property";
+import { getVendorPropertyAPI, deletePropertyAPI } from "@/service/operations/property";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 import AllBooking from "./AllBooking";
@@ -120,6 +121,9 @@ const VendorManagement = () => {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [loadingProperties, setLoadingProperties] = useState(false);
+  const [deletingServiceId, setDeletingServiceId] = useState<string | null>(null);
+  const [deleteServiceModalOpen, setDeleteServiceModalOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<any | null>(null);
   const [updatingPercentage, setUpdatingPercentage] = useState({});
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [accepted, setAccepted] = useState(false);
@@ -341,6 +345,38 @@ const VendorManagement = () => {
       });
     } finally {
       setLoadingProperties(false);
+    }
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    const service = vendorProperties.find(s => s._id === serviceId);
+    setServiceToDelete(service);
+    setDeleteServiceModalOpen(true);
+  };
+
+  const confirmDeleteService = async () => {
+    if (!serviceToDelete?._id) return;
+
+    setDeletingServiceId(serviceToDelete._id);
+    try {
+      await deletePropertyAPI(serviceToDelete._id);
+      // Remove the deleted service from the local state
+      setVendorProperties(vendorProperties.filter(service => service._id !== serviceToDelete._id));
+      toast({
+        title: "Success",
+        description: "Service deleted successfully",
+      });
+      setDeleteServiceModalOpen(false);
+      setServiceToDelete(null);
+    } catch (error) {
+      console.error("Error deleting service:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete service",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingServiceId(null);
     }
   };
 
@@ -1901,6 +1937,25 @@ const VendorManagement = () => {
                                 </span>
                               </div>
                             </div>
+                            <div className="mt-4 flex justify-end">
+                              <button
+                                onClick={() => handleDeleteService(property._id)}
+                                disabled={deletingServiceId === property._id}
+                                className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                              >
+                                {deletingServiceId === property._id ? (
+                                  <>
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    Deleting...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Trash2 className="w-3 h-3" />
+                                    Delete
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </CardContent>
                         </Card>
                       ))}
@@ -2157,6 +2212,53 @@ const VendorManagement = () => {
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
               {alertDialog.action === "approved" ? "Approve" : "Reject"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Service Confirmation Dialog */}
+      <AlertDialog
+        open={deleteServiceModalOpen}
+        onOpenChange={setDeleteServiceModalOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-600" />
+              Delete Service
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the service "{serviceToDelete?.title}"? 
+              This action cannot be undone and will permanently remove the service from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              disabled={deletingServiceId !== null}
+              onClick={() => {
+                setDeleteServiceModalOpen(false);
+                setServiceToDelete(null);
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteService}
+              disabled={deletingServiceId !== null}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletingServiceId !== null ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Service
+                </>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
