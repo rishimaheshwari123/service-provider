@@ -181,12 +181,43 @@ const updateCategoryCtrl = async (req, res) => {
   }
 };
 
+const deleteCategoryCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id) {
+      return res.status(400).json({ success: false, message: "Category id is required" });
+    }
+
+    const category = await Category.findById(id);
+    if (!category) {
+      return res.status(404).json({ success: false, message: "Category not found" });
+    }
+
+    // Check if category has any purchases
+    const purchases = await VendorCategoryPurchase.find({ category: id });
+    if (purchases.length > 0) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Cannot delete category. It has existing purchases. Please contact vendors to remove their purchases first." 
+      });
+    }
+
+    await Category.findByIdAndDelete(id);
+    return res.status(200).json({ success: true, message: "Category deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting category:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   createCategoryCtrl,
   getAllCategoriesCtrl,
   purchaseCategoryCtrl,
   getPurchasedCategoriesCtrl,
   updateCategoryCtrl,
+  deleteCategoryCtrl,
 };
 
 // Get purchasers of a specific category (admin)

@@ -8,6 +8,7 @@ import {
   createCategoryAPI,
   getAllCategoriesAPI,
   updateCategoryAPI,
+  deleteCategoryAPI,
   getCategoryPurchasersAPI,
   purchaseCategoryAPI,
   getPendingCategoryPurchasesAPI,
@@ -41,6 +42,7 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import * as XLSX from "xlsx";
+import { toast } from "react-toastify";
 
 const ManageCategories = () => {
   const [loading, setLoading] = useState(false);
@@ -74,6 +76,9 @@ const ManageCategories = () => {
   const [purchaseVendorId, setPurchaseVendorId] = useState<string>("");
   const [purchasePaymentMethod, setPurchasePaymentMethod] = useState<"cash" | "qr">("cash");
   const [purchaseTransactionId, setPurchaseTransactionId] = useState<string>("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState<any | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   if (!user?.isCategoryManage) {
@@ -112,7 +117,7 @@ const ManageCategories = () => {
   const handleAssign = async () => {
     if (!currentCategory?._id || !selectedVendorId) return;
     if (paymentMethod === "qr" && !transactionId.trim()) {
-      alert("Please enter Transaction ID for QR payment");
+      toast.error("Please enter Transaction ID for QR payment");
       return;
     }
     await purchaseCategoryAPI({
@@ -203,7 +208,7 @@ const ManageCategories = () => {
   const handlePurchase = async () => {
     if (!currentCategory?._id || !purchaseVendorId) return;
     if (purchasePaymentMethod === "qr" && !purchaseTransactionId.trim()) {
-      alert("Please enter Transaction ID for QR payment");
+      toast.error("Please enter Transaction ID for QR payment");
       return;
     }
     await purchaseCategoryAPI({
@@ -215,6 +220,29 @@ const ManageCategories = () => {
     });
     setPurchaseOpen(false);
     await load(); // Refresh data
+  };
+
+  const openDeleteModal = (category: any) => {
+    setCategoryToDelete(category);
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!categoryToDelete?._id) return;
+    
+    setDeleteLoading(true);
+    try {
+      const result = await deleteCategoryAPI(categoryToDelete._id);
+      if (result) {
+        setDeleteModalOpen(false);
+        setCategoryToDelete(null);
+        await load(); // Refresh data
+      }
+    } catch (error) {
+      console.error("Error deleting category:", error);
+    } finally {
+      setDeleteLoading(false);
+    }
   };
 
   const approve = async (purchaseId: string) => {
@@ -386,6 +414,13 @@ const ManageCategories = () => {
                               Purchase Category
                             </Button>
                           )} */}
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => openDeleteModal(c)}
+                          >
+                            Delete
+                          </Button>
                         </div>
                       </div>
                     ))
@@ -913,6 +948,53 @@ const ManageCategories = () => {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Confirmation Modal */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete the category "{categoryToDelete?.name}"?
+            </p>
+            <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                <strong>Warning:</strong> This action cannot be undone. The category will be permanently deleted.
+              </p>
+              {categoryToDelete && (
+                <div className="mt-2 text-xs text-yellow-700">
+                  <p><strong>Category:</strong> {categoryToDelete.name}</p>
+                  <p><strong>Price:</strong> ₹{categoryToDelete.price}</p>
+                  {categoryToDelete.autoFilled && (
+                    <p><strong>Type:</strong> {categoryToDelete.autoFilled}</p>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteModalOpen(false);
+                setCategoryToDelete(null);
+              }}
+              disabled={deleteLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteCategory}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? "Deleting..." : "Delete Category"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

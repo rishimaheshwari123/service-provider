@@ -5,6 +5,7 @@ const {
   purchaseCategoryCtrl,
   getPurchasedCategoriesCtrl,
   updateCategoryCtrl,
+  deleteCategoryCtrl,
   getCategoryPurchasersCtrl,
   getPendingPurchasesCtrl,
   getVendorPendingPurchasesCtrl,
@@ -19,6 +20,9 @@ router.post("/create", createCategoryCtrl);
 
 // Admin: update category
 router.put("/update/:id", updateCategoryCtrl);
+
+// Admin: delete category
+router.delete("/delete/:id", deleteCategoryCtrl);
 
 // Public: list categories
 router.get("/getAll", getAllCategoriesCtrl);

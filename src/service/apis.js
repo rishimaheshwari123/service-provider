@@ -42,6 +42,7 @@ export const category = {
   CREATE_CATEGORY_API: BASE_URL + "/category/create",
   GET_ALL_CATEGORY_API: BASE_URL + "/category/getAll",
   UPDATE_CATEGORY_API: BASE_URL + "/category/update",
+  DELETE_CATEGORY_API: BASE_URL + "/category/delete",
   PURCHASE_CATEGORY_API: BASE_URL + "/category/purchase",
   GET_PURCHASED_CATEGORY_API: BASE_URL + "/category/purchased",
   GET_CATEGORY_PURCHASERS_API: BASE_URL + "/category/purchasers",
