@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 interface Booking {
   _id: string;
   service: {
-    price: string | number; // price can be string from API
+    price: string | number; 
   };
   status: "pending" | "confirmed" | "completed" | "cancelled";
 }
