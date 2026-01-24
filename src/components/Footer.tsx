@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion";
 import {
   Mail,
   Phone,
@@ -190,10 +191,67 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Copyright and Bottom Line */}
-        <div className="border-t border-gray-700/50 mt-12 pt-8 text-center text-gray-500 text-sm">
-          <p>&copy; 2025 {t("footer.allRightsReserved")}. </p>
-        </div>
+        {/* Ownership Section with Motion */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className="border-t border-gray-700/50 mt-12 pt-8"
+        >
+          <motion.div
+            initial={{ scale: 0.95 }}
+            whileInView={{ scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-center mb-6"
+          >
+            <motion.p
+              className="text-lg md:text-xl font-semibold text-white mb-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
+              <motion.span
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="inline-block"
+              >
+                Meragharsansaar
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.5 }}
+                className="text-gray-400 mx-2"
+              >
+                is owned and managed by
+              </motion.span>
+              <motion.span
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.7 }}
+                className="inline-block bg-gradient-to-r from-primary to-blue-500 bg-clip-text text-transparent"
+              >
+                Niyati Solutions
+              </motion.span>
+            </motion.p>
+          </motion.div>
+
+          {/* Copyright */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5, delay: 0.9 }}
+            className="text-center text-gray-500 text-sm"
+          >
+            <p>&copy; 2025 {t("footer.allRightsReserved")}. </p>
+          </motion.div>
+        </motion.div>
       </div>
     </footer>
   );
