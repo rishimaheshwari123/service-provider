@@ -94,57 +94,76 @@ const AuditLogsPage = () => {
         <button
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           onClick={downloadPDF}
+          disabled={logs.length === 0}
         >
           Download PDF
         </button>
       </div>
 
-      <div className="space-y-2">
-        {logs.map((log) => (
-          <div
-            key={log._id}
-            className="border p-3 rounded shadow-sm bg-gray-50"
-          >
-            <p>
-              <strong>User:</strong> {log.userId?.name || "-"} (
-              {log.userId?.email || "-"}) 📞 {log.userId?.phone || "-"}
-            </p>
-
-            <p>
-              <strong>Property:</strong> {log.propertyId?.title || "-"}
-            </p>
-
-            {log.propertyId?.vendor && (
-              <p>
-                <strong>Vendor:</strong> {log.propertyId.vendor.name || "-"} (
-                {log.propertyId.vendor.company || "-"}) 📞{" "}
-                {log.propertyId.vendor.phone || "-"}
-              </p>
-            )}
-
-            <p>
-              <strong>Type:</strong> {log.type || "Normal business click"}
-            </p>
-
-            <p className="text-xs text-gray-500">
-              Created at: {new Date(log.createdAt).toLocaleString()}
-            </p>
+      {loading && logs.length === 0 ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-indigo-600" />
+            <p className="text-gray-600">Loading audit logs...</p>
           </div>
-        ))}
-      </div>
+        </div>
+      ) : logs.length === 0 ? (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No audit logs found.</p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {logs.map((log) => (
+            <div
+              key={log._id}
+              className="border p-3 rounded shadow-sm bg-gray-50"
+            >
+              <p>
+                <strong>User:</strong> {log.userId?.name || "-"} (
+                {log.userId?.email || "-"}) 📞 {log.userId?.phone || "-"}
+              </p>
 
-      {page < totalPages && (
-        <button
-          className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-          onClick={() => fetchLogs(page + 1)}
-          disabled={loading}
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
-          ) : (
-            "Load More"
-          )}
-        </button>
+              <p>
+                <strong>Property:</strong> {log.propertyId?.title || "-"}
+              </p>
+
+              {log.propertyId?.vendor && (
+                <p>
+                  <strong>Vendor:</strong> {log.propertyId.vendor.name || "-"} (
+                  {log.propertyId.vendor.company || "-"}) 📞{" "}
+                  {log.propertyId.vendor.phone || "-"}
+                </p>
+              )}
+
+              <p>
+                <strong>Type:</strong> {log.type || "Normal business click"}
+              </p>
+
+              <p className="text-xs text-gray-500">
+                Created at: {new Date(log.createdAt).toLocaleString()}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {page < totalPages && logs.length > 0 && (
+        <div className="mt-6 text-center">
+          <button
+            className="px-6 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={() => fetchLogs(page + 1)}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin inline-block mr-2" />
+                Loading...
+              </>
+            ) : (
+              "Load More"
+            )}
+          </button>
+        </div>
       )}
     </div>
   );

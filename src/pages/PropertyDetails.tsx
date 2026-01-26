@@ -45,6 +45,7 @@ const PropertyDetails = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isSaved, setIsSaved] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
+  const [isShowingNumber, setIsShowingNumber] = useState(false);
   const { token, user } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState({
@@ -131,6 +132,24 @@ const PropertyDetails = () => {
       window.location.href = `tel:${property.vendor.phone}`;
     } catch (error) {
       console.error(error);
+    }
+  };
+
+  const handleShowNumber = async () => {
+    try {
+      setIsShowingNumber(true);
+      // Create audit log for show number action
+      if (user?._id) {
+        await createAuditForPropertyCallAndEmailAPI(id, user._id, "show_number");
+      }
+      setShowPhone(true);
+      toast.success("Number revealed!");
+    } catch (error) {
+      console.error("Error logging show number action:", error);
+      // Still show the number even if logging fails
+      setShowPhone(true);
+    } finally {
+      setIsShowingNumber(false);
     }
   };
 
@@ -291,16 +310,27 @@ const PropertyDetails = () => {
                 <div className="flex flex-wrap gap-3 mb-4">
                   {!showPhone ? (
                     <button
-                      onClick={() => setShowPhone(true)}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg"
+                      onClick={handleShowNumber}
+                      disabled={isShowingNumber}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg"
                     >
-                      <Phone className="w-4 h-4" />
-                      Show Number
+                      {isShowingNumber ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Loading...
+                        </>
+                      ) : (
+                        <>
+                          <Phone className="w-4 h-4" />
+                          Show Number
+                        </>
+                      )}
                     </button>
                   ) : (
                     <div className="flex items-center gap-2">
                       <a
                         href={`tel:${vendorPhone}`}
+                        onClick={handleCall}
                         className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg"
                       >
                         <Phone className="w-4 h-4" />
@@ -417,15 +447,41 @@ const PropertyDetails = () => {
               <div className="bg-white rounded-lg p-5 shadow-sm">
                 <h3 className="font-bold text-gray-900 mb-4">Quick Contact</h3>
                 <div className="space-y-3">
-                  <a href={`tel:${vendorPhone}`} className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100">
-                    <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                      <Phone className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Call Now</p>
-                      <p className="font-semibold text-green-700">{vendorPhone}</p>
-                    </div>
-                  </a>
+                  {!showPhone ? (
+                    <button
+                      onClick={handleShowNumber}
+                      disabled={isShowingNumber}
+                      className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed w-full"
+                    >
+                      <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                        {isShowingNumber ? (
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <Phone className="w-5 h-5 text-white" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Call Now</p>
+                        <p className="font-semibold text-green-700">
+                          {isShowingNumber ? "Loading..." : "Show Number"}
+                        </p>
+                      </div>
+                    </button>
+                  ) : (
+                    <a 
+                      href={`tel:${vendorPhone}`} 
+                      onClick={handleCall}
+                      className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100"
+                    >
+                      <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                        <Phone className="w-5 h-5 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Call Now</p>
+                        <p className="font-semibold text-green-700">{vendorPhone}</p>
+                      </div>
+                    </a>
+                  )}
                   {property.vendor?.email && (
                     <a href={`mailto:${property.vendor.email}`} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100">
                       <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
