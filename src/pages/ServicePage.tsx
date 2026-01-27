@@ -12,11 +12,15 @@ import {
   ChevronDown,
   CheckCircle,
   X,
+  MessageSquare,
 } from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
 import { getAllCategoriesAPI } from "@/service/operations/category";
+import { getAllReatingAPI, addRating } from "@/service/operations/rating";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ReviewModal from "@/components/ReviewModal";
+import ReviewsList from "@/components/ReviewsList";
 
 const MAX_PRICE_LIMIT = 50000;
 const MIN_PRICE_LIMIT = 0;
@@ -27,12 +31,25 @@ const ServicesPage = () => {
   const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [allReviews, setAllReviews] = useState<any[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [reviewModal, setReviewModal] = useState<{
+    isOpen: boolean;
+    serviceId: string;
+    serviceName: string;
+  }>({
+    isOpen: false,
+    serviceId: "",
+    serviceName: "",
+  });
   const [filters, setFilters] = useState({
     search: "",
     price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
     category: "all",
   });
+
+  // TEMPORARY FLAG: Set to false when real reviews are available
+  const USE_MOCK_REVIEWS = false;
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -51,22 +68,47 @@ const ServicesPage = () => {
   }, [location.search]);
 
   useEffect(() => {
-    const fetchCategories = async () => {
-      const data = await getAllCategoriesAPI();
-      setCategories(data);
+    const initializeData = async () => {
+      try {
+        // First fetch categories and reviews
+        const [categoriesData, reviewsData] = await Promise.all([
+          getAllCategoriesAPI(),
+          getAllReatingAPI()
+        ]);
+        
+        setCategories(categoriesData || []);
+        setAllReviews(reviewsData || []);
+        
+        console.log("Fetched reviews:", reviewsData);
+        console.log("Total reviews count:", reviewsData?.length || 0);
+        
+        // Then fetch services
+        await fetchServices(filters.category);
+      } catch (error) {
+        console.error("Error initializing data:", error);
+      }
     };
-    fetchCategories();
+    
+    initializeData();
   }, []);
 
   const fetchServices = async (categoryFilter = null) => {
     try {
       setLoading(true);
-      const filterParams = {};
+      const filterParams: any = {};
       if (categoryFilter && categoryFilter !== 'all') {
         filterParams.category = categoryFilter;
       }
       const allServices = await getAllPropertyAPI(filterParams);
-      console.log(allServices, "test")
+      console.log("Fetched services:", allServices);
+      console.log("Services count:", allServices?.length || 0);
+      
+      // Log first service to see its structure
+      if (allServices && allServices.length > 0) {
+        console.log("First service structure:", allServices[0]);
+        console.log("First service review field:", allServices[0].review);
+      }
+      
       setServices(allServices);
       setFilteredServices(allServices);
     } catch (error) {
@@ -99,25 +141,25 @@ const ServicesPage = () => {
       // Search in title, description, location, state, city, zipcode, category
       const matchSearch =
         !searchTerm ||
-        service.title?.toLowerCase().includes(searchTerm) ||
-        service.description?.toLowerCase().includes(searchTerm) ||
-        service.location?.toLowerCase().includes(searchTerm) ||
-        service.state?.toLowerCase().includes(searchTerm) ||
-        service.city?.toLowerCase().includes(searchTerm) ||
-        service.zipcode?.toLowerCase().includes(searchTerm) ||
-        service.pincode?.toLowerCase().includes(searchTerm) ||
-        service.address?.toLowerCase().includes(searchTerm) ||
-        service.category?.toLowerCase().includes(searchTerm);
+        (service as any).title?.toLowerCase().includes(searchTerm) ||
+        (service as any).description?.toLowerCase().includes(searchTerm) ||
+        (service as any).location?.toLowerCase().includes(searchTerm) ||
+        (service as any).state?.toLowerCase().includes(searchTerm) ||
+        (service as any).city?.toLowerCase().includes(searchTerm) ||
+        (service as any).zipcode?.toLowerCase().includes(searchTerm) ||
+        (service as any).pincode?.toLowerCase().includes(searchTerm) ||
+        (service as any).address?.toLowerCase().includes(searchTerm) ||
+        (service as any).category?.toLowerCase().includes(searchTerm);
 
       const matchCategory =
         newFilters.category === "all" ||
-        service.category?.toLowerCase() === newFilters.category.toLowerCase();
+        (service as any).category?.toLowerCase() === newFilters.category.toLowerCase();
 
       // Handle price filtering - skip if price is "NA" or not a valid number
-      const servicePrice = Number(service.price);
+      const servicePrice = Number((service as any).price);
       const matchPrice = 
-        service.price === "NA" || 
-        service.price === "N/A" || 
+        (service as any).price === "NA" || 
+        (service as any).price === "N/A" || 
         isNaN(servicePrice) || 
         (servicePrice >= minPrice && servicePrice <= maxPrice);
 
@@ -143,10 +185,93 @@ const ServicesPage = () => {
     navigate(`/service/${id}`);
   };
 
-  const getAverageRating = (reviews) => {
-    if (!reviews || reviews.length === 0) return 0;
-    const total = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    return Number((total / reviews.length).toFixed(1));
+  const handleAddReview = (serviceId: string, serviceName: string) => {
+    setReviewModal({
+      isOpen: true,
+      serviceId,
+      serviceName,
+    });
+  };
+
+  const handleCloseReviewModal = () => {
+    setReviewModal({
+      isOpen: false,
+      serviceId: "",
+      serviceName: "",
+    });
+  };
+
+  const handleReviewAdded = async () => {
+    // Refresh reviews after adding a new one
+    try {
+      const freshReviews = await getAllReatingAPI();
+      setAllReviews(freshReviews || []);
+      toast.success("Review added successfully!");
+    } catch (error) {
+      console.error("Error refreshing reviews:", error);
+    }
+  };
+
+  const getAverageRating = (serviceId: string) => {
+    // First try to get reviews from the populated review field
+    const service = services.find((s: any) => s._id === serviceId);
+    if (service?.review && Array.isArray(service.review) && service.review.length > 0) {
+      const total = service.review.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
+      return Number((total / service.review.length).toFixed(1));
+    }
+    
+    // Fallback: get reviews from separate API call
+    const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
+    if (serviceReviews.length === 0) {
+      return 0;
+    }
+    const total = serviceReviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
+    return Number((total / serviceReviews.length).toFixed(1));
+  };
+
+  // Temporary function to create test reviews (remove this later)
+  const createTestReviews = async () => {
+    try {
+      console.log("Creating test reviews...");
+      
+      // Get the first service ID
+      if (services.length > 0) {
+        const firstServiceId = services[0]._id;
+        console.log("Creating test review for service:", firstServiceId);
+        
+        // You can uncomment this to create a test review
+        // const testReview = {
+        //   rating: 5,
+        //   review: "Test review",
+        //   userId: "test-user-id",
+        //   property: firstServiceId
+        // };
+        // await addRating(testReview, "test-token");
+      }
+    } catch (error) {
+      console.error("Error creating test reviews:", error);
+    }
+  };
+
+  const getReviewCount = (serviceId: string) => {
+    // First try to get count from the populated review field
+    const service = services.find((s: any) => s._id === serviceId);
+    if (service?.review && Array.isArray(service.review)) {
+      if (service.review.length > 0) {
+        return service.review.length;
+      }
+    }
+    
+    // Fallback: get count from separate API call
+    const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
+    const count = serviceReviews.length;
+    
+    // Log only when reviews are found
+    if (count > 0) {
+      console.log(`Service ${serviceId} has ${count} reviews`);
+    }
+    
+    return count;
   };
 
   const getRatingColor = (rating: number) => {
@@ -248,13 +373,7 @@ const ServicesPage = () => {
         </div>
 
         {/* Results Count */}
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <p className="text-gray-600">
-              <span className="font-semibold text-gray-900">{filteredServices.length}</span> {t("nav.services")} {filters.category !== "all" && `in "${filters.category}"`}
-            </p>
-          </div>
-        </div>
+        
 
         {/* Services Grid */}
         <div className="max-w-7xl mx-auto px-4 pb-10">
@@ -272,9 +391,9 @@ const ServicesPage = () => {
             </div>
           ) : (
             <div className="space-y-4">
-              {filteredServices.map((service, index) => {
-                const avgRating = getAverageRating(service.review);
-                const reviewCount = service.review?.length || 0;
+              {filteredServices.map((service: any, index) => {
+                const avgRating = getAverageRating(service._id);
+                const reviewCount = getReviewCount(service._id);
 
                 return (
                   <div
@@ -325,7 +444,10 @@ const ServicesPage = () => {
                                   </span>
                                 </>
                               ) : (
-                                <span className="text-gray-400 text-sm">{t("pages.home.noRatings")}</span>
+                                <span className="text-gray-400 text-sm flex items-center gap-1">
+                                  <Star className="w-4 h-4" />
+                                  No reviews yet
+                                </span>
                               )}
                               {service.category && (
                                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
@@ -364,7 +486,7 @@ const ServicesPage = () => {
                             )}
                             {(service.price === "NA" || service.price === "N/A" || !service.price) && (
                               <div className="text-right">
-                                <p className="text-xs text-gray-500">Price</p>
+                                {/* <p className="text-xs text-gray-500">Price</p> */}
                                 <p className="text-xl font-bold text-gray-900">Contact for Price</p>
                               </div>
                             )}
@@ -375,12 +497,13 @@ const ServicesPage = () => {
                               >
                                 {t("common.viewDetails")}
                               </button>
-                              <a
-                                href={`tel:${service.vendor?.phone || service.phone || "+917879884363"}`}
-                                className="p-2.5 border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                              <button
+                                onClick={() => handleAddReview(service._id, service.title)}
+                                className="px-4 py-2.5 border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors flex items-center gap-2"
                               >
-                                <Phone className="w-5 h-5" />
-                              </a>
+                                <MessageSquare className="w-4 h-4" />
+                                Add Review
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -393,6 +516,16 @@ const ServicesPage = () => {
           )}
         </div>
       </section>
+      
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModal.isOpen}
+        onClose={handleCloseReviewModal}
+        serviceId={reviewModal.serviceId}
+        serviceName={reviewModal.serviceName}
+        onReviewAdded={handleReviewAdded}
+      />
+      
       <Footer />
     </>
   );

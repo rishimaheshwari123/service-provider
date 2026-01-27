@@ -15,6 +15,7 @@ import {
   Briefcase,
   ListChecks,
   ListOrdered,
+  Settings,
 } from "lucide-react";
 import { UserCog, FilePlus2, Files } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -84,6 +85,13 @@ const Sidebar = () => {
       icon: BarChart3,
       label: "Dashboard",
       color: "text-green-600",
+      permission: null,
+    },
+    {
+      to: "/admin/services",
+      icon: Settings,
+      label: "Manage Services",
+      color: "text-blue-600",
       permission: null,
     },
     {

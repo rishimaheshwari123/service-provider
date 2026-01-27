@@ -18,11 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { updatePropertyAPI } from "@/service/operations/property"; // rename later to updateServiceAPI
+import { updatePropertyAPI } from "@/service/operations/property";
 import { imageUpload } from "@/service/operations/image";
-import { getPurchasedCategoriesAPI } from "@/service/operations/category";
-import { useSelector } from "react-redux";
-import type { RootState } from "@/redux/store";
+import { getAllCategoriesAPI } from "@/service/operations/category";
 
 interface Image {
   public_id: string;
@@ -38,10 +36,17 @@ interface Service {
   category: string;
   description?: string;
   images?: Image[];
-  vendor: string;
+  vendor: string | {
+    _id: string;
+    name: string;
+    company: string;
+    phone: string;
+  };
+  status?: string;
+  createdAt?: string;
 }
 
-interface EditServiceModalProps {
+interface AdminEditServiceModalProps {
   isOpen: boolean;
   onClose: () => void;
   service: Service | null;
@@ -49,14 +54,13 @@ interface EditServiceModalProps {
   fetchServices: () => void;
 }
 
-export const EditServiceModal = ({
+export const AdminEditServiceModal = ({
   isOpen,
   onClose,
   service,
   onSave,
   fetchServices,
-}: EditServiceModalProps) => {
-  const user = useSelector((state: RootState) => state.auth?.user ?? null);
+}: AdminEditServiceModalProps) => {
   const [formData, setFormData] = useState<Service>({
     _id: "",
     title: "",
@@ -67,6 +71,7 @@ export const EditServiceModal = ({
     description: "",
     images: [],
     vendor: "",
+    status: "active",
   });
   const [images, setImages] = useState<Image[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -83,24 +88,23 @@ export const EditServiceModal = ({
         category: service.category || "",
         description: service.description || "",
         images: service.images || [],
-        vendor: service.vendor || "",
+        vendor: typeof service.vendor === 'string' ? service.vendor : service.vendor._id || "",
+        status: service.status || "active",
       });
       setImages(service.images || []);
     }
   }, [service]);
 
-  // Load purchased categories
+  // Load all categories for admin (they can assign any category)
   useEffect(() => {
     const loadCategories = async () => {
-      if (user?._id) {
-        const cats = await getPurchasedCategoriesAPI(user._id);
-        setCategories(cats);
-      }
+      const allCats = await getAllCategoriesAPI();
+      setCategories(allCats);
     };
     if (isOpen) {
       loadCategories();
     }
-  }, [user, isOpen]);
+  }, [isOpen]);
 
   const handleInputChange = (
     field: keyof Service,
@@ -154,7 +158,14 @@ export const EditServiceModal = ({
       dataToSend.append("category", formData.category);
       if (formData.description)
         dataToSend.append("description", formData.description);
-      if (formData.vendor) dataToSend.append("vendor", formData.vendor);
+      if (formData.vendor) {
+        if (typeof formData.vendor === 'string') {
+          dataToSend.append("vendor", formData.vendor);
+        } else {
+          dataToSend.append("vendor", formData.vendor._id);
+        }
+      }
+      if (formData.status) dataToSend.append("status", formData.status);
       if (images.length > 0)
         dataToSend.append("images", JSON.stringify(images));
 
@@ -179,7 +190,7 @@ export const EditServiceModal = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Service</DialogTitle>
+          <DialogTitle>Edit Service (Admin)</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
@@ -230,28 +241,46 @@ export const EditServiceModal = ({
               </div>
             </div>
 
-            <div>
-              <Label>Category *</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => handleInputChange("category", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat._id} value={cat.name}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {categories.length === 0 && (
-                <p className="text-sm text-gray-500 mt-1">
-                  No purchased categories found. Please purchase categories first.
-                </p>
-              )}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Category *</Label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(value) => handleInputChange("category", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat._id} value={cat.name}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {categories.length === 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Loading categories...
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label>Status *</Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value) => handleInputChange("status", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div>
@@ -261,7 +290,7 @@ export const EditServiceModal = ({
                 onChange={(e) =>
                   handleInputChange("description", e.target.value)
                 }
-                placeholder="Describe your service..."
+                placeholder="Describe the service..."
                 rows={3}
               />
             </div>

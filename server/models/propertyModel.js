@@ -23,15 +23,15 @@ const propertySchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-
     description: {
         type: String,
         trim: true,
     },
-
-
-
-
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
+    },
     images: [
         {
             public_id: String,

@@ -46,21 +46,24 @@ export const addRating = async (formData, token) => {
 
 
 export const getAllReatingAPI = async () => {
-  let result = [];
   try {
+    console.log("Fetching all reviews from API...");
     const response = await apiConnector("GET", GETALL_RATING_API);
-
+    
+    console.log("Rating API response:", response);
 
     if (!response?.data?.success) {
-      throw new Error("Could not UPDATE_RATING_API details");
+      console.error("Rating API returned unsuccessful response:", response?.data);
+      throw new Error("Could not fetch reviews");
     }
-    result = response?.data?.allReviews
-    return result;
+    
+    const reviews = response?.data?.allReviews || [];
+    console.log("Successfully fetched reviews:", reviews);
+    return reviews;
   } catch (error) {
-    console.log(error);
-    return false
+    console.error("Error fetching reviews:", error);
+    return []; // Return empty array instead of false
   }
-
 };
 
 

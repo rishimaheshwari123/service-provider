@@ -5,7 +5,7 @@ import { property } from "../apis";
 
 const {
   CREATE_PROPERTY_API,
-  GET_VENDOR_PROPERTY_API, UPDATE_PROPERTY_API, GET_ALL_PROPERTY_API, DELETE_PROPERTY_API, GET_PROPERTY_BY_ID_API } = property;
+  GET_VENDOR_PROPERTY_API, UPDATE_PROPERTY_API, GET_ALL_PROPERTY_API, DELETE_PROPERTY_API, GET_PROPERTY_BY_ID_API, UPDATE_PROPERTY_STATUS_API } = property;
 
 export const createPropertyAPI = async (formData) => {
   const toastId = toast.loading("Loading...");
@@ -119,13 +119,12 @@ export const updatePropertyAPI = async (id, formData) => {
   }
 
 };
-export const deletePropertyAPI = async (id) => {
 
+export const deletePropertyAPI = async (id) => {
   const toastId = toast.loading("Loading...");
 
   try {
     const response = await apiConnector("DELETE", `${DELETE_PROPERTY_API}/${id}`);
-
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -134,12 +133,31 @@ export const deletePropertyAPI = async (id) => {
     toast.success(response?.data?.message)
     return response?.data;
   } catch (error) {
-    console.error("UPDATE Vendor API ERROR:", error);
-    toast.error(error?.response?.data?.message || "Failed to vendor product!");
+    console.error("DELETE Property API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to delete property!");
     return [];
   } finally {
     toast.dismiss(toastId);
   }
-
 };
 
+export const updatePropertyStatusAPI = async (id, status) => {
+  const toastId = toast.loading("Updating status...");
+
+  try {
+    const response = await apiConnector("PUT", `${UPDATE_PROPERTY_STATUS_API}/${id}`, { status });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message);
+    return response?.data;
+  } catch (error) {
+    console.error("UPDATE Property Status API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to update property status!");
+    return null;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};

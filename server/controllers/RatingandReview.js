@@ -5,28 +5,49 @@ const mongoose = require("mongoose");
 // Create a new rating and review
 exports.createRating = async (req, res) => {
   try {
-    const { rating, review, userId, property } = req.body;
+    const { rating, review, userId, property, guestName, guestEmail } = req.body;
 
-    if (!rating || !review || !userId || !property) {
+    if (!rating || !review || !property) {
       return res.status(400).json({
         success: false,
-        message: "Rating, review, userId, and property are required",
+        message: "Rating, review, and property are required",
       });
+    }
+
+    let finalUserId = userId;
+
+    // Handle guest users
+    if (!userId || userId === "guest-user-id") {
+      if (!guestName || !guestEmail) {
+        return res.status(400).json({
+          success: false,
+          message: "Guest name and email are required for guest reviews",
+        });
+      }
+      
+      // For now, we'll use a placeholder guest user ID
+      // In production, you might want to create a proper guest user system
+      finalUserId = "guest-user-placeholder";
     }
 
     // 1. Create rating & review
     const ratingReview = await RatingAndReview.create({
-      rating,
+      rating: parseInt(rating),
       review,
-      user: userId,
+      user: finalUserId,
       property,
+      // Store guest info if it's a guest review
+      ...(finalUserId === "guest-user-placeholder" && {
+        guestName,
+        guestEmail,
+      }),
     });
 
     // 2. Add review ID to property document
     await Property.findByIdAndUpdate(
       property,
       { $push: { review: ratingReview._id } },
-      { new: true } // return updated document if needed
+      { new: true }
     );
 
     return res.status(201).json({

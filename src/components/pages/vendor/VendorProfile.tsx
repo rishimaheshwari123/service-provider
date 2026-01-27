@@ -28,6 +28,7 @@ import {
   updateVendorProfileAPI,
   requestForTheUpdateProfileAPI,
 } from "@/service/operations/vendor";
+import { getAllCategoriesAPI } from "@/service/operations/category";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 
@@ -92,12 +93,23 @@ const VendorProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [formData, setFormData] = useState<Partial<VendorData>>({});
+  const [categories, setCategories] = useState<any[]>([]);
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   useEffect(() => {
     fetchVendorData();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const data = await getAllCategoriesAPI();
+      setCategories(data || []);
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+    }
+  };
 
   const fetchVendorData = async () => {
     try {
@@ -115,6 +127,12 @@ const VendorProfile = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const getCategoryName = (categoryId: string) => {
+    if (!categoryId || !categories.length) return "-";
+    const category = categories.find(cat => cat._id === categoryId);
+    return category?.name || categoryId;
   };
 
   const handleRequestUpdate = async () => {
@@ -146,7 +164,10 @@ const VendorProfile = () => {
           key !== "experience" &&
           key !== "profilePhoto" &&
           key !== "document1" &&
-          key !== "document2"
+          key !== "document2" &&
+          key !== "document3" &&
+          key !== "document4" &&
+          key !== "document5"
         ) {
           if (value !== undefined && value !== null) {
             form.append(key, value as string);
@@ -185,6 +206,15 @@ const VendorProfile = () => {
       }
       if (formData.document2 instanceof File) {
         form.append("document2", formData.document2);
+      }
+      if (formData.document3 instanceof File) {
+        form.append("document3", formData.document3);
+      }
+      if (formData.document4 instanceof File) {
+        form.append("document4", formData.document4);
+      }
+      if (formData.document5 instanceof File) {
+        form.append("document5", formData.document5);
       }
 
       const response = await updateVendorProfileAPI(user?._id, form);
@@ -500,7 +530,7 @@ const VendorProfile = () => {
               </CardContent>
             </Card>
 
-            {/* Service Information - NEW */}
+            {/* Service Information */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -512,66 +542,172 @@ const VendorProfile = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label>Type of Service</Label>
-                    <p className="mt-1 text-gray-900">{vendor.typeOfService || "-"}</p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.typeOfService || ""}
+                        onChange={(e) => handleInputChange("typeOfService", e.target.value)}
+                        placeholder="e.g., Plumbing, Electrical"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.typeOfService || "-"}</p>
+                    )}
                   </div>
                   <div>
                     <Label>Category</Label>
                     <p className="mt-1 text-gray-900">
-                      {typeof vendor.category === 'object' ? vendor.category?.name : vendor.subCategory || "-"}
+                      {typeof vendor.category === 'object' 
+                        ? vendor.category?.name 
+                        : getCategoryName(vendor.category as string)
+                      }
                     </p>
                   </div>
                   <div>
+                    <Label>Sub Category</Label>
+                    <p className="mt-1 text-gray-900">{vendor.subCategory || "-"}</p>
+                  </div>
+                  <div>
                     <Label>Service Location / Area Covered</Label>
-                    <p className="mt-1 text-gray-900">{vendor.serviceLocation || "-"}</p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.serviceLocation || ""}
+                        onChange={(e) => handleInputChange("serviceLocation", e.target.value)}
+                        placeholder="e.g., Sagar, Bhopal, All MP"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.serviceLocation || "-"}</p>
+                    )}
                   </div>
                   <div>
                     <Label>Year of Establishment</Label>
-                    <p className="mt-1 text-gray-900">{vendor.yearOfEstablishment || "-"}</p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.yearOfEstablishment || ""}
+                        onChange={(e) => handleInputChange("yearOfEstablishment", e.target.value)}
+                        placeholder="e.g., 2020"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.yearOfEstablishment || "-"}</p>
+                    )}
                   </div>
                   <div>
                     <Label>Business Type</Label>
-                    <p className="mt-1 text-gray-900">{vendor.businessType || "-"}</p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.businessType || ""}
+                        onChange={(e) => handleInputChange("businessType", e.target.value)}
+                        placeholder="e.g., Proprietorship, Partnership"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.businessType || "-"}</p>
+                    )}
                   </div>
                   <div>
                     <Label>Number of Staff</Label>
-                    <p className="mt-1 text-gray-900">{vendor.numberOfStaff || "-"}</p>
+                    {isEditing ? (
+                      <Input
+                        type="number"
+                        value={formData.numberOfStaff || ""}
+                        onChange={(e) => handleInputChange("numberOfStaff", e.target.value)}
+                        placeholder="e.g., 3"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.numberOfStaff || "-"}</p>
+                    )}
                   </div>
                   <div>
                     <Label>Working Days & Timings</Label>
-                    <p className="mt-1 text-gray-900">{vendor.workingDaysTimings || "-"}</p>
-                  </div>
-                  <div>
-                    <Label>Referral Code</Label>
-                    <p className="mt-1 text-gray-900">{vendor.referralCode || "-"}</p>
-                  </div>
-                  <div>
-                    <Label>Referral Name</Label>
-                    <p className="mt-1 text-gray-900">{vendor.referralName || "-"}</p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.workingDaysTimings || ""}
+                        onChange={(e) => handleInputChange("workingDaysTimings", e.target.value)}
+                        placeholder="e.g., Mon-Sat | 9 AM - 7 PM"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.workingDaysTimings || "-"}</p>
+                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <Label>WhatsApp Number</Label>
-                    <p className="mt-1 text-gray-900 flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      {vendor.whatsappNumber || "-"}
-                    </p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.whatsappNumber || ""}
+                        onChange={(e) => handleInputChange("whatsappNumber", e.target.value)}
+                        placeholder="10-digit WhatsApp number"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900 flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        {vendor.whatsappNumber || "-"}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label>Alternate Phone</Label>
-                    <p className="mt-1 text-gray-900 flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      {vendor.alternatePhone || "-"}
-                    </p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.alternatePhone || ""}
+                        onChange={(e) => handleInputChange("alternatePhone", e.target.value)}
+                        placeholder="10-digit alternate number"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900 flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        {vendor.alternatePhone || "-"}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <Label>GST Number</Label>
-                    <p className="mt-1 text-gray-900">{vendor.gstNumber || "-"}</p>
+                    {isEditing ? (
+                      <Input
+                        value={formData.gstNumber || ""}
+                        onChange={(e) => handleInputChange("gstNumber", e.target.value)}
+                        placeholder="Enter GST number"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.gstNumber || "-"}</p>
+                    )}
                   </div>
                 </div>
-                <div>
-                  <Label>Trade License</Label>
-                  <p className="mt-1 text-gray-900">{vendor.tradeLicense || "-"}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Trade License</Label>
+                    {isEditing ? (
+                      <Input
+                        value={formData.tradeLicense || ""}
+                        onChange={(e) => handleInputChange("tradeLicense", e.target.value)}
+                        placeholder="Enter license number"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.tradeLicense || "-"}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label>Referral Code</Label>
+                    {isEditing ? (
+                      <Input
+                        value={formData.referralCode || ""}
+                        onChange={(e) => handleInputChange("referralCode", e.target.value)}
+                        placeholder="Enter referral code"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.referralCode || "-"}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label>Referral Name</Label>
+                    {isEditing ? (
+                      <Input
+                        value={formData.referralName || ""}
+                        onChange={(e) => handleInputChange("referralName", e.target.value)}
+                        placeholder="Enter referral name"
+                      />
+                    ) : (
+                      <p className="mt-1 text-gray-900">{vendor.referralName || "-"}</p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -748,15 +884,10 @@ const VendorProfile = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Existing Bank Details Code */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* your 4 existing inputs stay unchanged */}
-                </div>
-
-                {/* ---- New File Upload Section ---- */}
-                <div className="mt-6 space-y-4">
+                {/* Document Upload Section */}
+                <div className="space-y-4">
                   <Label className="text-lg font-semibold">
-                    Documents & Image
+                    Documents & Images
                   </Label>
 
                   {/* Profile Photo */}
@@ -842,6 +973,90 @@ const VendorProfile = () => {
                       <p className="mt-1 text-gray-900">-</p>
                     )}
                   </div>
+
+                  {/* Document 3 */}
+                  <div>
+                    <Label>Document 3</Label>
+                    {isEditing ? (
+                      <Input
+                        type="file"
+                        accept=".pdf,.jpg,.png"
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            document3: e.target.files?.[0] || null,
+                          }))
+                        }
+                      />
+                    ) : vendor.document3 && typeof vendor.document3 === 'string' ? (
+                      <a
+                        href={vendor.document3}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline mt-1 block"
+                      >
+                        View Document 3
+                      </a>
+                    ) : (
+                      <p className="mt-1 text-gray-900">-</p>
+                    )}
+                  </div>
+
+                  {/* Document 4 */}
+                  <div>
+                    <Label>Document 4</Label>
+                    {isEditing ? (
+                      <Input
+                        type="file"
+                        accept=".pdf,.jpg,.png"
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            document4: e.target.files?.[0] || null,
+                          }))
+                        }
+                      />
+                    ) : vendor.document4 && typeof vendor.document4 === 'string' ? (
+                      <a
+                        href={vendor.document4}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline mt-1 block"
+                      >
+                        View Document 4
+                      </a>
+                    ) : (
+                      <p className="mt-1 text-gray-900">-</p>
+                    )}
+                  </div>
+
+                  {/* Document 5 */}
+                  <div>
+                    <Label>Document 5</Label>
+                    {isEditing ? (
+                      <Input
+                        type="file"
+                        accept=".pdf,.jpg,.png"
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            document5: e.target.files?.[0] || null,
+                          }))
+                        }
+                      />
+                    ) : vendor.document5 && typeof vendor.document5 === 'string' ? (
+                      <a
+                        href={vendor.document5}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline mt-1 block"
+                      >
+                        View Document 5
+                      </a>
+                    ) : (
+                      <p className="mt-1 text-gray-900">-</p>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -851,13 +1066,13 @@ const VendorProfile = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
-                  Experience
+                  Experience & Services
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="experienceFields">Fields</Label>
+                    <Label htmlFor="experienceFields">Experience Fields</Label>
                     {isEditing ? (
                       <Input
                         id="experienceFields"
@@ -882,7 +1097,7 @@ const VendorProfile = () => {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="totalYears">Total Years</Label>
+                    <Label htmlFor="totalYears">Total Years of Experience</Label>
                     {isEditing ? (
                       <Input
                         id="totalYears"
@@ -901,10 +1116,16 @@ const VendorProfile = () => {
                       />
                     ) : (
                       <p className="mt-1 text-gray-900">
-                        {vendor.experience?.totalYears || 0}
+                        {vendor.experience?.totalYears ? `${vendor.experience.totalYears} years` : "-"}
                       </p>
                     )}
                   </div>
+                </div>
+                <div>
+                  <Label>Services Offered</Label>
+                  <p className="mt-1 text-gray-900">
+                    {(vendor.experience?.fields || []).join(", ") || "No services specified"}
+                  </p>
                 </div>
               </CardContent>
             </Card>

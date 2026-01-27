@@ -440,7 +440,7 @@ const PropertyDetails = () => {
                 </div>
               </div>
 
-              <DisplayRating property={id} />
+              <DisplayRating property={property} />
             </div>
 
             <div className="space-y-5">

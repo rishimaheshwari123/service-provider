@@ -66,9 +66,11 @@ import {
   ChevronLeft,
   ChevronRight,
   Trash2,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { signUp } from "@/service/operations/vendor";
-import { getAllCategoriesAPI } from "@/service/operations/category";
+import { getAllCategoriesAPI, purchaseCategoryAPI } from "@/service/operations/category";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
@@ -96,7 +98,8 @@ import {
   updateVendorProfileAPI,
   requestForTheUpdateProfileAPI,
 } from "@/service/operations/vendor";
-import { getVendorPropertyAPI, deletePropertyAPI } from "@/service/operations/property";
+import { updatePropertyStatusAPI, getVendorPropertyAPI, deletePropertyAPI } from "@/service/operations/property";
+import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 import AllBooking from "./AllBooking";
@@ -124,6 +127,8 @@ const VendorManagement = () => {
   const [deletingServiceId, setDeletingServiceId] = useState<string | null>(null);
   const [deleteServiceModalOpen, setDeleteServiceModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<any | null>(null);
+  const [editServiceModalOpen, setEditServiceModalOpen] = useState(false);
+  const [serviceToEdit, setServiceToEdit] = useState<any | null>(null);
   const [updatingPercentage, setUpdatingPercentage] = useState({});
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [accepted, setAccepted] = useState(false);
@@ -354,6 +359,44 @@ const VendorManagement = () => {
     setDeleteServiceModalOpen(true);
   };
 
+  const handleEditService = (service: any) => {
+    setServiceToEdit(service);
+    setEditServiceModalOpen(true);
+  };
+
+  const handleSaveService = (updatedService: any) => {
+    setVendorProperties(
+      vendorProperties.map((s) => (s._id === updatedService._id ? updatedService : s))
+    );
+  };
+
+  const handleServiceStatusToggle = async (serviceId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    try {
+      const result = await updatePropertyStatusAPI(serviceId, newStatus);
+      if (result) {
+        // Update local state
+        setVendorProperties(vendorProperties.map(service => 
+          service._id === serviceId 
+            ? { ...service, status: newStatus }
+            : service
+        ));
+        toast({
+          title: "Success",
+          description: `Service ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating service status:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update service status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const confirmDeleteService = async () => {
     if (!serviceToDelete?._id) return;
 
@@ -486,11 +529,36 @@ const VendorManagement = () => {
       
       const response = await signUp(submitData);
 
-      if (response) {
-        toast({
-          title: "Success",
-          description: "Vendor registered successfully",
-        });
+      if (response?.success) {
+        // Auto-purchase the selected category for the vendor
+        if (selectedCategory && response.user?._id) {
+          try {
+            await purchaseCategoryAPI({
+              vendorId: response.user._id,
+              categoryId: selectedCategory,
+              paymentMethod: "cash",
+              transactionId: "",
+              assignedByAdmin: true, // Admin is registering, so auto-approve
+            });
+            
+            toast({
+              title: "Success",
+              description: "Vendor registered and category assigned successfully",
+            });
+          } catch (categoryError) {
+            console.error("Error purchasing category:", categoryError);
+            toast({
+              title: "Warning",
+              description: "Vendor registered but failed to assign category. You can assign it manually later.",
+              variant: "default",
+            });
+          }
+        } else {
+          toast({
+            title: "Success",
+            description: "Vendor registered successfully",
+          });
+        }
 
         // Reset form
         setFormData({
@@ -1936,8 +2004,40 @@ const VendorManagement = () => {
                                   ₹{property.price}
                                 </span>
                               </div>
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  className={`${
+                                    property.status === 'active' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
+                                  {property.status === 'active' ? 'Active' : 'Inactive'}
+                                </Badge>
+                              </div>
                             </div>
-                            <div className="mt-4 flex justify-end">
+                            <div className="mt-4 flex justify-between gap-2">
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEditService(property)}
+                                >
+                                  <Edit className="w-3 h-3" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={property.status === 'active' ? 'destructive' : 'default'}
+                                  onClick={() => handleServiceStatusToggle(property._id, property.status || 'active')}
+                                  className={property.status === 'active' ? '' : 'bg-green-600 hover:bg-green-700'}
+                                >
+                                  {property.status === 'active' ? (
+                                    <XCircle className="w-3 h-3" />
+                                  ) : (
+                                    <CheckCircle className="w-3 h-3" />
+                                  )}
+                                </Button>
+                              </div>
                               <button
                                 onClick={() => handleDeleteService(property._id)}
                                 disabled={deletingServiceId === property._id}
@@ -2263,6 +2363,20 @@ const VendorManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Service Modal */}
+      <AdminEditServiceModal
+        isOpen={editServiceModalOpen}
+        onClose={() => setEditServiceModalOpen(false)}
+        service={serviceToEdit}
+        onSave={handleSaveService}
+        fetchServices={() => {
+          // Refresh the vendor properties after edit
+          if (selectedVendor) {
+            handleRowClick(selectedVendor);
+          }
+        }}
+      />
     </div>
   );
 };

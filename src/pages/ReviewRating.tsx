@@ -36,8 +36,9 @@ export default function ReviewRating({
       rating: data.userRating,
       review: data.userReview,
       userId,
-      property,
+      property: property._id, // Use property._id instead of complete property object
     };
+    console.log("Submitting rating data:", ratingData);
     await addRating(ratingData, token);
     setReviewModal(false);
     fetchRatings();
