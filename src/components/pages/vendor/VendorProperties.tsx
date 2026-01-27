@@ -11,6 +11,7 @@ import type { RootState } from "@/redux/store";
 import {
   getVendorPropertyAPI,
   deletePropertyAPI,
+  updatePropertyStatusAPI,
 } from "@/service/operations/property";
 import { toast } from "sonner";
 import { EditServiceModal } from "./edit-property-modal";
@@ -54,6 +55,26 @@ const VendorServices = () => {
   useEffect(() => {
     fetchServices();
   }, [user]);
+
+  const handleToggleStatus = async (serviceId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+    
+    try {
+      const result = await updatePropertyStatusAPI(serviceId, newStatus);
+      if (result) {
+        // Update local state
+        setServices(services.map(service => 
+          service._id === serviceId 
+            ? { ...service, status: newStatus }
+            : service
+        ));
+        toast.success(`Service ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+      }
+    } catch (error) {
+      console.error("Error updating service status:", error);
+      toast.error("Failed to update service status");
+    }
+  };
 
   const handleDelete = async (serviceId: string) => {
     setServices(services.filter((s) => s._id !== serviceId));
@@ -139,8 +160,14 @@ const VendorServices = () => {
                     alt={service.title}
                     className="w-full h-full object-cover"
                   />
-                  <Badge className="absolute top-2 right-2 bg-green-100 text-green-800">
-                    Active
+                  <Badge 
+                    className={`absolute top-2 right-2 ${
+                      service.status === 'active' 
+                        ? 'bg-green-100 text-green-800' 
+                        : 'bg-red-100 text-red-800'
+                    }`}
+                  >
+                    {service.status === 'active' ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
               )}
@@ -170,6 +197,14 @@ const VendorServices = () => {
                   )}
                 </div>
                 <div className="flex space-x-2">
+                  <Button
+                    size="sm"
+                    variant={service.status === 'active' ? 'destructive' : 'default'}
+                    onClick={() => handleToggleStatus(service._id, service.status || 'active')}
+                    className={service.status === 'active' ? '' : 'bg-green-600 hover:bg-green-700'}
+                  >
+                    {service.status === 'active' ? 'Deactivate' : 'Activate'}
+                  </Button>
                   <Button
                     size="sm"
                     variant="outline"

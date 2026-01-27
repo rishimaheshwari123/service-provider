@@ -19,8 +19,15 @@ const ratingAndReviewSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
-
-
+	// Guest user fields
+	guestName: {
+		type: String,
+		required: false,
+	},
+	guestEmail: {
+		type: String,
+		required: false,
+	},
 },
 	{ timestamps: true }
 );

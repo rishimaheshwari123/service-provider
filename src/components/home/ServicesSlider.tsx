@@ -9,22 +9,46 @@ import {
   ChevronLeft,
   Shield,
   Clock,
+  MessageSquare,
 } from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
+import { getAllReatingAPI } from "@/service/operations/rating";
 import { useNavigate } from "react-router-dom";
+import ReviewModal from "@/components/ReviewModal";
 
 const ServicesSlider = () => {
   const { t } = useTranslation();
   const [services, setServices] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [allReviews, setAllReviews] = useState<any[]>([]);
+  const [reviewModal, setReviewModal] = useState<{
+    isOpen: boolean;
+    serviceId: string;
+    serviceName: string;
+  }>({
+    isOpen: false,
+    serviceId: "",
+    serviceName: "",
+  });
   const navigate = useNavigate();
+
+  // TEMPORARY FLAG: Set to false when real reviews are available
+  const USE_MOCK_REVIEWS = false;
 
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const allServices = await getAllPropertyAPI();
+      const [allServices, reviews] = await Promise.all([
+        getAllPropertyAPI(),
+        getAllReatingAPI()
+      ]);
+      console.log("service", allServices)
+      
       setServices(allServices || []);
+      setAllReviews(reviews || []);
+      
+      // Log summary
     } catch (error) {
       console.error("Error fetching services:", error);
       toast.error("Failed to fetch services");
@@ -45,10 +69,70 @@ const ServicesSlider = () => {
     navigate("/services");
   };
 
-  const getAverageRating = (reviews: any[]) => {
-    if (!reviews || reviews.length === 0) return 0;
-    const total = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
-    return parseFloat((total / reviews.length).toFixed(1));
+  const handleAddReview = (serviceId: string, serviceName: string) => {
+    setReviewModal({
+      isOpen: true,
+      serviceId,
+      serviceName,
+    });
+  };
+
+  const handleCloseReviewModal = () => {
+    setReviewModal({
+      isOpen: false,
+      serviceId: "",
+      serviceName: "",
+    });
+  };
+
+  const handleReviewAdded = async () => {
+    // Refresh reviews after adding a new one
+    try {
+      const freshReviews = await getAllReatingAPI();
+      setAllReviews(freshReviews || []);
+      toast.success("Review added successfully!");
+    } catch (error) {
+      console.error("Error refreshing reviews:", error);
+    }
+  };
+
+  const getAverageRating = (serviceId: string) => {
+    // First try to get reviews from the populated review field
+    const service = services.find(s => s._id === serviceId);
+    if (service?.review && Array.isArray(service.review) && service.review.length > 0) {
+      const total = service.review.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
+      return parseFloat((total / service.review.length).toFixed(1));
+    }
+    
+    // Fallback: get reviews from separate API call
+    const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
+    if (serviceReviews.length === 0) {
+      return 0;
+    }
+    const total = serviceReviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
+    return parseFloat((total / serviceReviews.length).toFixed(1));
+  };
+
+  const getReviewCount = (serviceId: string) => {
+    // First try to get count from the populated review field
+    const service = services.find(s => s._id === serviceId);
+    
+    if (service?.review && Array.isArray(service.review)) {
+      if (service.review.length > 0) {
+        return service.review.length;
+      }
+    }
+    
+    // Fallback: get count from separate API call
+    const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
+    const count = serviceReviews.length;
+    
+    // Log only when reviews are found
+    if (count > 0) {
+      console.log(`ServicesSlider - Service ${serviceId} has ${count} reviews`);
+    }
+    
+    return count;
   };
 
   // Responsive items per view
@@ -157,8 +241,8 @@ const ServicesSlider = () => {
               }}
             >
               {services.map((service, index) => {
-                const avgRating = getAverageRating(service.review);
-                const reviewCount = service.review?.length || 0;
+                const avgRating = getAverageRating(service._id);
+                const reviewCount = getReviewCount(service._id);
 
                 return (
                   <div
@@ -234,21 +318,27 @@ const ServicesSlider = () => {
                       {/* Reviews & Price */}
                       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                         <span className="text-gray-500 text-xs md:text-sm">
-                          {reviewCount} Reviews
+                          {reviewCount > 0 ? `${reviewCount} ${reviewCount === 1 ? 'Review' : 'Reviews'}` : 'No reviews yet'}
                         </span>
-                        {service.price && (
-                          <span className="text-green-600 font-semibold text-sm md:text-base">
-                            ₹{service.price.toLocaleString("en-IN")}+
-                          </span>
-                        )}
+                       
                       </div>
                     </div>
 
                     {/* Action Button */}
-                    <div className="px-3 md:px-4 pb-3 md:pb-4">
-                      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm md:text-base">
+                    <div className="px-3 md:px-4 pb-3 md:pb-4 space-y-2">
+                      <button 
+                        onClick={() => handleViewDetails(service._id)}
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm md:text-base"
+                      >
                         <Phone className="w-4 h-4" />
                         Contact Now
+                      </button>
+                      <button
+                        onClick={() => handleAddReview(service._id, service.title)}
+                        className="w-full border-2 border-green-500 text-green-600 hover:bg-green-50 font-medium py-2 md:py-2.5 rounded-lg flex items-center justify-center gap-2 transition-colors text-sm md:text-base"
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        Add Review
                       </button>
                     </div>
                   </div>
@@ -269,6 +359,15 @@ const ServicesSlider = () => {
           </button>
         </div>
       </div>
+      
+      {/* Review Modal */}
+      <ReviewModal
+        isOpen={reviewModal.isOpen}
+        onClose={handleCloseReviewModal}
+        serviceId={reviewModal.serviceId}
+        serviceName={reviewModal.serviceName}
+        onReviewAdded={handleReviewAdded}
+      />
     </section>
   );
 };

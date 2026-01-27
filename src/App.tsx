@@ -52,6 +52,7 @@ import AuditLogsPage from "./components/pages/vendor/AuditLogs";
 import AdminAuditLogs from "./components/pages/admin/AdminAuditLogs";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
+import AdminServices from "./components/pages/admin/AdminServices";
 const queryClient = new QueryClient();
 
 // Loading component for Suspense fallback
@@ -112,6 +113,7 @@ const App = () => {
                 }
               >
                 <Route path="dashboard" element={<Dashboard />} />
+                <Route path="services" element={<AdminServices />} />
                 <Route path="vendors" element={<VendorManagement />} />
                 <Route path="add-blog" element={<AddBlog />} />
                 <Route path="get-blog" element={<GetBlog />} />

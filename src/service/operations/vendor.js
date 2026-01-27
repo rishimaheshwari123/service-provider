@@ -93,7 +93,7 @@ export async function signUp(formData,) {
 
 
 
-    return response?.data?.success;
+    return response?.data;
   } catch (error) {
     console.log("SIGNUP API ERROR............", error);
 

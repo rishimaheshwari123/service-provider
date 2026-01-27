@@ -27,6 +27,7 @@ export const vendor = {
   UPDATE_VENDOR_PERSANTAGE: BASE_URL + "/vendor/update-percentage",
   UPDATE_VENDOR_WORKING_HOURS: BASE_URL + "/vendor/working-hours",
   REQUST_FOR_THE_UPDATE_PROFILE_API: BASE_URL + "/vendor/request-update",
+  MY_PROFILE: BASE_URL + "/vendor/my-profile",
 }
 
 export const property = {
@@ -34,6 +35,7 @@ export const property = {
   GET_VENDOR_PROPERTY_API: BASE_URL + "/property/get-vendor-property",
   GET_ALL_PROPERTY_API: BASE_URL + "/property/getAll",
   UPDATE_PROPERTY_API: BASE_URL + "/property/update",
+  UPDATE_PROPERTY_STATUS_API: BASE_URL + "/property/update-status",
   DELETE_PROPERTY_API: BASE_URL + "/property/delete",
   GET_PROPERTY_BY_ID_API: BASE_URL + "/property/get",
 }

@@ -86,6 +86,7 @@ const updatePropertyCtrl = async (req, res) => {
             category,
             description,
             images,
+            status,
         } = req.body;
 
         // Parse images safely
@@ -108,6 +109,7 @@ const updatePropertyCtrl = async (req, res) => {
         if (category) property.category = category;
         if (description) property.description = description;
         if (imagesArray) property.images = imagesArray;
+        if (status && ['active', 'inactive'].includes(status)) property.status = status;
 
         await property.save();
 
@@ -128,9 +130,14 @@ const updatePropertyCtrl = async (req, res) => {
 
 const getPropertiesCtrl = async (req, res) => {
     try {
-        const { category } = req.query;
+        const { category, includeInactive } = req.query;
 
         let query = {};
+        
+        // For admin view, include inactive services; for public view, only active
+        if (includeInactive !== 'true') {
+            query.status = 'active';
+        }
         
         // Add category filter if provided
         if (category && category !== 'all') {
@@ -204,4 +211,45 @@ const deletePropertyCtrl = async (req, res) => {
         res.status(500).json({ success: false, message: 'Something went wrong' });
     }
 };
-module.exports = { createPropertyCtrl, getPropertiesByVendor, updatePropertyCtrl, getPropertiesCtrl, getPropertiesByIdCtrl, deletePropertyCtrl };
+
+// Update property status (active/inactive)
+const updatePropertyStatusCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!status || !['active', 'inactive'].includes(status)) {
+            return res.status(400).json({ 
+                success: false,
+                message: 'Valid status (active/inactive) is required' 
+            });
+        }
+
+        const updatedProperty = await Property.findByIdAndUpdate(
+            id, 
+            { status }, 
+            { new: true }
+        );
+
+        if (!updatedProperty) {
+            return res.status(404).json({ 
+                success: false,
+                message: 'Property not found' 
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            message: `Property ${status === 'active' ? 'activated' : 'deactivated'} successfully`,
+            property: updatedProperty
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Something went wrong' 
+        });
+    }
+};
+
+module.exports = { createPropertyCtrl, getPropertiesByVendor, updatePropertyCtrl, getPropertiesCtrl, getPropertiesByIdCtrl, deletePropertyCtrl, updatePropertyStatusCtrl };

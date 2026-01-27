@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
-import { getAllCategoriesAPI } from "../service/operations/category";
+import { getAllCategoriesAPI, purchaseCategoryAPI } from "../service/operations/category";
 import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
 
 // Zod schema for validation
@@ -195,7 +195,27 @@ const VendorRegister = () => {
     };
 
     const response = await signUp(formData);
-    if (response) navigate("/partner/login");
+    if (response?.success) {
+      // Auto-purchase the selected category for the vendor
+      if (selectedCategory && response.user?._id) {
+        try {
+          await purchaseCategoryAPI({
+            vendorId: response.user._id,
+            categoryId: selectedCategory,
+            paymentMethod: "cash",
+            transactionId: "",
+            assignedByAdmin: false, // This is public registration, so it will be pending approval
+          });
+          
+          console.log("Category purchase request submitted successfully");
+        } catch (categoryError) {
+          console.error("Error purchasing category:", categoryError);
+          // Don't show error to user as the main registration was successful
+        }
+      }
+      
+      navigate("/partner/login");
+    }
   };
 
   const progress = (currentStep / 7) * 100;
