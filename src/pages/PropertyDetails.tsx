@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Copy,
   X,
+  Building,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getPropertyBYIDAPI } from "@/service/operations/property";
@@ -46,6 +47,8 @@ const PropertyDetails = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [showPhone, setShowPhone] = useState(false);
   const [isShowingNumber, setIsShowingNumber] = useState(false);
+  const [showProviderPhone, setShowProviderPhone] = useState(false);
+  const [isShowingProviderNumber, setIsShowingProviderNumber] = useState(false);
   const { token, user } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState({
@@ -150,6 +153,24 @@ const PropertyDetails = () => {
       setShowPhone(true);
     } finally {
       setIsShowingNumber(false);
+    }
+  };
+
+  const handleShowProviderNumber = async () => {
+    try {
+      setIsShowingProviderNumber(true);
+      // Create audit log for show provider number action
+      if (user?._id) {
+        await createAuditForPropertyCallAndEmailAPI(id, user._id, "show_provider_number");
+      }
+      setShowProviderPhone(true);
+      toast.success("Provider number revealed!");
+    } catch (error) {
+      console.error("Error logging show provider number action:", error);
+      // Still show the number even if logging fails
+      setShowProviderPhone(true);
+    } finally {
+      setIsShowingProviderNumber(false);
     }
   };
 
@@ -360,12 +381,12 @@ const PropertyDetails = () => {
                   <button onClick={handleShare} className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
                     <Share2 className="w-4 h-4" /> Share
                   </button>
-                  <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+                  {/* <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
                     <Globe className="w-4 h-4" /> Website
-                  </button>
-                  <span className="flex items-center gap-1 text-sm text-gray-400">
+                  </button> */}
+                  {/* <span className="flex items-center gap-1 text-sm text-gray-400">
                     <Eye className="w-4 h-4" /> {property.views || 0} views
-                  </span>
+                  </span> */}
                 </div>
               </div>
             </div>
@@ -397,46 +418,15 @@ const PropertyDetails = () => {
                 </div>
               </div>
 
-              {/* Working Hours - Always show with default values if data is invalid */}
+              {/* Working Hours - Show workingDaysTimings directly */}
               <div className="bg-white rounded-lg p-5 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-blue-600" /> Working Hours
                 </h2>
-                <div className="space-y-2">
-                  {(() => {
-                    let workingHours = property.vendor?.workingHours;
-                    
-                    // If invalid data, use defaults
-                    if (!workingHours || typeof workingHours === "string" || workingHours === "[object Object]") {
-                      workingHours = {
-                        monday: { start: "09:00 AM", end: "06:00 PM", available: true },
-                        tuesday: { start: "09:00 AM", end: "06:00 PM", available: true },
-                        wednesday: { start: "09:00 AM", end: "06:00 PM", available: true },
-                        thursday: { start: "09:00 AM", end: "06:00 PM", available: true },
-                        friday: { start: "09:00 AM", end: "06:00 PM", available: true },
-                        saturday: { start: "09:00 AM", end: "02:00 PM", available: true },
-                        sunday: { start: "", end: "", available: false },
-                      };
-                    }
-
-                    const dayOrder = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"];
-                    
-                    return dayOrder.map((day) => {
-                      const info = workingHours[day] || { available: false };
-                      return (
-                        <div key={day} className="flex justify-between items-center py-2.5 border-b border-gray-100 last:border-0">
-                          <span className="capitalize font-medium text-gray-700">{day}</span>
-                          {info.available ? (
-                            <span className="text-green-600 text-sm font-medium">
-                              {info.start || "09:00 AM"} - {info.end || "06:00 PM"}
-                            </span>
-                          ) : (
-                            <span className="text-red-500 text-sm font-medium">Closed</span>
-                          )}
-                        </div>
-                      );
-                    });
-                  })()}
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-700 font-medium">
+                    {property.vendor?.workingDaysTimings || "Monday - Saturday: 9:00 AM - 6:00 PM"}
+                  </p>
                 </div>
               </div>
 
@@ -500,21 +490,128 @@ const PropertyDetails = () => {
               </div>
 
               <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h3 className="font-bold text-gray-900 mb-4">Service Provider</h3>
-                <div className="flex items-center gap-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                    {property.vendor?.name?.charAt(0) || "S"}
+                <h3 className="font-bold text-gray-900 mb-4">Service Provider Information</h3>
+                <div className="space-y-4">
+                  {/* Provider Basic Info */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                      {property.vendor?.name?.charAt(0) || "S"}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{property.vendor?.name || "Service Provider"}</p>
+                      <p className="text-sm text-gray-500">{property.vendor?.company || "Professional Services"}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-semibold text-gray-900">{property.vendor?.name || "Service Provider"}</p>
-                    <p className="text-sm text-gray-500">{property.vendor?.company || "Professional Services"}</p>
+                  
+                  {/* Provider Details - Always show specific fields */}
+                  <div className="space-y-3 pt-3 border-t border-gray-100">
+                    {/* Type of Service - Always show */}
+                    <div className="flex items-center gap-3">
+                      <Building className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Type of Service</p>
+                        <p className="text-sm text-gray-600">
+                          {property.vendor?.typeOfService || <span className="text-gray-400 italic">Not Added</span>}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Year of Establishment - Always show */}
+                    <div className="flex items-center gap-3">
+                      <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Year of Establishment</p>
+                        <p className="text-sm text-gray-600">
+                          {property.vendor?.yearOfEstablishment || <span className="text-gray-400 italic">Not Added</span>}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Address - Always show */}
+                    <div className="flex items-start gap-3">
+                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Address</p>
+                        <p className="text-sm text-gray-600">
+                          {property.vendor?.address || <span className="text-gray-400 italic">Not Added</span>}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Experience Fields - Always show */}
+                    <div className="flex items-start gap-3">
+                      <Star className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Experience Fields</p>
+                        {property.vendor?.experience?.fields?.length > 0 ? (
+                          <div>
+                            <p className="text-sm text-gray-600">{property.vendor.experience.fields.join(", ")}</p>
+                            {property.vendor.experience.totalYears && (
+                              <p className="text-xs text-gray-500 mt-1">{property.vendor.experience.totalYears} years of experience</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-400 italic">Not Added</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Phone Number with Show Button Flow - Always show */}
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">Phone Number</p>
+                        {property.vendor?.phone ? (
+                          !showProviderPhone ? (
+                            <button
+                              onClick={handleShowProviderNumber}
+                              disabled={isShowingProviderNumber}
+                              className="text-sm bg-green-100 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed text-green-700 px-3 py-1 rounded-md font-medium"
+                            >
+                              {isShowingProviderNumber ? (
+                                <>
+                                  <div className="inline-block w-3 h-3 border-2 border-green-700 border-t-transparent rounded-full animate-spin mr-1"></div>
+                                  Loading...
+                                </>
+                              ) : (
+                                "Show Number"
+                              )}
+                            </button>
+                          ) : (
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm text-gray-600">{property.vendor.phone}</p>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(property.vendor.phone);
+                                  toast.success("Number copied!");
+                                }}
+                                className="p-1 hover:bg-gray-100 rounded"
+                              >
+                                <Copy className="w-3 h-3 text-gray-400" />
+                              </button>
+                            </div>
+                          )
+                        ) : (
+                          <p className="text-sm text-gray-400 italic">Not Added</p>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Email - Always show */}
+                    <div className="flex items-center gap-3">
+                      <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">Email</p>
+                        <p className="text-sm text-gray-600">
+                          {property.vendor?.email || <span className="text-gray-400 italic">Not Added</span>}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg p-4 shadow-sm">
-                <p className="text-xs text-gray-400 text-center">ID: #{property._id?.slice(-8).toUpperCase()}</p>
-              </div>
+              
             </div>
           </div>
         </div>

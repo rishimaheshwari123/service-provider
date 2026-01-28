@@ -129,7 +129,7 @@ const vendorLoginCtrl = async (req, res) => {
 
 const getAllVendorCtrl = async (req, res) => {
   try {
-    const vendors = await vendorModel.find();
+    const vendors = await vendorModel.find().sort({ name: 1 }); // Sort alphabetically by name (A-Z)
     return res.status(200).json({
       success: true,
       vendors
@@ -395,6 +395,40 @@ const requestProfileUpdateCtrl = async (req, res) => {
   }
 };
 
+const deleteVendorCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // First, check if vendor exists
+    const vendor = await vendorModel.findById(id);
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    // Delete all properties/services associated with this vendor
+    const propertyModel = require("../models/propertyModel");
+    await propertyModel.deleteMany({ vendorId: id });
+
+    // Delete the vendor
+    await vendorModel.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor and all associated services deleted successfully",
+    });
+  } catch (error) {
+    console.error("❌ Delete vendor error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting vendor",
+      error: error.message,
+    });
+  }
+};
+
 
 module.exports = {
   vendorRegisterCtrl,
@@ -405,5 +439,6 @@ module.exports = {
   updateVendorProfileCtrl,
   updateVendorPercentageCtrl,
   updateWorkingHours,
-  requestProfileUpdateCtrl
+  requestProfileUpdateCtrl,
+  deleteVendorCtrl
 };

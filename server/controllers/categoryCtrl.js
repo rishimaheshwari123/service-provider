@@ -51,13 +51,24 @@ const getAllCategoriesCtrl = async (req, res) => {
 
 const purchaseCategoryCtrl = async (req, res) => {
   try {
-    const { vendorId, categoryId, transactionId, paymentMode = "prepaid", paymentMethod, assignedByAdmin } = req.body;
+    const { vendorId, categoryId, transactionId, paymentMode = "prepaid", paymentMethod, assignedByAdmin, status, isAdmin } = req.body;
     // Support both paymentMode (old) and paymentMethod (new from admin assign)
     const finalPaymentMode = paymentMethod || paymentMode;
+    
+    console.log("Purchase request received:", { vendorId, categoryId, finalPaymentMode, assignedByAdmin, status, isAdmin });
     
     if (!vendorId || !categoryId) {
       return res.status(400).json({ success: false, message: "vendorId and categoryId are required" });
     }
+
+    // Check if vendor exists
+    const Vendor = require("../models/vendorModel");
+    const vendor = await Vendor.findById(vendorId);
+    if (!vendor) {
+      console.log("Vendor not found:", vendorId);
+      return res.status(404).json({ success: false, message: "Vendor not found" });
+    }
+    console.log("Vendor found:", { id: vendor._id, name: vendor.name, email: vendor.email });
 
     const category = await Category.findById(categoryId);
     if (!category || category.active === false) {
@@ -72,46 +83,61 @@ const purchaseCategoryCtrl = async (req, res) => {
         return res.status(200).json({ success: true, message: "Already purchased", purchase });
       }
       
-      // If assigned by admin, directly approve regardless of payment method
-      if (assignedByAdmin) {
-        purchase.status = "purchased";
+      // If assigned by admin or isAdmin flag is true, directly approve with "purchased" status
+      if (assignedByAdmin || isAdmin) {
+        purchase.status = status || "purchased"; // Use provided status or default to "purchased"
         purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
-        purchase.assignedByAdmin = true;
+        purchase.assignedByAdmin = assignedByAdmin || isAdmin;
         await purchase.save();
         purchase = await purchase.populate("category");
         return res.status(200).json({ success: true, message: "Category assigned and approved", purchase });
       }
       
-      if (finalPaymentMode === "prepaid" || finalPaymentMode === "qr") {
-        // convert pending/rejected to purchased for prepaid or QR
+      // For all payment methods (cash, QR, Razorpay), set status as "purchased" if isAdmin
+      if (finalPaymentMode === "prepaid" || finalPaymentMode === "qr" || finalPaymentMode === "razorpay") {
+        // convert pending/rejected to purchased for prepaid, QR, or Razorpay
         purchase.status = "purchased";
         purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
         await purchase.save();
       } else {
-        // cash flow should be pending regardless of previous status
-        purchase.status = "pending";
+        // cash flow should be pending for regular users, but purchased for admin
+        purchase.status = isAdmin ? "purchased" : "pending";
         purchase.paymentMode = "cash";
         await purchase.save();
       }
       purchase = await purchase.populate("category");
-      const msg = finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      const msg = (finalPaymentMode === "cash" && !isAdmin) ? "Purchase requested (cash) and pending approval" : "Category purchased";
       return res.status(200).json({ success: true, message: msg, purchase });
     } else {
       // Create new purchase
-      // If assigned by admin, directly set status as purchased
-      const status = assignedByAdmin ? "purchased" : (finalPaymentMode === "cash" ? "pending" : "purchased");
+      // If assigned by admin or isAdmin flag is true, directly set status as purchased
+      // For admin registrations, all payment methods should result in "purchased" status
+      let finalStatus;
+      if (assignedByAdmin || isAdmin) {
+        finalStatus = status || "purchased";
+      } else {
+        finalStatus = finalPaymentMode === "cash" ? "pending" : "purchased";
+      }
+      
       purchase = await VendorCategoryPurchase.create({ 
         vendor: vendorId, 
         category: categoryId, 
-        status, 
+        status: finalStatus, 
         transactionId, 
         paymentMode: finalPaymentMode,
-        assignedByAdmin: assignedByAdmin || false
+        assignedByAdmin: assignedByAdmin || isAdmin || false
       });
       purchase = await purchase.populate("category");
-      const msg = assignedByAdmin ? "Category assigned and approved" : (finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased");
+      
+      let msg;
+      if (assignedByAdmin || isAdmin) {
+        msg = "Category assigned and approved";
+      } else {
+        msg = finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      }
+      
       return res.status(200).json({ success: true, message: msg, purchase });
     }
   } catch (error) {
@@ -261,10 +287,25 @@ module.exports.getCategoryPurchasersCtrl = getCategoryPurchasersCtrl;
 // List all pending cash purchases (admin overview)
 const getPendingPurchasesCtrl = async (req, res) => {
   try {
-    const pending = await VendorCategoryPurchase.find({ status: "pending", paymentMode: "cash" })
+    // Fetch all pending purchases (cash and QR)
+    const pending = await VendorCategoryPurchase.find({ status: "pending" })
       .populate({ path: "vendor", select: "name email company status" })
       .populate({ path: "category", select: "name price" })
       .sort({ createdAt: -1 });
+    
+    console.log("Pending purchases found:", pending.length);
+    pending.forEach((p, index) => {
+      console.log(`Purchase ${index + 1}:`, {
+        id: p._id,
+        vendorId: p.vendor?._id,
+        vendorName: p.vendor?.name,
+        vendorEmail: p.vendor?.email,
+        categoryName: p.category?.name,
+        paymentMode: p.paymentMode,
+        status: p.status
+      });
+    });
+    
     return res.status(200).json({ success: true, pending });
   } catch (error) {
     console.error("Error fetching pending purchases:", error);

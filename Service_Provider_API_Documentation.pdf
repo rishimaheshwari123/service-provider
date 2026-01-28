@@ -1,0 +1,4543 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 4081
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F1 24 Tf
+27.5999999999999979 TL
+0. 0.4 0.8 rg
+162.5177952755905721 728.5041732283464171 Td
+(Service Provider Platform) Tj
+ET
+BT
+/F1 20 Tf
+23. TL
+0. g
+170.6377952755905483 685.9844881889763428 Td
+(Backend API Documentation) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+225.7577952755905812 643.4648031496062686 Td
+(Complete Developer Guide) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+242.4377952755905881 600.9451181102361943 Td
+(Generated on: 28/1/2026) Tj
+ET
+1.4173228346456694 w
+56.6929133858267775 572.5986614173227736 m
+538.5826771653544256 572.5986614173227736 l
+S
+BT
+/F1 16 Tf
+18.3999999999999986 TL
+0. 0.4 0.8 rg
+56.6929133858267775 530.0789763779526993 Td
+(Service Provider Platform - Backend API Documentation) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 493.2285826771653205 Td
+(Table of Contents) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 470.5514173228345953 Td
+(1. [Overview]\(#overview\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 456.378188976377885 Td
+(2. [Base URL & Authentication]\(#base-url--authentication\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 442.2049606299212314 Td
+(3. [Environment Configuration]\(#environment-configuration\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 428.0317322834645211 Td
+(4. [Database Models]\(#database-models\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 413.8585039370078107 Td
+(5. [API Endpoints]\(#api-endpoints\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 399.6852755905511003 Td
+(6. [Error Handling]\(#error-handling\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 385.5120472440944468 Td
+(7. [Response Format]\(#response-format\)) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 354.3309448818897067 Td
+(Overview) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 323.1498425196849666 Td
+(This is a comprehensive backend API for a Service Provider Platform built with Node.js, Express.js, and) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 308.9766141732283131 Td
+(MongoDB. The platform connects customers with service providers and includes features like property) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 294.8033858267715459 Td
+(management, booking system, payment integration, and admin dashboard.) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 272.1262204724408775 Td
+(Tech Stack) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 252.2837007874014716 Td
+(• **Runtime**: Node.js) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 238.1104724409448181 Td
+(• **Framework**: Express.js) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 223.9372440944881646 Td
+(• **Database**: MongoDB with Mongoose ODM) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 209.7640157480313974 Td
+(• **Authentication**: JWT \(JSON Web Tokens\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 195.5907874015747439 Td
+(• **File Upload**: Cloudinary) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 181.4175590551179766 Td
+(• **Payment Gateway**: Razorpay) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 167.2443307086613231 Td
+(• **Email Service**: Nodemailer) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 144.5671653543306547 Td
+(Key Features) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 124.7246456692912489 Td
+(• User & Vendor Authentication) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 110.5514173228345953 Td
+(• Property Management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 96.3781889763778281 Td
+(• Booking System) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 1 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 4459
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 785.1970866141732586 Td
+(• Payment Integration \(Razorpay\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 771.0238582677164914 Td
+(• Category Management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 756.8506299212598378 Td
+(• Blog Management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 742.6774015748030706 Td
+(• Rating & Review System) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 728.5041732283464171 Td
+(• Admin Dashboard) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 714.3309448818897636 Td
+(• Audit Logs) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 700.15771653543311 Td
+(• Customer Support) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 668.9766141732283131 Td
+(Base URL & Authentication) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 637.7955118110235162 Td
+(Base URL) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 617.952992125984224 Td
+(http://localhost:8000/api/v1) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 595.2758267716535556 Td
+(Authentication) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 575.4333070866141497 Td
+(The API uses JWT \(JSON Web Token\) for authentication. Include the token in the Authorization header:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 561.2600787401574962 Td
+(Authorization: Bearer <your-jwt-token>) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 530.0789763779526993 Td
+(Environment Configuration) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 498.8978740157479592 Td
+(Required Environment Variables) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 470.5514173228345953 Td
+(JWT_SECRET=your_jwt_secret) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 456.378188976377885 Td
+(MONGODB_URL=your_mongodb_connection_string) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 442.2049606299212314 Td
+(PORT=8000) Tj
+T* () Tj
+ET
+BT
+/F1 16 Tf
+18.3999999999999986 TL
+0. 0.4 0.8 rg
+56.6929133858267775 419.5277952755905062 Td
+(Email Configuration) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 391.1813385826770855 Td
+(MAIL_HOST=smtp.gmail.com) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 377.0081102362204319 Td
+(MAIL_USER=your_email@gmail.com) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 362.8348818897637216 Td
+(MAIL_PASS=your_app_password) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 348.6616535433070112 Td
+(ADMIN_EMAIL=admin@example.com) Tj
+T* () Tj
+ET
+BT
+/F1 16 Tf
+18.3999999999999986 TL
+0. 0.4 0.8 rg
+56.6929133858267775 325.9844881889763428 Td
+(Cloudinary Configuration) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 297.6380314960629221 Td
+(CLOUD_NAME=your_cloudinary_name) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 283.4648031496062686 Td
+(API_KEY=your_cloudinary_key) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 269.2915748031495013 Td
+(API_SECRET=your_cloudinary_secret) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 255.1183464566928478 Td
+(FOLDER_NAME=your_folder_name) Tj
+T* () Tj
+ET
+BT
+/F1 16 Tf
+18.3999999999999986 TL
+0. 0.4 0.8 rg
+56.6929133858267775 232.4411811023621794 Td
+(Razorpay Configuration) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 204.0947244094487587 Td
+(RAZORPAY_KEY=your_razorpay_key) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 189.9214960629919915 Td
+(RAZORPAY_SECRET=your_razorpay_secret) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 158.7403937007873083 Td
+(Database Models) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 127.559291338582625 Td
+(1. Auth Model \(Users & Admins\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 99.2128346456692043 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 85.0396062992125508 Td
+(name: String,) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 2 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 5269
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+(email: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 771.0238582677164914 Td
+(phone: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 756.8506299212598378 Td
+(password: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 742.6774015748030706 Td
+(role: ["user", "admin"], // default: "user") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 728.5041732283464171 Td
+(token: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 714.3309448818897636 Td
+(type: String, // default: "active") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 691.6537795275589815 Td
+(// Permission flags) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 677.480551181102328 Td
+(isVendor: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 663.3073228346456744 Td
+(isBlog: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 649.1340944881889072 Td
+(isUser: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 634.9608661417322537 Td
+(isSupport: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 620.7876377952754865 Td
+(isJob: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 606.614409448818833 Td
+(isAds: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 592.4411811023621794 Td
+(isBooking: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 578.2679527559055259 Td
+(isEmpManage: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 564.0947244094487587 Td
+(isCategoryManage: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 549.9214960629921052 Td
+(isManageService: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 527.2443307086614368 Td
+(timestamps: true) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 513.0711023622046696 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 490.3939370078739444 Td
+(2. Vendor Model) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 462.0474803149605805 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 447.8742519685038701 Td
+(// Basic Info) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 433.7010236220471597 Td
+(name: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 419.5277952755905062 Td
+(email: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 405.3545669291337958 Td
+(password: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 391.1813385826770855 Td
+(phone: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 377.0081102362204319 Td
+(company: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 362.8348818897637216 Td
+(address: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 348.6616535433070112 Td
+(description: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 325.9844881889763428 Td
+(// Service Details) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 311.8112598425195756 Td
+(typeOfService: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 297.6380314960629221 Td
+(category: ObjectId \(ref: Category\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 283.4648031496062686 Td
+(subCategory: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 269.2915748031495013 Td
+(yearOfEstablishment: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 255.1183464566928478 Td
+(serviceLocation: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 240.9451181102361943 Td
+(alternatePhone: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 226.7718897637794271 Td
+(whatsappNumber: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 212.5986614173227736 Td
+(businessType: ["Proprietorship", "Partnership", "LLP", "Private Limited", "Other"],) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 198.4254330708660063 Td
+(gstNumber: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 184.2522047244093528 Td
+(tradeLicense: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 170.0789763779526993 Td
+(numberOfStaff: Number,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 155.9057480314959321 Td
+(referralCode: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 141.7325196850392786 Td
+(referralName: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 127.559291338582625 Td
+(workingDaysTimings: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 104.882125984251843 Td
+(// System Fields) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 90.7088976377951894 Td
+(role: "vendor",) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 3 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+9 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 10 0 R
+>>
+endobj
+10 0 obj
+<<
+/Length 5127
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+(isAdmin: Boolean,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 771.0238582677164914 Td
+(status: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 756.8506299212598378 Td
+(percentage: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 742.6774015748030706 Td
+(adhar: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 728.5041732283464171 Td
+(pan: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 714.3309448818897636 Td
+(token: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 700.15771653543311 Td
+(updateProfileRequest: ["pending", "requested", "approved"],) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 677.480551181102328 Td
+(// Working Hours) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 663.3073228346456744 Td
+(workingHours: {) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 649.1340944881889072 Td
+(monday: { start: String, end: String, available: Boolean },) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 634.9608661417322537 Td
+(tuesday: { start: String, end: String, available: Boolean },) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 620.7876377952754865 Td
+(// ... for all days) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 606.614409448818833 Td
+(},) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 583.9372440944881646 Td
+(// Bank Details) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 569.7640157480313974 Td
+(bankDetail: {) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 555.5907874015747439 Td
+(accountNumber: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 541.4175590551180903 Td
+(IFSC: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 527.2443307086614368 Td
+(accountHolderName: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 513.0711023622046696 Td
+(branch: String) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 498.8978740157479592 Td
+(},) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 476.2207086614172908 Td
+(// Experience) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 462.0474803149605805 Td
+(experience: {) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 447.8742519685038701 Td
+(fields: [String],) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 433.7010236220471597 Td
+(totalYears: Number) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 419.5277952755905062 Td
+(},) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 396.850629921259781 Td
+(// Documents) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 382.6774015748030706 Td
+(profilePhoto: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 368.5041732283464171 Td
+(document1: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 354.3309448818897067 Td
+(document2: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 340.1577165354329964 Td
+(document3: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 325.9844881889763428 Td
+(document4: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 311.8112598425195756 Td
+(document5: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 289.1340944881889072 Td
+(timestamps: true) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 274.9608661417322537 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 252.2837007874014716 Td
+(3. Property Model) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 223.9372440944881646 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 209.7640157480313974 Td
+(title: String \(required\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 195.5907874015747439 Td
+(price: String \(required\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 181.4175590551179766 Td
+(location: String \(required\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 167.2443307086613231 Td
+(type: String \(required\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 153.0711023622046696 Td
+(category: String \(required\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 138.8978740157479024 Td
+(description: String,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 124.7246456692912489 Td
+(status: ["active", "inactive"], // default: "active") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 110.5514173228345953 Td
+(images: [{) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 96.3781889763778281 Td
+(public_id: String,) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 4 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+11 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 12 0 R
+>>
+endobj
+12 0 obj
+<<
+/Length 4880
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+(url: String) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 771.0238582677164914 Td
+(}],) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 756.8506299212598378 Td
+(vendor: ObjectId \(ref: Vendor, required\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 742.6774015748030706 Td
+(review: [ObjectId] \(ref: RatingAndReview\),) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 728.5041732283464171 Td
+(timestamps: true) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 714.3309448818897636 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 683.1498425196850803 Td
+(API Endpoints) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 651.9687401574802834 Td
+(Authentication Routes \(`/api/v1/auth`\)) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 623.6222834645668627 Td
+(POST `/login`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 606.614409448818833 Td
+(**Description**: User/Admin login) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 592.4411811023621794 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 569.7640157480313974 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 555.5907874015747439 Td
+("email": "user@example.com",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 541.4175590551180903 Td
+("password": "password123") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 527.2443307086614368 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 513.0711023622046696 Td
+(**Response**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 490.3939370078739444 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 476.2207086614172908 Td
+("success": true,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 462.0474803149605805 Td
+("message": "Login successful",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 447.8742519685038701 Td
+("token": "jwt_token_here",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 433.7010236220471597 Td
+("user": {) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 419.5277952755905062 Td
+("id": "user_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 405.3545669291337958 Td
+("name": "User Name",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 391.1813385826770855 Td
+("email": "user@example.com",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 377.0081102362204319 Td
+("role": "user") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 362.8348818897637216 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 348.6616535433070112 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 325.9844881889763428 Td
+(POST `/register`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 308.9766141732283131 Td
+(**Description**: User/Admin registration) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 294.8033858267715459 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 272.1262204724408775 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 257.952992125984224 Td
+("name": "John Doe",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 243.7797637795274568 Td
+("email": "john@example.com",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 229.6065354330708033 Td
+("phone": "1234567890",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 215.4333070866141497 Td
+("password": "password123") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 201.2600787401573825 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 178.5829133858267141 Td
+(GET `/getAll`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 161.5750393700786844 Td
+(**Description**: Get all users \(Admin only\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 147.4018110236219172 Td
+(**Response**: Array of user objects) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 124.7246456692912489 Td
+(PUT `/update/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 107.7167716535432191 Td
+(**Description**: Update user permissions) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 93.5435433070865656 Td
+(**Parameters**: `id` - User ID) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 5 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+13 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 14 0 R
+>>
+endobj
+14 0 obj
+<<
+/Length 4944
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+(**Request Body**: Permission flags to update) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 762.5199212598424765 Td
+(DELETE `/delete/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 745.5120472440944468 Td
+(**Description**: Delete user account) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 731.3388188976377933 Td
+(**Parameters**: `id` - User ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 708.6616535433070112 Td
+(GET `/my-profile/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 691.6537795275589815 Td
+(**Description**: Get user profile and inquiries) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 677.480551181102328 Td
+(**Parameters**: `id` - User ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 654.8033858267716596 Td
+(PUT `/change-type/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 637.7955118110235162 Td
+(**Description**: Change user type/status) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 623.6222834645668627 Td
+(**Parameters**: `id` - User ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 600.9451181102361943 Td
+(PUT `/change-password/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 583.9372440944881646 Td
+(**Description**: Change user password) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 569.7640157480313974 Td
+(**Parameters**: `id` - User ID) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 538.5829133858267141 Td
+(Vendor Routes \(`/api/v1/vendor`\)) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 510.2364566929133503 Td
+(POST `/login`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 493.2285826771653205 Td
+(**Description**: Vendor login) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 479.0553543307086102 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 456.378188976377885 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 442.2049606299212314 Td
+("email": "vendor@example.com",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 428.0317322834645211 Td
+("password": "password123") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 413.8585039370078107 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 391.1813385826770855 Td
+(POST `/register`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 374.1734645669290558 Td
+(**Description**: Vendor registration) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 360.0002362204724022 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 337.323070866141677 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 323.1498425196849666 Td
+("name": "Vendor Name",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 308.9766141732283131 Td
+("email": "vendor@example.com",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 294.8033858267715459 Td
+("password": "password123",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 280.6301574803148924 Td
+("phone": "1234567890",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 266.4569291338582389 Td
+("company": "Company Name",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 252.2837007874014716 Td
+("typeOfService": "Service Type",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 238.1104724409448181 Td
+("address": "Complete Address") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 223.9372440944881646 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 201.2600787401573825 Td
+(GET `/getAll`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 184.2522047244093528 Td
+(**Description**: Get all vendors) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 170.0789763779526993 Td
+(**Response**: Array of vendor objects) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 147.4018110236219172 Td
+(GET `/get/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 130.3939370078738875 Td
+(**Description**: Get vendor by ID) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 116.220708661417234 Td
+(**Parameters**: `id` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 93.5435433070865656 Td
+(PUT `/update/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 6 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+15 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 16 0 R
+>>
+endobj
+16 0 obj
+<<
+/Length 5107
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+(**Description**: Update vendor status) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 771.0238582677164914 Td
+(**Parameters**: `id` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 748.346692913385823 Td
+(PUT `/update-profile/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 731.3388188976377933 Td
+(**Description**: Update vendor profile) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 717.1655905511811397 Td
+(**Parameters**: `id` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 694.4884251968503577 Td
+(PUT `/update-percentage/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 677.480551181102328 Td
+(**Description**: Update vendor commission percentage) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 663.3073228346456744 Td
+(**Parameters**: `id` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 640.6301574803148924 Td
+(PUT `/working-hours/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 623.6222834645668627 Td
+(**Description**: Update vendor working hours) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 609.4490551181102092 Td
+(**Parameters**: `id` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 595.2758267716535556 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 572.5986614173227736 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 558.42543307086612 Td
+("workingHours": {) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 544.2522047244094665 Td
+("monday": { "start": "09:00", "end": "18:00", "available": true },) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 530.0789763779526993 Td
+("tuesday": { "start": "09:00", "end": "18:00", "available": true }) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 515.9057480314959321 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 501.7325196850393354 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 479.0553543307086102 Td
+(POST `/request-update/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 462.0474803149605805 Td
+(**Description**: Request profile update approval) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 447.8742519685038701 Td
+(**Parameters**: `id` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 425.1970866141731449 Td
+(DELETE `/delete/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 408.1892125984251152 Td
+(**Description**: Delete vendor account) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 394.0159842519684616 Td
+(**Parameters**: `id` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 362.8348818897637216 Td
+(Property Routes \(`/api/v1/property`\)) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 334.4884251968503008 Td
+(POST `/create`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 317.480551181102328 Td
+(**Description**: Create new property) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 303.3073228346455608 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 280.6301574803148924 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 266.4569291338582389 Td
+("title": "Property Title",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 252.2837007874014716 Td
+("price": "50000",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 238.1104724409448181 Td
+("location": "City, State",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 223.9372440944881646 Td
+("type": "Residential",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 209.7640157480313974 Td
+("category": "Apartment",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 195.5907874015747439 Td
+("description": "Property description",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 181.4175590551179766 Td
+("vendor": "vendor_id") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 167.2443307086613231 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 144.5671653543306547 Td
+(POST `/get-vendor-property`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 127.559291338582625 Td
+(**Description**: Get properties by vendor) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 113.3860629921258578 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 90.7088976377951894 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 7 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+17 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 18 0 R
+>>
+endobj
+18 0 obj
+<<
+/Length 4985
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+("vendorId": "vendor_id") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 771.0238582677164914 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 748.346692913385823 Td
+(PUT `/update/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 731.3388188976377933 Td
+(**Description**: Update property details) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 717.1655905511811397 Td
+(**Parameters**: `id` - Property ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 694.4884251968503577 Td
+(PUT `/update-status/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 677.480551181102328 Td
+(**Description**: Update property status) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 663.3073228346456744 Td
+(**Parameters**: `id` - Property ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 640.6301574803148924 Td
+(GET `/getAll`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 623.6222834645668627 Td
+(**Description**: Get all properties) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 609.4490551181102092 Td
+(**Response**: Array of property objects) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 586.7718897637794271 Td
+(GET `/get/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 569.7640157480313974 Td
+(**Description**: Get property by ID) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 555.5907874015747439 Td
+(**Parameters**: `id` - Property ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 532.9136220472440755 Td
+(DELETE `/delete/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 515.9057480314959321 Td
+(**Description**: Delete property) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 501.7325196850393354 Td
+(**Parameters**: `id` - Property ID) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 470.5514173228345953 Td
+(Booking Routes \(`/api/v1/booking`\)) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 442.2049606299212314 Td
+(POST `/create`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 425.1970866141731449 Td
+(**Description**: Create new booking) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 411.0238582677164914 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 388.3466929133857661 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 374.1734645669290558 Td
+("vendorId": "vendor_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 360.0002362204724022 Td
+("customerId": "customer_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 345.8270078740156919 Td
+("serviceDate": "2024-01-15",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 331.6537795275589815 Td
+("serviceTime": "10:00 AM",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 317.480551181102328 Td
+("description": "Service description",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 303.3073228346455608 Td
+("amount": 1000) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 289.1340944881889072 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 266.4569291338582389 Td
+(GET `/getAll`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 249.4490551181102092 Td
+(**Description**: Get all bookings \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 235.2758267716534419 Td
+(**Response**: Array of booking objects) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 212.5986614173227736 Td
+(GET `/get/:vendorId`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 195.5907874015747439 Td
+(**Description**: Get bookings by vendor) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 181.4175590551179766 Td
+(**Parameters**: `vendorId` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 158.7403937007873083 Td
+(PUT `/update/:bookingId`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 141.7325196850392786 Td
+(**Description**: Update booking status) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 127.559291338582625 Td
+(**Parameters**: `bookingId` - Booking ID) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 113.3860629921258578 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 90.7088976377951894 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 8 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+19 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 20 0 R
+>>
+endobj
+20 0 obj
+<<
+/Length 4724
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+("status": "confirmed" // or "cancelled", "completed") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 771.0238582677164914 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 739.8427559055118081 Td
+(Payment Routes \(`/api/v1/razorpay`\)) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 711.4962992125983874 Td
+(POST `/capturePayment`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 694.4884251968503577 Td
+(**Description**: Create Razorpay order) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 680.3151968503937042 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 657.6380314960629221 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 643.4648031496062686 Td
+("amount": 1000,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 629.291574803149615 Td
+("currency": "INR",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 615.1183464566928478 Td
+("receipt": "receipt_id") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 600.9451181102361943 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 586.7718897637794271 Td
+(**Response**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 564.0947244094487587 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 549.9214960629921052 Td
+("success": true,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 535.748267716535338 Td
+("orderId": "order_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 521.5750393700786844 Td
+("amount": 1000,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 507.4018110236219741 Td
+("currency": "INR") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 493.2285826771653205 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 470.5514173228345953 Td
+(POST `/verifyPayment`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 453.5435433070865656 Td
+(**Description**: Verify payment signature) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 439.3703149606298552 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 416.69314960629913 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 402.5199212598424765 Td
+("razorpay_order_id": "order_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 388.3466929133857661 Td
+("razorpay_payment_id": "payment_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 374.1734645669290558 Td
+("razorpay_signature": "signature") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 360.0002362204724022 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 328.8191338582676053 Td
+(Category Routes \(`/api/v1/category`\)) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 300.4726771653542983 Td
+(POST `/create`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 283.4648031496062686 Td
+(**Description**: Create new category \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 269.2915748031495013 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 246.614409448818833 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 232.4411811023621794 Td
+("name": "Category Name",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 218.2679527559054122 Td
+("description": "Category description",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 204.0947244094487587 Td
+("price": 500) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 189.9214960629919915 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 167.2443307086613231 Td
+(GET `/getAll`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 150.2364566929132934 Td
+(**Description**: Get all categories) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 136.0632283464566399 Td
+(**Response**: Array of category objects) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 113.3860629921258578 Td
+(PUT `/update/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 96.3781889763778281 Td
+(**Description**: Update category \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+275.1177952755905949 28.3466929133857093 Td
+(Page 9 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+21 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 22 0 R
+>>
+endobj
+22 0 obj
+<<
+/Length 5152
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 785.1970866141732586 Td
+(**Parameters**: `id` - Category ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 762.5199212598424765 Td
+(DELETE `/delete/:id`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 745.5120472440944468 Td
+(**Description**: Delete category \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 731.3388188976377933 Td
+(**Parameters**: `id` - Category ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 708.6616535433070112 Td
+(POST `/purchase`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 691.6537795275589815 Td
+(**Description**: Purchase category by vendor) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 677.480551181102328 Td
+(**Request Body**:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 654.8033858267716596 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 640.6301574803148924 Td
+("vendorId": "vendor_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 626.4569291338582389 Td
+("categoryId": "category_id",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 612.2837007874015853 Td
+("paymentMethod": "online" // or "cash") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 598.1104724409448181 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 575.4333070866141497 Td
+(GET `/purchased/:vendorId`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 558.42543307086612 Td
+(**Description**: Get purchased categories by vendor) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 544.2522047244094665 Td
+(**Parameters**: `vendorId` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 521.5750393700786844 Td
+(GET `/purchasers/:categoryId`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 504.5671653543306547 Td
+(**Description**: Get purchasers for a category \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 490.3939370078739444 Td
+(**Parameters**: `categoryId` - Category ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 467.716771653543276 Td
+(GET `/pending`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 450.7088976377952463 Td
+(**Description**: Get all pending purchases \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 428.0317322834645211 Td
+(GET `/pending/:vendorId`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 411.0238582677164914 Td
+(**Description**: Get vendor's pending purchases) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 396.850629921259781 Td
+(**Parameters**: `vendorId` - Vendor ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 374.1734645669290558 Td
+(PUT `/approve/:purchaseId`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 357.1655905511810261 Td
+(**Description**: Approve purchase \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 342.9923622047243725 Td
+(**Parameters**: `purchaseId` - Purchase ID) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 320.3151968503935905 Td
+(PUT `/reject/:purchaseId`) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 303.3073228346455608 Td
+(**Description**: Reject purchase \(Admin\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 289.1340944881889072 Td
+(**Parameters**: `purchaseId` - Purchase ID) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 257.952992125984224 Td
+(Additional Routes) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 229.6065354330708033 Td
+(Blog Routes \(`/api/v1/blog`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 212.5986614173227736 Td
+(• CRUD operations for blog management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 198.4254330708660063 Td
+(• Public blog listing and detailed view) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 175.748267716535338 Td
+(Contact Routes \(`/api/v1/contact`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 158.7403937007873083 Td
+(• Contact form submissions) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 144.5671653543306547 Td
+(• Admin contact management) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 121.8899999999998727 Td
+(Customer Support Routes \(`/api/v1/customer-support`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 104.882125984251843 Td
+(• Support ticket creation and management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 90.7088976377951894 Td
+(• Admin support dashboard) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+272.9177952755906063 28.3466929133857093 Td
+(Page 10 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+23 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 24 0 R
+>>
+endobj
+24 0 obj
+<<
+/Length 4754
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 776.69314960629913 Td
+(Job Routes \(`/api/v1/job`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 759.6852755905511003 Td
+(• Job posting and management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 745.5120472440944468 Td
+(• Job application handling) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 722.8348818897637784 Td
+(Career Routes \(`/api/v1/career`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 705.8270078740157487 Td
+(• Career opportunity management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 691.6537795275589815 Td
+(• Application processing) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 668.9766141732283131 Td
+(Rating & Review Routes \(`/api/v1/rating`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 651.9687401574802834 Td
+(• Service rating and review system) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 637.7955118110235162 Td
+(• Review moderation) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 615.1183464566928478 Td
+(Ads Routes \(`/api/v1/ads`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 598.1104724409448181 Td
+(• Advertisement management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 583.9372440944881646 Td
+(• Ad placement and tracking) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 561.2600787401574962 Td
+(Dashboard Routes \(`/api/v1/dashboard`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 544.2522047244094665 Td
+(• Admin dashboard statistics) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 530.0789763779526993 Td
+(• Analytics and reporting) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 507.4018110236219741 Td
+(Image Routes \(`/api/v1/image`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 490.3939370078739444 Td
+(• Image upload and management) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 476.2207086614172908 Td
+(• Cloudinary integration) Tj
+T* () Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0.2 g
+56.6929133858267775 453.5435433070865656 Td
+(Audit Logs Routes \(`/api/v1/audit`\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 436.5356692913385359 Td
+(• System activity logging) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 422.3624409448818255 Td
+(• Admin audit trail) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 391.1813385826770855 Td
+(Error Handling) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 360.0002362204724022 Td
+(Standard Error Response Format) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 331.6537795275589815 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 317.480551181102328 Td
+("success": false,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 303.3073228346455608 Td
+("message": "Error description",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 289.1340944881889072 Td
+("error": "Detailed error information") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 274.9608661417322537 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 252.2837007874014716 Td
+(Common HTTP Status Codes) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 232.4411811023621794 Td
+(• `200` - Success) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 218.2679527559054122 Td
+(• `201` - Created) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 204.0947244094487587 Td
+(• `400` - Bad Request) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 189.9214960629919915 Td
+(• `401` - Unauthorized) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 175.748267716535338 Td
+(• `403` - Forbidden) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 161.5750393700786844 Td
+(• `404` - Not Found) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 147.4018110236219172 Td
+(• `500` - Internal Server Error) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 116.220708661417234 Td
+(Response Format) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 85.0396062992125508 Td
+(Success Response) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+272.9177952755906063 28.3466929133857093 Td
+(Page 11 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+25 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 26 0 R
+>>
+endobj
+26 0 obj
+<<
+/Length 5316
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 776.69314960629913 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 762.5199212598424765 Td
+("success": true,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 748.346692913385823 Td
+("message": "Operation successful",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 734.1734645669291695 Td
+("data": {) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 720.0002362204724022 Td
+(// Response data) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 705.8270078740157487 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 691.6537795275589815 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 668.9766141732283131 Td
+(Error Response) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 640.6301574803148924 Td
+({) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 626.4569291338582389 Td
+("success": false,) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 612.2837007874015853 Td
+("message": "Error message",) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 598.1104724409448181 Td
+("error": "Detailed error information") Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 583.9372440944881646 Td
+(}) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 552.7561417322833677 Td
+(Security Features) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 521.5750393700786844 Td
+(1. **JWT Authentication**: Secure token-based authentication) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 507.4018110236219741 Td
+(2. **Password Hashing**: bcryptjs for password encryption) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 493.2285826771653205 Td
+(3. **CORS Configuration**: Cross-origin resource sharing setup) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 479.0553543307086102 Td
+(4. **Input Validation**: Request data validation) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 464.8821259842518998 Td
+(5. **File Upload Security**: Secure file handling with Cloudinary) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 450.7088976377952463 Td
+(6. **Environment Variables**: Sensitive data protection) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 419.5277952755905062 Td
+(File Upload) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 388.3466929133857661 Td
+(The API supports file uploads through Cloudinary integration:) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 374.1734645669290558 Td
+(• **Supported formats**: Images \(JPG, PNG, GIF, etc.\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 360.0002362204724022 Td
+(• **Upload endpoint**: Integrated with relevant routes) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 345.8270078740156919 Td
+(• **Storage**: Cloudinary cloud storage) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 331.6537795275589815 Td
+(• **Security**: File type validation and size limits) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 300.4726771653542983 Td
+(Payment Integration) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 269.2915748031495013 Td
+(Razorpay Integration) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 249.4490551181102092 Td
+(• **Test Mode**: Currently configured for testing) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 235.2758267716534419 Td
+(• **Supported Methods**: Cards, UPI, Net Banking, Wallets) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 221.1025984251967884 Td
+(• **Currency**: INR \(Indian Rupees\)) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 206.9293700787401349 Td
+(• **Security**: Signature verification for payment confirmation) Tj
+T* () Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 175.748267716535338 Td
+(Database Relationships) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 144.5671653543306547 Td
+( 1 .   * * V e n d o r  !’   C a t e g o r y * * :   M a n y - t o - O n e   r e l a t i o n s h i p) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 130.3939370078738875 Td
+( 2 .   * * P r o p e r t y  !’   V e n d o r * * :   M a n y - t o - O n e   r e l a t i o n s h i p) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 116.220708661417234 Td
+( 3 .   * * B o o k i n g  !’   V e n d o r * * :   M a n y - t o - O n e   r e l a t i o n s h i p) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 102.0474803149605805 Td
+( 4 .   * * B o o k i n g  !’   C u s t o m e r * * :   M a n y - t o - O n e   r e l a t i o n s h i p) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 87.8742519685038133 Td
+( 5 .   * * P r o p e r t y  !’   R e v i e w s * * :   O n e - t o - M a n y   r e l a t i o n s h i p) Tj
+T* () Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+272.9177952755906063 28.3466929133857093 Td
+(Page 12 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+27 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 28 0 R
+>>
+endobj
+28 0 obj
+<<
+/Length 2142
+>>
+stream
+1.4173228346456694 w
+0 G
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0. 0.2 0.4 rg
+56.6929133858267775 768.1892125984252289 Td
+(Deployment Notes) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 737.0081102362204319 Td
+(Production Checklist) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 717.1655905511811397 Td
+(1. Update environment variables for production) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 702.9923622047243725 Td
+(2. Enable Razorpay live mode) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 688.819133858267719 Td
+(3. Configure production MongoDB cluster) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 674.6459055118109518 Td
+(4. Set up SSL certificates) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 660.4726771653542983 Td
+(5. Configure production email settings) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 646.2994488188976447 Td
+(6. Update CORS origins for production domains) Tj
+T* () Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0. g
+56.6929133858267775 623.6222834645668627 Td
+(Server Requirements) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 603.7797637795274568 Td
+(• Node.js 14+ ) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 589.6065354330708033 Td
+(• MongoDB 4.4+) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 575.4333070866141497 Td
+(• Minimum 1GB RAM) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+70.8661417322834666 561.2600787401574962 Td
+(• SSL certificate for HTTPS) Tj
+T* () Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 530.0789763779526993 Td
+(*This documentation covers the complete backend API for the Service Provider Platform. For any additional) Tj
+ET
+BT
+/F1 10 Tf
+11.5 TL
+0. g
+56.6929133858267775 515.9057480314959321 Td
+(information or support, please contact the development team.*) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+272.9177952755906063 28.3466929133857093 Td
+(Page 13 of 13) Tj
+ET
+BT
+/F1 8 Tf
+9.1999999999999993 TL
+0.502 g
+214.7977952755905733 14.1734645669290558 Td
+(Service Provider Platform - API Documentation) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R ]
+/Count 13
+>>
+endobj
+29 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+30 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+31 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+32 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+33 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+34 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+35 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+36 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+37 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+38 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+39 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+40 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+41 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+42 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 29 0 R
+/F2 30 0 R
+/F3 31 0 R
+/F4 32 0 R
+/F5 33 0 R
+/F6 34 0 R
+/F7 35 0 R
+/F8 36 0 R
+/F9 37 0 R
+/F10 38 0 R
+/F11 39 0 R
+/F12 40 0 R
+/F13 41 0 R
+/F14 42 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+43 0 obj
+<<
+/Producer (jsPDF 3.0.3)
+/CreationDate (D:20260128155027+05'30')
+>>
+endobj
+44 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 45
+0000000000 65535 f 
+0000063441 00000 n 
+0000065345 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000004285 00000 n 
+0000004422 00000 n 
+0000008933 00000 n 
+0000009070 00000 n 
+0000014391 00000 n 
+0000014529 00000 n 
+0000019709 00000 n 
+0000019848 00000 n 
+0000024781 00000 n 
+0000024920 00000 n 
+0000029917 00000 n 
+0000030056 00000 n 
+0000035216 00000 n 
+0000035355 00000 n 
+0000040393 00000 n 
+0000040532 00000 n 
+0000045309 00000 n 
+0000045448 00000 n 
+0000050653 00000 n 
+0000050792 00000 n 
+0000055599 00000 n 
+0000055738 00000 n 
+0000061107 00000 n 
+0000061246 00000 n 
+0000063580 00000 n 
+0000063706 00000 n 
+0000063837 00000 n 
+0000063971 00000 n 
+0000064109 00000 n 
+0000064233 00000 n 
+0000064362 00000 n 
+0000064494 00000 n 
+0000064630 00000 n 
+0000064758 00000 n 
+0000064885 00000 n 
+0000065014 00000 n 
+0000065147 00000 n 
+0000065249 00000 n 
+0000065598 00000 n 
+0000065684 00000 n 
+trailer
+<<
+/Size 45
+/Root 44 0 R
+/Info 43 0 R
+/ID [ <2B98554CD63C5176B706D5E1CA651F12> <2B98554CD63C5176B706D5E1CA651F12> ]
+>>
+startxref
+65788
+%%EOF

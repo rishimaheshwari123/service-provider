@@ -89,9 +89,32 @@ const ManageCategories = () => {
     );
   }
   const load = async () => {
+    console.log("🔍 ManageCategories: Loading data...");
+    
     const data = await getAllCategoriesAPI();
+    console.log("📋 Categories loaded:", data?.length || 0);
     setCategories(data);
+    
     const pend = await getPendingCategoryPurchasesAPI();
+    console.log("⏳ Pending purchases loaded:", pend?.length || 0);
+    console.log("📊 Pending purchases data:", pend);
+    
+    // Debug each pending purchase
+    if (pend && pend.length > 0) {
+      pend.forEach((purchase, index) => {
+        console.log(`Purchase ${index + 1}:`, {
+          id: purchase._id,
+          vendor: purchase.vendor,
+          vendorName: purchase.vendor?.name,
+          vendorEmail: purchase.vendor?.email,
+          category: purchase.category?.name,
+          paymentMode: purchase.paymentMode,
+          status: purchase.status,
+          createdAt: purchase.createdAt
+        });
+      });
+    }
+    
     setPendingPurchases(pend);
   };
 

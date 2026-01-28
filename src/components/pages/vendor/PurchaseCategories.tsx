@@ -15,6 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { BASE_URL } from "@/service/apis";
 import axios from "axios";
 import { toast } from "react-toastify";
 
@@ -36,8 +37,8 @@ const PurchaseCategories = () => {
     null
   );
 
-  // const base_url= base_url
-  const base_url = "https://service-provider-6ufz.onrender.com/api/v1";
+  // Use the centralized base URL configuration
+  const base_url = BASE_URL;
   const load = async () => {
     const [cats, bought] = await Promise.all([
       getAllCategoriesAPI(),

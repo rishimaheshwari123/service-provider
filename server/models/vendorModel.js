@@ -95,6 +95,10 @@ const vendorSchema = new mongoose.Schema(
             enum: ["vendor"],
             default: "vendor",
         },
+        isAdmin: {
+            type: Boolean,
+            default: false,
+        },
         status: {
             type: String,
         },

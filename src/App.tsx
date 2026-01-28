@@ -20,6 +20,7 @@ import VendorDashboard from "./components/pages/vendor/VendorDashboard";
 import VendorLayout from "./components/pages/vendor/VendorLayout";
 import VendorLogin from "./pages/VendorLogin";
 import VendorRegister from "./pages/VendorRegister";
+import CategoryPurchasePage from "./pages/CategoryPurchasePage";
 import VendorManagement from "./components/pages/admin/AdminVendors";
 import VendorAddProperty from "./components/pages/vendor/VendorAddProperty";
 import VendorServices from "./components/pages/vendor/VendorProperties";
@@ -53,6 +54,7 @@ import AdminAuditLogs from "./components/pages/admin/AdminAuditLogs";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminServices from "./components/pages/admin/AdminServices";
+import CategoriesPage from "./pages/CategoriesPage";
 const queryClient = new QueryClient();
 
 // Loading component for Suspense fallback
@@ -82,6 +84,7 @@ const App = () => {
             <Route path="/service/:id" element={<PropertyDetails />} />
             <Route path="/blog/:id" element={<SingleBlog />} />
             <Route path="/blogs" element={<Blogs />} />
+            <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/user/profile" element={<UserProfile />} />
             <Route path="/customer-support" element={<CustomerSupport />} />
             <Route path="/careers" element={<Careers />} />
@@ -171,6 +174,14 @@ const App = () => {
                 <OpenRoute>
                   <VendorRegister />
                 </OpenRoute>
+              }
+            />
+            <Route
+              path="/category-purchase"
+              element={
+                // <OpenRoute>
+                  <CategoryPurchasePage />
+                // </OpenRoute>
               }
             />
             <Route path="*" element={<NotFound />} />

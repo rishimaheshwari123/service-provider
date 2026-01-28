@@ -88,7 +88,7 @@ export default function CategoryGrid() {
   };
 
   const handleViewAll = () => {
-    navigate("/services");
+    navigate("/categories");
   };
 
   // Only 16 categories - 2 rows of 8

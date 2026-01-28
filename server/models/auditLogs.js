@@ -5,15 +5,26 @@ const auditLogSchema = new mongoose.Schema(
         userId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "auth", // ya User model
-            required: true,
+            required: false, // Make optional for general inquiries
         },
         propertyId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Property",
-            required: true,
+            required: false, // Make optional for general inquiries
         },
         type: {
             type: String,
+            required: true,
+            enum: ["phone", "email", "show_number", "show_provider_number", "inquiry", "booking", "general_contact"]
+        },
+        details: {
+            type: Object, // Store additional details like contact info, booking info, etc.
+            required: false
+        },
+        userInfo: {
+            name: String,
+            email: String,
+            phone: String
         }
     },
     { timestamps: true }

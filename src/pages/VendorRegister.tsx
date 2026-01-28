@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Progress } from "@/components/ui/progress";
 import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
-import { getAllCategoriesAPI, purchaseCategoryAPI } from "../service/operations/category";
+import { getAllCategoriesAPI } from "../service/operations/category";
 import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
 
 // Zod schema for validation
@@ -31,7 +31,7 @@ const vendorSchema = z.object({
   serviceLocation: z.string().min(2, "Service location is required"),
   phone: z.string().regex(/^[1-9]\d{9}$/, "Phone must be 10 digits"),
   alternatePhone: z.string().regex(/^[1-9]\d{9}$/, "Must be 10 digits").optional().or(z.literal("")),
-  whatsappNumber: z.string().regex(/^[1-9]\d{9}$/, "WhatsApp must be 10 digits"),
+  whatsappNumber: z.string().regex(/^[1-9]\d{9}$/, "WhatsApp must be 10 digits").optional().or(z.literal("")),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   
   // Step 3: Business & Legal
@@ -100,6 +100,7 @@ const VendorRegister = () => {
     sunday: false,
   });
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
+  const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
   const [documents, setDocuments] = useState<{ [key: string]: File | null }>({
     document1: null,
     document2: null,
@@ -141,13 +142,23 @@ const VendorRegister = () => {
   const validateStep = async (step: number): Promise<boolean> => {
     const fieldsToValidate: Record<number, (keyof VendorFormData)[]> = {
       1: ["company", "typeOfService", "description", "category", "subCategory", "name"],
-      2: ["address", "serviceLocation", "phone", "whatsappNumber"],
+      2: ["address", "serviceLocation", "phone"],
       3: ["businessType"],
       4: [],
       5: ["workingDays"],
       6: [],
       7: ["password", "confirmPassword"],
     };
+    
+    // Add WhatsApp validation for step 2 if user has WhatsApp
+    if (step === 2 && hasWhatsApp) {
+      fieldsToValidate[2].push("whatsappNumber");
+    }
+    
+    // Check if WhatsApp selection is made for step 2
+    if (step === 2 && hasWhatsApp === null) {
+      return false; // WhatsApp selection is required
+    }
     
     const fields = fieldsToValidate[step];
     if (fields.length === 0) return true;
@@ -179,42 +190,63 @@ const VendorRegister = () => {
       return;
     }
 
+    // Include category and subCategory in vendor registration data
+    const { category, subCategory, ...vendorData } = data;
+
     const formData = {
-      ...data,
-      numberOfStaff: data.numberOfStaff ? parseInt(data.numberOfStaff) : 0,
+      ...vendorData,
+      category, // Include category ObjectId
+      subCategory, // Include subCategory string
+      numberOfStaff: vendorData.numberOfStaff ? parseInt(vendorData.numberOfStaff) : 0,
       bankDetail: {
-        accountNumber: data.accountNumber,
-        IFSC: data.ifscCode,
-        accountHolderName: data.accountHolderName,
-        branch: data.bankName,
+        accountNumber: vendorData.accountNumber,
+        IFSC: vendorData.ifscCode,
+        accountHolderName: vendorData.accountHolderName,
+        branch: vendorData.bankName,
       },
       experience: {
-        totalYears: data.totalYears ? parseInt(data.totalYears) : 0,
-        fields: data.servicesOffered ? data.servicesOffered.split(",").map(s => s.trim()) : [],
+        totalYears: vendorData.totalYears ? parseInt(vendorData.totalYears) : 0,
+        fields: vendorData.servicesOffered ? vendorData.servicesOffered.split(",").map(s => s.trim()) : [],
       },
     };
 
     const response = await signUp(formData);
     if (response?.success) {
-      // Auto-purchase the selected category for the vendor
-      if (selectedCategory && response.user?._id) {
-        try {
-          await purchaseCategoryAPI({
-            vendorId: response.user._id,
-            categoryId: selectedCategory,
-            paymentMethod: "cash",
-            transactionId: "",
-            assignedByAdmin: false, // This is public registration, so it will be pending approval
-          });
-          
-          console.log("Category purchase request submitted successfully");
-        } catch (categoryError) {
-          console.error("Error purchasing category:", categoryError);
-          // Don't show error to user as the main registration was successful
-        }
-      }
+      console.log("🔍 VendorRegister: Registration successful");
+      console.log("📋 Response data:", {
+        success: response.success,
+        userId: response.user?._id,
+        userName: response.user?.name,
+        userEmail: response.user?.email
+      });
       
-      navigate("/partner/login");
+      // Navigate to category purchase page instead of showing modal
+      if (selectedCategory && response.user?._id) {
+        const params = new URLSearchParams({
+          vendorId: response.user._id,
+          categoryId: selectedCategory,
+          vendorName: vendorData.name,
+          vendorEmail: vendorData.email || "",
+          vendorPhone: vendorData.phone,
+          isAdmin: "false", // External registration is not admin
+        });
+        
+        console.log("🔗 Navigating to category purchase with params:", {
+          vendorId: response.user._id,
+          categoryId: selectedCategory,
+          vendorName: vendorData.name,
+          vendorEmail: vendorData.email || "",
+          vendorPhone: vendorData.phone,
+        });
+        
+        navigate(`/category-purchase?${params.toString()}`);
+      } else {
+        console.log("⚠️ No category selected or no user ID, redirecting to login");
+        // If no category selected, redirect to login
+        navigate("/partner/login");
+      }
+    } else {
+      console.log("❌ Registration failed:", response);
     }
   };
 
@@ -377,10 +409,38 @@ const VendorRegister = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
-                      <Input {...register("whatsappNumber")} placeholder="10-digit WhatsApp number" />
-                      {errors.whatsappNumber && <p className="text-sm text-red-500">{errors.whatsappNumber.message}</p>}
+                      <Label>Do you have WhatsApp? <span className="text-red-500">*</span></Label>
+                      <RadioGroup
+                        value={hasWhatsApp === null ? "" : hasWhatsApp ? "yes" : "no"}
+                        onValueChange={(val) => {
+                          const hasWA = val === "yes";
+                          setHasWhatsApp(hasWA);
+                          if (!hasWA) {
+                            setValue("whatsappNumber", "");
+                          }
+                        }}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="yes" id="whatsapp-yes" />
+                          <Label htmlFor="whatsapp-yes" className="cursor-pointer">Yes</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="no" id="whatsapp-no" />
+                          <Label htmlFor="whatsapp-no" className="cursor-pointer">No</Label>
+                        </div>
+                      </RadioGroup>
                     </div>
+                    {hasWhatsApp && (
+                      <div className="space-y-2">
+                        <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
+                        <Input {...register("whatsappNumber")} placeholder="10-digit WhatsApp number" />
+                        {errors.whatsappNumber && <p className="text-sm text-red-500">{errors.whatsappNumber.message}</p>}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Email ID</Label>
                       <Input {...register("email")} type="email" placeholder="email@example.com (optional)" />

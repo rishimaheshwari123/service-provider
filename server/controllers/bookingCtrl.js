@@ -1,5 +1,6 @@
 const Booking = require("../models/BookingModel");
 const Property = require("../models/propertyModel");
+const AuditLogs = require("../models/auditLogs");
 
 exports.createBookingCtrl = async (req, res) => {
     try {
@@ -20,6 +21,32 @@ exports.createBookingCtrl = async (req, res) => {
             notes,
             payment,
         });
+
+        // Get service details for audit log
+        const serviceDetails = await Property.findById(service).populate('vendor');
+        
+        // Create audit log for booking
+        try {
+            await AuditLogs.create({
+                userId: user,
+                propertyId: service,
+                type: "booking",
+                details: {
+                    bookingId: booking._id,
+                    serviceName: serviceDetails?.title,
+                    vendorName: serviceDetails?.vendor?.name,
+                    bookingDate: date,
+                    bookingTime: time,
+                    notes: notes,
+                    paymentAmount: payment?.amount,
+                    paymentMethod: payment?.paymentMethod,
+                    bookingType: "service_booking"
+                }
+            });
+            console.log('Booking audit log created successfully');
+        } catch (auditError) {
+            console.error('Failed to create booking audit log:', auditError);
+        }
 
         res.status(201).json({
             success: true,
