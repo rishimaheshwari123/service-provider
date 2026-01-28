@@ -12,7 +12,8 @@ const {
   UPDATE_VENDOR_PROFILE,
   UPDATE_VENDOR_PERSANTAGE,
   UPDATE_VENDOR_WORKING_HOURS,
-  REQUST_FOR_THE_UPDATE_PROFILE_API
+  REQUST_FOR_THE_UPDATE_PROFILE_API,
+  DELETE_VENDOR
 } = vendor;
 
 export async function login(phone, password, dispatch) {
@@ -61,17 +62,57 @@ export async function login(phone, password, dispatch) {
   }
 }
 
-export async function signUp(formData,) {
-  Swal.fire({
-    title: "Loading",
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    allowEnterKey: false,
-    showConfirmButton: false,
-    didOpen: () => {
-      Swal.showLoading();
-    },
-  });
+// export async function signUp(formData,) {
+//   Swal.fire({
+//     title: "Loading",
+//     allowOutsideClick: false,
+//     allowEscapeKey: false,
+//     allowEnterKey: false,
+//     showConfirmButton: false,
+//     didOpen: () => {
+//       Swal.showLoading();
+//     },
+//   });
+
+//   try {
+//     const response = await apiConnector("POST", SIGNUP_API, formData);
+
+//     console.log("SIGNUP API RESPONSE............", response);
+
+//     if (!response.data.success) {
+//       throw new Error(response.data.message);
+//     }
+
+//     Swal.fire({
+//       title: `User Register Succesfull!`,
+//       text: `Have a nice day!`,
+//       icon: "success",
+//     });
+
+//     // dispatch(setToken(response?.data?.token));
+//     // dispatch(setUser(response?.data?.user));
+
+
+
+//     return response?.data;
+//   } catch (error) {
+//     console.log("SIGNUP API ERROR............", error);
+
+//     // toast.error(error.response?.data?.message)
+//     Swal.fire({
+//       title: "Error",
+//       text: error.response?.data?.message || "Something went wrong. Please try again later.",
+//       icon: "error",
+//       confirmButtonText: "OK",
+//     });
+//   }
+
+//   // Close the loading alert after completion
+//   // Swal.close();
+// }
+
+export async function signUp(formData) {
+  const loadingToast = toast.loading("Registering Partner...");
 
   try {
     const response = await apiConnector("POST", SIGNUP_API, formData);
@@ -82,33 +123,28 @@ export async function signUp(formData,) {
       throw new Error(response.data.message);
     }
 
-    Swal.fire({
-      title: `User Register Succesfull!`,
-      text: `Have a nice day!`,
-      icon: "success",
+    toast.update(loadingToast, {
+      render: "User Registered Successfully 🎉",
+      type: "success",
+      isLoading: false,
+      autoClose: 3000,
     });
-
-    // dispatch(setToken(response?.data?.token));
-    // dispatch(setUser(response?.data?.user));
-
-
 
     return response?.data;
   } catch (error) {
     console.log("SIGNUP API ERROR............", error);
 
-    // toast.error(error.response?.data?.message)
-    Swal.fire({
-      title: "Error",
-      text: error.response?.data?.message || "Something went wrong. Please try again later.",
-      icon: "error",
-      confirmButtonText: "OK",
+    toast.update(loadingToast, {
+      render:
+        error.response?.data?.message ||
+        "Something went wrong. Please try again later.",
+      type: "error",
+      isLoading: false,
+      autoClose: 4000,
     });
   }
-
-  // Close the loading alert after completion
-  // Swal.close();
 }
+
 
 export function logout(navigate) {
   return (dispatch) => {
@@ -279,4 +315,25 @@ export const requestForTheUpdateProfileAPI = async (id, updateProfileRequest) =>
     toast.dismiss(toastId);
   }
 
+};
+
+export const deleteVendorAPI = async (id) => {
+  const toastId = toast.loading("Deleting vendor...");
+
+  try {
+    const response = await apiConnector("DELETE", `${DELETE_VENDOR}/${id}`);
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Vendor deleted successfully");
+    return response?.data;
+  } catch (error) {
+    console.error("DELETE Vendor API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to delete vendor!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
 };

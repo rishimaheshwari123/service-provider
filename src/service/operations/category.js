@@ -78,14 +78,36 @@ export const getAllCategoriesAPI = async () => {
 };
 
 export const purchaseCategoryAPI = async (payload) => {
+  console.log("🔍 purchaseCategoryAPI called with payload:", payload);
+  
   const toastId = toast.loading("Purchasing category...");
   try {
+    console.log("📤 Making API request to:", PURCHASE_CATEGORY_API);
+    console.log("📋 Request payload:", JSON.stringify(payload, null, 2));
+    
     const res = await apiConnector("POST", PURCHASE_CATEGORY_API, payload);
+    
+    console.log("📥 API Response:", {
+      status: res.status,
+      success: res?.data?.success,
+      message: res?.data?.message,
+      purchase: res?.data?.purchase
+    });
+    
     if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
+    
     toast.success(res?.data?.message || "Purchased successfully");
+    console.log("✅ Purchase API completed successfully");
     return res?.data?.purchase;
   } catch (error) {
-    console.error("PURCHASE_CATEGORY_API ERROR:", error);
+    console.error("❌ PURCHASE_CATEGORY_API ERROR:", error);
+    console.error("Error details:", {
+      message: error.message,
+      response: error?.response?.data,
+      status: error?.response?.status,
+      url: PURCHASE_CATEGORY_API
+    });
+    
     toast.error(error?.response?.data?.message || "Failed to purchase!");
     return null;
   } finally {
@@ -118,12 +140,33 @@ export const getCategoryPurchasersAPI = async (categoryId) => {
 };
 
 export const getPendingCategoryPurchasesAPI = async () => {
+  console.log("🔍 getPendingCategoryPurchasesAPI called");
+  
   try {
+    console.log("📤 Making request to:", GET_PENDING_CATEGORY_PURCHASES_API);
+    
     const res = await apiConnector("GET", GET_PENDING_CATEGORY_PURCHASES_API);
+    
+    console.log("📥 Pending purchases response:", {
+      status: res.status,
+      success: res?.data?.success,
+      pendingCount: res?.data?.pending?.length || 0
+    });
+    
     if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
-    return res?.data?.pending || [];
+    
+    const pending = res?.data?.pending || [];
+    console.log("📊 Pending purchases data:", pending);
+    
+    return pending;
   } catch (error) {
-    console.error("GET_PENDING_CATEGORY_PURCHASES_API ERROR:", error);
+    console.error("❌ GET_PENDING_CATEGORY_PURCHASES_API ERROR:", error);
+    console.error("Error details:", {
+      message: error.message,
+      response: error?.response?.data,
+      status: error?.response?.status
+    });
+    
     toast.error(error?.response?.data?.message || "Failed to load pending approvals!");
     return [];
   }

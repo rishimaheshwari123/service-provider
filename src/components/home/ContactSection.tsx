@@ -3,13 +3,54 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslation } from "react-i18next";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
+import { useState } from "react";
+import { createGeneralContactAPI } from "@/service/operations/contact";
 
 const ContactSection = () => {
   const { t } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: ""
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form Submitted!");
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await createGeneralContactAPI(formData);
+      
+      if (response) {
+        // Reset form on success
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: ""
+        });
+      }
+    } catch (error) {
+      console.error("Contact form error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -113,26 +154,48 @@ const ContactSection = () => {
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
                     placeholder={t("pages.home.yourFullName", "Your Full Name")}
                     className="h-11 bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600"
                     required
                   />
                   <Input
                     type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
                     placeholder={t("pages.home.yourBestEmail", "Your Best Email")}
                     className="h-11 bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600"
                     required
                   />
                 </div>
-                <Input
-                  placeholder={t(
-                    "pages.home.subjectInquiry",
-                    "Subject / Service Inquiry"
-                  )}
-                  className="h-11 bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600"
-                  required
-                />
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    placeholder="Your Phone Number"
+                    className="h-11 bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600"
+                  />
+                  <Input
+                    name="subject"
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                    placeholder={t(
+                      "pages.home.subjectInquiry",
+                      "Subject / Service Inquiry"
+                    )}
+                    className="h-11 bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600"
+                    required
+                  />
+                </div>
                 <Textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleInputChange}
                   placeholder={t(
                     "pages.home.tellUsNeeds",
                     "Tell us about your needs..."
@@ -142,10 +205,20 @@ const ContactSection = () => {
                 />
                 <Button
                   type="submit"
-                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                  disabled={isSubmitting}
+                  className="w-full h-11 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium"
                 >
-                  {t("pages.contact.sendMessage", "Send Message")}
-                  <Send className="w-4 h-4 ml-2" />
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      {t("pages.contact.sendMessage", "Send Message")}
+                      <Send className="w-4 h-4 ml-2" />
+                    </>
+                  )}
                 </Button>
               </form>
             </div>

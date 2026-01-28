@@ -27,6 +27,7 @@ export const vendor = {
   UPDATE_VENDOR_PERSANTAGE: BASE_URL + "/vendor/update-percentage",
   UPDATE_VENDOR_WORKING_HOURS: BASE_URL + "/vendor/working-hours",
   REQUST_FOR_THE_UPDATE_PROFILE_API: BASE_URL + "/vendor/request-update",
+  DELETE_VENDOR: BASE_URL + "/vendor/delete",
   MY_PROFILE: BASE_URL + "/vendor/my-profile",
 }
 
@@ -54,6 +55,7 @@ export const category = {
 }
 export const contact = {
   CREATE_CONTACT_API: BASE_URL + "/contact/create",
+  CREATE_GENERAL_CONTACT_API: BASE_URL + "/contact/general",
   GET_CONTACT_API: BASE_URL + "/contact/getAll",
   GET_USER_INQUIRY_API: BASE_URL + "/contact/user-inquiry",
 }

@@ -40,12 +40,12 @@ interface Service {
   images?: Array<{ url: string; public_id: string }>;
   location: string;
   status: string;
-  vendor: {
+  vendor?: {
     _id: string;
     name: string;
     company: string;
     phone: string;
-  };
+  } | null;
   createdAt: string;
 }
 
@@ -95,8 +95,8 @@ const AdminServices = () => {
       filtered = filtered.filter(
         (service) =>
           service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.vendor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.vendor.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          service.vendor?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          service.vendor?.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           service.category.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -234,7 +234,6 @@ const AdminServices = () => {
                   <TableHead>Service</TableHead>
                   <TableHead>Vendor</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
                   <TableHead>Location</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
@@ -261,15 +260,12 @@ const AdminServices = () => {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{service.vendor.name}</p>
-                        <p className="text-sm text-gray-500">{service.vendor.company}</p>
+                        <p className="font-medium">{service.vendor?.name || 'Unknown Vendor'}</p>
+                        <p className="text-sm text-gray-500">{service.vendor?.company || 'No Company'}</p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline">{service.category}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium">₹{service.price}</span>
                     </TableCell>
                     <TableCell>{service.location}</TableCell>
                     <TableCell>{getStatusBadge(service.status || 'active')}</TableCell>

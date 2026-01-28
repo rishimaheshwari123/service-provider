@@ -461,6 +461,35 @@ const ServicesPage = () => {
                               {service.description || "Professional service provider offering quality services."}
                             </p>
 
+                            {/* Vendor Information */}
+                            {service.vendor && (
+                              <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                                <div className="flex items-start gap-2">
+                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span className="text-blue-600 font-semibold text-sm">
+                                      {service.vendor.name?.charAt(0)?.toUpperCase() || 'V'}
+                                    </span>
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium text-gray-900 truncate">
+                                      {service.vendor.name || 'Vendor Name'}
+                                    </p>
+                                    {service.vendor.company && (
+                                      <p className="text-xs text-gray-600 truncate">
+                                        {service.vendor.company}
+                                      </p>
+                                    )}
+                                    {service.vendor.address && (
+                                      <p className="text-xs text-gray-500 line-clamp-1 mt-1">
+                                        <MapPin className="w-3 h-3 inline mr-1" />
+                                        {service.vendor.address}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
                             {/* Location & Timing */}
                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                               {service.location && (

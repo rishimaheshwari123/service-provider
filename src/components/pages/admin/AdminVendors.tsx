@@ -68,11 +68,11 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
+  FileText,
 } from "lucide-react";
 import { signUp } from "@/service/operations/vendor";
 import { getAllCategoriesAPI, purchaseCategoryAPI } from "@/service/operations/category";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 interface Category {
   _id: string;
@@ -97,6 +97,7 @@ import {
   updateVendorPersentageAPI,
   updateVendorProfileAPI,
   requestForTheUpdateProfileAPI,
+  deleteVendorAPI,
 } from "@/service/operations/vendor";
 import { updatePropertyStatusAPI, getVendorPropertyAPI, deletePropertyAPI } from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
@@ -120,6 +121,10 @@ const VendorManagement = () => {
     open: false,
     vendor: null,
     action: "",
+  });
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    vendor: null,
   });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -146,6 +151,7 @@ const VendorManagement = () => {
     sunday: false,
   });
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
+  const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
   const [documents, setDocuments] = useState<{ [key: string]: File | null }>({
     document1: null,
     document2: null,
@@ -269,6 +275,26 @@ const VendorManagement = () => {
   };
 
   const nextStep = () => {
+    // Validate step 2 for WhatsApp selection
+    if (currentStep === 2) {
+      if (hasWhatsApp === null) {
+        toast({
+          title: "Error",
+          description: "Please select whether you have WhatsApp or not",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (hasWhatsApp && !formData.whatsappNumber) {
+        toast({
+          title: "Error", 
+          description: "Please enter your WhatsApp number",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+    
     if (currentStep < 7) {
       setCurrentStep(currentStep + 1);
     }
@@ -455,6 +481,40 @@ const VendorManagement = () => {
     }
   };
 
+  const handleDeleteVendor = async (vendorId) => {
+    try {
+      setSubmitting(true);
+      
+      // Delete the vendor (this will also delete all their services on the backend)
+      await deleteVendorAPI(vendorId);
+      
+      // Remove vendor from local state
+      setVendors(vendors.filter(v => v._id !== vendorId));
+      
+      // Close the delete dialog
+      setDeleteDialog({ open: false, vendor: null });
+      
+      // If this was the selected vendor, clear the selection
+      if (selectedVendor?._id === vendorId) {
+        setSelectedVendor(null);
+        setVendorProperties([]);
+      }
+      
+      toast({
+        title: "Success",
+        description: "Partner and all their services have been deleted successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete partner",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleFormChange = (e) => {
     setFormData({
       ...formData,
@@ -489,6 +549,25 @@ const VendorManagement = () => {
       return;
     }
 
+    // Validate WhatsApp selection and number
+    if (hasWhatsApp === null) {
+      toast({
+        title: "Error",
+        description: "Please select whether you have WhatsApp or not",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (hasWhatsApp && !formData.whatsappNumber) {
+      toast({
+        title: "Error",
+        description: "Please enter your WhatsApp number",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate required fields
     const requiredFields = [
       "name",
@@ -512,55 +591,68 @@ const VendorManagement = () => {
     try {
       setSubmitting(true);
       
+      // Include category and subCategory in vendor registration data
+      const { category, subCategory, ...vendorData } = formData;
+      
       const submitData = {
-        ...formData,
-        numberOfStaff: formData.numberOfStaff ? parseInt(formData.numberOfStaff) : 0,
+        ...vendorData,
+        category, // Include category ObjectId
+        subCategory, // Include subCategory string
+        isAdmin: true, // Flag to identify admin registrations
+        numberOfStaff: vendorData.numberOfStaff ? parseInt(vendorData.numberOfStaff) : 0,
         bankDetail: {
-          accountNumber: formData.accountNumber,
-          IFSC: formData.ifscCode,
-          accountHolderName: formData.accountHolderName,
-          branch: formData.bankName,
+          accountNumber: vendorData.accountNumber,
+          IFSC: vendorData.ifscCode,
+          accountHolderName: vendorData.accountHolderName,
+          branch: vendorData.bankName,
         },
         experience: {
-          totalYears: formData.totalYears ? parseInt(formData.totalYears) : 0,
-          fields: formData.servicesOffered ? formData.servicesOffered.split(",").map(s => s.trim()) : [],
+          totalYears: vendorData.totalYears ? parseInt(vendorData.totalYears) : 0,
+          fields: vendorData.servicesOffered ? vendorData.servicesOffered.split(",").map(s => s.trim()) : [],
         },
       };
       
       const response = await signUp(submitData);
 
       if (response?.success) {
-        // Auto-purchase the selected category for the vendor
+        // Navigate to category purchase page instead of auto-purchasing
         if (selectedCategory && response.user?._id) {
-          try {
-            await purchaseCategoryAPI({
-              vendorId: response.user._id,
-              categoryId: selectedCategory,
-              paymentMethod: "cash",
-              transactionId: "",
-              assignedByAdmin: true, // Admin is registering, so auto-approve
-            });
-            
-            toast({
-              title: "Success",
-              description: "Vendor registered and category assigned successfully",
-            });
-          } catch (categoryError) {
-            console.error("Error purchasing category:", categoryError);
-            toast({
-              title: "Warning",
-              description: "Vendor registered but failed to assign category. You can assign it manually later.",
-              variant: "default",
-            });
-          }
+          const params = new URLSearchParams({
+            vendorId: response.user._id,
+            categoryId: selectedCategory,
+            vendorName: formData.name,
+            vendorEmail: formData.email || "",
+            vendorPhone: formData.phone,
+            isAdmin: "true", // Flag for admin registration
+          });
+          
+          console.log("🔗 Admin navigating to category purchase with params:", {
+            vendorId: response.user._id,
+            categoryId: selectedCategory,
+            vendorName: formData.name,
+            vendorEmail: formData.email || "",
+            vendorPhone: formData.phone,
+            isAdmin: true,
+          });
+          
+          // Close the dialog first
+          setIsAddDialogOpen(false);
+          
+          // Navigate to category purchase page
+          navigate(`/category-purchase?${params.toString()}`);
         } else {
+          console.log("⚠️ No category selected or no user ID, staying on admin page");
           toast({
             title: "Success",
             description: "Vendor registered successfully",
           });
+          
+          // Reset form and close dialog
+          setIsAddDialogOpen(false);
+          await fetchVendors();
         }
 
-        // Reset form
+        // Reset form data for next registration
         setFormData({
           company: "",
           typeOfService: "",
@@ -606,11 +698,6 @@ const VendorManagement = () => {
           document4: null,
           document5: null,
         });
-
-        setIsAddDialogOpen(false);
-
-        // Refresh vendors list
-        await fetchVendors();
       } else {
         throw new Error("Failed to register vendor");
       }
@@ -697,40 +784,107 @@ const VendorManagement = () => {
     }
   };
 
-  const handleDownloadPDF = () => {
-    const doc = new jsPDF();
+  const handleDownloadExcel = () => {
+    // Prepare comprehensive vendor data for all 7 steps (excluding documents and passwords)
+    const excelData = filteredVendors.map((vendor) => ({
+      // Step 1: Basic Info
+      "Vendor Name": vendor.name || "",
+      "Business/Company Name": vendor.company || "",
+      "Type of Service": vendor.typeOfService || "",
+      "Service Description": vendor.description || "",
+      "Category": categories.find(c => c._id === vendor.category)?.name || vendor.category || "",
+      "Sub Category": vendor.subCategory || "",
+      "Year of Establishment": vendor.yearOfEstablishment || "",
+      
+      // Step 2: Contact Details
+      "Address": vendor.address || "",
+      "Service Location": vendor.serviceLocation || "",
+      "Primary Phone": vendor.phone || "",
+      "Alternate Phone": vendor.alternatePhone || "",
+      "WhatsApp Number": vendor.whatsappNumber || "",
+      "Email": vendor.email || "",
+      
+      // Step 3: Business & Legal
+      "Business Type": vendor.businessType || "",
+      "Aadhaar Number": vendor.adhar || "",
+      "PAN Number": vendor.pan || "",
+      "GST Number": vendor.gstNumber || "",
+      "Trade License": vendor.tradeLicense || "",
+      
+      // Step 4: Bank Details
+      "Bank Name": vendor.bankDetail?.branch || "",
+      "Account Holder Name": vendor.bankDetail?.accountHolderName || "",
+      "Account Number": vendor.bankDetail?.accountNumber || "",
+      "IFSC Code": vendor.bankDetail?.IFSC || "",
+      
+      // Step 5: Experience & Staff
+      "Years of Experience": vendor.experience?.totalYears || "",
+      "Number of Staff": vendor.numberOfStaff || "",
+      "Services Offered": (vendor.experience?.fields || []).join(", ") || "",
+      "Working Days & Timings": vendor.workingDays || "",
+      
+      // Step 7: Additional Info (excluding password)
+      "Referral Code": vendor.referralCode || "",
+      "Referral Name": vendor.referralName || "",
+      
+      // System Info
+      "Status": vendor.status || "",
+      "Commission %": vendor.percentage || "",
+      "Registration Date": vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : "",
+      "Last Updated": vendor.updatedAt ? new Date(vendor.updatedAt).toLocaleDateString() : "",
+    }));
 
-    // Title
-    doc.text("Vendor Details", 14, 10);
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
 
-    // Table data
-    const tableColumn = [
-      "Vendor Name",
-      "Email",
-      "Company",
-      "Commission ",
-      "Phone",
-      "Adhar",
-      "Pan",
+    // Set column widths for better readability
+    const columnWidths = [
+      { wch: 20 }, // Vendor Name
+      { wch: 25 }, // Business Name
+      { wch: 20 }, // Type of Service
+      { wch: 30 }, // Description
+      { wch: 20 }, // Category
+      { wch: 20 }, // Sub Category
+      { wch: 15 }, // Year
+      { wch: 30 }, // Address
+      { wch: 20 }, // Service Location
+      { wch: 15 }, // Primary Phone
+      { wch: 15 }, // Alternate Phone
+      { wch: 15 }, // WhatsApp
+      { wch: 25 }, // Email
+      { wch: 15 }, // Business Type
+      { wch: 15 }, // Aadhaar
+      { wch: 12 }, // PAN
+      { wch: 18 }, // GST
+      { wch: 20 }, // Trade License
+      { wch: 20 }, // Bank Name
+      { wch: 20 }, // Account Holder
+      { wch: 18 }, // Account Number
+      { wch: 12 }, // IFSC
+      { wch: 10 }, // Experience
+      { wch: 10 }, // Staff
+      { wch: 30 }, // Services Offered
+      { wch: 25 }, // Working Days
+      { wch: 15 }, // Referral Code
+      { wch: 20 }, // Referral Name
+      { wch: 12 }, // Status
+      { wch: 12 }, // Commission
+      { wch: 15 }, // Registration Date
+      { wch: 15 }, // Last Updated
     ];
-    const tableRows = filteredVendors.map((inquiry) => [
-      inquiry.name,
-      inquiry.email,
-      inquiry.company,
-      inquiry.percentage,
-      inquiry.phone,
-      inquiry.adhar,
-      inquiry.pan,
-    ]);
+    
+    worksheet['!cols'] = columnWidths;
 
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: 20,
-      styles: { fontSize: 8 },
-    });
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Vendors");
 
-    doc.save("vendor.pdf");
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `Vendors_Complete_Details_${currentDate}.xlsx`;
+
+    // Save the file
+    XLSX.writeFile(workbook, filename);
   };
   const filteredVendors = vendors.filter((vendor) => {
     const matchesSearch =
@@ -777,10 +931,11 @@ const VendorManagement = () => {
 
         <div className="flex gap-2">
           <button
-            onClick={handleDownloadPDF}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            onClick={handleDownloadExcel}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
           >
-            Download PDF
+            <FileText className="w-4 h-4" />
+            Download Excel
           </button>
           <Button
             variant="outline"
@@ -988,14 +1143,42 @@ const VendorManagement = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
-                        <Input
-                          name="whatsappNumber"
-                          placeholder="10-digit WhatsApp number"
-                          value={formData.whatsappNumber}
-                          onChange={handleFormChange}
-                        />
+                        <Label>Do you have WhatsApp? <span className="text-red-500">*</span></Label>
+                        <RadioGroup
+                          value={hasWhatsApp === null ? "" : hasWhatsApp ? "yes" : "no"}
+                          onValueChange={(val) => {
+                            const hasWA = val === "yes";
+                            setHasWhatsApp(hasWA);
+                            if (!hasWA) {
+                              setFormData(prev => ({ ...prev, whatsappNumber: "" }));
+                            }
+                          }}
+                          className="flex gap-4"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yes" id="admin-whatsapp-yes" />
+                            <Label htmlFor="admin-whatsapp-yes" className="cursor-pointer">Yes</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="no" id="admin-whatsapp-no" />
+                            <Label htmlFor="admin-whatsapp-no" className="cursor-pointer">No</Label>
+                          </div>
+                        </RadioGroup>
                       </div>
+                      {hasWhatsApp && (
+                        <div className="space-y-2">
+                          <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
+                          <Input
+                            name="whatsappNumber"
+                            placeholder="10-digit WhatsApp number"
+                            value={formData.whatsappNumber}
+                            onChange={handleFormChange}
+                          />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Email ID</Label>
                         <Input
@@ -1468,6 +1651,7 @@ const VendorManagement = () => {
                   <TableRow>
                     <TableHead>Partner</TableHead>
                     <TableHead>Company</TableHead>
+                    <TableHead>Category</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Documents</TableHead>
                     <TableHead>Commission %</TableHead>
@@ -1505,6 +1689,16 @@ const VendorManagement = () => {
                         <div className="flex items-center gap-2">
                           <Building2 className="w-4 h-4 text-gray-400" />
                           {vendor.company}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="text-sm font-medium text-gray-900">
+                            {categories.find(c => c._id === vendor.category)?.name || vendor.category || "-"}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {vendor.subCategory || "-"}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>{getStatusBadge(vendor.status)}</TableCell>
@@ -1668,6 +1862,18 @@ const VendorManagement = () => {
                                 Approve
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setDeleteDialog({
+                                  open: true,
+                                  vendor,
+                                })
+                              }
+                              className="text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Delete Partner
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -1753,6 +1959,7 @@ const VendorManagement = () => {
 
               {/* Vendor Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information Card */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
@@ -1762,31 +1969,29 @@ const VendorManagement = () => {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Name:</span>
-                      <span>{selectedVendor.name || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Email:</span>
-                      <span>{selectedVendor.email || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Phone:</span>
-                      <span>{selectedVendor.phone || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Company:</span>
+                      <span className="font-medium">Business Name:</span>
                       <span>{selectedVendor.company || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Address:</span>
-                      <span>{selectedVendor.address || "Not Added"}</span>
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Owner Name:</span>
+                      <span>{selectedVendor.name || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <span className="font-medium">Type of Service:</span>
+                      <span>{selectedVendor.typeOfService || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">Category:</span>
+                      <span>{selectedVendor.subCategory || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Year Established:</span>
+                      <span>{selectedVendor.yearOfEstablishment || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
                       <span className="font-medium">Description:</span>
                       <span className="text-sm">{selectedVendor.description || "Not Added"}</span>
                     </div>
@@ -1806,78 +2011,194 @@ const VendorManagement = () => {
                   </CardContent>
                 </Card>
 
-                {/* Service Information Card - NEW */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-purple-600" />
-                      Service Information
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Type of Service:</span>
-                      <span>{selectedVendor.typeOfService || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Category:</span>
-                      <span>{selectedVendor.subCategory || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Service Location:</span>
-                      <span>{selectedVendor.serviceLocation || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Business Type:</span>
-                      <span>{selectedVendor.businessType || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Year Established:</span>
-                      <span>{selectedVendor.yearOfEstablishment || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Working Hours:</span>
-                      <span>{selectedVendor.workingDaysTimings || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Staff Count:</span>
-                      <span>{selectedVendor.numberOfStaff || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Experience:</span>
-                      <span>{selectedVendor.experience?.totalYears ? `${selectedVendor.experience.totalYears} Years` : "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Services Offered:</span>
-                      <span>{selectedVendor.experience?.fields?.length > 0 ? selectedVendor.experience.fields.join(", ") : "Not Added"}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Contact Details Card - NEW */}
+                {/* Contact Information Card */}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Phone className="w-5 h-5 text-green-600" />
-                      Contact Details
+                      Contact Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">WhatsApp:</span>
-                      <span>{selectedVendor.whatsappNumber || "Not Added"}</span>
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <span className="font-medium">Address:</span>
+                      <span className="text-sm">{selectedVendor.address || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Service Location:</span>
+                      <span>{selectedVendor.serviceLocation || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Primary Phone:</span>
+                      <span>{selectedVendor.phone || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Alternate Phone:</span>
                       <span>{selectedVendor.alternatePhone || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">WhatsApp:</span>
+                      <span>{selectedVendor.whatsappNumber || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Email:</span>
+                      <span>{selectedVendor.email || "Not Added"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Business & Legal Information Card */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Building2 className="w-5 h-5 text-purple-600" />
+                      Business & Legal Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Business Type:</span>
+                      <span>{selectedVendor.businessType || "Proprietorship"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <IdCard className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Aadhaar Number:</span>
+                      <span>{selectedVendor.adhar || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">PAN Number:</span>
+                      <span>{selectedVendor.pan || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">GST Number:</span>
                       <span>{selectedVendor.gstNumber || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Trade License:</span>
                       <span>{selectedVendor.tradeLicense || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Admin Commission:</span>
+                      <span>{selectedVendor.percentage ? `${selectedVendor.percentage}%` : "Not Set"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Bank Details Card */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <CreditCard className="w-5 h-5 text-indigo-600" />
+                      Bank Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Building2 className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Bank Name:</span>
+                      <span>{selectedVendor.bankDetail?.branch || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Account Holder:</span>
+                      <span>{selectedVendor.bankDetail?.accountHolderName || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Account Number:</span>
+                      <span>{selectedVendor.bankDetail?.accountNumber || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">IFSC Code:</span>
+                      <span>{selectedVendor.bankDetail?.IFSC || "Not Added"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Experience & Staff Information Card */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-orange-600" />
+                      Experience & Staff Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Experience:</span>
+                      <span>{selectedVendor.experience?.totalYears ? `${selectedVendor.experience.totalYears} Years` : "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Staff Count:</span>
+                      <span>{selectedVendor.numberOfStaff || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <span className="font-medium">Services Offered:</span>
+                      <span className="text-sm">{selectedVendor.experience?.fields?.length > 0 ? selectedVendor.experience.fields.join(", ") : "Not Added"}</span>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
+                      <span className="font-medium">Working Days & Hours:</span>
+                      <span className="text-sm">{selectedVendor.workingDays || selectedVendor.workingDaysTimings || "Not Added"}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Documents & Referral Information Card */}
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-red-600" />
+                      Documents & Referral
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="space-y-2">
+                      <span className="font-medium">Documents:</span>
+                      <div className="grid grid-cols-1 gap-2 text-sm">
+                        {selectedVendor.profilePhoto && typeof selectedVendor.profilePhoto === 'string' && (
+                          <a
+                            href={selectedVendor.profilePhoto}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline flex items-center gap-1"
+                          >
+                            <FileText className="w-3 h-3" />
+                            Profile Photo
+                          </a>
+                        )}
+                        {[1, 2, 3, 4, 5].map((num) => {
+                          const docField = `document${num}` as keyof typeof selectedVendor;
+                          const doc = selectedVendor[docField];
+                          return doc && typeof doc === 'string' ? (
+                            <a
+                              key={num}
+                              href={doc}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Document {num}
+                            </a>
+                          ) : null;
+                        })}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Referral Code:</span>
@@ -1886,58 +2207,6 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Referral Name:</span>
                       <span>{selectedVendor.referralName || "Not Added"}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Documents Card - NEW */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <IdCard className="w-5 h-5 text-orange-600" />
-                      Documents & IDs
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Aadhaar:</span>
-                      <span>{selectedVendor.adhar || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">PAN:</span>
-                      <span>{selectedVendor.pan || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Commission:</span>
-                      <span>{selectedVendor.percentage ? `${selectedVendor.percentage}%` : "Not Added"}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Bank Details Card - NEW */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-indigo-600" />
-                      Bank Details
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Bank Name:</span>
-                      <span>{selectedVendor.bankDetail?.branch || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Account Holder:</span>
-                      <span>{selectedVendor.bankDetail?.accountHolderName || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Account Number:</span>
-                      <span>{selectedVendor.bankDetail?.accountNumber || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">IFSC Code:</span>
-                      <span>{selectedVendor.bankDetail?.IFSC || "Not Added"}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -2357,6 +2626,53 @@ const VendorManagement = () => {
                 <>
                   <Trash2 className="w-4 h-4 mr-2" />
                   Delete Service
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Vendor Confirmation Dialog */}
+      <AlertDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog({ ...deleteDialog, open })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <Trash2 className="w-5 h-5 text-red-600" />
+              Delete Partner
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete the partner "{deleteDialog.vendor?.name}"? 
+              <br />
+              <strong className="text-red-600">
+                This action cannot be undone and will permanently delete the partner and ALL their services from the system.
+              </strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel 
+              disabled={submitting}
+              onClick={() => setDeleteDialog({ open: false, vendor: null })}
+            >
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => handleDeleteVendor(deleteDialog.vendor?._id)}
+              disabled={submitting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Partner
                 </>
               )}
             </AlertDialogAction>

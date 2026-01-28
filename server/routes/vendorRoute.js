@@ -1,5 +1,5 @@
 const express = require("express")
-const { vendorLoginCtrl, vendorRegisterCtrl, getAllVendorCtrl, updateVendorStatusCtrl, getVendorByIDCtrl, updateVendorProfileCtrl, updateVendorPercentageCtrl, updateWorkingHours, requestProfileUpdateCtrl } = require("../controllers/vendorCtrl")
+const { vendorLoginCtrl, vendorRegisterCtrl, getAllVendorCtrl, updateVendorStatusCtrl, getVendorByIDCtrl, updateVendorProfileCtrl, updateVendorPercentageCtrl, updateWorkingHours, requestProfileUpdateCtrl, deleteVendorCtrl } = require("../controllers/vendorCtrl")
 const router = express.Router()
 
 
@@ -12,6 +12,7 @@ router.put("/update-profile/:id", updateVendorProfileCtrl)
 router.put("/update-percentage/:id", updateVendorPercentageCtrl)
 router.put("/working-hours/:id", updateWorkingHours);
 router.post("/request-update/:id", requestProfileUpdateCtrl);
+router.delete("/delete/:id", deleteVendorCtrl);
 
 
 

@@ -17,13 +17,54 @@ import {
   Globe,
 } from "lucide-react";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import { useState } from "react";
+import { createGeneralContactAPI } from "@/service/operations/contact";
 
 const Contact = () => {
   const { t } = useTranslation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: ""
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
+    
+    if (!formData.name || !formData.email || !formData.subject || !formData.message) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const response = await createGeneralContactAPI(formData);
+      
+      if (response) {
+        // Reset form on success
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: ""
+        });
+      }
+    } catch (error) {
+      console.error("Contact form error:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const contactMethods = [
@@ -185,77 +226,90 @@ const Contact = () => {
                   {t("pages.contact.sendMessage")}
                 </h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-gray-700">
-                        {t("pages.contact.firstName")} *
-                      </label>
-                      <Input
-                        placeholder="John"
-                        className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold mb-2 text-gray-700">
-                        {t("pages.contact.lastName")} *
-                      </label>
-                      <Input
-                        placeholder="Doe"
-                        className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
-                        required
-                      />
-                    </div>
+                  <div>
+                    <label className="block text-sm font-semibold mb-2 text-gray-700">
+                      {t("pages.home.yourFullName", "Your Full Name")} *
+                    </label>
+                    <Input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Your Full Name"
+                      className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
+                      required
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      {t("pages.signup.email")} *
+                      {t("pages.home.yourBestEmail", "Your Best Email")} *
                     </label>
                     <Input
                       type="email"
-                      placeholder={t("forms.placeholders.enterEmail")}
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="Your Best Email"
                       className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      {t("pages.contact.phone")}
+                      Phone Number
                     </label>
                     <Input
                       type="tel"
-                      placeholder={t("forms.placeholders.enterPhone")}
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleInputChange}
+                      placeholder="Your Phone Number"
                       className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      {t("pages.contact.subject")} *
+                      {t("pages.home.subjectInquiry", "Subject / Service Inquiry")} *
                     </label>
                     <Input
-                      placeholder={t("pages.contact.howCanWeHelp")}
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleInputChange}
+                      placeholder="Subject / Service Inquiry"
                       className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl h-12"
                       required
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-semibold mb-2 text-gray-700">
-                      {t("pages.contact.message")} *
+                      {t("pages.home.tellUsNeeds", "Tell us about your needs...")} *
                     </label>
                     <Textarea
-                      placeholder={t("forms.placeholders.enterMessage")}
+                      name="message"
+                      value={formData.message}
+                      onChange={handleInputChange}
+                      placeholder="Tell us about your needs..."
                       className="bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 rounded-xl min-h-[150px] resize-none"
                       required
                     />
                   </div>
                   <motion.button
                     type="submit"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+                    disabled={isSubmitting}
+                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
                   >
-                    <Send size={20} />
-                    {t("pages.contact.sendNow")}
+                    {isSubmitting ? (
+                      <>
+                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send size={20} />
+                        {t("pages.contact.sendMessage", "Send Message")}
+                      </>
+                    )}
                   </motion.button>
                 </form>
               </motion.div>
