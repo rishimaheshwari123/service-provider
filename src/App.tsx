@@ -55,6 +55,7 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminServices from "./components/pages/admin/AdminServices";
 import CategoriesPage from "./pages/CategoriesPage";
+import ScrollToTop from "./pages/ScrollToTop";
 const queryClient = new QueryClient();
 
 // Loading component for Suspense fallback
@@ -73,6 +74,8 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
+          <ScrollToTop/>
+
             <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/about" element={<About />} />
