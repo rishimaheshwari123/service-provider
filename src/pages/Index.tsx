@@ -101,6 +101,7 @@ const Index = () => {
     <PageTransition>
       <div className="min-h-screen bg-white overflow-x-hidden">
         <ScrollProgress />
+          <Navbar />
         
         {/* MERA GHAR SANSAAR Header - At the very top */}
         <motion.section
@@ -130,7 +131,6 @@ const Index = () => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="relative z-40"
         >
-          <Navbar />
         </motion.div>
 
         {/* Main Content */}

@@ -168,7 +168,7 @@ const getPropertiesByIdCtrl = async (req, res) => {
         // ----------------------------
         const property = await Property.findById(id).populate({
             path: "vendor",
-            select: "name company workingHours review phone email",
+           
         });
 
         res.status(200).json({

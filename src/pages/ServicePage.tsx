@@ -457,7 +457,7 @@ const ServicesPage = () => {
                             </div>
 
                             {/* Description */}
-                            <p className="text-gray-600 text-sm line-clamp-2 mb-3">
+                            <p className="text-gray-600 text-sm mb-3">
                               {service.description || "Professional service provider offering quality services."}
                             </p>
 
