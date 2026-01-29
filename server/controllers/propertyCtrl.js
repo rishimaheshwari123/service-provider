@@ -164,16 +164,6 @@ const getPropertiesByIdCtrl = async (req, res) => {
         const { userId } = req.query; // userId from query
 
         // ----------------------------
-        // 🔥 Direct save audit log
-        // ----------------------------
-        if (userId) {
-            await AuditLogs.create({
-                userId,
-                propertyId: id
-            });
-        }
-
-        // ----------------------------
         // Fetch property
         // ----------------------------
         const property = await Property.findById(id).populate({
