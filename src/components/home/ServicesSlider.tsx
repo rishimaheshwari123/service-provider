@@ -16,6 +16,14 @@ import { getAllReatingAPI } from "@/service/operations/rating";
 import { useNavigate } from "react-router-dom";
 import ReviewModal from "@/components/ReviewModal";
 
+// Utility function to truncate text to 4 words
+const truncateText = (text: string, wordLimit: number = 4): string => {
+  if (!text) return '';
+  const words = text.split(' ');
+  if (words.length <= wordLimit) return text;
+  return words.slice(0, wordLimit).join(' ') + '...';
+};
+
 const ServicesSlider = () => {
   const { t } = useTranslation();
   const [services, setServices] = useState<any[]>([]);
@@ -290,20 +298,20 @@ const ServicesSlider = () => {
                     {/* Content */}
                     <div className="p-3 md:p-4">
                       {/* Title */}
-                      <h3 className="font-semibold text-gray-800 line-clamp-1 mb-1 text-sm md:text-base group-hover:text-blue-600 transition-colors">
-                        {service.title}
+                      <h3 className="font-semibold text-gray-800 line-clamp-1 mb-1 text-sm md:text-base group-hover:text-blue-600 transition-colors" title={service.title}>
+                        {truncateText(service.title)}
                       </h3>
 
                       {/* Category */}
-                      <p className="text-gray-500 text-xs md:text-sm mb-2">
-                        {service.category || "Professional Service"}
+                      <p className="text-gray-500 text-xs md:text-sm mb-2" title={service.category || "Professional Service"}>
+                        {truncateText(service.category || "Professional Service")}
                       </p>
 
                       {/* Location */}
                       <div className="flex items-center text-gray-600 text-xs md:text-sm mb-2">
                         <MapPin className="w-3 h-3 md:w-4 md:h-4 mr-1.5 text-red-500 flex-shrink-0" />
-                        <span className="line-clamp-1">
-                          {service.location || "Location not specified"}
+                        <span className="line-clamp-1" title={service.location || "Location not specified"}>
+                          {truncateText(service.location || "Location not specified")}
                         </span>
                       </div>
 
