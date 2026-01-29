@@ -101,12 +101,33 @@ const Index = () => {
     <PageTransition>
       <div className="min-h-screen bg-white overflow-x-hidden">
         <ScrollProgress />
-<TopSearchBar/>
-        {/* Header */}
+        
+        {/* MERA GHAR SANSAAR Header - At the very top */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.1 }}
+          className="bg-white py-3 md:py-4 border-b border-gray-200"
+        >
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="text-center">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
+                <span className="text-red-600">MERA</span>{" "}
+                <span className="text-blue-600">GHAR SANSAAR</span>
+              </h1>
+              <div className="mt-2 w-24 md:w-32 h-1 bg-gradient-to-r from-red-600 to-blue-600 mx-auto rounded-full"></div>
+            </div>
+          </div>
+        </motion.section>
+
+        {/* Top Search Bar - Category Filter */}
+        <TopSearchBar/>
+        
+        {/* Header - Navbar */}
         <motion.div
           initial={{ y: -50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
           className="relative z-40"
         >
           <Navbar />
