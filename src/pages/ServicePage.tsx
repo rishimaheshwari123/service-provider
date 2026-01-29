@@ -419,17 +419,44 @@ const ServicesPage = () => {
                       <div className="flex-1 p-4 md:p-5">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                           <div className="flex-1">
-                            {/* Title & Verified */}
-                            <div className="flex items-start gap-2 mb-2">
+                            {/* Vendor Information - Now at the top */}
+                            {service.vendor && (
+                              <div className="flex items-start gap-2 mb-3">
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                  <span className="text-blue-600 font-semibold text-sm">
+                                    {service.vendor.name?.charAt(0)?.toUpperCase() || 'V'}
+                                  </span>
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-lg font-bold text-gray-900 truncate">
+                                    {service.vendor.name || 'Vendor Name'}
+                                  </p>
+                                  {service.vendor.company && (
+                                    <p className="text-sm text-gray-600 truncate">
+                                      {service.vendor.company}
+                                    </p>
+                                  )}
+                                  {service.vendor.address && (
+                                    <p className="text-xs text-gray-500 line-clamp-1 mt-1">
+                                      <MapPin className="w-3 h-3 inline mr-1" />
+                                      {service.vendor.address}
+                                    </p>
+                                  )}
+                                </div>
+                                {service.verified && (
+                                  <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                                )}
+                              </div>
+                            )}
+
+                            {/* Service Title - Now below vendor */}
+                            <div className="mb-2">
                               <h3
                                 onClick={() => handleHireNow(service._id)}
-                                className="text-lg md:text-xl font-bold text-gray-900 hover:text-blue-600 cursor-pointer transition-colors"
+                                className="text-base md:text-lg font-semibold text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
                               >
                                 {service.title}
                               </h3>
-                              {service.verified && (
-                                <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-1" />
-                              )}
                             </div>
 
                             {/* Rating */}
@@ -460,35 +487,6 @@ const ServicesPage = () => {
                             <p className="text-gray-600 text-sm mb-3">
                               {service.description || "Professional service provider offering quality services."}
                             </p>
-
-                            {/* Vendor Information */}
-                            {service.vendor && (
-                              <div className="bg-gray-50 rounded-lg p-3 mb-3">
-                                <div className="flex items-start gap-2">
-                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                    <span className="text-blue-600 font-semibold text-sm">
-                                      {service.vendor.name?.charAt(0)?.toUpperCase() || 'V'}
-                                    </span>
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-900 truncate">
-                                      {service.vendor.name || 'Vendor Name'}
-                                    </p>
-                                    {service.vendor.company && (
-                                      <p className="text-xs text-gray-600 truncate">
-                                        {service.vendor.company}
-                                      </p>
-                                    )}
-                                    {service.vendor.address && (
-                                      <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-                                        <MapPin className="w-3 h-3 inline mr-1" />
-                                        {service.vendor.address}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
 
                             {/* Location & Timing */}
                             <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
