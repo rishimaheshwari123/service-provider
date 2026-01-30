@@ -281,123 +281,208 @@ const PropertyDetails = () => {
                 )}
               </div>
 
-              {/* Info Section */}
-              <div className="flex-1 p-5">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">{property.title}</h1>
-                    <p className="text-gray-500 flex items-center gap-1 text-sm">
-                      <MapPin className="w-4 h-4" />
-                      {property.location || "Location not specified"}
-                    </p>
+              {/* Main Info and Service Provider Section */}
+              <div className="flex-1 flex flex-col lg:flex-row">
+                {/* Info Section */}
+                <div className="flex-1 p-5">
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">{property.title}</h1>
+                      <p className="text-gray-500 flex items-center gap-1 text-sm">
+                        <MapPin className="w-4 h-4" />
+                        {property.location || "Location not specified"}
+                      </p>
+                    </div>
+                    {avgRating > 0 && (
+                      <div className={`${getRatingColor(avgRating)} text-white px-3 py-1.5 rounded-lg flex items-center gap-1 flex-shrink-0`}>
+                        <span className="font-bold text-lg">{avgRating}</span>
+                        <Star className="w-4 h-4 fill-white" />
+                      </div>
+                    )}
                   </div>
-                  {avgRating > 0 && (
-                    <div className={`${getRatingColor(avgRating)} text-white px-3 py-1.5 rounded-lg flex items-center gap-1 flex-shrink-0`}>
-                      <span className="font-bold text-lg">{avgRating}</span>
-                      <Star className="w-4 h-4 fill-white" />
-                    </div>
-                  )}
-                </div>
 
-                <div className="flex items-center gap-3 mb-4">
-                  {avgRating > 0 && (
-                    <>
-                      <span className="text-sm text-gray-600">{reviewCount} Ratings</span>
-                      <span className="text-gray-300">|</span>
-                    </>
-                  )}
-                  {property.category && (
-                    <span className="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{property.category}</span>
-                  )}
-                  {property.verified && (
-                    <span className="text-sm text-green-600 flex items-center gap-1">
-                      <CheckCircle className="w-4 h-4" /> Verified
+                  <div className="flex items-center gap-3 mb-4">
+                    {avgRating > 0 && (
+                      <>
+                        <span className="text-sm text-gray-600">{reviewCount} Ratings</span>
+                        <span className="text-gray-300">|</span>
+                      </>
+                    )}
+                    {property.category && (
+                      <span className="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{property.category}</span>
+                    )}
+                    {property.verified && (
+                      <span className="text-sm text-green-600 flex items-center gap-1">
+                        <CheckCircle className="w-4 h-4" /> Verified
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <span className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
+                      <Clock className="w-3 h-3" /> Open Now
                     </span>
-                  )}
-                </div>
+                    <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
+                      <ThumbsUp className="w-3 h-3" /> Trusted
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
+                      <Shield className="w-3 h-3" /> Safe
+                    </span>
+                  </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  <span className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
-                    <Clock className="w-3 h-3" /> Open Now
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                    <ThumbsUp className="w-3 h-3" /> Trusted
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
-                    <Shield className="w-3 h-3" /> Safe
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap gap-3 mb-4">
-                  {!showPhone ? (
-                    <button
-                      onClick={handleShowNumber}
-                      disabled={isShowingNumber}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg"
-                    >
-                      {isShowingNumber ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                          Loading...
-                        </>
-                      ) : (
-                        <>
-                          <Phone className="w-4 h-4" />
-                          Show Number
-                        </>
-                      )}
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <a
-                        href={`tel:${vendorPhone}`}
-                        onClick={handleCall}
-                        className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg"
-                      >
-                        <Phone className="w-4 h-4" />
-                        {vendorPhone}
-                      </a>
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    {!showPhone ? (
                       <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(vendorPhone);
-                          toast.success("Number copied!");
-                        }}
-                        className="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        onClick={handleShowNumber}
+                        disabled={isShowingNumber}
+                        className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium rounded-lg"
                       >
-                        <Copy className="w-4 h-4 text-gray-500" />
+                        {isShowingNumber ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            Loading...
+                          </>
+                        ) : (
+                          <>
+                            <Phone className="w-4 h-4" />
+                            Show Number
+                          </>
+                        )}
                       </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <a
+                          href={`tel:${vendorPhone}`}
+                          onClick={handleCall}
+                          className="flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg"
+                        >
+                          <Phone className="w-4 h-4" />
+                          {vendorPhone}
+                        </a>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(vendorPhone);
+                            toast.success("Number copied!");
+                          }}
+                          className="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50"
+                        >
+                          <Copy className="w-4 h-4 text-gray-500" />
+                        </button>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => token ? setIsModalOpen(true) : navigate("/login")}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Send Enquiry
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
+                    <button onClick={handleShare} className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+                      <Share2 className="w-4 h-4" /> Share
+                    </button>
+                  </div>
+                </div>
+
+                {/* Service Provider Information - Top Right */}
+                <div className="lg:w-[300px] flex-shrink-0 p-5 border-l border-gray-100">
+                  <h3 className="font-bold text-gray-900 mb-4">Service Provider Information</h3>
+                  <div className="space-y-4">
+                    {/* Provider Basic Info */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white text-lg font-bold">
+                        {property.vendor?.name?.charAt(0) || "S"}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 text-sm">{property.vendor?.name || "Service Provider"}</p>
+                        <p className="text-xs text-gray-500">{property.vendor?.company || "Professional Services"}</p>
+                      </div>
                     </div>
-                  )}
-                  <button
-                    onClick={() => token ? setIsModalOpen(true) : navigate("/login")}
-                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    Send Enquiry
-                  </button>
-                </div>
-
-                <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
-                  <button onClick={handleShare} className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
-                    <Share2 className="w-4 h-4" /> Share
-                  </button>
-                  {/* <button className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
-                    <Globe className="w-4 h-4" /> Website
-                  </button> */}
-                  {/* <span className="flex items-center gap-1 text-sm text-gray-400">
-                    <Eye className="w-4 h-4" /> {property.views || 0} views
-                  </span> */}
+                    
+                    {/* Provider Details - Compact version */}
+                    <div className="space-y-3 pt-3 border-t border-gray-100">
+                      {/* Type of Service */}
+                      <div className="flex items-start gap-2">
+                        <Building className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-gray-700">Type of Service</p>
+                          <p className="text-xs text-gray-600">
+                            {property.vendor?.typeOfService || <span className="text-gray-400 italic">Not Added</span>}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Year of Establishment */}
+                      <div className="flex items-start gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-gray-700">Year of Establishment</p>
+                          <p className="text-xs text-gray-600">
+                            {property.vendor?.yearOfEstablishment || <span className="text-gray-400 italic">Not Added</span>}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Experience Fields */}
+                      <div className="flex items-start gap-2">
+                        <Star className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <div>
+                          <p className="text-xs font-medium text-gray-700">Experience</p>
+                          {property.vendor?.experience?.fields?.length > 0 ? (
+                            <div>
+                              <p className="text-xs text-gray-600">{property.vendor.experience.fields.slice(0, 2).join(", ")}</p>
+                              {property.vendor.experience.totalYears && (
+                                <p className="text-xs text-gray-500">{property.vendor.experience.totalYears} years</p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-gray-400 italic">Not Added</p>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Phone Number with Show Button Flow */}
+                      <div className="flex items-start gap-2">
+                        <Phone className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-700">Phone</p>
+                          {property.vendor?.phone ? (
+                            !showProviderPhone ? (
+                              <button
+                                onClick={handleShowProviderNumber}
+                                disabled={isShowingProviderNumber}
+                                className="text-xs bg-green-100 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed text-green-700 px-2 py-1 rounded font-medium mt-1"
+                              >
+                                {isShowingProviderNumber ? "Loading..." : "Show Number"}
+                              </button>
+                            ) : (
+                              <div className="flex items-center gap-1 mt-1">
+                                <p className="text-xs text-gray-600">{property.vendor.phone}</p>
+                                <button
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(property.vendor.phone);
+                                    toast.success("Number copied!");
+                                  }}
+                                  className="p-0.5 hover:bg-gray-100 rounded"
+                                >
+                                  <Copy className="w-3 h-3 text-gray-400" />
+                                </button>
+                              </div>
+                            )
+                          ) : (
+                            <p className="text-xs text-gray-400 italic">Not Added</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="border-t">
-              <div className="flex gap-6 px-5 overflow-x-auto">
-                <button className="py-3 text-blue-600 border-b-2 border-blue-600 font-medium text-sm">Overview</button>
-                {/* <button className="py-3 text-gray-500 hover:text-gray-700 text-sm">Reviews ({reviewCount})</button>
-                <button className="py-3 text-gray-500 hover:text-gray-700 text-sm">Photos ({propertyImages.length})</button> */}
-              </div>
-            </div>
+            
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
@@ -429,8 +514,6 @@ const PropertyDetails = () => {
                   </p>
                 </div>
               </div>
-
-              <DisplayRating property={property} />
             </div>
 
             <div className="space-y-5">
@@ -488,131 +571,12 @@ const PropertyDetails = () => {
                   <BookNowModal property={property} />
                 </div>
               </div>
-
-              <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h3 className="font-bold text-gray-900 mb-4">Service Provider Information</h3>
-                <div className="space-y-4">
-                  {/* Provider Basic Info */}
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                      {property.vendor?.name?.charAt(0) || "S"}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{property.vendor?.name || "Service Provider"}</p>
-                      <p className="text-sm text-gray-500">{property.vendor?.company || "Professional Services"}</p>
-                    </div>
-                  </div>
-                  
-                  {/* Provider Details - Always show specific fields */}
-                  <div className="space-y-3 pt-3 border-t border-gray-100">
-                    {/* Type of Service - Always show */}
-                    <div className="flex items-center gap-3">
-                      <Building className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Type of Service</p>
-                        <p className="text-sm text-gray-600">
-                          {property.vendor?.typeOfService || <span className="text-gray-400 italic">Not Added</span>}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Year of Establishment - Always show */}
-                    <div className="flex items-center gap-3">
-                      <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Year of Establishment</p>
-                        <p className="text-sm text-gray-600">
-                          {property.vendor?.yearOfEstablishment || <span className="text-gray-400 italic">Not Added</span>}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Address - Always show */}
-                    <div className="flex items-start gap-3">
-                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Address</p>
-                        <p className="text-sm text-gray-600">
-                          {property.vendor?.address || <span className="text-gray-400 italic">Not Added</span>}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Experience Fields - Always show */}
-                    <div className="flex items-start gap-3">
-                      <Star className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Experience Fields</p>
-                        {property.vendor?.experience?.fields?.length > 0 ? (
-                          <div>
-                            <p className="text-sm text-gray-600">{property.vendor.experience.fields.join(", ")}</p>
-                            {property.vendor.experience.totalYears && (
-                              <p className="text-xs text-gray-500 mt-1">{property.vendor.experience.totalYears} years of experience</p>
-                            )}
-                          </div>
-                        ) : (
-                          <p className="text-sm text-gray-400 italic">Not Added</p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Phone Number with Show Button Flow - Always show */}
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-700">Phone Number</p>
-                        {property.vendor?.phone ? (
-                          !showProviderPhone ? (
-                            <button
-                              onClick={handleShowProviderNumber}
-                              disabled={isShowingProviderNumber}
-                              className="text-sm bg-green-100 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed text-green-700 px-3 py-1 rounded-md font-medium"
-                            >
-                              {isShowingProviderNumber ? (
-                                <>
-                                  <div className="inline-block w-3 h-3 border-2 border-green-700 border-t-transparent rounded-full animate-spin mr-1"></div>
-                                  Loading...
-                                </>
-                              ) : (
-                                "Show Number"
-                              )}
-                            </button>
-                          ) : (
-                            <div className="flex items-center gap-2">
-                              <p className="text-sm text-gray-600">{property.vendor.phone}</p>
-                              <button
-                                onClick={() => {
-                                  navigator.clipboard.writeText(property.vendor.phone);
-                                  toast.success("Number copied!");
-                                }}
-                                className="p-1 hover:bg-gray-100 rounded"
-                              >
-                                <Copy className="w-3 h-3 text-gray-400" />
-                              </button>
-                            </div>
-                          )
-                        ) : (
-                          <p className="text-sm text-gray-400 italic">Not Added</p>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {/* Email - Always show */}
-                    <div className="flex items-center gap-3">
-                      <Mail className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-gray-700">Email</p>
-                        <p className="text-sm text-gray-600">
-                          {property.vendor?.email || <span className="text-gray-400 italic">Not Added</span>}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              
             </div>
+          </div>
+
+          {/* Reviews and Ratings - Full Width */}
+          <div className="mt-5 ">
+            <DisplayRating property={property} />
           </div>
         </div>
 
