@@ -184,6 +184,24 @@ const ServicesSlider = () => {
   };
 
   const [cardWidth, setCardWidth] = useState(getCardWidth());
+  const formatWorkingDaysTimings = (value: string) => {
+  if (!value) return "";
+
+  const [daysPart, timePart] = value.split("|");
+
+  if (!daysPart || !timePart) return value;
+
+  const days = daysPart.split(",").map(d => d.trim());
+
+  let formattedDays = daysPart.trim();
+
+  if (days.length > 1) {
+    formattedDays = `${days[0]} - ${days[days.length - 1]}`;
+  }
+
+  return `${formattedDays} | ${timePart.trim().replace(/\s+/g, " ")}`;
+};
+
 
   useEffect(() => {
     const handleResize = () => {
@@ -316,12 +334,16 @@ const ServicesSlider = () => {
                       </div>
 
                       {/* Timing */}
-                      <div className="flex items-center text-xs md:text-sm mb-3">
+                      {/* <div className="flex items-center text-xs md:text-sm mb-3">
                         <Clock className="w-3 h-3 md:w-4 md:h-4 mr-1.5 text-gray-400 flex-shrink-0" />
                         <span className="text-green-600 font-medium">Open</span>
                         <span className="text-gray-400 mx-1">·</span>
                         <span className="text-gray-500">9AM - 9PM</span>
-                      </div>
+                      </div> */}
+                      <span className="text-gray-500">
+  {formatWorkingDaysTimings(service.vendor?.workingDaysTimings)}
+</span>
+
 
                       {/* Reviews & Price */}
                       <div className="flex items-center justify-between pt-2 border-t border-gray-100">
