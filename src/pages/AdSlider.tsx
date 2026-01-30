@@ -2,9 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-
-// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1";
+import { BASE_URL } from "@/service/apis";
 
 function AdSlider() {
   const [ads, setAds] = useState([]);
