@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaChevronLeft, FaChevronRight, FaArrowRight, FaBroom, FaTools, FaSpa } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaArrowRight, FaBroom, FaTools, FaSpa, FaExternalLinkAlt } from "react-icons/fa";
+import { getActiveAds } from "@/service/operations/ads";
 
 export default function PromoBanner() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [ads, setAds] = useState([]);
+  const [currentAdIndex, setCurrentAdIndex] = useState(0);
 
   const mainBanners = [
     {
@@ -65,12 +68,37 @@ export default function PromoBanner() {
     },
   ];
 
+  // Fetch ads from backend
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const adsData = await getActiveAds();
+        setAds(adsData);
+      } catch (error) {
+        console.error("Failed to fetch ads:", error);
+      }
+    };
+
+    fetchAds();
+  }, []);
+
+  // Auto-rotate banners
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentBanner((prev) => (prev + 1) % mainBanners.length);
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Auto-rotate ads
+  useEffect(() => {
+    if (ads.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentAdIndex((prev) => (prev + 1) % ads.length);
+      }, 4000);
+      return () => clearInterval(interval);
+    }
+  }, [ads.length]);
 
   const nextBanner = () => {
     setCurrentBanner((prev) => (prev + 1) % mainBanners.length);
@@ -80,63 +108,140 @@ export default function PromoBanner() {
     setCurrentBanner((prev) => (prev - 1 + mainBanners.length) % mainBanners.length);
   };
 
+  const nextAd = () => {
+    setCurrentAdIndex((prev) => (prev + 1) % ads.length);
+  };
+
+  const prevAd = () => {
+    setCurrentAdIndex((prev) => (prev - 1 + ads.length) % ads.length);
+  };
+
+  const handleAdClick = (url) => {
+    if (url) {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const banner = mainBanners[currentBanner];
+  const currentAd = ads[currentAdIndex];
 
   return (
     <section className="py-4 md:py-6 bg-white">
       <div className="max-w-7xl mx-auto px-4">
         {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-5 gap-5">
-          {/* Main Banner Slider - Takes 2 columns */}
-          <div className={`lg:col-span-2 relative ${banner.bgColor} rounded-3xl p-6 md:p-8 overflow-hidden min-h-[320px] shadow-lg border border-white/50`}>
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-2xl"></div>
-            <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
-            
-            <button
-              onClick={prevBanner}
-              className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
-            >
-              <FaChevronLeft className="text-gray-700" />
-            </button>
-            <button
-              onClick={nextBanner}
-              className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
-            >
-              <FaChevronRight className="text-gray-700" />
-            </button>
+          {/* Main Banner Slider - Takes 2 columns - Now shows only ads */}
+          <div className="lg:col-span-2 relative rounded-3xl overflow-hidden min-h-[320px] shadow-lg border border-white/50">
+            {ads.length > 0 ? (
+              // Display ads in main banner area with original styling
+              <div className="relative w-full h-[320px]">
+                {/* Navigation buttons for multiple ads */}
+                {ads.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevAd}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
+                    >
+                      <FaChevronLeft className="text-gray-700" />
+                    </button>
+                    <button
+                      onClick={nextAd}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
+                    >
+                      <FaChevronRight className="text-gray-700" />
+                    </button>
+                  </>
+                )}
 
-            <div className="relative z-10 h-full flex flex-col justify-center">
-              <span className={`${banner.accentColor} text-xs font-bold uppercase tracking-widest mb-2`}>
-                {t("promoBanner.featuredService", "Featured Service")}
-              </span>
-              <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3 leading-tight">
-                {banner.title}
-              </h2>
-              <p className="text-gray-700 text-sm md:text-base mb-1">{banner.subtitle}</p>
-              <p className="text-gray-500 text-sm mb-6">{banner.tagline}</p>
-              <button 
-                onClick={() => navigate("/services")}
-                className={`${banner.buttonColor} text-white px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2 transition-all shadow-lg hover:shadow-xl w-fit`}
-              >
-                {banner.buttonText}
-                <FaArrowRight className="text-sm" />
-              </button>
-            </div>
+                {/* Ad Image */}
+                <div 
+                  className="relative w-full h-full cursor-pointer group"
+                  onClick={() => handleAdClick(currentAd?.url)}
+                >
+                  {currentAd?.image && (
+                    <img 
+                      src={currentAd.image} 
+                      alt="Advertisement" 
+                      className="w-full h-full object-cover rounded-3xl"
+                    />
+                  )}
+                  
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center rounded-3xl">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <FaExternalLinkAlt className="text-white text-2xl" />
+                    </div>
+                  </div>
+                </div>
 
-            <div className="absolute bottom-4 left-6 flex gap-2">
-              {mainBanners.map((_, idx) => (
+                {/* Indicators for multiple ads - same style as original */}
+                {ads.length > 1 && (
+                  <div className="absolute bottom-4 left-6 flex gap-2">
+                    {ads.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentAdIndex(idx)}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          idx === currentAdIndex ? "bg-white w-8" : "bg-white/50 w-2"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Fallback when no ads available - show original banner
+              <div className={`relative ${banner.bgColor} h-full p-6 md:p-8`}>
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/20 rounded-full blur-2xl"></div>
+                <div className="absolute -bottom-10 -left-10 w-32 h-32 bg-white/20 rounded-full blur-2xl"></div>
+                
                 <button
-                  key={idx}
-                  onClick={() => setCurrentBanner(idx)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    idx === currentBanner ? "bg-gray-800 w-8" : "bg-gray-400/50 w-2"
-                  }`}
-                />
-              ))}
-            </div>
+                  onClick={prevBanner}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
+                >
+                  <FaChevronLeft className="text-gray-700" />
+                </button>
+                <button
+                  onClick={nextBanner}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white/90 backdrop-blur rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
+                >
+                  <FaChevronRight className="text-gray-700" />
+                </button>
+
+                <div className="relative z-10 h-full flex flex-col justify-center">
+                  <span className={`${banner.accentColor} text-xs font-bold uppercase tracking-widest mb-2`}>
+                    {t("promoBanner.featuredService", "Featured Service")}
+                  </span>
+                  <h2 className="text-2xl md:text-3xl font-extrabold text-gray-900 mb-3 leading-tight">
+                    {banner.title}
+                  </h2>
+                  <p className="text-gray-700 text-sm md:text-base mb-1">{banner.subtitle}</p>
+                  <p className="text-gray-500 text-sm mb-6">{banner.tagline}</p>
+                  <button 
+                    onClick={() => navigate("/services")}
+                    className={`${banner.buttonColor} text-white px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2 transition-all shadow-lg hover:shadow-xl w-fit`}
+                  >
+                    {banner.buttonText}
+                    <FaArrowRight className="text-sm" />
+                  </button>
+                </div>
+
+                <div className="absolute bottom-4 left-6 flex gap-2">
+                  {mainBanners.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentBanner(idx)}
+                      className={`h-2 rounded-full transition-all duration-300 ${
+                        idx === currentBanner ? "bg-gray-800 w-8" : "bg-gray-400/50 w-2"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Service Cards - Takes 3 columns */}
+          {/* Service Cards - Takes 3 columns (now shows all 3 cards) */}
           <div className="lg:col-span-3 grid grid-cols-3 gap-4">
             {promoCards.map((card, idx) => {
               const Icon = card.icon;
@@ -171,51 +276,113 @@ export default function PromoBanner() {
 
         {/* Mobile Layout */}
         <div className="lg:hidden space-y-4">
-          {/* Mobile Banner */}
-          <div className={`relative ${banner.bgColor} rounded-2xl p-5 overflow-hidden min-h-[200px] shadow-md`}>
-            <div className="absolute -top-8 -right-8 w-28 h-28 bg-white/20 rounded-full blur-xl"></div>
-            
-            <button
-              onClick={prevBanner}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md"
-            >
-              <FaChevronLeft className="text-gray-700 text-xs" />
-            </button>
-            <button
-              onClick={nextBanner}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md"
-            >
-              <FaChevronRight className="text-gray-700 text-xs" />
-            </button>
+          {/* Mobile Banner - Now shows ads or fallback with original size */}
+          <div className="relative rounded-2xl overflow-hidden min-h-[200px] shadow-md">
+            {ads.length > 0 ? (
+              // Display ads in mobile banner with original styling
+              <div className="relative w-full h-[200px]">
+                {/* Navigation buttons for multiple ads */}
+                {ads.length > 1 && (
+                  <>
+                    <button
+                      onClick={prevAd}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md"
+                    >
+                      <FaChevronLeft className="text-gray-700 text-xs" />
+                    </button>
+                    <button
+                      onClick={nextAd}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md"
+                    >
+                      <FaChevronRight className="text-gray-700 text-xs" />
+                    </button>
+                  </>
+                )}
 
-            <div className="relative z-10">
-              <span className={`${banner.accentColor} text-[10px] font-bold uppercase tracking-widest`}>
-                {t("promoBanner.featuredService", "Featured Service")}
-              </span>
-              <h2 className="text-xl font-extrabold text-gray-900 mb-2 leading-tight mt-1">
-                {banner.title}
-              </h2>
-              <p className="text-gray-600 text-xs mb-3">{banner.subtitle}</p>
-              <button 
-                onClick={() => navigate("/services")}
-                className={`${banner.buttonColor} text-white px-4 py-2 rounded-lg font-semibold text-sm inline-flex items-center gap-2 shadow-md`}
-              >
-                {banner.buttonText}
-                <FaArrowRight className="text-xs" />
-              </button>
-            </div>
+                {/* Ad Image */}
+                <div 
+                  className="relative w-full h-full cursor-pointer group"
+                  onClick={() => handleAdClick(currentAd?.url)}
+                >
+                  {currentAd?.image && (
+                    <img 
+                      src={currentAd.image} 
+                      alt="Advertisement" 
+                      className="w-full h-full object-cover rounded-2xl"
+                    />
+                  )}
+                  
+                  {/* Hover overlay */}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center rounded-2xl">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <FaExternalLinkAlt className="text-white text-xl" />
+                    </div>
+                  </div>
+                </div>
 
-            <div className="absolute bottom-3 left-5 flex gap-1.5">
-              {mainBanners.map((_, idx) => (
+                {/* Indicators for multiple ads - same style as original */}
+                {ads.length > 1 && (
+                  <div className="absolute bottom-3 left-5 flex gap-1.5">
+                    {ads.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentAdIndex(idx)}
+                        className={`h-1.5 rounded-full transition-all ${
+                          idx === currentAdIndex ? "bg-white w-5" : "bg-white/50 w-1.5"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Fallback when no ads available - show original banner
+              <div className={`relative ${banner.bgColor} h-full p-5`}>
+                <div className="absolute -top-8 -right-8 w-28 h-28 bg-white/20 rounded-full blur-xl"></div>
+                
                 <button
-                  key={idx}
-                  onClick={() => setCurrentBanner(idx)}
-                  className={`h-1.5 rounded-full transition-all ${
-                    idx === currentBanner ? "bg-gray-800 w-5" : "bg-gray-400/50 w-1.5"
-                  }`}
-                />
-              ))}
-            </div>
+                  onClick={prevBanner}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md"
+                >
+                  <FaChevronLeft className="text-gray-700 text-xs" />
+                </button>
+                <button
+                  onClick={nextBanner}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md"
+                >
+                  <FaChevronRight className="text-gray-700 text-xs" />
+                </button>
+
+                <div className="relative z-10">
+                  <span className={`${banner.accentColor} text-[10px] font-bold uppercase tracking-widest`}>
+                    {t("promoBanner.featuredService", "Featured Service")}
+                  </span>
+                  <h2 className="text-xl font-extrabold text-gray-900 mb-2 leading-tight mt-1">
+                    {banner.title}
+                  </h2>
+                  <p className="text-gray-600 text-xs mb-3">{banner.subtitle}</p>
+                  <button 
+                    onClick={() => navigate("/services")}
+                    className={`${banner.buttonColor} text-white px-4 py-2 rounded-lg font-semibold text-sm inline-flex items-center gap-2 shadow-md`}
+                  >
+                    {banner.buttonText}
+                    <FaArrowRight className="text-xs" />
+                  </button>
+                </div>
+
+                <div className="absolute bottom-3 left-5 flex gap-1.5">
+                  {mainBanners.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setCurrentBanner(idx)}
+                      className={`h-1.5 rounded-full transition-all ${
+                        idx === currentBanner ? "bg-gray-800 w-5" : "bg-gray-400/50 w-1.5"
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mobile Service Cards - Horizontal Scroll */}

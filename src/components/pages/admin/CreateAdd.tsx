@@ -3,12 +3,9 @@ import { FaPlusCircle, FaTrashAlt } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
-import axios from "axios";
 import { RootState } from "@/redux/store";
 import { AnimatePresence, motion } from "framer-motion";
-
-// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1";
+import { createAd, getAllAds, deleteAd } from "@/service/operations/ads";
 
 function CreateAdd() {
   const [openCreate, setOpenCreate] = useState(false);
@@ -17,6 +14,7 @@ function CreateAdd() {
     url: "",
   });
   const [ads, setAds] = useState([]);
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const { token, user } = useSelector((state: RootState) => state.auth);
 
@@ -35,25 +33,29 @@ function CreateAdd() {
     });
   };
 
-  const getAllAds = async () => {
+  const fetchAllAds = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/ads/getAll`);
-      if (!response?.data?.success) {
-        throw new Error(response.data.message);
-      }
-      setAds(response.data.ads || []);
+      setLoading(true);
+      const adsData = await dispatch(getAllAds());
+      setAds(adsData || []);
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to fetch ads.");
+      console.error("Failed to fetch ads:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    getAllAds();
+    fetchAllAds();
   }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.image || !formData.url) {
+      toast.error("Please fill all required fields");
+      return;
+    }
 
     try {
       Swal.fire({
@@ -70,34 +72,20 @@ function CreateAdd() {
       formDataToSend.append("url", formData.url);
       formDataToSend.append("image", formData.image);
 
-      const response = await axios.post(
-        `${BASE_URL}/ads/create`,
-        formDataToSend,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      await dispatch(createAd(formDataToSend, token));
+      
       Swal.close();
-
-      if (response?.data?.success) {
-        Swal.fire({
-          title: "Ad created successfully!",
-          icon: "success",
-        });
-        setFormData({ url: "", image: null });
-        setOpenCreate(false);
-        getAllAds();
-      } else {
-        throw new Error(response.data.message);
-      }
+      Swal.fire({
+        title: "Ad created successfully!",
+        icon: "success",
+      });
+      
+      setFormData({ url: "", image: null });
+      setOpenCreate(false);
+      fetchAllAds();
     } catch (error) {
       Swal.close();
-      toast.error("Oops, something went wrong!");
-      console.error(error);
+      console.error("Error creating ad:", error);
     }
   };
 
@@ -114,21 +102,11 @@ function CreateAdd() {
       });
 
       if (result.isConfirmed) {
-        const response = await axios.delete(`${BASE_URL}/ads/delete/${id}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        if (response?.data?.success) {
-          toast.success("Ad deleted successfully!");
-          getAllAds();
-        } else {
-          throw new Error(response.data.message);
-        }
+        await dispatch(deleteAd(id, token));
+        fetchAllAds();
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to delete ad.");
+      console.error("Error deleting ad:", error);
     }
   };
 
@@ -143,6 +121,7 @@ function CreateAdd() {
       </div>
     );
   }
+
   return (
     <div className="min-h-screen bg-gray-100 p-8 font-sans">
       <div className="container mx-auto max-w-7xl">
@@ -184,7 +163,7 @@ function CreateAdd() {
                       className="block text-gray-700 font-medium mb-2"
                       htmlFor="url"
                     >
-                      Ad URL
+                      Ad URL *
                     </label>
                     <input
                       type="url"
@@ -202,7 +181,7 @@ function CreateAdd() {
                       className="block text-gray-700 font-medium mb-2"
                       htmlFor="image"
                     >
-                      Ad Image
+                      Ad Image *
                     </label>
                     <input
                       className="w-full text-gray-700 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
@@ -212,14 +191,26 @@ function CreateAdd() {
                       onChange={handleFileChange}
                       required
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Recommended size: 400x300px or similar aspect ratio
+                    </p>
                   </div>
                 </div>
-                <button
-                  type="submit"
-                  className="mt-6 w-full py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition-colors"
-                >
-                  Create Ad
-                </button>
+                <div className="flex gap-4 mt-6">
+                  <button
+                    type="submit"
+                    className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition-colors"
+                  >
+                    Create Ad
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOpenCreate(false)}
+                    className="px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg shadow hover:bg-gray-600 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </form>
             </motion.div>
           )}
@@ -227,77 +218,91 @@ function CreateAdd() {
 
         <div className="bg-white rounded-xl shadow-lg p-6">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-            Active Ads
+            Active Ads ({ads.length})
           </h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Image
-                  </th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    URL
-                  </th>
-                  <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                <AnimatePresence>
-                  {sortedAds.length > 0 ? (
-                    sortedAds.map((ad) => (
-                      <motion.tr
-                        key={ad._id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
-                        transition={{ duration: 0.2 }}
-                        className="hover:bg-gray-50 transition-colors duration-200"
-                      >
-                        <td className="py-4 px-6 whitespace-nowrap">
-                          <img
-                            src={ad.image}
-                            alt="ad"
-                            className="w-24 h-24 object-cover rounded-lg shadow-md"
-                          />
+          
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="text-gray-500 mt-2">Loading ads...</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Image
+                    </th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      URL
+                    </th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Created Date
+                    </th>
+                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  <AnimatePresence>
+                    {sortedAds.length > 0 ? (
+                      sortedAds.map((ad) => (
+                        <motion.tr
+                          key={ad._id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.2 }}
+                          className="hover:bg-gray-50 transition-colors duration-200"
+                        >
+                          <td className="py-4 px-6 whitespace-nowrap">
+                            <img
+                              src={ad.image}
+                              alt="ad"
+                              className="w-24 h-24 object-cover rounded-lg shadow-md"
+                            />
+                          </td>
+                          <td className="py-4 px-6 break-words max-w-xs">
+                            <a
+                              href={ad.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                            >
+                              {ad.url}
+                            </a>
+                          </td>
+                          <td className="py-4 px-6 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(ad.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="py-4 px-6 whitespace-nowrap">
+                            <button
+                              onClick={() => handleDelete(ad._id)}
+                              className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-full hover:bg-red-50"
+                              title="Delete Ad"
+                            >
+                              <FaTrashAlt className="text-lg" />
+                            </button>
+                          </td>
+                        </motion.tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="text-center py-8 text-gray-500 text-lg"
+                        >
+                          No ads available. Create one to get started!
                         </td>
-                        <td className="py-4 px-6 break-words max-w-xs">
-                          <a
-                            href={ad.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                          >
-                            {ad.url}
-                          </a>
-                        </td>
-                        <td className="py-4 px-6 whitespace-nowrap">
-                          <button
-                            onClick={() => handleDelete(ad._id)}
-                            className="text-red-600 hover:text-red-800 transition-colors"
-                            title="Delete Ad"
-                          >
-                            <FaTrashAlt className="text-lg" />
-                          </button>
-                        </td>
-                      </motion.tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="text-center py-8 text-gray-500 text-lg"
-                      >
-                        No ads available. Create one to get started!
-                      </td>
-                    </tr>
-                  )}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
+                      </tr>
+                    )}
+                  </AnimatePresence>
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

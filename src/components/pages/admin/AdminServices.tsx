@@ -29,6 +29,7 @@ import {
 } from "lucide-react";
 import { updatePropertyStatusAPI } from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
+import { BASE_URL } from "@/service/apis";
 
 interface Service {
   _id: string;
@@ -64,7 +65,7 @@ const AdminServices = () => {
       setLoading(true);
       // For admin, we need to fetch all services (active and inactive)
       // We'll modify the API call to include inactive services for admin
-      const response = await fetch(`${import.meta.env.VITE_APP_BASE_URL || 'https://service-provider-6ufz.onrender.com'}/api/v1/property/getAll?includeInactive=true`);
+      const response = await fetch(`${BASE_URL}/property/getAll?includeInactive=true`);
       const data = await response.json();
       
       if (data.success) {

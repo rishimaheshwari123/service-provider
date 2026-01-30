@@ -3,9 +3,7 @@ import axios from "axios";
 import { FaTimes, FaExternalLinkAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-
-// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1";
+import { BASE_URL } from "@/service/apis";
 
 function FloatingAd() {
   const [ad, setAd] = useState(null);

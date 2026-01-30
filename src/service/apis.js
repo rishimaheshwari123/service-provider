@@ -107,3 +107,9 @@ export const audit = {
   ADD_AUDIT_API: BASE_URL + "/audit/create",
   GET_ALL_AUDIT_API: BASE_URL + "/audit/getAll",
 }
+
+export const ads = {
+  CREATE_AD_API: BASE_URL + "/ads/create",
+  GET_ALL_ADS_API: BASE_URL + "/ads/getAll",
+  DELETE_AD_API: BASE_URL + "/ads/delete",
+}
