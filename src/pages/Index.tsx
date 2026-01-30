@@ -101,6 +101,39 @@ const Index = () => {
     <PageTransition>
       <div className="min-h-screen bg-white overflow-x-hidden">
         <ScrollProgress />
+
+        <div className="w-full bg-slate-900 overflow-hidden py-1.5 md:py-2 border-b border-white/5">
+  <div className="max-w-7xl mx-auto px-4 relative flex items-center justify-center">
+    
+    {/* Background Glow Effect (Subtle) */}
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/10 to-transparent"></div>
+
+    <motion.div 
+      initial={{ opacity: 0, letterSpacing: "0.2em" }}
+      animate={{ opacity: 1, letterSpacing: "0.5em" }}
+      transition={{ duration: 1.5, ease: "easeOut" }}
+      className="relative z-10 flex items-center gap-4"
+    >
+      {/* Left Diamond Icon (Optional, for UK look) */}
+      <span className="hidden sm:block h-[1px] w-8 md:w-16 bg-gradient-to-r from-transparent to-yellow-400/50"></span>
+      
+      <h2 className="text-[10px] md:text-xl font-bold text-white tracking-[0.4em] md:tracking-[0.6em] uppercase">
+        <span className="text-white">Mera Ghar</span>
+        <span className="text-yellow-400 ml-2">Sansaar</span>
+      </h2>
+
+      {/* Right Diamond Icon */}
+      <span className="hidden sm:block h-[1px] w-8 md:w-16 bg-gradient-to-l from-transparent to-yellow-400/50"></span>
+    </motion.div>
+
+    {/* Subtle Shine Animation across the text */}
+    <motion.div
+      animate={{ x: ['-100%', '200%'] }}
+      transition={{ duration: 4, repeat: Infinity, ease: "linear", delay: 1 }}
+      className="absolute top-0 left-0 w-24 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12"
+    />
+  </div>
+</div>
           <Navbar />
         
         

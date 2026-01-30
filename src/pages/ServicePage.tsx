@@ -13,6 +13,7 @@ import {
   CheckCircle,
   X,
   MessageSquare,
+  Calendar,
 } from "lucide-react";
 import { getAllPropertyAPI } from "@/service/operations/property";
 import { getAllCategoriesAPI } from "@/service/operations/category";
@@ -496,11 +497,18 @@ const ServicesPage = () => {
                                   <span>{service.location}</span>
                                 </div>
                               )}
-                              <div className="flex items-center gap-1">
-                                <Clock className="w-4 h-4 text-gray-400" />
-                                <span>Open Now</span>
-                              </div>
+                             
                             </div>
+                            <div className="bg-white rounded-lg mt- shadow-sm mt-2">
+                <h2 className="text-lg font-bold text-gray-900  flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-blue-600" /> Working Hours
+                </h2>
+                <div className="bg-gray-50 rounded-lg  px-2">
+                  <p className="text-gray-700 font-medium">
+                    {service.vendor?.workingDaysTimings || "Monday - Saturday: 9:00 AM - 6:00 PM"}
+                  </p>
+                </div>
+              </div>
                           </div>
 
                           {/* Price & Actions */}
