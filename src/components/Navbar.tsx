@@ -212,9 +212,9 @@ const Navbar = () => {
                         {user.name?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="font-semibold text-gray-800 dark:text-white hidden sm:inline">
+                    {/* <span className="font-semibold text-gray-800 dark:text-white hidden sm:inline">
                       {user.name?.split(" ")[0]}
-                    </span>
+                    </span> */}
                     <ChevronDown className="h-4 w-4 text-gray-500" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
