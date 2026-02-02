@@ -105,6 +105,7 @@ import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 import AllBooking from "./AllBooking";
 import VendorProfileMangeByAdmin from "./VendorProfileMangeByAdmin";
+import VendorProfileUpdateNotifications from "./VendorProfileUpdateNotifications";
 import { useNavigate, Link } from "react-router-dom";
 const VendorManagement = () => {
   const [vendors, setVendors] = useState([]);
@@ -917,6 +918,9 @@ const VendorManagement = () => {
 
   return (
     <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+      {/* Profile Update Notifications */}
+      <VendorProfileUpdateNotifications />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
