@@ -214,10 +214,25 @@ const VendorProfileMangeByAdmin = ({ user }) => {
 
   const handleRequestUpdate = async () => {
     if (!vendor?._id) return;
-    const result = await requestForTheUpdateProfileAPI(vendor._id, "requested");
+    
+    try {
+      const result = await requestForTheUpdateProfileAPI(vendor._id, "requested");
 
-    if (result?.success) {
-      setVendor((prev) => ({ ...prev, updateProfileRequest: "requested" }));
+      if (result?.success) {
+        setVendor((prev) => ({ ...prev, updateProfileRequest: "requested" }));
+        toast({
+          title: "Success",
+          description: "Profile update request submitted successfully. Admin will review your request.",
+        });
+      } else {
+        throw new Error(result?.message || "Failed to submit request");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit profile update request",
+        variant: "destructive",
+      });
     }
   };
   const handleInputChange = (field: string, value: string | number) => {
