@@ -23,6 +23,7 @@ import {
   Copy,
   X,
   Building,
+  LocateIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import { getPropertyBYIDAPI } from "@/service/operations/property";
@@ -396,8 +397,8 @@ const PropertyDetails = () => {
                         {property.vendor?.name?.charAt(0) || "S"}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm">{property.vendor?.name || "Service Provider"}</p>
-                        <p className="text-xs text-gray-500">{property.vendor?.company || "Professional Services"}</p>
+                        <p className="font-semibold text-gray-900 text-sm">{property.vendor?.company || "Professional Services"}</p>
+                        <p className="text-xs text-gray-500">{property.vendor?.name || "Service Provider"}</p>
                       </div>
                     </div>
                     
@@ -421,6 +422,15 @@ const PropertyDetails = () => {
                           <p className="text-xs font-medium text-gray-700">Year of Establishment</p>
                           <p className="text-xs text-gray-600">
                             {property.vendor?.yearOfEstablishment || <span className="text-gray-400 italic">Not Added</span>}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <LocateIcon className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-medium text-gray-700">Address</p>
+                          <p className="text-xs text-gray-600">
+                            {property.vendor?.address || <span className="text-gray-400 italic">Not Added</span>}
                           </p>
                         </div>
                       </div>
