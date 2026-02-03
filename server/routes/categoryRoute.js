@@ -13,6 +13,8 @@ const {
   rejectPurchaseCtrl,
 } = require("../controllers/categoryCtrl");
 
+const { createPropertiesForExistingPurchases } = require("../utils/createPropertiesForExistingPurchases");
+
 const router = express.Router();
 
 // Admin: create category
@@ -45,5 +47,24 @@ router.get("/pending/:vendorId", getVendorPendingPurchasesCtrl);
 // Admin: approve or reject a pending purchase
 router.put("/approve/:purchaseId", approvePurchaseCtrl);
 router.put("/reject/:purchaseId", rejectPurchaseCtrl);
+
+// Utility: Create properties for existing purchases (one-time use)
+router.post("/create-properties-for-existing", async (req, res) => {
+  try {
+    const result = await createPropertiesForExistingPurchases();
+    return res.status(200).json({
+      success: true,
+      message: "Properties creation completed",
+      result
+    });
+  } catch (error) {
+    console.error("Error creating properties for existing purchases:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error creating properties",
+      error: error.message
+    });
+  }
+});
 
 module.exports = router;
