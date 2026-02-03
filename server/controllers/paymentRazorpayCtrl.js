@@ -82,7 +82,7 @@ const verifyPaymentCtrl = async (req, res) => {
             razorpay_signature,
             vendorId,
             categoryId,
-            paymentMode = "prepaid", // default
+            paymentMode = "razorpay", // Changed default to razorpay for clarity
         } = req.body;
 
         // Validate request body
@@ -111,12 +111,12 @@ const verifyPaymentCtrl = async (req, res) => {
             category: categoryId,
             transactionId: razorpay_payment_id,
             paymentMode,
-            status: "purchased", // default
+            status: "purchased", // Razorpay payments are immediately approved
         });
 
         await purchase.save();
 
-        // Create property automatically when payment is successful
+        // Create property automatically for online Razorpay payment
         await createPropertyForCategory(vendorId, categoryId);
 
         return res.status(200).json({

@@ -141,48 +141,56 @@ const purchaseCategoryCtrl = async (req, res) => {
         purchase.assignedByAdmin = assignedByAdmin || isAdmin;
         await purchase.save();
         purchase = await purchase.populate("category");
-        shouldCreateProperty = true; // Create property when approved
+        shouldCreateProperty = true; // Create property when admin assigns/approves
       }
       
-      // For all payment methods (cash, QR, Razorpay), set status as "purchased" if isAdmin
-      else if (finalPaymentMode === "prepaid" || finalPaymentMode === "qr" || finalPaymentMode === "razorpay") {
-        // convert pending/rejected to purchased for prepaid, QR, or Razorpay
+      // For online payments (prepaid/razorpay), create service immediately
+      else if (finalPaymentMode === "prepaid" || finalPaymentMode === "razorpay") {
         purchase.status = "purchased";
         purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
         await purchase.save();
-        shouldCreateProperty = true; // Create property when purchased
-      } else {
-        // cash flow should be pending for regular users, but purchased for admin
+        shouldCreateProperty = true; // Create property for online payments
+      } 
+      // For cash/QR payments, don't create service - wait for admin approval
+      else if (finalPaymentMode === "cash" || finalPaymentMode === "qr") {
         purchase.status = isAdmin ? "purchased" : "pending";
-        purchase.paymentMode = "cash";
+        purchase.paymentMode = finalPaymentMode;
         await purchase.save();
         if (isAdmin) {
-          shouldCreateProperty = true; // Create property if admin approves cash payment
+          shouldCreateProperty = true; // Create property if admin approves cash/QR payment
         }
+        // Don't create property for regular users with cash/QR - wait for approval
       }
       
       purchase = await purchase.populate("category");
       
-      // Create property automatically if purchase is successful
+      // Create property automatically if conditions are met
       if (shouldCreateProperty) {
         await createPropertyForCategory(vendorId, categoryId);
       }
       
-      const msg = (finalPaymentMode === "cash" && !isAdmin) ? "Purchase requested (cash) and pending approval" : "Category purchased";
+      const msg = ((finalPaymentMode === "cash" || finalPaymentMode === "qr") && !isAdmin) ? 
+        "Purchase requested and pending approval" : "Category purchased";
       return res.status(200).json({ success: true, message: msg, purchase });
     } else {
       // Create new purchase
-      // If assigned by admin or isAdmin flag is true, directly set status as purchased
-      // For admin registrations, all payment methods should result in "purchased" status
       let finalStatus;
+      
       if (assignedByAdmin || isAdmin) {
+        // Admin assigns or vendor self-registers
         finalStatus = status || "purchased";
         shouldCreateProperty = true;
       } else {
-        finalStatus = finalPaymentMode === "cash" ? "pending" : "purchased";
-        if (finalStatus === "purchased") {
+        // Regular vendor purchase
+        if (finalPaymentMode === "prepaid" || finalPaymentMode === "razorpay") {
+          // Online payments - approve immediately and create service
+          finalStatus = "purchased";
           shouldCreateProperty = true;
+        } else {
+          // Cash/QR payments - pending approval, no service creation
+          finalStatus = "pending";
+          shouldCreateProperty = false;
         }
       }
       
@@ -196,7 +204,7 @@ const purchaseCategoryCtrl = async (req, res) => {
       });
       purchase = await purchase.populate("category");
       
-      // Create property automatically if purchase is successful
+      // Create property automatically if conditions are met
       if (shouldCreateProperty) {
         await createPropertyForCategory(vendorId, categoryId);
       }
@@ -204,8 +212,10 @@ const purchaseCategoryCtrl = async (req, res) => {
       let msg;
       if (assignedByAdmin || isAdmin) {
         msg = "Category assigned and approved";
+      } else if (finalPaymentMode === "prepaid" || finalPaymentMode === "razorpay") {
+        msg = "Category purchased successfully";
       } else {
-        msg = finalPaymentMode === "cash" ? "Purchase requested (cash) and pending approval" : "Category purchased";
+        msg = "Purchase requested and pending approval";
       }
       
       return res.status(200).json({ success: true, message: msg, purchase });
