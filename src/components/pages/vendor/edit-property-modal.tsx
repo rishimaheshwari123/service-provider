@@ -155,8 +155,9 @@ export const EditServiceModal = ({
       if (formData.description)
         dataToSend.append("description", formData.description);
       if (formData.vendor) dataToSend.append("vendor", formData.vendor);
-      if (images.length > 0)
-        dataToSend.append("images", JSON.stringify(images));
+      
+      // Always send images array, even if empty (this allows removal of all images)
+      dataToSend.append("images", JSON.stringify(images));
 
       const response = await updatePropertyAPI(service?._id, dataToSend);
       if (response?.success) {

@@ -166,8 +166,9 @@ export const AdminEditServiceModal = ({
         }
       }
       if (formData.status) dataToSend.append("status", formData.status);
-      if (images.length > 0)
-        dataToSend.append("images", JSON.stringify(images));
+      
+      // Always send images array, even if empty (this allows removal of all images)
+      dataToSend.append("images", JSON.stringify(images));
 
       const response = await updatePropertyAPI(service?._id, dataToSend);
       if (response?.success) {

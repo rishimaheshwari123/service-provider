@@ -89,8 +89,20 @@ const updatePropertyCtrl = async (req, res) => {
             status,
         } = req.body;
 
-        // Parse images safely
-        const imagesArray = typeof images === 'string' ? JSON.parse(images) : images;
+        // Parse images safely - handle empty string, null, undefined, or empty array
+        let imagesArray = [];
+        if (images) {
+            if (typeof images === 'string') {
+                try {
+                    imagesArray = JSON.parse(images);
+                } catch (error) {
+                    console.log("Error parsing images:", error);
+                    imagesArray = [];
+                }
+            } else if (Array.isArray(images)) {
+                imagesArray = images;
+            }
+        }
 
         // Find property
         const property = await Property.findById(id);
@@ -107,8 +119,11 @@ const updatePropertyCtrl = async (req, res) => {
         if (location) property.location = location;
         if (type) property.type = type;
         if (category) property.category = category;
-        if (description) property.description = description;
-        if (imagesArray) property.images = imagesArray;
+        if (description !== undefined) property.description = description; // Allow empty description
+        
+        // Always update images array (even if empty) - this allows removal of all images
+        property.images = imagesArray;
+        
         if (status && ['active', 'inactive'].includes(status)) property.status = status;
 
         await property.save();
