@@ -49,6 +49,54 @@ const getAllCategoriesCtrl = async (req, res) => {
   }
 };
 
+// Helper function to create property/service automatically
+const createPropertyForCategory = async (vendorId, categoryId) => {
+  try {
+    const Property = require("../models/propertyModel");
+    const Vendor = require("../models/vendorModel");
+    
+    // Get vendor and category details
+    const vendor = await Vendor.findById(vendorId);
+    const category = await Category.findById(categoryId);
+    
+    if (!vendor || !category) {
+      console.log("Vendor or category not found for property creation");
+      return null;
+    }
+
+    // Check if property already exists for this vendor-category combination
+    const existingProperty = await Property.findOne({ 
+      vendor: vendorId, 
+      category: category.name 
+    });
+    
+    if (existingProperty) {
+      console.log("Property already exists for this vendor-category combination");
+      return existingProperty;
+    }
+
+    // Create property with vendor and category information
+    const propertyData = {
+      title: category.name, // Category name as title
+      price: category.price.toString(), // Category price
+      location: vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
+      type: "service", // Default type
+      category: category.name, // Category name
+      description: vendor.description || category.autoFilled || `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
+      images: category.image ? [{ url: category.image }] : [], // Category image
+      vendor: vendorId, // Vendor ID
+      status: "active"
+    };
+
+    const newProperty = await Property.create(propertyData);
+    console.log("Property created automatically:", newProperty._id);
+    return newProperty;
+  } catch (error) {
+    console.error("Error creating property automatically:", error);
+    return null;
+  }
+};
+
 const purchaseCategoryCtrl = async (req, res) => {
   try {
     const { vendorId, categoryId, transactionId, paymentMode = "prepaid", paymentMethod, assignedByAdmin, status, isAdmin } = req.body;
@@ -77,6 +125,8 @@ const purchaseCategoryCtrl = async (req, res) => {
 
     // Check existing purchase
     let purchase = await VendorCategoryPurchase.findOne({ vendor: vendorId, category: categoryId });
+    let shouldCreateProperty = false;
+    
     if (purchase) {
       // Already exists
       if (purchase.status === "purchased") {
@@ -91,23 +141,34 @@ const purchaseCategoryCtrl = async (req, res) => {
         purchase.assignedByAdmin = assignedByAdmin || isAdmin;
         await purchase.save();
         purchase = await purchase.populate("category");
-        return res.status(200).json({ success: true, message: "Category assigned and approved", purchase });
+        shouldCreateProperty = true; // Create property when approved
       }
       
       // For all payment methods (cash, QR, Razorpay), set status as "purchased" if isAdmin
-      if (finalPaymentMode === "prepaid" || finalPaymentMode === "qr" || finalPaymentMode === "razorpay") {
+      else if (finalPaymentMode === "prepaid" || finalPaymentMode === "qr" || finalPaymentMode === "razorpay") {
         // convert pending/rejected to purchased for prepaid, QR, or Razorpay
         purchase.status = "purchased";
         purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
         await purchase.save();
+        shouldCreateProperty = true; // Create property when purchased
       } else {
         // cash flow should be pending for regular users, but purchased for admin
         purchase.status = isAdmin ? "purchased" : "pending";
         purchase.paymentMode = "cash";
         await purchase.save();
+        if (isAdmin) {
+          shouldCreateProperty = true; // Create property if admin approves cash payment
+        }
       }
+      
       purchase = await purchase.populate("category");
+      
+      // Create property automatically if purchase is successful
+      if (shouldCreateProperty) {
+        await createPropertyForCategory(vendorId, categoryId);
+      }
+      
       const msg = (finalPaymentMode === "cash" && !isAdmin) ? "Purchase requested (cash) and pending approval" : "Category purchased";
       return res.status(200).json({ success: true, message: msg, purchase });
     } else {
@@ -117,8 +178,12 @@ const purchaseCategoryCtrl = async (req, res) => {
       let finalStatus;
       if (assignedByAdmin || isAdmin) {
         finalStatus = status || "purchased";
+        shouldCreateProperty = true;
       } else {
         finalStatus = finalPaymentMode === "cash" ? "pending" : "purchased";
+        if (finalStatus === "purchased") {
+          shouldCreateProperty = true;
+        }
       }
       
       purchase = await VendorCategoryPurchase.create({ 
@@ -130,6 +195,11 @@ const purchaseCategoryCtrl = async (req, res) => {
         assignedByAdmin: assignedByAdmin || isAdmin || false
       });
       purchase = await purchase.populate("category");
+      
+      // Create property automatically if purchase is successful
+      if (shouldCreateProperty) {
+        await createPropertyForCategory(vendorId, categoryId);
+      }
       
       let msg;
       if (assignedByAdmin || isAdmin) {
@@ -334,9 +404,14 @@ const approvePurchaseCtrl = async (req, res) => {
     const { purchaseId } = req.params;
     const purchase = await VendorCategoryPurchase.findById(purchaseId);
     if (!purchase) return res.status(404).json({ success: false, message: "Purchase not found" });
+    
     purchase.status = "purchased";
     purchase.paymentMode = purchase.paymentMode || "cash";
     await purchase.save();
+    
+    // Create property automatically when purchase is approved
+    await createPropertyForCategory(purchase.vendor, purchase.category);
+    
     const populated = await purchase.populate([{ path: "vendor", select: "name email" }, { path: "category", select: "name price" }]);
     return res.status(200).json({ success: true, message: "Purchase approved", purchase: populated });
   } catch (error) {

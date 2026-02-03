@@ -2,6 +2,55 @@ const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
 const crypto = require("crypto");
 const { razorpayInstance } = require("../config/razorpay");
 
+// Helper function to create property/service automatically
+const createPropertyForCategory = async (vendorId, categoryId) => {
+  try {
+    const Property = require("../models/propertyModel");
+    const Vendor = require("../models/vendorModel");
+    const Category = require("../models/categoryModel");
+    
+    // Get vendor and category details
+    const vendor = await Vendor.findById(vendorId);
+    const category = await Category.findById(categoryId);
+    
+    if (!vendor || !category) {
+      console.log("Vendor or category not found for property creation");
+      return null;
+    }
+
+    // Check if property already exists for this vendor-category combination
+    const existingProperty = await Property.findOne({ 
+      vendor: vendorId, 
+      category: category.name 
+    });
+    
+    if (existingProperty) {
+      console.log("Property already exists for this vendor-category combination");
+      return existingProperty;
+    }
+
+    // Create property with vendor and category information
+    const propertyData = {
+      title: category.name, // Category name as title
+      price: category.price.toString(), // Category price
+      location: vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
+      type: "service", // Default type
+      category: category.name, // Category name
+      description: vendor.description || category.autoFilled || `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
+      images: category.image ? [{ url: category.image }] : [], // Category image
+      vendor: vendorId, // Vendor ID
+      status: "active"
+    };
+
+    const newProperty = await Property.create(propertyData);
+    console.log("Property created automatically:", newProperty._id);
+    return newProperty;
+  } catch (error) {
+    console.error("Error creating property automatically:", error);
+    return null;
+  }
+};
+
 const createRazorpayOrderCtrl = async (req, res) => {
     try {
         const { amount } = req.body;
@@ -66,6 +115,9 @@ const verifyPaymentCtrl = async (req, res) => {
         });
 
         await purchase.save();
+
+        // Create property automatically when payment is successful
+        await createPropertyForCategory(vendorId, categoryId);
 
         return res.status(200).json({
             success: true,
