@@ -258,7 +258,7 @@ const PropertyDetails = () => {
                   )}
                   <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                     <Camera className="w-3 h-3" />
-                    {currentImageIndex + 1}/{propertyImages.length}
+                    {currentImageIndex }/{propertyImages.length}
                   </div>
                   <button
                     onClick={() => setIsSaved(!isSaved)}
