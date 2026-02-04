@@ -44,8 +44,16 @@ const TopSearchBar = () => {
     const params = new URLSearchParams();
     if (filters.category && filters.category !== "all")
       params.append("category", filters.category);
-    if (filters.location) params.append("search", filters.location);
-    if (filters.search) params.append("search", filters.search);
+    
+    // Combine both location and search into a single search parameter
+    const searchTerms = [];
+    if (filters.location) searchTerms.push(filters.location);
+    if (filters.search) searchTerms.push(filters.search);
+    
+    if (searchTerms.length > 0) {
+      params.append("search", searchTerms.join(" "));
+    }
+    
     navigate(`/services?${params.toString()}`);
   };
 
@@ -94,10 +102,11 @@ const TopSearchBar = () => {
             name="location"
             value={filters.location}
             onChange={handleChange}
-            placeholder="Search your service..."
+            placeholder="Search by vendor name, service, location..."
             className="w-full h-full border-none shadow-none focus-visible:ring-0 placeholder:text-gray-400 text-base"
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSearch();
+              if (e.key === "Escape") setFilters({ ...filters, location: "" });
             }}
           />
         </div>
