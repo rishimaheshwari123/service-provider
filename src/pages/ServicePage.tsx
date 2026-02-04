@@ -18,6 +18,7 @@ import {
 import { getAllPropertyAPI } from "@/service/operations/property";
 import { getAllCategoriesAPI } from "@/service/operations/category";
 import { getAllReatingAPI, addRating } from "@/service/operations/rating";
+import { matchesSearchTerm, sortByRelevance, highlightSearchTerm } from "@/utils/searchUtils";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReviewModal from "@/components/ReviewModal";
@@ -138,19 +139,9 @@ const ServicesPage = () => {
     const [minPrice, maxPrice] = newFilters.price;
     const searchTerm = newFilters.search?.toLowerCase().trim() || "";
 
-    const filtered = services.filter((service) => {
-      // Search in title, description, location, state, city, zipcode, category
-      const matchSearch =
-        !searchTerm ||
-        (service as any).title?.toLowerCase().includes(searchTerm) ||
-        (service as any).description?.toLowerCase().includes(searchTerm) ||
-        (service as any).location?.toLowerCase().includes(searchTerm) ||
-        (service as any).state?.toLowerCase().includes(searchTerm) ||
-        (service as any).city?.toLowerCase().includes(searchTerm) ||
-        (service as any).zipcode?.toLowerCase().includes(searchTerm) ||
-        (service as any).pincode?.toLowerCase().includes(searchTerm) ||
-        (service as any).address?.toLowerCase().includes(searchTerm) ||
-        (service as any).category?.toLowerCase().includes(searchTerm);
+    let filtered = services.filter((service) => {
+      // Use the utility function for consistent search logic
+      const matchSearch = matchesSearchTerm(service, searchTerm);
 
       const matchCategory =
         newFilters.category === "all" ||
@@ -167,7 +158,14 @@ const ServicesPage = () => {
       return matchSearch && matchCategory && matchPrice;
     });
 
-    console.log("Filtered services:", filtered);
+    // Sort by relevance if there's a search term
+    if (searchTerm) {
+      filtered = sortByRelevance(filtered, searchTerm);
+    }
+
+    console.log("Search term:", searchTerm);
+    console.log("Total services:", services.length);
+    console.log("Filtered services:", filtered.length);
     setFilteredServices(filtered);
   };
 
@@ -307,9 +305,27 @@ const ServicesPage = () => {
                     name="search"
                     value={filters.search}
                     onChange={handleInputChange}
-                    placeholder="Search your service..."
+                    placeholder="Search by vendor name, service, location, city, pincode..."
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        // Trigger search on Enter key
+                        applyFilters(filters);
+                      }
+                      if (e.key === "Escape") {
+                        // Clear search on Escape key
+                        setFilters({ ...filters, search: "" });
+                      }
+                    }}
                   />
+                  {filters.search && (
+                    <button
+                      onClick={() => setFilters({ ...filters, search: "" })}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -374,7 +390,34 @@ const ServicesPage = () => {
         </div>
 
         {/* Results Count */}
-        
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <p className="text-gray-600">
+              {loading ? (
+                "Searching..."
+              ) : (
+                <>
+                  Showing {filteredServices.length} of {services.length} services
+                  {filters.search && (
+                    <span className="ml-2 text-blue-600 font-medium">
+                      for "{filters.search}"
+                    </span>
+                  )}
+                  {filters.category !== "all" && (
+                    <span className="ml-2 text-blue-600 font-medium">
+                      in {filters.category}
+                    </span>
+                  )}
+                </>
+              )}
+            </p>
+            {filteredServices.length > 0 && (
+              <p className="text-sm text-gray-500">
+                Results sorted by relevance
+              </p>
+            )}
+          </div>
+        </div>
 
         {/* Services Grid */}
         <div className="max-w-7xl mx-auto px-4 pb-10">
@@ -387,8 +430,46 @@ const ServicesPage = () => {
               <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-10 h-10 text-gray-400" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No services found</h3>
-              <p className="text-gray-500">Try adjusting your filters or search terms</p>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                {filters.search ? "No services found" : "No services available"}
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {filters.search 
+                  ? `No results found for "${filters.search}". Try adjusting your search terms.`
+                  : "Try adjusting your filters or search terms"
+                }
+              </p>
+              {filters.search && (
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">Suggestions:</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <button
+                      onClick={() => setFilters({ ...filters, search: "plumber" })}
+                      className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
+                    >
+                      Plumber
+                    </button>
+                    <button
+                      onClick={() => setFilters({ ...filters, search: "electrician" })}
+                      className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
+                    >
+                      Electrician
+                    </button>
+                    <button
+                      onClick={() => setFilters({ ...filters, search: "cleaning" })}
+                      className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
+                    >
+                      Cleaning
+                    </button>
+                    <button
+                      onClick={() => setFilters({ ...filters, search: "repair" })}
+                      className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
+                    >
+                      Repair
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-4">
@@ -398,7 +479,7 @@ const ServicesPage = () => {
 
                 return (
                   <div
-                    key={index}
+                    key={service._id || index}
                     className="bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300"
                   >
                     <div className="flex flex-col md:flex-row">
@@ -430,17 +511,26 @@ const ServicesPage = () => {
                                 </div>
                                 <div className="flex-1 min-w-0">
                                   <p className="text-lg font-bold text-gray-900 truncate">
-                                    {service.vendor.name || 'Vendor Name'}
+                                    {filters.search ? 
+                                      highlightSearchTerm(service.vendor.name || 'Vendor Name', filters.search) :
+                                      (service.vendor.name || 'Vendor Name')
+                                    }
                                   </p>
                                   {service.vendor.company && (
                                     <p className="text-sm text-gray-600 truncate">
-                                      {service.vendor.company}
+                                      {filters.search ? 
+                                        highlightSearchTerm(service.vendor.company, filters.search) :
+                                        service.vendor.company
+                                      }
                                     </p>
                                   )}
                                   {service.vendor.address && (
                                     <p className="text-xs text-gray-500 line-clamp-1 mt-1">
                                       <MapPin className="w-3 h-3 inline mr-1" />
-                                      {service.vendor.address}
+                                      {filters.search ? 
+                                        highlightSearchTerm(service.vendor.address, filters.search) :
+                                        service.vendor.address
+                                      }
                                     </p>
                                   )}
                                 </div>
@@ -456,7 +546,10 @@ const ServicesPage = () => {
                                 onClick={() => handleHireNow(service._id)}
                                 className="text-base md:text-lg font-semibold text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
                               >
-                                {service.title}
+                                {filters.search ? 
+                                  highlightSearchTerm(service.title, filters.search) :
+                                  service.title
+                                }
                               </h3>
                             </div>
 
@@ -494,7 +587,12 @@ const ServicesPage = () => {
                               {service.location && (
                                 <div className="flex items-center gap-1">
                                   <MapPin className="w-4 h-4 text-gray-400" />
-                                  <span>{service.location}</span>
+                                  <span>
+                                    {filters.search ? 
+                                      highlightSearchTerm(service.location, filters.search) :
+                                      service.location
+                                    }
+                                  </span>
                                 </div>
                               )}
                              
