@@ -17,6 +17,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
 import {
   MoreHorizontal,
@@ -26,8 +36,9 @@ import {
   CheckCircle,
   XCircle,
   Edit,
+  Trash2,
 } from "lucide-react";
-import { updatePropertyStatusAPI } from "@/service/operations/property";
+import { updatePropertyStatusAPI, deletePropertyAPI } from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
 import { BASE_URL } from "@/service/apis";
 
@@ -40,13 +51,13 @@ interface Service {
   description?: string;
   images?: Array<{ url: string; public_id: string }>;
   location: string;
-  status: string;
-  vendor?: {
+  status?: string;
+  vendor: {
     _id: string;
     name: string;
     company: string;
     phone: string;
-  } | null;
+  } | string;
   createdAt: string;
 }
 
@@ -58,6 +69,8 @@ const AdminServices = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const { toast } = useToast();
 
   const fetchServices = async () => {
@@ -96,8 +109,8 @@ const AdminServices = () => {
       filtered = filtered.filter(
         (service) =>
           service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.vendor?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          service.vendor?.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (typeof service.vendor === 'object' && service.vendor?.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (typeof service.vendor === 'object' && service.vendor?.company?.toLowerCase().includes(searchTerm.toLowerCase())) ||
           service.category.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
@@ -146,6 +159,37 @@ const AdminServices = () => {
     setServices(
       services.map((s) => (s._id === updatedService._id ? updatedService : s))
     );
+  };
+
+  const handleDeleteService = (service: Service) => {
+    setServiceToDelete(service);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteService = async () => {
+    if (!serviceToDelete) return;
+
+    try {
+      const result = await deletePropertyAPI(serviceToDelete._id);
+      if (result) {
+        // Remove service from local state
+        setServices(services.filter(service => service._id !== serviceToDelete._id));
+        toast({
+          title: "Success",
+          description: "Service deleted successfully!",
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting service:", error);
+      toast({
+        title: "Error",
+        description: "Failed to delete service",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setServiceToDelete(null);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -261,8 +305,12 @@ const AdminServices = () => {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <p className="font-medium">{service.vendor?.name || 'Unknown Vendor'}</p>
-                        <p className="text-sm text-gray-500">{service.vendor?.company || 'No Company'}</p>
+                        <p className="font-medium">
+                          {typeof service.vendor === 'object' ? service.vendor?.name : 'Unknown Vendor'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {typeof service.vendor === 'object' ? service.vendor?.company : 'No Company'}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -293,6 +341,13 @@ const AdminServices = () => {
                           ) : (
                             <CheckCircle className="w-4 h-4" />
                           )}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDeleteService(service)}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -329,6 +384,13 @@ const AdminServices = () => {
                                 </>
                               )}
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteService(service)}
+                              className="text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Service
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -355,6 +417,30 @@ const AdminServices = () => {
         onSave={handleSaveService}
         fetchServices={fetchServices}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{serviceToDelete?.title}"? This action cannot be undone.
+              The service will be permanently removed from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDeleteService}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete Service
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

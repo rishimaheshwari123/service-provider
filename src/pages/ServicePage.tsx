@@ -513,18 +513,17 @@ const ServicesPage = () => {
 
                           {/* Price & Actions */}
                           <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-2 pt-3 md:pt-0 border-t md:border-t-0 md:border-l md:pl-5">
-                            {service.price && service.price !== "NA" && service.price !== "N/A" && (
+                            {/* {service.price && service.price !== "NA" && service.price !== "N/A" && (
                               <div className="text-right">
                                 <p className="text-xs text-gray-500">{t("pages.home.startsFrom")}</p>
                                 <p className="text-xl font-bold text-gray-900">₹{isNaN(Number(service.price)) ? service.price : Number(service.price).toLocaleString()}</p>
                               </div>
-                            )}
-                            {(service.price === "NA" || service.price === "N/A" || !service.price) && (
-                              <div className="text-right">
+                            )} */}
+                           <div className="text-right">
+                                                                <p className="text-xl font-bold text-gray-900">Contact for Price</p>
+
                                 {/* <p className="text-xs text-gray-500">Price</p> */}
-                                <p className="text-xl font-bold text-gray-900">Contact for Price</p>
                               </div>
-                            )}
                             <div className="flex gap-2">
                               <button
                                 onClick={() => handleHireNow(service._id)}

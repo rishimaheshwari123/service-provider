@@ -2272,11 +2272,7 @@ const VendorManagement = () => {
                                 <MapPin className="w-4 h-4 text-gray-400" />
                                 <span>{property.location}</span>
                               </div>
-                              <div className="flex items-center gap-2">
-                                <span className="font-semibold text-green-600">
-                                  ₹{property.price}
-                                </span>
-                              </div>
+                              
                               <div className="flex items-center gap-2">
                                 <Badge 
                                   className={`${
