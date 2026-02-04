@@ -282,6 +282,7 @@ const VendorAddService = () => {
                       <SelectItem value="home">Home Service</SelectItem>
                       <SelectItem value="online">Online Service</SelectItem>
                       <SelectItem value="on-site">On-site Service</SelectItem>
+                      <SelectItem value="on-site-home">On-site & Home Service</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
