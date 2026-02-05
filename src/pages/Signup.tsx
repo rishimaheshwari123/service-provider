@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { signUp } from "@/service/operations/auth";
 import { Eye, EyeOff } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 // 🔹 Signup schema with phone validation
 const signupSchema = z
@@ -72,7 +74,9 @@ const Signup = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
+  <div>
+    <Navbar/>
+      <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">{t('pages.signup.createAccount')}</h1>
@@ -220,6 +224,8 @@ const Signup = () => {
         </div>
       </Card>
     </div>
+    <Footer/>
+  </div>
   );
 };
 

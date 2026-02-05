@@ -11,6 +11,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { login } from "../service/operations/vendor";
 import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 // Zod schema
 const loginSchema = z.object({
@@ -48,7 +50,10 @@ const VendorLogin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+  <div>
+
+    <Navbar/>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">{t('partnerLogin.title')}</CardTitle>
@@ -126,6 +131,8 @@ const VendorLogin = () => {
         </CardContent>
       </Card>
     </div>
+    <Footer/>
+  </div>
   );
 };
 
