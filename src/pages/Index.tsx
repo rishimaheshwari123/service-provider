@@ -117,10 +117,22 @@ const Index = () => {
       {/* Left Diamond Icon (Optional, for UK look) */}
       <span className="hidden sm:block h-[1px] w-8 md:w-16 bg-gradient-to-r from-transparent to-yellow-400/50"></span>
       
-      <h2 className="text-[10px] md:text-xl font-bold text-white tracking-[0.4em] md:tracking-[0.6em] uppercase">
-        <span className="text-white">Mera Ghar</span>
-        <span className="text-yellow-400 ml-2">Sansaar</span>
-      </h2>
+      <div className="text-center">
+        <h2 className="text-[10px] md:text-xl font-bold text-white tracking-[0.4em] md:tracking-[0.6em] uppercase">
+          <span className="text-white">Mera Ghar</span>
+          <span className="text-yellow-400 ml-2">Sansaar</span>
+        </h2>
+        
+        {/* Tagline */}
+        <motion.p 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
+          className="text-[8px] md:text-sm text-gray-300 tracking-wider uppercase mt-1 md:mt-2"
+        >
+          One place for all your needs
+        </motion.p>
+      </div>
 
       {/* Right Diamond Icon */}
       <span className="hidden sm:block h-[1px] w-8 md:w-16 bg-gradient-to-l from-transparent to-yellow-400/50"></span>
