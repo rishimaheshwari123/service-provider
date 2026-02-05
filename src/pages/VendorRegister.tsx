@@ -14,6 +14,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
 import { getAllCategoriesAPI } from "../service/operations/category";
 import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 // Zod schema for validation
 const vendorSchema = z.object({
@@ -253,7 +255,9 @@ const VendorRegister = () => {
   const progress = (currentStep / 7) * 100;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 py-8 px-4">
+   <div>
+    <Navbar/>
+ <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50 py-8 px-4">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -763,6 +767,8 @@ const VendorRegister = () => {
         </Card>
       </div>
     </div>
+    <Footer/>
+   </div>
   );
 };
 

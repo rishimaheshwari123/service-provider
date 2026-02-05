@@ -11,6 +11,8 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { login } from "@/service/operations/auth";
 import { Eye, EyeOff } from "lucide-react";
+import Footer from "@/components/Footer";
+import Navbar from "@/components/Navbar";
 
 // 🔹 Zod schema with phone validation
 const loginSchema = z.object({
@@ -48,7 +50,9 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+   <div>
+    <Navbar/>
+     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md p-8 space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold text-foreground">{t('pages.login.welcomeBack')}</h1>
@@ -120,6 +124,8 @@ const Login = () => {
         </div>
       </Card>
     </div>
+    <Footer/>
+   </div>
   );
 };
 
