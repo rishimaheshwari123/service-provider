@@ -37,10 +37,13 @@ import {
   XCircle,
   Edit,
   Trash2,
+  FileText,
+  RefreshCw,
 } from "lucide-react";
 import { updatePropertyStatusAPI, deletePropertyAPI } from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
 import { BASE_URL } from "@/service/apis";
+import * as XLSX from "xlsx";
 
 interface Service {
   _id: string;
@@ -206,6 +209,68 @@ const AdminServices = () => {
     );
   };
 
+  const handleDownloadExcel = () => {
+    // Prepare comprehensive services data for Excel export
+    const excelData = filteredServices.map((service) => ({
+      "Service ID": service._id,
+      "Service Title": service.title,
+      "Category": service.category,
+      "Type": service.type,
+      "Price": service.price,
+      "Description": service.description || "",
+      "Location": service.location,
+      "Status": service.status || "active",
+      "Vendor Name": typeof service.vendor === 'object' ? service.vendor?.name || "" : "",
+      "Vendor Company": typeof service.vendor === 'object' ? service.vendor?.company || "" : "",
+      "Vendor Phone": typeof service.vendor === 'object' ? service.vendor?.phone || "" : "",
+      "Vendor ID": typeof service.vendor === 'object' ? service.vendor?._id || "" : service.vendor || "",
+      "Images Count": service.images ? service.images.length : 0,
+      "Created Date": new Date(service.createdAt).toLocaleDateString(),
+      "Created Time": new Date(service.createdAt).toLocaleTimeString(),
+    }));
+
+    // Create workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+
+    // Set column widths for better readability
+    const columnWidths = [
+      { wch: 25 }, // Service ID
+      { wch: 30 }, // Service Title
+      { wch: 20 }, // Category
+      { wch: 15 }, // Type
+      { wch: 15 }, // Price
+      { wch: 40 }, // Description
+      { wch: 20 }, // Location
+      { wch: 12 }, // Status
+      { wch: 20 }, // Vendor Name
+      { wch: 25 }, // Vendor Company
+      { wch: 15 }, // Vendor Phone
+      { wch: 25 }, // Vendor ID
+      { wch: 12 }, // Images Count
+      { wch: 15 }, // Created Date
+      { wch: 15 }, // Created Time
+    ];
+    
+    worksheet['!cols'] = columnWidths;
+
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Services");
+
+    // Generate filename with current date
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = `Services_Complete_Details_${currentDate}.xlsx`;
+
+    // Save the file
+    XLSX.writeFile(workbook, filename);
+
+    // Show success toast
+    toast({
+      title: "Success",
+      description: `Downloaded ${filteredServices.length} services to Excel file`,
+    });
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -225,6 +290,24 @@ const AdminServices = () => {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Services Management</h1>
           <p className="text-gray-600">Manage all services across the platform</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleDownloadExcel}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
+          >
+            <FileText className="w-4 h-4" />
+            Download Excel
+          </button>
+          <Button
+            variant="outline"
+            onClick={fetchServices}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
         </div>
       </div>
 

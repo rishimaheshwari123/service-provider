@@ -510,20 +510,21 @@ const ServicesPage = () => {
                                   </span>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-lg font-bold text-gray-900 truncate">
-                                    {filters.search ? 
-                                      highlightSearchTerm(service.vendor.name || 'Vendor Name', filters.search) :
-                                      (service.vendor.name || 'Vendor Name')
-                                    }
-                                  </p>
                                   {service.vendor.company && (
-                                    <p className="text-sm text-gray-600 truncate">
+                                    <p className="text-sm font-bold text-gray-600 truncate">
                                       {filters.search ? 
                                         highlightSearchTerm(service.vendor.company, filters.search) :
                                         service.vendor.company
                                       }
                                     </p>
                                   )}
+                                  <p className="text-lg font-bold text-gray-900 truncate">
+                                    {filters.search ? 
+                                      highlightSearchTerm(service.vendor.name || 'Vendor Name', filters.search) :
+                                      (service.vendor.name || 'Vendor Name')
+                                    }
+                                  </p>
+                                  
                                   {service.vendor.address && (
                                     <p className="text-xs text-gray-500 line-clamp-1 mt-1">
                                       <MapPin className="w-3 h-3 inline mr-1" />
