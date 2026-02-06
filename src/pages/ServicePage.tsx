@@ -518,7 +518,7 @@ const ServicesPage = () => {
                                       }
                                     </p>
                                   )}
-                                  <p className="text-[12px] font-bold text-gray-900 truncate">
+                                  <p className="text-[12px]  text-gray-900 truncate">
                                     {filters.search ? 
                                       highlightSearchTerm(service.vendor.name || 'Vendor Name', filters.search) :
                                       (service.vendor.name || 'Vendor Name')
