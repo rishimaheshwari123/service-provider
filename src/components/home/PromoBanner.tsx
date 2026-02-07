@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { FaChevronLeft, FaChevronRight, FaArrowRight, FaBroom, FaTools, FaSpa, FaExternalLinkAlt } from "react-icons/fa";
 import { getActiveAds } from "@/service/operations/ads";
+import { getAllCategoriesAPI } from "@/service/operations/category";
 
 export default function PromoBanner() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ export default function PromoBanner() {
   const [currentBanner, setCurrentBanner] = useState(0);
   const [ads, setAds] = useState([]);
   const [currentAdIndex, setCurrentAdIndex] = useState(0);
+  const [availableCategories, setAvailableCategories] = useState([]);
 
   const mainBanners = [
     {
@@ -43,12 +45,14 @@ export default function PromoBanner() {
 
   const promoCards = [
     {
-      title: t("promoBanner.cards.cleaning.title", "CLEANING"),
-      subtitle: t("promoBanner.cards.cleaning.subtitle", "Home & Office Cleaning"),
-      description: t("promoBanner.cards.cleaning.description", "Professional cleaning by trained experts"),
+      title: t("promoBanner.cards.cleaning.title", "HOME SERVICE"),
+      subtitle: t("promoBanner.cards.cleaning.subtitle", "Home & Office Services"),
+      description: t("promoBanner.cards.cleaning.description", "Professional home services by trained experts"),
       icon: FaBroom,
       bgColor: "from-blue-600 via-blue-500 to-cyan-500",
-      link: "/services?category=Home Service",
+      // Filter by autoFilled field for home services - include all variations found in data
+      filterType: "autoFilled",
+      filterValues: ["Home Service", "Home Services", "HOME SERVICE", "Home service", "home service"],
     },
     {
       title: t("promoBanner.cards.repairing.title", "REPAIRING"),
@@ -56,31 +60,56 @@ export default function PromoBanner() {
       description: t("promoBanner.cards.repairing.description", "Expert technicians for all repairs"),
       icon: FaTools,
       bgColor: "from-orange-600 via-orange-500 to-amber-500",
-      link: "/services?category=Repairing",
+      // Filter by autoFilled field for repairing services
+      filterType: "autoFilled",
+      filterValues: ["Repairing"],
     },
     {
-      title: t("promoBanner.cards.yoga.title", "YOGA"),
-      subtitle: t("promoBanner.cards.yoga.subtitle", "Personal Yoga Training"),
-      description: t("promoBanner.cards.yoga.description", "Certified trainers for wellness"),
+      title: t("promoBanner.cards.yoga.title", "HEALTH CARE"),
+      subtitle: t("promoBanner.cards.yoga.subtitle", "Health & Wellness Care"),
+      description: t("promoBanner.cards.yoga.description", "Certified health professionals for wellness including yoga"),
       icon: FaSpa,
       bgColor: "from-emerald-600 via-green-500 to-teal-500",
-      link: "/services?category=Health Care",
+      // Filter by autoFilled field for health care services including yoga
+      filterType: "autoFilled",
+      filterValues: ["Health Care", "Sports"], // Added Sports to include fitness/yoga centers
     },
   ];
 
-  // Fetch ads from backend
+  // Fetch ads and categories from backend
   useEffect(() => {
-    const fetchAds = async () => {
+    const fetchData = async () => {
       try {
-        const adsData = await getActiveAds();
+        const [adsData, categoriesData] = await Promise.all([
+          getActiveAds(),
+          getAllCategoriesAPI()
+        ]);
         setAds(adsData);
+        setAvailableCategories(categoriesData || []);
+        console.log("Available categories:", categoriesData);
       } catch (error) {
-        console.error("Failed to fetch ads:", error);
+        console.error("Failed to fetch data:", error);
       }
     };
 
-    fetchAds();
+    fetchData();
   }, []);
+
+  // Handle card click with special filtering for autoFilled categories
+  const handleCardClick = (card) => {
+    if (card.filterType === "autoFilled") {
+      // Create a special URL that will filter by multiple autoFilled values
+      const filterValues = card.filterValues.join(','); // Join multiple values with comma
+      const url = `http://localhost:8080/services?autoFilled=${encodeURIComponent(filterValues)}`;
+      console.log("Navigating to:", url);
+      window.location.href = url;
+    } else {
+      // Fallback to regular category filtering
+      const url = `http://localhost:8080/services`;
+      console.log("Navigating to:", url);
+      window.location.href = url;
+    }
+  };
 
   // Auto-rotate banners
   useEffect(() => {
@@ -218,7 +247,7 @@ export default function PromoBanner() {
                   <p className="text-gray-700 text-sm md:text-base mb-1">{banner.subtitle}</p>
                   <p className="text-gray-500 text-sm mb-6">{banner.tagline}</p>
                   <button 
-                    onClick={() => navigate("/services")}
+                    onClick={() => window.location.href = "http://localhost:8080/services"}
                     className={`${banner.buttonColor} text-white px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2 transition-all shadow-lg hover:shadow-xl w-fit`}
                   >
                     {banner.buttonText}
@@ -248,7 +277,7 @@ export default function PromoBanner() {
               return (
                 <div
                   key={idx}
-                  onClick={() => navigate(card.link)}
+                  onClick={() => handleCardClick(card)}
                   className={`bg-gradient-to-br ${card.bgColor} rounded-3xl p-5 cursor-pointer hover:scale-[1.02] hover:-translate-y-1 transition-all duration-300 relative overflow-hidden min-h-[320px] shadow-lg group flex flex-col`}
                 >
                   <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
@@ -362,7 +391,7 @@ export default function PromoBanner() {
                   </h2>
                   <p className="text-gray-600 text-xs mb-3">{banner.subtitle}</p>
                   <button 
-                    onClick={() => navigate("/services")}
+                    onClick={() => window.location.href = "http://localhost:8080/services"}
                     className={`${banner.buttonColor} text-white px-4 py-2 rounded-lg font-semibold text-sm inline-flex items-center gap-2 shadow-md`}
                   >
                     {banner.buttonText}
@@ -392,7 +421,7 @@ export default function PromoBanner() {
               return (
                 <div
                   key={idx}
-                  onClick={() => navigate(card.link)}
+                  onClick={() => handleCardClick(card)}
                   className={`bg-gradient-to-br ${card.bgColor} min-w-[160px] rounded-2xl p-4 cursor-pointer relative overflow-hidden shadow-md flex-shrink-0`}
                 >
                   <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>

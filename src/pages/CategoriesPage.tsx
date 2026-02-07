@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { getAllCategoriesAPI } from "@/service/operations/category";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ArrowLeft } from "lucide-react";
+import { Search, ArrowLeft, CloudCog } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import {
@@ -110,6 +110,7 @@ const CategoriesPage = () => {
     try {
       setLoading(true);
       const data = await getAllCategoriesAPI();
+      // console.log(data)
       setCategories(data || []);
       setFilteredCategories(data || []);
     } catch (error) {
