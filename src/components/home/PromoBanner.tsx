@@ -100,12 +100,12 @@ export default function PromoBanner() {
     if (card.filterType === "autoFilled") {
       // Create a special URL that will filter by multiple autoFilled values
       const filterValues = card.filterValues.join(','); // Join multiple values with comma
-      const url = `http://localhost:8080/services?autoFilled=${encodeURIComponent(filterValues)}`;
+      const url = `/services?autoFilled=${encodeURIComponent(filterValues)}`;
       console.log("Navigating to:", url);
       window.location.href = url;
     } else {
       // Fallback to regular category filtering
-      const url = `http://localhost:8080/services`;
+      const url = `/services`;
       console.log("Navigating to:", url);
       window.location.href = url;
     }
@@ -247,7 +247,7 @@ export default function PromoBanner() {
                   <p className="text-gray-700 text-sm md:text-base mb-1">{banner.subtitle}</p>
                   <p className="text-gray-500 text-sm mb-6">{banner.tagline}</p>
                   <button 
-                    onClick={() => window.location.href = "http://localhost:8080/services"}
+                    onClick={() => window.location.href = "/services"}
                     className={`${banner.buttonColor} text-white px-6 py-3 rounded-xl font-semibold inline-flex items-center gap-2 transition-all shadow-lg hover:shadow-xl w-fit`}
                   >
                     {banner.buttonText}
@@ -391,7 +391,7 @@ export default function PromoBanner() {
                   </h2>
                   <p className="text-gray-600 text-xs mb-3">{banner.subtitle}</p>
                   <button 
-                    onClick={() => window.location.href = "http://localhost:8080/services"}
+                    onClick={() => window.location.href = "/services"}
                     className={`${banner.buttonColor} text-white px-4 py-2 rounded-lg font-semibold text-sm inline-flex items-center gap-2 shadow-md`}
                   >
                     {banner.buttonText}

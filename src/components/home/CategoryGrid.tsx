@@ -84,11 +84,11 @@ export default function CategoryGrid() {
   }, []);
 
   const handleCategoryClick = (categoryName: string) => {
-    window.location.href = `http://localhost:8080/services?category=${encodeURIComponent(categoryName)}`;
+    window.location.href = `/services?category=${encodeURIComponent(categoryName)}`;
   };
 
   const handleViewAll = () => {
-    window.location.href = "http://localhost:8080/categories";
+    window.location.href = "/categories";
   };
 
   // Only 16 categories - 2 rows of 8
