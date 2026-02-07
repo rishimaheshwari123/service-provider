@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -35,6 +35,7 @@ const ServicesPage = () => {
   const [categories, setCategories] = useState([]);
   const [allReviews, setAllReviews] = useState<any[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [dataInitialized, setDataInitialized] = useState(false);
   const [reviewModal, setReviewModal] = useState<{
     isOpen: boolean;
     serviceId: string;
@@ -48,6 +49,7 @@ const ServicesPage = () => {
     search: "",
     price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
     category: "all",
+    autoFilled: "", // Add autoFilled filter
   });
 
   // TEMPORARY FLAG: Set to false when real reviews are available
@@ -57,7 +59,9 @@ const ServicesPage = () => {
   const location = useLocation();
 
   useEffect(() => {
+    console.log("=== PARSING URL PARAMETERS ===");
     const params = new URLSearchParams(location.search);
+    console.log("URL search params:", location.search);
     const minPrice = Number(params.get("minPrice")) || MIN_PRICE_LIMIT;
     const maxPrice = Number(params.get("maxPrice")) || MAX_PRICE_LIMIT;
 
@@ -65,18 +69,31 @@ const ServicesPage = () => {
       search: params.get("search") || params.get("title") || params.get("location") || "",
       price: [minPrice, maxPrice],
       category: params.get("category") || "all",
+      autoFilled: params.get("autoFilled") || "", // Add autoFilled parameter
     };
+    console.log("Parsed filters:", newFilters);
     setFilters(newFilters);
   }, [location.search]);
 
   useEffect(() => {
     const initializeData = async () => {
+      if (dataInitialized) return; // Prevent multiple initializations
+      
       try {
+        console.log("=== INITIALIZING DATA ===");
+        setDataInitialized(true);
+        
         // First fetch categories and reviews
         const [categoriesData, reviewsData] = await Promise.all([
           getAllCategoriesAPI(),
           getAllReatingAPI()
         ]);
+        
+        console.log("Categories fetched:", categoriesData?.length || 0);
+        console.log("Sample categories:", categoriesData?.slice(0, 5).map(cat => ({
+          name: cat.name,
+          autoFilled: cat.autoFilled
+        })));
         
         setCategories(categoriesData || []);
         setAllReviews(reviewsData || []);
@@ -84,68 +101,98 @@ const ServicesPage = () => {
         console.log("Fetched reviews:", reviewsData);
         console.log("Total reviews count:", reviewsData?.length || 0);
         
-        // Then fetch services
-        await fetchServices(filters.category);
+        // Then fetch services only once
+        await fetchServices();
       } catch (error) {
         console.error("Error initializing data:", error);
+        setDataInitialized(false); // Reset on error
       }
     };
     
     initializeData();
-  }, []);
+  }, []); // Remove dependencies to prevent re-runs
 
-  const fetchServices = async (categoryFilter = null) => {
+  const fetchServices = useCallback(async (categoryFilter = null) => {
     try {
+      console.log("=== FETCHING SERVICES ===");
+      console.log("Category filter:", categoryFilter);
       setLoading(true);
       const filterParams: any = {};
       if (categoryFilter && categoryFilter !== 'all') {
         filterParams.category = categoryFilter;
       }
       const allServices = await getAllPropertyAPI(filterParams);
-      console.log("Fetched services:", allServices);
+      console.log("Fetched services:", allServices?.length || 0);
       console.log("Services count:", allServices?.length || 0);
       
       // Log first service to see its structure
       if (allServices && allServices.length > 0) {
-        console.log("First service structure:", allServices[0]);
-        console.log("First service review field:", allServices[0].review);
+        console.log("First service structure:", {
+          id: allServices[0]._id,
+          title: allServices[0].title,
+          category: allServices[0].category,
+          vendor: allServices[0].vendor?.name
+        });
+        console.log("Sample services categories:", allServices.slice(0, 5).map(s => s.category));
       }
       
-      setServices(allServices);
-      setFilteredServices(allServices);
+      setServices(allServices || []);
+      setFilteredServices(allServices || []);
     } catch (error) {
       console.error("Error fetching services:", error);
       toast.error("Failed to fetch services");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchServices(filters.category);
-  }, [filters.category]);
-
-  useEffect(() => {
-    if (filters.category === 'all') {
-      fetchServices();
-    }
   }, []);
 
-  useEffect(() => {
-    if (services.length > 0) applyFilters(filters);
-  }, [services, filters]);
-
-  const applyFilters = (newFilters) => {
+  // Memoize the applyFilters function to prevent unnecessary re-renders
+  const applyFilters = useCallback((newFilters) => {
     const [minPrice, maxPrice] = newFilters.price;
     const searchTerm = newFilters.search?.toLowerCase().trim() || "";
+
+    console.log("=== APPLY FILTERS DEBUG ===");
+    console.log("Categories available:", categories.length);
+    console.log("Services available:", services.length);
+    console.log("AutoFilled filter:", newFilters.autoFilled);
 
     let filtered = services.filter((service) => {
       // Use the utility function for consistent search logic
       const matchSearch = matchesSearchTerm(service, searchTerm);
 
-      const matchCategory =
-        newFilters.category === "all" ||
-        (service as any).category?.toLowerCase() === newFilters.category.toLowerCase();
+      // Category matching - check both category name and autoFilled
+      let matchCategory = true;
+      if (newFilters.category !== "all") {
+        matchCategory = (service as any).category?.toLowerCase() === newFilters.category.toLowerCase();
+      }
+      
+      // AutoFilled matching - filter by autoFilled field from categories
+      let matchAutoFilled = true;
+      if (newFilters.autoFilled) {
+        // Handle multiple autoFilled values separated by comma
+        const autoFilledValues = newFilters.autoFilled.split(',').map(v => v.trim().toLowerCase());
+        console.log("Looking for autoFilled values:", autoFilledValues);
+        
+        // Get all categories that match any of the autoFilled values
+        const matchingCategories = categories.filter(cat => 
+          cat.autoFilled && autoFilledValues.some(value => 
+            cat.autoFilled.toLowerCase() === value
+          )
+        );
+        
+        console.log("Found matching categories:", matchingCategories.length);
+        console.log("Matching category names:", matchingCategories.map(cat => `${cat.name} (${cat.autoFilled})`));
+        
+        // Get all category names that match
+        const matchingCategoryNames = matchingCategories.map(cat => cat.name.toLowerCase());
+        
+        // Check if this service's category is in the matching categories
+        if (matchingCategoryNames.length > 0) {
+          matchAutoFilled = matchingCategoryNames.includes((service as any).category?.toLowerCase());
+        } else {
+          matchAutoFilled = false;
+        }
+      }
 
       // Handle price filtering - skip if price is "NA" or not a valid number
       const servicePrice = Number((service as any).price);
@@ -155,7 +202,7 @@ const ServicesPage = () => {
         isNaN(servicePrice) || 
         (servicePrice >= minPrice && servicePrice <= maxPrice);
 
-      return matchSearch && matchCategory && matchPrice;
+      return matchSearch && matchCategory && matchAutoFilled && matchPrice;
     });
 
     // Sort by relevance if there's a search term
@@ -163,44 +210,49 @@ const ServicesPage = () => {
       filtered = sortByRelevance(filtered, searchTerm);
     }
 
-    console.log("Search term:", searchTerm);
-    console.log("Total services:", services.length);
-    console.log("Filtered services:", filtered.length);
+    console.log("Final filtered services:", filtered.length);
+    console.log("=== END FILTER DEBUG ===");
     setFilteredServices(filtered);
-  };
+  }, [services, categories]);
 
-  const handleInputChange = (e) => {
+  // Apply filters when services, categories, or filters change
+  useEffect(() => {
+    if (services.length > 0 && categories.length > 0 && dataInitialized) {
+      console.log("Applying filters with categories loaded:", categories.length);
+      applyFilters(filters);
+    }
+  }, [services, categories, filters, dataInitialized, applyFilters]);
+
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    const newFilters = { ...filters, [name]: value };
-    setFilters(newFilters);
-  };
+    setFilters(prevFilters => ({ ...prevFilters, [name]: value }));
+  }, []);
 
-  const handleCategoryChange = (value) => {
-    const newFilters = { ...filters, category: value };
-    setFilters(newFilters);
-  };
+  const handleCategoryChange = useCallback((value) => {
+    setFilters(prevFilters => ({ ...prevFilters, category: value }));
+  }, []);
 
-  const handleHireNow = (id) => {
+  const handleHireNow = useCallback((id) => {
     navigate(`/service/${id}`);
-  };
+  }, [navigate]);
 
-  const handleAddReview = (serviceId: string, serviceName: string) => {
+  const handleAddReview = useCallback((serviceId: string, serviceName: string) => {
     setReviewModal({
       isOpen: true,
       serviceId,
       serviceName,
     });
-  };
+  }, []);
 
-  const handleCloseReviewModal = () => {
+  const handleCloseReviewModal = useCallback(() => {
     setReviewModal({
       isOpen: false,
       serviceId: "",
       serviceName: "",
     });
-  };
+  }, []);
 
-  const handleReviewAdded = async () => {
+  const handleReviewAdded = useCallback(async () => {
     // Refresh reviews after adding a new one
     try {
       const freshReviews = await getAllReatingAPI();
@@ -209,9 +261,9 @@ const ServicesPage = () => {
     } catch (error) {
       console.error("Error refreshing reviews:", error);
     }
-  };
+  }, []);
 
-  const getAverageRating = (serviceId: string) => {
+  const getAverageRating = useCallback((serviceId: string) => {
     // First try to get reviews from the populated review field
     const service = services.find((s: any) => s._id === serviceId);
     if (service?.review && Array.isArray(service.review) && service.review.length > 0) {
@@ -226,33 +278,9 @@ const ServicesPage = () => {
     }
     const total = serviceReviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
     return Number((total / serviceReviews.length).toFixed(1));
-  };
+  }, [services, allReviews]);
 
-  // Temporary function to create test reviews (remove this later)
-  const createTestReviews = async () => {
-    try {
-      console.log("Creating test reviews...");
-      
-      // Get the first service ID
-      if (services.length > 0) {
-        const firstServiceId = services[0]._id;
-        console.log("Creating test review for service:", firstServiceId);
-        
-        // You can uncomment this to create a test review
-        // const testReview = {
-        //   rating: 5,
-        //   review: "Test review",
-        //   userId: "test-user-id",
-        //   property: firstServiceId
-        // };
-        // await addRating(testReview, "test-token");
-      }
-    } catch (error) {
-      console.error("Error creating test reviews:", error);
-    }
-  };
-
-  const getReviewCount = (serviceId: string) => {
+  const getReviewCount = useCallback((serviceId: string) => {
     // First try to get count from the populated review field
     const service = services.find((s: any) => s._id === serviceId);
     if (service?.review && Array.isArray(service.review)) {
@@ -271,22 +299,23 @@ const ServicesPage = () => {
     }
     
     return count;
-  };
+  }, [services, allReviews]);
 
-  const getRatingColor = (rating: number) => {
+  const getRatingColor = useCallback((rating: number) => {
     if (rating >= 4) return "bg-green-500";
     if (rating >= 3) return "bg-yellow-500";
     if (rating >= 2) return "bg-orange-500";
     return "bg-red-500";
-  };
+  }, []);
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     setFilters({
       search: "",
       price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
       category: "all",
+      autoFilled: "",
     });
-  };
+  }, []);
 
   return (
     <>
@@ -351,7 +380,7 @@ const ServicesPage = () => {
                   <span className="hidden sm:inline">{t("common.filter")}</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
                 </button>
-                {(filters.search || filters.category !== "all") && (
+                {(filters.search || filters.category !== "all" || filters.autoFilled) && (
                   <button
                     onClick={clearFilters}
                     className="flex items-center gap-1 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -406,6 +435,11 @@ const ServicesPage = () => {
                   {filters.category !== "all" && (
                     <span className="ml-2 text-blue-600 font-medium">
                       in {filters.category}
+                    </span>
+                  )}
+                  {filters.autoFilled && (
+                    <span className="ml-2 text-green-600 font-medium">
+                      ({filters.autoFilled.split(',').join(' & ')} services)
                     </span>
                   )}
                 </>
