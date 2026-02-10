@@ -34,6 +34,9 @@ const Modal = ({ isOpen, onClose, children, title }) => {
 export const GetAllEmployee = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [employees, setEmployees] = useState([]);
+  const [filteredEmployees, setFilteredEmployees] = useState([]);
+  const [roleFilter, setRoleFilter] = useState("all"); // New state for role filtering
+  const [searchTerm, setSearchTerm] = useState(""); // New state for search
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
@@ -77,6 +80,7 @@ export const GetAllEmployee = () => {
       const response = await getAllUsersAPI();
       if (response) {
         setEmployees(response);
+        setFilteredEmployees(response); // Initialize filtered employees
         setMessage("");
       } else {
         setMessage("Failed to load employees.");
@@ -86,6 +90,45 @@ export const GetAllEmployee = () => {
       setMessage("An error occurred while loading employees.");
     }
   };
+
+  // Filter employees based on role and search term
+  const filterEmployees = () => {
+    let filtered = employees;
+
+    // Filter by role
+    if (roleFilter !== "all") {
+      filtered = filtered.filter(employee => 
+        employee.role?.toLowerCase() === roleFilter.toLowerCase()
+      );
+    }
+
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(employee =>
+        employee.name?.toLowerCase().includes(search) ||
+        employee.email?.toLowerCase().includes(search) ||
+        employee.role?.toLowerCase().includes(search)
+      );
+    }
+
+    setFilteredEmployees(filtered);
+  };
+
+  // Filter employees based on role
+  const filterEmployeesByRole = (role) => {
+    setRoleFilter(role);
+  };
+
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  // Update filtered employees when employees data, role filter, or search term changes
+  useEffect(() => {
+    filterEmployees();
+  }, [employees, roleFilter, searchTerm]);
 
   useEffect(() => {
     fetchEmployees();
@@ -311,13 +354,113 @@ export const GetAllEmployee = () => {
 
       {/* Employee Table */}
       <div className="w-full max-w-7xl bg-white p-8 rounded-3xl shadow-3xl border border-gray-200">
-        <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">
-          All Employees
-        </h2>
-        {employees.length === 0 ? (
-          <p className="text-center text-gray-600 text-lg">
-            No employees found. Add some!
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
+          <h2 className="text-4xl font-bold text-gray-800 text-center sm:text-left">
+            Employee Management Portal
+          </h2>
+          
+          {/* Role Filter Buttons */}
+          <div className="flex gap-2 mt-4 sm:mt-0">
+            <button
+              onClick={() => filterEmployeesByRole("all")}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                roleFilter === "all"
+                  ? "bg-purple-600 text-white shadow-lg"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              All ({employees.length})
+            </button>
+            <button
+              onClick={() => filterEmployeesByRole("admin")}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                roleFilter === "admin"
+                  ? "bg-purple-600 text-white shadow-lg"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              Admin ({employees.filter(emp => emp.role?.toLowerCase() === "admin").length})
+            </button>
+            <button
+              onClick={() => filterEmployeesByRole("user")}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                roleFilter === "user"
+                  ? "bg-purple-600 text-white shadow-lg"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              User ({employees.filter(emp => emp.role?.toLowerCase() === "user").length})
+            </button>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              placeholder="Search by name, email, or role..."
+              value={searchTerm}
+              onChange={handleSearchChange}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Results Summary */}
+        <div className="mb-6">
+          <p className="text-gray-600">
+            Showing {filteredEmployees.length} of {employees.length} employees
+            {roleFilter !== "all" && (
+              <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
+                Role: {roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1)}
+              </span>
+            )}
+            {searchTerm && (
+              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                Search: "{searchTerm}"
+              </span>
+            )}
           </p>
+        </div>
+
+        {filteredEmployees.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              {searchTerm 
+                ? `No employees found matching "${searchTerm}"` 
+                : roleFilter === "all" 
+                ? "No employees found" 
+                : `No ${roleFilter} employees found`
+              }
+            </h3>
+            <p className="text-gray-500">
+              {searchTerm
+                ? "Try adjusting your search terms or clear the search to see all employees."
+                : roleFilter === "all" 
+                ? "Add some employees to get started!" 
+                : `Try selecting a different role filter or add ${roleFilter} employees.`
+              }
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -344,7 +487,7 @@ export const GetAllEmployee = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {employees.map((employee) => (
+                {filteredEmployees.map((employee) => (
                   <tr
                     key={employee._id}
                     className="hover:bg-gray-50 transition-colors duration-150"
@@ -356,10 +499,24 @@ export const GetAllEmployee = () => {
                       {employee.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {employee.type}
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        employee.type === 'active' 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-red-100 text-red-800'
+                      }`}>
+                        {employee.type}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {employee.role}
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                        employee.role === 'admin' 
+                          ? 'bg-purple-100 text-purple-800' 
+                          : employee.role === 'user'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {employee.role}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-700">
                       <div className="flex flex-wrap gap-2">
