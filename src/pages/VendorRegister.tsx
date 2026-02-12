@@ -32,7 +32,12 @@ const vendorSchema = z.object({
   address: z.string().min(5, "Address is required"),
   serviceLocation: z.string().min(2, "Service location is required"),
   phone: z.string().regex(/^[1-9]\d{9}$/, "Phone must be 10 digits"),
-  alternatePhone: z.string().regex(/^[1-9]\d{9}$/, "Must be 10 digits").optional().or(z.literal("")),
+  alternatePhone: z.string().optional().refine((val) => {
+    if (!val || val === "") return true; // Allow empty
+    return /^[1-9]\d{9}$/.test(val); // Must be exactly 10 digits if provided
+  }, {
+    message: "Alternate phone must be exactly 10 digits"
+  }),
   whatsappNumber: z.string().regex(/^[1-9]\d{9}$/, "WhatsApp must be 10 digits").optional().or(z.literal("")),
   email: z.string().email("Please enter a valid email").optional().or(z.literal("")),
   
@@ -144,7 +149,7 @@ const VendorRegister = () => {
   const validateStep = async (step: number): Promise<boolean> => {
     const fieldsToValidate: Record<number, (keyof VendorFormData)[]> = {
       1: ["company", "typeOfService", "description", "category", "subCategory", "name"],
-      2: ["address", "serviceLocation", "phone"],
+      2: ["address", "serviceLocation", "phone", "alternatePhone"], // Added alternatePhone
       3: ["businessType"],
       4: [],
       5: ["workingDays"],
