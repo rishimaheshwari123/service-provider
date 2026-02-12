@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import {
@@ -18,6 +19,7 @@ import {
 import { BASE_URL } from "@/service/apis";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { Search } from "lucide-react";
 
 declare global {
   interface Window {
@@ -32,6 +34,7 @@ const PurchaseCategories = () => {
   const [purchased, setPurchased] = useState<any[]>([]);
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const [chooseModeOpen, setChooseModeOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
@@ -59,6 +62,11 @@ const PurchaseCategories = () => {
   const isPurchased = (id: string) => purchased.some((p) => p?._id === id);
   const isPending = (id: string) =>
     pending.some((p) => p?.category?._id === id);
+
+  // Filter categories based on search term
+  const filteredCategories = all.filter((category) =>
+    category.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const openChooseMode = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
@@ -154,44 +162,65 @@ const PurchaseCategories = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {all.map((c) => (
-              <div
-                key={c._id}
-                className="border rounded-lg p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition"
-              >
-                {/* Category Info */}
-                <div className="mb-4">
-                  <div className="text-lg font-medium text-gray-800">
-                    {c.name}
-                  </div>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Price: ₹{c.price}
-                  </div>
-                </div>
+          {/* Search Input */}
+          <div className="mb-6">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                type="text"
+                placeholder="Search categories..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full max-w-md"
+              />
+            </div>
+          </div>
 
-                {/* Purchase Status / Button */}
-                <div>
-                  {isPurchased(c._id) ? (
-                    <Button variant="outline" disabled className="w-full">
-                      Purchased
-                    </Button>
-                  ) : isPending(c._id) ? (
-                    <Button variant="outline" disabled className="w-full">
-                      Pending Approval
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => openChooseMode(c._id)}
-                      disabled={loading}
-                      className="w-full bg-green-500 hover:bg-green-600 text-white"
-                    >
-                      {loading ? "Please wait..." : "Purchase"}
-                    </Button>
-                  )}
-                </div>
+          {/* Categories Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {filteredCategories.length === 0 ? (
+              <div className="col-span-full text-center py-8 text-gray-500">
+                {searchTerm ? "No categories found matching your search." : "No categories available."}
               </div>
-            ))}
+            ) : (
+              filteredCategories.map((c) => (
+                <div
+                  key={c._id}
+                  className="border rounded-lg p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition"
+                >
+                  {/* Category Info */}
+                  <div className="mb-4">
+                    <div className="text-lg font-medium text-gray-800">
+                      {c.name}
+                    </div>
+                    <div className="text-sm text-gray-500 mt-1">
+                      Price: ₹{c.price}
+                    </div>
+                  </div>
+
+                  {/* Purchase Status / Button */}
+                  <div>
+                    {isPurchased(c._id) ? (
+                      <Button variant="outline" disabled className="w-full">
+                        Purchased
+                      </Button>
+                    ) : isPending(c._id) ? (
+                      <Button variant="outline" disabled className="w-full">
+                        Pending Approval
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => openChooseMode(c._id)}
+                        disabled={loading}
+                        className="w-full bg-green-500 hover:bg-green-600 text-white"
+                      >
+                        {loading ? "Please wait..." : "Purchase"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
