@@ -277,7 +277,7 @@ const Navbar = () => {
                       className="hover:bg-gray-100 dark:hover:bg-gray-700"
                     >
                       <Link
-                        to="/user/profile"
+                        to={user.role === "vendor" ? "/vendor/my-profile" : "/user/profile"}
                         className="flex items-center space-x-2 font-medium"
                       >
                         <User className="h-4 w-4 text-primary" />
