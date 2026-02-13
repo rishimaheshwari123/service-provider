@@ -46,8 +46,10 @@ import { toast } from "react-toastify";
 
 const ManageCategories = () => {
   const [loading, setLoading] = useState(false);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [purchasersOpen, setPurchasersOpen] = useState(false);
+  const [purchasersLoading, setPurchasersLoading] = useState(false);
   const [currentCategory, setCurrentCategory] = useState<any | null>(null);
   const [purchasers, setPurchasers] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
@@ -90,39 +92,50 @@ const ManageCategories = () => {
   }
   const load = async () => {
     console.log("🔍 ManageCategories: Loading data...");
+    setCategoriesLoading(true);
     
-    const data = await getAllCategoriesAPI();
-    console.log("📋 Categories loaded:", data?.length || 0);
-    setCategories(data);
-    
-    const pend = await getPendingCategoryPurchasesAPI();
-    console.log("⏳ Pending purchases loaded:", pend?.length || 0);
-    console.log("📊 Pending purchases data:", pend);
-    
-    // Debug each pending purchase
-    if (pend && pend.length > 0) {
-      pend.forEach((purchase, index) => {
-        console.log(`Purchase ${index + 1}:`, {
-          id: purchase._id,
-          vendor: purchase.vendor,
-          vendorName: purchase.vendor?.name,
-          vendorEmail: purchase.vendor?.email,
-          category: purchase.category?.name,
-          paymentMode: purchase.paymentMode,
-          status: purchase.status,
-          createdAt: purchase.createdAt
+    try {
+      const data = await getAllCategoriesAPI();
+      console.log("📋 Categories loaded:", data?.length || 0);
+      setCategories(data);
+      
+      const pend = await getPendingCategoryPurchasesAPI();
+      console.log("⏳ Pending purchases loaded:", pend?.length || 0);
+      console.log("📊 Pending purchases data:", pend);
+      
+      // Debug each pending purchase
+      if (pend && pend.length > 0) {
+        pend.forEach((purchase, index) => {
+          console.log(`Purchase ${index + 1}:`, {
+            id: purchase._id,
+            vendor: purchase.vendor,
+            vendorName: purchase.vendor?.name,
+            vendorEmail: purchase.vendor?.email,
+            category: purchase.category?.name,
+            paymentMode: purchase.paymentMode,
+            status: purchase.status,
+            createdAt: purchase.createdAt
+          });
         });
-      });
+      }
+      
+      setPendingPurchases(pend);
+    } finally {
+      setCategoriesLoading(false);
     }
-    
-    setPendingPurchases(pend);
   };
 
   const openPurchasers = async (category) => {
     setCurrentCategory(category);
-    const list = await getCategoryPurchasersAPI(category._id);
-    setPurchasers(list);
     setPurchasersOpen(true);
+    setPurchasersLoading(true);
+    
+    try {
+      const list = await getCategoryPurchasersAPI(category._id);
+      setPurchasers(list);
+    } finally {
+      setPurchasersLoading(false);
+    }
   };
 
   const openAssignToVendor = async (category) => {
@@ -187,20 +200,23 @@ const ManageCategories = () => {
     if (modalForm.autoFilled) formData.append("autoFilled", modalForm.autoFilled.trim());
     if (modalImageFile) formData.append("image", modalImageFile);
     
-    if (isEditMode && editingCategory?._id) {
-      await updateCategoryAPI(editingCategory._id, formData);
-    } else {
-      await createCategoryAPI(formData);
+    try {
+      if (isEditMode && editingCategory?._id) {
+        await updateCategoryAPI(editingCategory._id, formData);
+      } else {
+        await createCategoryAPI(formData);
+      }
+      
+      setModalOpen(false);
+      setEditingCategory(null);
+      setModalForm({ name: "", price: "", autoFilled: "" });
+      setModalImageFile(null);
+      setModalImagePreview("");
+      setIsEditMode(false);
+      await load();
+    } finally {
+      setLoading(false);
     }
-    
-    setModalOpen(false);
-    setEditingCategory(null);
-    setModalForm({ name: "", price: "", autoFilled: "" });
-    setModalImageFile(null);
-    setModalImagePreview("");
-    setIsEditMode(false);
-    await load();
-    setLoading(false);
   };
 
   const handleModalImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -376,8 +392,18 @@ const ManageCategories = () => {
                 />
               </div>
               <div className="divide-y">
-                {categories.length === 0 ? (
-                  <p className="text-sm text-gray-500">No categories yet.</p>
+                {categoriesLoading ? (
+                  // Simple centered loading spinner
+                  <div className="flex flex-col items-center justify-center py-16">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                    <p className="text-gray-600 font-medium">Loading...</p>
+                  </div>
+                ) : categories.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-gray-400 text-6xl mb-4">📂</div>
+                    <p className="text-lg font-medium text-gray-600 mb-2">No categories yet</p>
+                    <p className="text-sm text-gray-500">Create your first category to get started</p>
+                  </div>
                 ) : (
                   categories
                     .filter((c) =>
@@ -469,6 +495,7 @@ const ManageCategories = () => {
                       <TableHead>Category</TableHead>
                       <TableHead>Price</TableHead>
                       <TableHead>Mode</TableHead>
+                      <TableHead>Transaction ID</TableHead>
                       <TableHead>Requested At</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -490,6 +517,17 @@ const ManageCategories = () => {
                         <TableCell>₹{p.category?.price ?? "-"}</TableCell>
                         <TableCell className="capitalize">
                           {p.paymentMode || "cash"}
+                        </TableCell>
+                        <TableCell>
+                          {p.paymentMode === "qr" && p.transactionId ? (
+                            <div className="flex flex-col">
+                              <span className="font-mono text-sm bg-blue-50 px-2 py-1 rounded border">
+                                {p.transactionId}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-gray-400 text-sm">-</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {p.createdAt
@@ -540,10 +578,17 @@ const ManageCategories = () => {
             </DialogTitle>
           </DialogHeader>
 
-          {purchasers?.length === 0 ? (
-            <p className="text-sm text-gray-500">
-              No purchases yet for this category.
-            </p>
+          {purchasersLoading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+              <p className="text-gray-600 text-sm">Loading...</p>
+            </div>
+          ) : purchasers?.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-gray-400 text-4xl mb-3">👥</div>
+              <p className="text-sm text-gray-500 font-medium">No purchases yet for this category</p>
+              <p className="text-xs text-gray-400 mt-1">Purchases will appear here once vendors buy this category</p>
+            </div>
           ) : (
             <div className="space-y-2">
               {purchasers?.map((p, idx) => (
@@ -702,15 +747,35 @@ const ManageCategories = () => {
 
             {/* Transaction ID - Only show for QR */}
             {paymentMethod === "qr" && (
-              <div className="space-y-2">
-                <Label>Transaction ID <span className="text-red-500">*</span></Label>
-                <input
-                  type="text"
-                  placeholder="Enter transaction ID"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
-                />
+              <div className="space-y-4">
+                {/* QR Code Display */}
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Scan QR code for payment
+                  </p>
+                  <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-lg inline-block">
+                    <img 
+                      src="/qr.png" 
+                      alt="QR Code for Payment" 
+                      className="w-56 h-56 object-contain"
+                    />
+                  </div>
+                </div>
+                
+                {/* Transaction ID Input */}
+                <div className="space-y-2">
+                  <Label>Transaction ID <span className="text-red-500">*</span></Label>
+                  <input
+                    type="text"
+                    placeholder="Enter transaction ID"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Enter the transaction ID received after payment
+                  </p>
+                </div>
               </div>
             )}
 
@@ -950,15 +1015,35 @@ const ManageCategories = () => {
 
             {/* Transaction ID - Only show for QR */}
             {purchasePaymentMethod === "qr" && (
-              <div className="space-y-2">
-                <Label>Transaction ID <span className="text-red-500">*</span></Label>
-                <input
-                  type="text"
-                  placeholder="Enter transaction ID"
-                  className="w-full px-3 py-2 border rounded-lg"
-                  value={purchaseTransactionId}
-                  onChange={(e) => setPurchaseTransactionId(e.target.value)}
-                />
+              <div className="space-y-4">
+                {/* QR Code Display */}
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Scan QR code for payment
+                  </p>
+                  <div className="bg-white p-4 rounded-lg border-2 border-gray-200 shadow-lg inline-block">
+                    <img 
+                      src="/qr.png" 
+                      alt="QR Code for Payment" 
+                      className="w-56 h-56 object-contain"
+                    />
+                  </div>
+                </div>
+                
+                {/* Transaction ID Input */}
+                <div className="space-y-2">
+                  <Label>Transaction ID <span className="text-red-500">*</span></Label>
+                  <input
+                    type="text"
+                    placeholder="Enter transaction ID"
+                    className="w-full px-3 py-2 border rounded-lg"
+                    value={purchaseTransactionId}
+                    onChange={(e) => setPurchaseTransactionId(e.target.value)}
+                  />
+                  <p className="text-xs text-gray-500">
+                    Enter the transaction ID received after payment
+                  </p>
+                </div>
               </div>
             )}
 

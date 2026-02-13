@@ -336,22 +336,39 @@ const getCategoryPurchasersCtrl = async (req, res) => {
         .json({ success: false, message: "categoryId is required" });
     }
 
+    console.log("🔍 Getting purchasers for category:", categoryId);
+
     // Fetch purchased entries and populate vendor & category
     const purchases = await VendorCategoryPurchase.find({
       category: categoryId,
       status: "purchased",
     })
       .populate({ path: "vendor", select: "name email phone status" })
-      .populate({ path: "category", select: "name price" });
+      .populate({ path: "category", select: "name price" })
+      .sort({ createdAt: -1 }); // Sort by newest first
+
+    console.log("📊 Found purchases:", purchases.length);
+    console.log("📋 Purchase details:", purchases.map(p => ({
+      vendor: p.vendor?.name,
+      email: p.vendor?.email,
+      paymentMode: p.paymentMode,
+      transactionId: p.transactionId,
+      status: p.status,
+      createdAt: p.createdAt
+    })));
 
     // Map required fields including paymentMode and transactionId
     const purchasers = purchases.map((p) => ({
       vendor: p.vendor,
       purchasedAt: p.createdAt,
+      createdAt: p.createdAt, // Add this for frontend compatibility
       paymentMode: p.paymentMode,
       transactionId: p.transactionId,
+      status: p.status, // Add status for frontend display
       category: p.category, // optional, in case you want category name & price on frontend
     }));
+
+    console.log("✅ Returning purchasers:", purchasers.length);
 
     return res.status(200).json({ success: true, purchasers });
   } catch (error) {
