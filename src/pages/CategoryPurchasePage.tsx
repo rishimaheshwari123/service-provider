@@ -409,22 +409,42 @@ const CategoryPurchasePage = () => {
               </div>
             </div>
 
-            {/* Transaction ID - Only show for QR */}
+            {/* QR Code Display and Transaction ID - Only show for QR */}
             {paymentMethod === "qr" && (
-              <div className="space-y-2 mb-6">
-                <label className="block text-sm font-medium text-gray-700">
-                  Transaction ID <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
-                  placeholder="Enter transaction ID from QR payment"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                />
-                <p className="text-xs text-gray-500">
-                  Enter the transaction ID you received after QR payment
-                </p>
+              <div className="space-y-4 mb-6">
+                {/* QR Code Display */}
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-4 font-medium">
+                    Scan the QR code below to make payment
+                  </p>
+                  <div className="bg-white p-6 rounded-lg border-2 border-gray-200 shadow-lg inline-block">
+                    <img 
+                      src="/qr.png" 
+                      alt="QR Code for Payment" 
+                      className="w-72 h-72 object-contain"
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 mt-3 font-medium">
+                    Amount: ₹{selectedCategory.price}
+                  </p>
+                </div>
+                
+                {/* Transaction ID Input */}
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Transaction ID <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={transactionId}
+                    onChange={(e) => setTransactionId(e.target.value)}
+                    placeholder="Enter transaction ID from QR payment"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Enter the transaction ID you received after making the QR payment
+                  </p>
+                </div>
               </div>
             )}
 
