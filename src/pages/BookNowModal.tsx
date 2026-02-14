@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { MapPin } from "lucide-react";
 import { RootState } from "@/redux/store";
 
 const BookNowModal = ({ property }) => {
@@ -19,8 +20,193 @@ const BookNowModal = ({ property }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [notes, setNotes] = useState("");
+  
+  // Address fields
+  const [addressLine1, setAddressLine1] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [zipCode, setZipCode] = useState("");
+  const [country, setCountry] = useState("");
+  const [fetchingLocation, setFetchingLocation] = useState(false);
+  
   const { user, token } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
+
+  // Function to get current location
+  const getCurrentLocation = () => {
+    setFetchingLocation(true);
+    
+    if (!navigator.geolocation) {
+      toast.error("Geolocation is not supported by this browser!");
+      setFetchingLocation(false);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+        
+        try {
+          // Use Nominatim (OpenStreetMap) for reverse geocoding - it's free
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1&accept-language=en&zoom=18`
+          );
+          
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.address) {
+              const addr = data.address;
+              
+              // Build proper address line with better priority
+              let addressLine1 = "";
+              
+              // Priority 1: Specific building/house info
+              if (addr.house_number && addr.road) {
+                addressLine1 = `${addr.house_number}, ${addr.road}`;
+              }
+              // Priority 2: Road/Street name
+              else if (addr.road) {
+                addressLine1 = addr.road;
+              }
+              // Priority 3: Commercial/POI
+              else if (addr.shop || addr.amenity || addr.building) {
+                addressLine1 = addr.shop || addr.amenity || addr.building;
+              }
+              // Priority 4: Neighbourhood/Locality
+              else if (addr.neighbourhood) {
+                addressLine1 = addr.neighbourhood;
+              }
+              // Priority 5: Suburb/Area
+              else if (addr.suburb) {
+                addressLine1 = addr.suburb;
+              }
+              // Priority 6: Village/Town
+              else if (addr.village || addr.town) {
+                addressLine1 = addr.village || addr.town;
+              }
+              // Fallback
+              else {
+                addressLine1 = "Current Location";
+              }
+              
+              setAddressLine1(addressLine1);
+              setCity(addr.city || addr.town || addr.village || addr.suburb || "");
+              setState(addr.state || addr.region || "");
+              setZipCode(addr.postcode || "");
+              setCountry(addr.country || "India");
+              
+              toast.success("Address fetched successfully!");
+            } else {
+              throw new Error("No address data found");
+            }
+          } else {
+            throw new Error("Geocoding failed");
+          }
+        } catch (error) {
+          console.error("Geocoding error:", error);
+          
+          // Try alternative free service - BigDataCloud
+          try {
+            const response2 = await fetch(
+              `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+            );
+            
+            if (response2.ok) {
+              const data2 = await response2.json();
+              
+              // Use more accurate address parsing
+              let addressLine1 = "";
+              let city = "";
+              let state = "";
+              let zipCode = "";
+              
+              // Try to get the most specific address
+              if (data2.localityInfo && data2.localityInfo.administrative) {
+                const admin = data2.localityInfo.administrative;
+                // Get the most specific locality (usually the smallest administrative unit)
+                for (let i = admin.length - 1; i >= 0; i--) {
+                  if (admin[i].name && admin[i].adminLevel >= 8) {
+                    addressLine1 = admin[i].name;
+                    break;
+                  }
+                }
+                
+                // Get city (usually adminLevel 6 or 7)
+                for (let i = 0; i < admin.length; i++) {
+                  if (admin[i].adminLevel >= 6 && admin[i].adminLevel <= 7) {
+                    city = admin[i].name;
+                    break;
+                  }
+                }
+                
+                // Get state (usually adminLevel 4)
+                for (let i = 0; i < admin.length; i++) {
+                  if (admin[i].adminLevel === 4) {
+                    state = admin[i].name;
+                    break;
+                  }
+                }
+              }
+              
+              // Fallback to main properties if admin parsing failed
+              if (!addressLine1) {
+                addressLine1 = data2.locality || data2.city || "Current Location";
+              }
+              if (!city) {
+                city = data2.city || data2.locality || "";
+              }
+              if (!state) {
+                state = data2.principalSubdivision || "";
+              }
+              
+              setAddressLine1(addressLine1);
+              setCity(city);
+              setState(state);
+              setZipCode(data2.postcode || "");
+              setCountry(data2.countryName || "India");
+              
+              toast.success("Address fetched successfully!");
+            } else {
+              throw new Error("Alternative geocoding failed");
+            }
+          } catch (error2) {
+            console.error("Alternative geocoding error:", error2);
+            
+            // Final fallback: set coordinates and ask user to fill manually
+            setAddressLine1(`Location: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+            setCountry("India");
+            toast.info("Location detected! Please fill address details manually.");
+          }
+        }
+        
+        setFetchingLocation(false);
+      },
+      (error) => {
+        console.error("Geolocation error:", error);
+        let errorMessage = "Unable to retrieve your location!";
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage = "Location access denied. Please enable location permission.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage = "Location information is unavailable.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out.";
+            break;
+        }
+        
+        toast.error(errorMessage);
+        setFetchingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000, // Increased timeout for better accuracy
+        maximumAge: 60000 // 1 minute cache
+      }
+    );
+  };
 
   const handleBooking = async () => {
     if (!date) {
@@ -31,6 +217,10 @@ const BookNowModal = ({ property }) => {
       toast.error("Please select a booking time!");
       return;
     }
+    if (!addressLine1) {
+      toast.error("Please enter your address!");
+      return;
+    }
 
     const formDataToSend = {
       service: property._id,
@@ -38,6 +228,13 @@ const BookNowModal = ({ property }) => {
       date,
       time,
       notes,
+      address: {
+        addressLine1,
+        city,
+        state,
+        zipCode,
+        country
+      },
       payment: {
         paymentType: "cash",
         paymentStatus: "pending",
@@ -47,6 +244,15 @@ const BookNowModal = ({ property }) => {
     const res = await createBookingAPI(formDataToSend);
     if (res) {
       setOpen(false);
+      // Reset form
+      setDate("");
+      setTime("");
+      setNotes("");
+      setAddressLine1("");
+      setCity("");
+      setState("");
+      setZipCode("");
+      setCountry("");
     }
   };
 
@@ -69,7 +275,7 @@ const BookNowModal = ({ property }) => {
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-md rounded-2xl h-[650px] overflow-y-auto">
+        <DialogContent className="max-w-md rounded-2xl h-[700px] overflow-y-auto">
           {/* Header */}
           <DialogHeader className="px-6 pt-4">
             <DialogTitle className="text-xl font-semibold">
@@ -91,9 +297,6 @@ const BookNowModal = ({ property }) => {
                 {property.title}
               </h3>
               <p className="text-gray-600 text-sm">{property.location}</p>
-              {/* <p className="text-gray-800 font-semibold mt-1">
-                ₹{property.price}
-              </p> */}
             </div>
           </div>
 
@@ -123,6 +326,73 @@ const BookNowModal = ({ property }) => {
                 onChange={(e) => setTime(e.target.value)}
                 className="w-full"
               />
+            </div>
+
+            {/* Address Section */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="block text-gray-700 text-sm font-medium">
+                  Service Address
+                </label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={getCurrentLocation}
+                  disabled={fetchingLocation}
+                  className="flex items-center gap-2 text-xs"
+                >
+                  <MapPin className="w-3 h-3" />
+                  {fetchingLocation ? "Getting..." : "Current Location"}
+                </Button>
+              </div>
+
+              {/* Address Line 1 */}
+              <div>
+                <Input
+                  type="text"
+                  value={addressLine1}
+                  onChange={(e) => setAddressLine1(e.target.value)}
+                  placeholder="Address Line 1"
+                  className="w-full"
+                />
+              </div>
+
+              {/* City and State */}
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="City"
+                  className="w-full"
+                />
+                <Input
+                  type="text"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  placeholder="State"
+                  className="w-full"
+                />
+              </div>
+
+              {/* Zip Code and Country */}
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  type="text"
+                  value={zipCode}
+                  onChange={(e) => setZipCode(e.target.value)}
+                  placeholder="Zip Code"
+                  className="w-full"
+                />
+                <Input
+                  type="text"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  placeholder="Country"
+                  className="w-full"
+                />
+              </div>
             </div>
 
             {/* Notes */}
