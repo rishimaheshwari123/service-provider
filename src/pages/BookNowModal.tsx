@@ -29,6 +29,12 @@ const BookNowModal = ({ property }) => {
   const [country, setCountry] = useState("");
   const [fetchingLocation, setFetchingLocation] = useState(false);
   
+  // Coordinates
+  const [coordinates, setCoordinates] = useState<{latitude: number | null, longitude: number | null}>({
+    latitude: null,
+    longitude: null
+  });
+  
   const { user, token } = useSelector((state: RootState) => state.auth);
   const navigate = useNavigate();
 
@@ -45,6 +51,9 @@ const BookNowModal = ({ property }) => {
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const { latitude, longitude } = position.coords;
+        
+        // Store coordinates immediately
+        setCoordinates({ latitude, longitude });
         
         try {
           // Use Nominatim (OpenStreetMap) for reverse geocoding - it's free
@@ -233,7 +242,11 @@ const BookNowModal = ({ property }) => {
         city,
         state,
         zipCode,
-        country
+        country,
+        coordinates: {
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude
+        }
       },
       payment: {
         paymentType: "cash",
@@ -253,6 +266,7 @@ const BookNowModal = ({ property }) => {
       setState("");
       setZipCode("");
       setCountry("");
+      setCoordinates({ latitude: null, longitude: null });
     }
   };
 
@@ -393,6 +407,41 @@ const BookNowModal = ({ property }) => {
                   className="w-full"
                 />
               </div>
+
+              {/* Coordinates Display/Input */}
+              {coordinates.latitude && coordinates.longitude && (
+                <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                  <p className="text-xs text-green-700 font-medium mb-1">GPS Coordinates:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs text-gray-600">Latitude:</label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={coordinates.latitude || ""}
+                        onChange={(e) => setCoordinates(prev => ({
+                          ...prev,
+                          latitude: parseFloat(e.target.value) || null
+                        }))}
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-600">Longitude:</label>
+                      <Input
+                        type="number"
+                        step="any"
+                        value={coordinates.longitude || ""}
+                        onChange={(e) => setCoordinates(prev => ({
+                          ...prev,
+                          longitude: parseFloat(e.target.value) || null
+                        }))}
+                        className="text-xs h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Notes */}

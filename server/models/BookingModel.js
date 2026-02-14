@@ -48,6 +48,15 @@ const bookingSchema = new mongoose.Schema(
                 type: String,
                 trim: true,
             },
+            // 🔹 GPS Coordinates
+            coordinates: {
+                latitude: {
+                    type: Number,
+                },
+                longitude: {
+                    type: Number,
+                },
+            },
         },
         
         status: {

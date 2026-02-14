@@ -72,6 +72,10 @@ interface Booking {
     state: string;
     zipCode: string;
     country: string;
+    coordinates?: {
+      latitude: number | null;
+      longitude: number | null;
+    };
   };
   status: "pending" | "confirmed" | "completed" | "cancelled";
   payment: {
@@ -594,6 +598,11 @@ const UserProfile = () => {
                                   )}
                                   {booking.address.country && (
                                     <p className="font-medium text-indigo-700">{booking.address.country}</p>
+                                  )}
+                                  {booking.address.coordinates?.latitude && booking.address.coordinates?.longitude && (
+                                    <p className="text-xs text-indigo-600 mt-2 font-mono bg-white px-2 py-1 rounded">
+                                      GPS: {booking.address.coordinates.latitude.toFixed(6)}, {booking.address.coordinates.longitude.toFixed(6)}
+                                    </p>
                                   )}
                                 </div>
                               </div>
