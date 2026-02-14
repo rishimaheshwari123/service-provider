@@ -272,17 +272,33 @@ const updateVendorProfileCtrl = async (req, res) => {
       delete updateData['experience[totalYears]'];
     }
 
+    // Transform bank detail fields from request body
+    if (updateData['bankDetail[accountNumber]'] || updateData['bankDetail[IFSC]'] || 
+        updateData['bankDetail[accountHolderName]'] || updateData['bankDetail[branch]']) {
+      updateData.bankDetail = {
+        accountNumber: updateData['bankDetail[accountNumber]'] || '',
+        IFSC: updateData['bankDetail[IFSC]'] || '',
+        accountHolderName: updateData['bankDetail[accountHolderName]'] || '',
+        branch: updateData['bankDetail[branch]'] || '',
+      };
+
+      delete updateData['bankDetail[accountNumber]'];
+      delete updateData['bankDetail[IFSC]'];
+      delete updateData['bankDetail[accountHolderName]'];
+      delete updateData['bankDetail[branch]'];
+    }
+
     // Upload files if provided
     if (files?.profilePhoto) {
-      const photoUpload = await uploadImageToCloudinary(files.profilePhoto.path, "profilePhoto");
+      const photoUpload = await uploadImageToCloudinary(files.profilePhoto, "profilePhoto");
       fileUpdates.profilePhoto = photoUpload.secure_url;
     }
     if (files?.document1) {
-      const doc1Upload = await uploadImageToCloudinary(files.document1.path, "vendorDocuments");
+      const doc1Upload = await uploadImageToCloudinary(files.document1, "vendorDocuments");
       fileUpdates.document1 = doc1Upload.secure_url;
     }
     if (files?.document2) {
-      const doc2Upload = await uploadImageToCloudinary(files.document2.path, "vendorDocuments");
+      const doc2Upload = await uploadImageToCloudinary(files.document2, "vendorDocuments");
       fileUpdates.document2 = doc2Upload.secure_url;
     }
 
