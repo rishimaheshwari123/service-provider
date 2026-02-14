@@ -37,6 +37,10 @@ interface ExtendedBooking extends Booking {
     state: string;
     zipCode: string;
     country: string;
+    coordinates?: {
+      latitude: number | null;
+      longitude: number | null;
+    };
   };
   status: "pending" | "confirmed" | "completed" | "cancelled";
   payment: {
@@ -278,6 +282,11 @@ const VendorBookings: React.FC = () => {
                         )}
                         {booking.address.country && (
                           <p className="font-medium">{booking.address.country}</p>
+                        )}
+                        {booking.address.coordinates?.latitude && booking.address.coordinates?.longitude && (
+                          <p className="text-xs text-blue-600 mt-2 font-mono">
+                            📍 {booking.address.coordinates.latitude.toFixed(6)}, {booking.address.coordinates.longitude.toFixed(6)}
+                          </p>
                         )}
                       </div>
                     </div>
