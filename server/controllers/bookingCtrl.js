@@ -4,12 +4,20 @@ const AuditLogs = require("../models/auditLogs");
 
 exports.createBookingCtrl = async (req, res) => {
     try {
-        const { service, user, date, time, notes, payment } = req.body;
+        const { service, user, date, time, notes, address, payment } = req.body;
 
         if (!service || !user || !date) {
             return res.status(400).json({
                 success: false,
                 message: "Service, user, and date are required.",
+            });
+        }
+
+        // Validate address if provided
+        if (address && !address.addressLine1) {
+            return res.status(400).json({
+                success: false,
+                message: "Address Line 1 is required when address is provided.",
             });
         }
 
@@ -19,6 +27,7 @@ exports.createBookingCtrl = async (req, res) => {
             date,
             time,
             notes,
+            address,
             payment,
         });
 
@@ -38,6 +47,7 @@ exports.createBookingCtrl = async (req, res) => {
                     bookingDate: date,
                     bookingTime: time,
                     notes: notes,
+                    address: address ? `${address.addressLine1}, ${address.city}, ${address.state}` : null,
                     paymentAmount: payment?.amount,
                     paymentMethod: payment?.paymentMethod,
                     bookingType: "service_booking"
@@ -70,7 +80,11 @@ exports.getAllBookingsCtrl = async (req, res) => {
                 path: "service", // Property model
                 populate: { path: "vendor", model: "Vendor" }, // optional if vendor inside property
             })
-            .populate("user"); // full user details
+            .populate({
+                path: "user",
+                model: "auth",
+                select: "name email phone"
+            }); // full user details
 
         res.status(200).json({
             success: true,
@@ -110,8 +124,12 @@ exports.getBookingsByVendorCtrl = async (req, res) => {
             })
             .populate({
                 path: "user",
-                select: "name email",
+                model: "auth",
+                select: "name email phone",
             });
+
+        // Debug log to check user population
+        console.log("Sample booking user data:", bookings[0]?.user);
 
         if (!bookings.length) {
             return res.status(404).json({

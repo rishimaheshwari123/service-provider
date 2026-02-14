@@ -26,10 +26,18 @@ interface ExtendedBooking extends Booking {
   user: {
     name: string;
     email: string;
+    phone?: string;
   };
   date: string;
   time: string;
   notes: string;
+  address?: {
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
   status: "pending" | "confirmed" | "completed" | "cancelled";
   payment: {
     paymentStatus: "success" | "pending" | "failed";
@@ -217,17 +225,32 @@ const VendorBookings: React.FC = () => {
                     <span className="font-semibold text-gray-900">
                       Booked by:
                     </span>{" "}
-                    {booking.user?.name || "-"}
+                    {booking.user?.name || "N/A"}
                   </p>
                   <p>
                     <span className="font-semibold text-gray-900">Email:</span>{" "}
-                    <a
-                      href={`mailto:${booking.user?.email}`}
-                      className="text-blue-500 hover:underline"
-                    >
-                      {booking.user?.email || "-"}
-                    </a>
+                    {booking.user?.email ? (
+                      <a
+                        href={`mailto:${booking.user.email}`}
+                        className="text-blue-500 hover:underline"
+                      >
+                        {booking.user.email}
+                      </a>
+                    ) : (
+                      "N/A"
+                    )}
                   </p>
+                  {booking.user?.phone && (
+                    <p>
+                      <span className="font-semibold text-gray-900">Phone:</span>{" "}
+                      <a
+                        href={`tel:${booking.user.phone}`}
+                        className="text-blue-500 hover:underline"
+                      >
+                        {booking.user.phone}
+                      </a>
+                    </p>
+                  )}
                   <p className="mt-2">
                     <span className="font-semibold text-gray-900">Date:</span>{" "}
                     {formatDate(booking.date)}
@@ -236,7 +259,41 @@ const VendorBookings: React.FC = () => {
                     <span className="font-semibold text-gray-900">Time:</span>{" "}
                     {formatTime12Hour(booking.time)}
                   </p>
-                  <p>
+                  
+                  {/* Service Address */}
+                  {booking.address ? (
+                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <p className="font-semibold text-gray-900 mb-2 flex items-center">
+                        <span className="mr-2">📍</span>
+                        Service Address:
+                      </p>
+                      <div className="text-xs text-gray-700 space-y-1">
+                        <p>{booking.address.addressLine1}</p>
+                        {booking.address.city && (
+                          <p>
+                            {booking.address.city}
+                            {booking.address.state && `, ${booking.address.state}`}
+                            {booking.address.zipCode && ` - ${booking.address.zipCode}`}
+                          </p>
+                        )}
+                        {booking.address.country && (
+                          <p className="font-medium">{booking.address.country}</p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <p className="font-semibold text-gray-700 mb-1 flex items-center">
+                        <span className="mr-2">📍</span>
+                        Service Address:
+                      </p>
+                      <p className="text-xs text-gray-500 italic">
+                        Address not provided (older booking)
+                      </p>
+                    </div>
+                  )}
+                  
+                  <p className="mt-2">
                     <span className="font-semibold text-gray-900">Notes:</span>{" "}
                     <span className="italic">{booking.notes || "N/A"}</span>
                   </p>

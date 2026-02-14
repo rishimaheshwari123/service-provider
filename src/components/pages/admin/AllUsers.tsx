@@ -156,9 +156,7 @@ const AllUsers = () => {
                   <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
-                    Type
-                  </th>
+                
                   <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
                     Change Type
                   </th>
@@ -187,20 +185,7 @@ const AllUsers = () => {
                       {user.email}
                     </td>
 
-                    {/* Type display with icon */}
-                    <td className="px-6 py-4 text-sm">
-                      {user.type === "active" ? (
-                        <span className="inline-flex items-center text-green-600 font-medium">
-                          <CheckCircle className="w-5 h-5 mr-1 text-green-500" />
-                          Active
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center text-red-600 font-medium">
-                          <XCircle className="w-5 h-5 mr-1 text-red-500" />
-                          Inactive
-                        </span>
-                      )}
-                    </td>
+                 
 
                     {/* Type change dropdown */}
                     <td className="px-6 py-4 text-center">

@@ -89,6 +89,7 @@ const CategoriesPage = () => {
   const { t } = useTranslation();
   const [categories, setCategories] = useState<Category[]>([]);
   const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [autoFilledCategories, setAutoFilledCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
@@ -104,6 +105,12 @@ const CategoriesPage = () => {
       category.autoFilled?.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredCategories(filtered);
+
+    // Filter auto-filled categories
+    const autoFilled = categories.filter((category) => 
+      category.autoFilled && category.autoFilled.trim() !== ""
+    );
+    setAutoFilledCategories(autoFilled);
   }, [categories, searchTerm]);
 
   const fetchCategories = async () => {
@@ -175,49 +182,68 @@ const CategoriesPage = () => {
           </div>
         </div>
 
-        {/* Categories Section - Only Icon Grid */}
+        {/* Categories Section */}
         <section className="py-8 bg-white">
           <div className="max-w-7xl mx-auto px-4">
-            {filteredCategories.length === 0 ? (
+            {/* Auto-filled Services Grouped by Service Type */}
+            {autoFilledCategories.length > 0 ? (
+              <div>
+                {/* Group categories by autoFilled service type */}
+                {Object.entries(
+                  autoFilledCategories.reduce((groups, cat) => {
+                    const serviceType = cat.autoFilled;
+                    if (!groups[serviceType]) {
+                      groups[serviceType] = [];
+                    }
+                    groups[serviceType].push(cat);
+                    return groups;
+                  }, {} as Record<string, Category[]>)
+                ).map(([serviceType, categoriesInGroup]) => (
+                  <div key={serviceType} className="mb-10">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                      {serviceType}
+                    </h2>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
+                      {categoriesInGroup.map((cat) => {
+                        const Icon = getIconForCategory(cat.name);
+                        return (
+                          <div
+                            key={cat._id}
+                            onClick={() => handleCategoryClick(cat.name)}
+                            className="cursor-pointer flex flex-col items-center group"
+                          >
+                            <div className="w-14 h-14 md:w-16 md:h-16 border-2 border-blue-200 rounded-lg flex items-center justify-center mb-2 group-hover:border-blue-600 group-hover:shadow-md transition-all duration-200 bg-blue-50">
+                              {cat.image ? (
+                                <img
+                                  src={cat.image}
+                                  alt={cat.name}
+                                  className="w-10 h-10 object-contain"
+                                />
+                              ) : (
+                                <Icon className="text-2xl md:text-3xl text-blue-600 group-hover:text-blue-700" />
+                              )}
+                            </div>
+                            <span className="text-xs text-center text-gray-700 leading-tight line-clamp-1">
+                              {cat.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">
                   <Search className="w-16 h-16 mx-auto" />
                 </div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No categories found
+                  No auto-filled services found
                 </h3>
                 <p className="text-gray-600">
-                  {searchTerm ? "Try adjusting your search terms" : "No categories available at the moment"}
+                  No categories with auto-filled services available at the moment
                 </p>
-              </div>
-            ) : (
-              /* Show All Categories in Icon Grid Format */
-              <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">
-                {filteredCategories.map((cat) => {
-                  const Icon = getIconForCategory(cat.name);
-                  return (
-                    <div
-                      key={cat._id}
-                      onClick={() => handleCategoryClick(cat.name)}
-                      className="cursor-pointer flex flex-col items-center group"
-                    >
-                      <div className="w-14 h-14 md:w-16 md:h-16 border-2 border-gray-200 rounded-lg flex items-center justify-center mb-2 group-hover:border-blue-600 group-hover:shadow-md transition-all duration-200 bg-white">
-                        {cat.image ? (
-                          <img
-                            src={cat.image}
-                            alt={cat.name}
-                            className="w-10 h-10 object-contain"
-                          />
-                        ) : (
-                          <Icon className="text-2xl md:text-3xl text-gray-600 group-hover:text-blue-600" />
-                        )}
-                      </div>
-                      <span className="text-xs text-center text-gray-700 leading-tight line-clamp-1">
-                        {cat.name}
-                      </span>
-                    </div>
-                  );
-                })}
               </div>
             )}
           </div>

@@ -66,6 +66,13 @@ interface Booking {
   date: string;
   time: string;
   notes?: string;
+  address?: {
+    addressLine1: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
   status: "pending" | "confirmed" | "completed" | "cancelled";
   payment: {
     transactionId?: string;
@@ -562,11 +569,48 @@ const UserProfile = () => {
                             <div className="flex items-center text-gray-700">
                               <FaMapMarkerAlt className="text-indigo-500 mr-2" />
                               <div>
-                                <p className="text-xs text-gray-500">Location</p>
+                                <p className="text-xs text-gray-500">Service Location</p>
                                 <p className="font-semibold">{booking.service.location}</p>
                               </div>
                             </div>
                           </div>
+
+                          {/* Service Address */}
+                          {booking.address ? (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                                <FaMapMarkerAlt className="text-indigo-500 mr-2" />
+                                Service Address:
+                              </p>
+                              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                                <div className="text-sm text-gray-700 space-y-1">
+                                  <p className="font-medium">{booking.address.addressLine1}</p>
+                                  {booking.address.city && (
+                                    <p>
+                                      {booking.address.city}
+                                      {booking.address.state && `, ${booking.address.state}`}
+                                      {booking.address.zipCode && ` - ${booking.address.zipCode}`}
+                                    </p>
+                                  )}
+                                  {booking.address.country && (
+                                    <p className="font-medium text-indigo-700">{booking.address.country}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                <FaMapMarkerAlt className="text-gray-400 mr-2" />
+                                Service Address:
+                              </p>
+                              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                <p className="text-sm text-gray-500 italic">
+                                  Address not provided (older booking)
+                                </p>
+                              </div>
+                            </div>
+                          )}
 
                           {booking.notes && (
                             <div className="mt-4 pt-4 border-t border-gray-200">
