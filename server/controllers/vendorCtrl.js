@@ -503,6 +503,48 @@ updateVendorProfileCtrl = async (req, res) => {
     console.log("📄 Files received:", files ? Object.keys(files) : "No files");
     console.log("📝 Form data keys:", Object.keys(updateData));
 
+    // Sanitize function to handle objects and arrays
+    const sanitizeValue = (value, fieldName) => {
+      if (value === null || value === undefined) return value;
+      
+      if (typeof value === 'object' && !Array.isArray(value)) {
+        console.log(`⚠️ Object detected for field ${fieldName}:`, value);
+        // For category field, extract _id
+        if (fieldName === 'category' && value._id) {
+          return value._id;
+        }
+        // For other objects, convert to string or return null
+        return null;
+      }
+      
+      if (Array.isArray(value)) {
+        console.log(`⚠️ Array detected for field ${fieldName}, taking first value:`, value);
+        return value[0];
+      }
+      
+      if (typeof value === 'string' && value === "[object Object]") {
+        console.log(`⚠️ Stringified object detected for field ${fieldName}`);
+        return null;
+      }
+      
+      return value;
+    };
+
+    // Sanitize all updateData fields
+    Object.keys(updateData).forEach(key => {
+      const originalValue = updateData[key];
+      const sanitizedValue = sanitizeValue(originalValue, key);
+      
+      if (sanitizedValue !== originalValue) {
+        console.log(`🔧 Sanitized ${key}:`, { original: originalValue, sanitized: sanitizedValue });
+        if (sanitizedValue === null) {
+          delete updateData[key];
+        } else {
+          updateData[key] = sanitizedValue;
+        }
+      }
+    });
+
     // Always set updateProfileRequest to "pending"
     updateData.updateProfileRequest = "pending";
 
@@ -550,6 +592,47 @@ updateVendorProfileCtrl = async (req, res) => {
     if (updateData.workingHours) {
       console.log("⚠️ Removing workingHours from general profile update - use dedicated endpoint");
       delete updateData.workingHours;
+    }
+
+    // Handle category field properly - extract ObjectId from object or use categoryId
+    if (updateData.category) {
+      if (typeof updateData.category === 'object') {
+        // If category is an object, extract the _id
+        updateData.category = updateData.category._id || updateData.category.id;
+        console.log("✅ Extracted category ID from object:", updateData.category);
+      } else if (updateData.category === "[object Object]") {
+        // If it's stringified object, use categoryId instead
+        if (updateData.categoryId) {
+          updateData.category = updateData.categoryId;
+          console.log("✅ Using categoryId instead of invalid category object:", updateData.category);
+        } else {
+          console.log("⚠️ Removing invalid category field");
+          delete updateData.category;
+        }
+      }
+      
+      // Validate ObjectId format
+      if (updateData.category && typeof updateData.category === 'string') {
+        const ObjectId = require('mongoose').Types.ObjectId;
+        if (!ObjectId.isValid(updateData.category)) {
+          console.log("⚠️ Invalid ObjectId format for category:", updateData.category);
+          delete updateData.category;
+        }
+      }
+      
+      // Remove categoryId as it's not needed in the model
+      delete updateData.categoryId;
+    } else if (updateData.categoryId) {
+      // If only categoryId is provided, use it as category
+      const ObjectId = require('mongoose').Types.ObjectId;
+      if (ObjectId.isValid(updateData.categoryId)) {
+        updateData.category = updateData.categoryId;
+        delete updateData.categoryId;
+        console.log("✅ Using categoryId as category:", updateData.category);
+      } else {
+        console.log("⚠️ Invalid categoryId format:", updateData.categoryId);
+        delete updateData.categoryId;
+      }
     }
 
     // Upload files if provided - handle all 5 documents plus profile photo
