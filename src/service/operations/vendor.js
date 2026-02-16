@@ -115,7 +115,17 @@ export async function signUp(formData) {
   const loadingToast = toast.loading("Registering Partner...");
 
   try {
-    const response = await apiConnector("POST", SIGNUP_API, formData);
+    // Check if formData is FormData (for file uploads) or regular object
+    const isFormData = formData instanceof FormData;
+    
+    const response = await apiConnector(
+      "POST", 
+      SIGNUP_API, 
+      formData,
+      isFormData ? {
+        "Content-Type": "multipart/form-data"
+      } : undefined
+    );
 
     console.log("SIGNUP API RESPONSE............", response);
 

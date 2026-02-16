@@ -73,7 +73,7 @@ interface VendorData {
   tradeLicense?: string;
   numberOfStaff?: number;
   servicesOffered?: string;
-  workingDays?: string;
+  workingDaysTimings?: string;
   referralCode?: string;
   referralName?: string;
   
@@ -174,8 +174,8 @@ const VendorProfileMangeByAdmin = ({ user }) => {
       }
       
       // Initialize working days if available
-      if (data.workingDays) {
-        const workingDaysStr = data.workingDays;
+      if (data.workingDaysTimings) {
+        const workingDaysStr = data.workingDaysTimings;
         const [daysStr, timeStr] = workingDaysStr.split(" | ");
         if (timeStr) {
           setWorkingTime(timeStr);
@@ -267,11 +267,12 @@ const VendorProfileMangeByAdmin = ({ user }) => {
       // Create form data for file + text fields
       const form = new FormData();
 
-      // Add basic text fields
+      // Add basic text fields (exclude workingHours and other special fields)
       Object.entries(formData).forEach(([key, value]) => {
         if (
           key !== "bankDetail" &&
           key !== "experience" &&
+          key !== "workingHours" && // Exclude workingHours from general update
           key !== "profilePhoto" &&
           key !== "document1" &&
           key !== "document2" &&
@@ -356,7 +357,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
     
     // Reset category selections
     if (vendor?.category) {
-      setSelectedCategory(vendor.category);
+      setSelectedCategory(vendor.categoryId || vendor.category?._id || vendor.category);
     }
     if (vendor?.subCategory) {
       setSelectedAutoFilled(vendor.subCategory);
@@ -1229,7 +1230,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <div>
                       <Label>Category</Label>
                       <p className="mt-1 text-gray-900">
-                        {categories.find(c => c._id === vendor.category)?.name || vendor.category || "-"}
+                        {vendor.category?.name || vendor.category || "-"}
                       </p>
                     </div>
                     <div>
@@ -1445,7 +1446,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <Label>Working Days & Timings</Label>
                     <p className="mt-1 text-gray-900 flex items-start gap-2">
                       <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
-                      {vendor.workingDays || "-"}
+                      {vendor.workingDaysTimings || "-"}
                     </p>
                   </div>
                 </CardContent>

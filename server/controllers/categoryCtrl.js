@@ -42,7 +42,163 @@ const createCategoryCtrl = async (req, res) => {
 const getAllCategoriesCtrl = async (req, res) => {
   try {
     const categories = await Category.find({ active: true }).sort({ name: 1 });
-    return res.status(200).json({ success: true, categories });
+    
+    // Helper function to normalize autoFilled values - sab kuch lowercase mein convert karo
+    const normalizeAutoFilled = (autoFilled) => {
+      if (!autoFilled || autoFilled.trim() === '') return null;
+      
+      // Sab kuch lowercase mein convert karo, trim karo, aur extra spaces remove karo
+      let normalized = autoFilled.toLowerCase().trim().replace(/\s+/g, ' ');
+      
+      // Common variations ko handle karo - sab lowercase mein
+      const normalizations = {
+        // Home Service variations
+        'home service': 'home services',
+        'home services': 'home services',
+        'homeservice': 'home services',
+        'homeservices': 'home services',
+        'home service': 'home services',
+        
+        // Repairing variations
+        'repairing': 'repairing',
+        'repair': 'repairing',
+        'repairs': 'repairing',
+        
+        // Transport variations
+        'transport': 'transport',
+        'transportation': 'transport',
+        'tranport': 'transport', // typo fix
+        
+        // Event Management variations
+        'event management': 'event management',
+        'event managment': 'event management',
+        'event': 'event management',
+        
+        // Construction variations
+        'construction': 'construction',
+        
+        // Shop variations
+        'shop': 'shop',
+        'shops': 'shop',
+        
+        // Food variations
+        'food': 'food',
+        'foods': 'food',
+        
+        // Education variations
+        'education': 'education',
+        'educational': 'education',
+        
+        // Health Care variations
+        'health care': 'health care',
+        'healthcare': 'health care',
+        'health': 'health care',
+        'medical': 'health care',
+        
+        // Legal variations
+        'legal': 'legal',
+        
+        // Astro variations
+        'astro': 'astro',
+        'astrology': 'astro',
+        
+        // Sports variations
+        'sports': 'sports',
+        'sport': 'sports',
+        
+        // Office/School Work variations
+        'office/ school work': 'office work',
+        'office/school work': 'office work',
+        'office work': 'office work',
+        'school work': 'office work',
+        'office/ school work': 'office work',
+        'office/school work': 'office work',
+        
+        // Car/Bike variations
+        'car/bike': 'car bike',
+        'car/ bike': 'car bike',
+        'car bike': 'car bike',
+        
+        // Decoration variations
+        'decoration': 'decoration',
+        
+        // Beauty & Spa variations
+        'beauty': 'beauty spa',
+        'beauty & spa': 'beauty spa',
+        'spa': 'beauty spa',
+        
+        // Wedding variations
+        'wedding': 'wedding services',
+        'wedding services': 'wedding services',
+        'wedding planning': 'wedding services',
+        
+        // Fitness variations
+        'fitness': 'fitness gym',
+        'gym': 'fitness gym',
+        'fitness & gym': 'fitness gym',
+        
+        // Hotels variations
+        'hotel': 'hotels accommodation',
+        'hotels': 'hotels accommodation',
+        'accommodation': 'hotels accommodation',
+        'hotels & accommodation': 'hotels accommodation'
+      };
+      
+      // Agar normalization mein hai to use karo, nahi to original lowercase return karo
+      return normalizations[normalized] || normalized;
+    };
+    
+    // Helper function to convert to display format (Title Case)
+    const toDisplayFormat = (text) => {
+      return text
+        .split(' ')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    };
+    
+    // Group categories by normalized autoFilled value
+    const groupedCategories = {};
+    const ungroupedCategories = [];
+    
+    categories.forEach(category => {
+      const normalizedAutoFilled = normalizeAutoFilled(category.autoFilled);
+      
+      if (normalizedAutoFilled) {
+        // Group by normalized autoFilled value (lowercase)
+        if (!groupedCategories[normalizedAutoFilled]) {
+          groupedCategories[normalizedAutoFilled] = [];
+        }
+        groupedCategories[normalizedAutoFilled].push(category);
+      } else {
+        // Categories without autoFilled value
+        ungroupedCategories.push(category);
+      }
+    });
+    
+    // Convert grouped object to array format and sort by title
+    const autoFilledGroups = Object.keys(groupedCategories)
+      .sort() // Sort group titles alphabetically
+      .map(normalizedKey => ({
+        title: toDisplayFormat(normalizedKey), // Display mein Title Case
+        categories: groupedCategories[normalizedKey].sort((a, b) => a.name.localeCompare(b.name)) // Sort categories within group
+      }));
+    
+    console.log("🔍 Grouped Categories Debug:");
+    autoFilledGroups.forEach(group => {
+      console.log(`📂 ${group.title}: ${group.categories.length} categories`);
+      // Show first few category names for debugging
+      const categoryNames = group.categories.slice(0, 3).map(cat => cat.name).join(', ');
+      console.log(`   Categories: ${categoryNames}${group.categories.length > 3 ? '...' : ''}`);
+    });
+    
+    return res.status(200).json({ 
+      success: true, 
+      categories, // Original flat array for backward compatibility
+      groupedData: {
+        autoFilledGroups,
+        ungroupedCategories: ungroupedCategories.sort((a, b) => a.name.localeCompare(b.name)) // Sort ungrouped categories
+      }
+    });
   } catch (error) {
     console.error("Error fetching categories:", error);
     return res.status(500).json({ success: false, message: "Server error" });
