@@ -115,6 +115,7 @@ const VendorRegister = () => {
     document4: null,
     document5: null,
   });
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
 
   const {
     register,
@@ -188,7 +189,12 @@ const VendorRegister = () => {
   };
 
   const handleFileChange = (docKey: string, file: File | null) => {
-    setDocuments(prev => ({ ...prev, [docKey]: file }));
+    console.log(`📄 File change - ${docKey}:`, file ? file.name : "removed");
+    setDocuments(prev => {
+      const updated = { ...prev, [docKey]: file };
+      console.log("📋 Updated documents state:", Object.keys(updated).filter(key => updated[key]));
+      return updated;
+    });
   };
 
   const onSubmit = async (data: VendorFormData) => {
@@ -200,22 +206,100 @@ const VendorRegister = () => {
     // Include category and subCategory in vendor registration data
     const { category, subCategory, ...vendorData } = data;
 
-    const formData = {
-      ...vendorData,
-      category, // Include category ObjectId
-      subCategory, // Include subCategory string
-      numberOfStaff: vendorData.numberOfStaff ? parseInt(vendorData.numberOfStaff) : 0,
-      bankDetail: {
-        accountNumber: vendorData.accountNumber,
-        IFSC: vendorData.ifscCode,
-        accountHolderName: vendorData.accountHolderName,
-        branch: vendorData.bankName,
-      },
-      experience: {
-        totalYears: vendorData.totalYears ? parseInt(vendorData.totalYears) : 0,
-        fields: vendorData.servicesOffered ? vendorData.servicesOffered.split(",").map(s => s.trim()) : [],
-      },
-    };
+    // Create FormData for file uploads
+    const formData = new FormData();
+    
+    // Add basic form fields (avoid duplicates)
+    const fieldsToSkip = ['accountNumber', 'ifscCode', 'accountHolderName', 'bankName', 'totalYears', 'servicesOffered'];
+    
+    Object.entries(vendorData).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== "" && !fieldsToSkip.includes(key)) {
+        formData.append(key, value.toString());
+      }
+    });
+    
+    // Add category and subCategory
+    if (category) formData.append("category", category);
+    if (subCategory) formData.append("subCategory", subCategory);
+    
+    // Add numberOfStaff as single value (ensure no duplicates)
+    if (vendorData.numberOfStaff) {
+      const staffCount = parseInt(vendorData.numberOfStaff).toString();
+      formData.append("numberOfStaff", staffCount);
+      console.log("👥 Adding numberOfStaff:", staffCount);
+    } else {
+      formData.append("numberOfStaff", "0");
+      console.log("👥 Adding default numberOfStaff: 0");
+    }
+    
+    // Bank details (add only once)
+    if (vendorData.accountNumber) formData.append("bankDetail[accountNumber]", vendorData.accountNumber);
+    if (vendorData.ifscCode) formData.append("bankDetail[IFSC]", vendorData.ifscCode);
+    if (vendorData.accountHolderName) formData.append("bankDetail[accountHolderName]", vendorData.accountHolderName);
+    if (vendorData.bankName) formData.append("bankDetail[branch]", vendorData.bankName);
+    
+    // Experience (add only once)
+    if (vendorData.totalYears) {
+      formData.append("experience[totalYears]", parseInt(vendorData.totalYears).toString());
+    } else {
+      formData.append("experience[totalYears]", "0");
+    }
+    
+    if (vendorData.servicesOffered) {
+      const services = vendorData.servicesOffered.split(",").map(s => s.trim());
+      services.forEach(service => {
+        formData.append("experience[fields]", service);
+      });
+    }
+    
+    // Add profile photo if selected
+    if (profilePhoto) {
+      formData.append("profilePhoto", profilePhoto);
+    }
+    
+    // Add documents if selected (with detailed logging)
+    const documentsToUpload = Object.entries(documents).filter(([key, file]) => file !== null);
+    console.log(`📄 Documents to upload: ${documentsToUpload.length}/5`);
+    
+    documentsToUpload.forEach(([key, file]) => {
+      if (file) {
+        console.log(`📄 Adding ${key}:`, {
+          name: file.name,
+          size: file.size,
+          type: file.type
+        });
+        formData.append(key, file);
+      }
+    });
+    
+    if (documentsToUpload.length === 0) {
+      console.log("⚠️ No documents selected for upload");
+    }
+    
+    // Debug: Log all FormData entries and check for duplicates
+    console.log("📋 FormData entries:");
+    const formDataEntries = [];
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`${key}: ${value.name} (${value.size} bytes)`);
+        formDataEntries.push(`${key}: FILE`);
+      } else {
+        console.log(`${key}: ${value}`);
+        formDataEntries.push(`${key}: ${value}`);
+      }
+    }
+    
+    // Check for duplicate keys
+    const keyCount = {};
+    formDataEntries.forEach(entry => {
+      const key = entry.split(':')[0];
+      keyCount[key] = (keyCount[key] || 0) + 1;
+    });
+    
+    const duplicates = Object.entries(keyCount).filter(([key, count]) => count > 1);
+    if (duplicates.length > 0) {
+      console.warn("⚠️ Duplicate FormData keys detected:", duplicates);
+    }
 
     const response = await signUp(formData);
     if (response?.success) {
@@ -254,6 +338,16 @@ const VendorRegister = () => {
       }
     } else {
       console.log("❌ Registration failed:", response);
+      
+      // Show specific error details if available
+      if (response?.error?.uploadedFiles) {
+        console.log("📁 Files that were uploaded successfully:", response.error.uploadedFiles);
+        console.log("📊 Upload statistics:", {
+          attempted: response.error.totalFilesAttempted,
+          successful: response.error.uploadedFiles.length,
+          failed: response.error.totalFilesAttempted - response.error.uploadedFiles.length
+        });
+      }
     }
   };
 
@@ -620,9 +714,50 @@ const VendorRegister = () => {
               {currentStep === 6 && (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                    📄 All documents are optional. You can upload up to 5 documents (Aadhaar, PAN, GST Certificate, Address Proof, Business Registration, etc.)
+                    📄 Profile photo is optional but recommended. You can also upload up to 5 documents (Aadhaar, PAN, GST Certificate, Address Proof, Business Registration, etc.)
                   </p>
                   
+                  {/* Profile Photo Section */}
+                  <div className="space-y-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                    <Label className="text-yellow-800 font-semibold">Profile Photo (Recommended)</Label>
+                    <div className="flex items-center gap-3">
+                      <label className="flex-1 cursor-pointer">
+                        <div className="border-2 border-dashed border-yellow-300 rounded-lg p-4 text-center hover:border-yellow-500 transition-colors bg-white">
+                          {profilePhoto ? (
+                            <div className="flex items-center justify-center gap-2 text-green-600">
+                              <Check size={20} />
+                              <span className="truncate max-w-[200px]">
+                                {profilePhoto.name}
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-2 text-yellow-600">
+                              <Upload size={20} />
+                              <span>Click to upload profile photo</span>
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+                        />
+                      </label>
+                      {profilePhoto && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          onClick={() => setProfilePhoto(null)}
+                        >
+                          <X size={16} />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Documents Section */}
                   {[1, 2, 3, 4, 5].map((num) => (
                     <div key={num} className="space-y-2">
                       <Label>Document {num}</Label>

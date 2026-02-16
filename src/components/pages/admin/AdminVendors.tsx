@@ -721,9 +721,11 @@ const VendorManagement = () => {
     try {
       setSubmitting(true);
       // Note: You'll need to implement updateVendorAPI in your service
+      // Exclude workingHours from the update to prevent "[object Object]" issue
+      const { workingHours, ...vendorDataToUpdate } = editingVendor;
       const response = await updateVendorProfileAPI(
         editingVendor._id,
-        editingVendor
+        vendorDataToUpdate
       );
 
       // For now, just update local state
@@ -793,7 +795,7 @@ const VendorManagement = () => {
       "Business/Company Name": vendor.company || "",
       "Type of Service": vendor.typeOfService || "",
       "Service Description": vendor.description || "",
-      "Category": categories.find(c => c._id === vendor.category)?.name || vendor.category || "",
+      "Category": vendor.category?.name || vendor.category || "",
       "Sub Category": vendor.subCategory || "",
       "Year of Establishment": vendor.yearOfEstablishment || "",
       
@@ -822,7 +824,7 @@ const VendorManagement = () => {
       "Years of Experience": vendor.experience?.totalYears || "",
       "Number of Staff": vendor.numberOfStaff || "",
       "Services Offered": (vendor.experience?.fields || []).join(", ") || "",
-      "Working Days & Timings": vendor.workingDays || "",
+      "Working Days & Timings": vendor.workingDaysTimings || "",
       
       // Step 7: Additional Info (excluding password)
       "Referral Code": vendor.referralCode || "",
@@ -1698,7 +1700,7 @@ const VendorManagement = () => {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="text-sm font-medium text-gray-900">
-                            {categories.find(c => c._id === vendor.category)?.name || vendor.category || "-"}
+                            {vendor.category?.name || vendor.category || "-"}
                           </div>
                           <div className="text-xs text-gray-500">
                             {vendor.subCategory || "-"}
@@ -2158,7 +2160,7 @@ const VendorManagement = () => {
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
                       <span className="font-medium">Working Days & Hours:</span>
-                      <span className="text-sm">{selectedVendor.workingDays || selectedVendor.workingDaysTimings || "Not Added"}</span>
+                      <span className="text-sm">{selectedVendor.workingDaysTimings || "Not Added"}</span>
                     </div>
                   </CardContent>
                 </Card>
