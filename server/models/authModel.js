@@ -83,6 +83,14 @@ const authSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+
+        // Password Reset Fields
+        resetPasswordOTP: {
+            type: String,
+        },
+        resetPasswordOTPExpiry: {
+            type: Date,
+        },
     },
     { timestamps: true }
 );

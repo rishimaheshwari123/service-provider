@@ -300,6 +300,12 @@ const ServicesPage = () => {
     
     return count;
   }, [services, allReviews]);
+const toPascalCase = (text) => {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .replace(/\b\w/g, char => char.toUpperCase());
+};
 
   const getRatingColor = useCallback((rating: number) => {
     if (rating >= 4) return "bg-green-500";
@@ -334,7 +340,7 @@ const ServicesPage = () => {
                     name="search"
                     value={filters.search}
                     onChange={handleInputChange}
-                    placeholder="Search by vendor name, service, location, city, pincode..."
+                    placeholder={toPascalCase("Search By Vendor Name, Service, Location, City, Pincode...")}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -365,10 +371,10 @@ const ServicesPage = () => {
                   onChange={(e) => handleCategoryChange(e.target.value)}
                   className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white min-w-[160px]"
                 >
-                  <option value="all">{t("pages.home.allCategories")}</option>
+                  <option value="all">{toPascalCase(t("pages.home.allCategories"))}</option>
                   {categories?.map((cat) => (
                     <option key={cat._id} value={cat.name}>
-                      {cat.name}
+                      {toPascalCase(cat.name)}
                     </option>
                   ))}
                 </select>
@@ -377,7 +383,7 @@ const ServicesPage = () => {
                   className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <Filter className="w-4 h-4" />
-                  <span className="hidden sm:inline">{t("common.filter")}</span>
+                  <span className="hidden sm:inline">{toPascalCase(t("common.filter"))}</span>
                   <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
                 </button>
                 {(filters.search || filters.category !== "all" || filters.autoFilled) && (
@@ -386,7 +392,7 @@ const ServicesPage = () => {
                     className="flex items-center gap-1 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   >
                     <X className="w-4 h-4" />
-                    <span className="hidden sm:inline">Clear</span>
+                    <span className="hidden sm:inline">{toPascalCase("Clear")}</span>
                   </button>
                 )}
               </div>
@@ -396,13 +402,13 @@ const ServicesPage = () => {
             {showFilters && (
               <div className="mt-3 pt-3 border-t flex flex-wrap gap-4 items-center">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Price:</span>
+                  <span className="text-sm text-gray-600">{toPascalCase("Price")}:</span>
                   <input
                     type="number"
                     value={filters.price[0]}
                     onChange={(e) => setFilters({ ...filters, price: [Number(e.target.value), filters.price[1]] })}
                     className="w-24 px-2 py-1 border rounded text-sm"
-                    placeholder="Min"
+                    placeholder={toPascalCase("Min")}
                   />
                   <span>-</span>
                   <input
@@ -410,7 +416,7 @@ const ServicesPage = () => {
                     value={filters.price[1]}
                     onChange={(e) => setFilters({ ...filters, price: [filters.price[0], Number(e.target.value)] })}
                     className="w-24 px-2 py-1 border rounded text-sm"
-                    placeholder="Max"
+                    placeholder={toPascalCase("Max")}
                   />
                 </div>
               </div>
@@ -423,23 +429,23 @@ const ServicesPage = () => {
           <div className="flex items-center justify-between">
             <p className="text-gray-600">
               {loading ? (
-                "Searching..."
+                toPascalCase("Searching...")
               ) : (
                 <>
-                  Showing {filteredServices.length} of {services.length} services
+                  {toPascalCase("Showing")} {filteredServices.length} {toPascalCase("Of")} {services.length} {toPascalCase("Services")}
                   {filters.search && (
                     <span className="ml-2 text-blue-600 font-medium">
-                      for "{filters.search}"
+                      {toPascalCase("For")} "{filters.search}"
                     </span>
                   )}
                   {filters.category !== "all" && (
                     <span className="ml-2 text-blue-600 font-medium">
-                      in {filters.category}
+                      {toPascalCase("In")} {toPascalCase(filters.category)}
                     </span>
                   )}
                   {filters.autoFilled && (
                     <span className="ml-2 text-green-600 font-medium">
-                      ({filters.autoFilled.split(',').join(' & ')} services)
+                      ({filters.autoFilled.split(',').map(item => toPascalCase(item.trim())).join(' & ')} {toPascalCase("Services")})
                     </span>
                   )}
                 </>
@@ -447,7 +453,7 @@ const ServicesPage = () => {
             </p>
             {filteredServices.length > 0 && (
               <p className="text-sm text-gray-500">
-                Results sorted by relevance
+                {toPascalCase("Results Sorted By Relevance")}
               </p>
             )}
           </div>
@@ -465,41 +471,41 @@ const ServicesPage = () => {
                 <Search className="w-10 h-10 text-gray-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                {filters.search ? "No services found" : "No services available"}
+                {filters.search ? toPascalCase("No Services Found") : toPascalCase("No Services Available")}
               </h3>
               <p className="text-gray-500 mb-4">
                 {filters.search 
-                  ? `No results found for "${filters.search}". Try adjusting your search terms.`
-                  : "Try adjusting your filters or search terms"
+                  ? `${toPascalCase("No Results Found For")} "${filters.search}". ${toPascalCase("Try Adjusting Your Search Terms.")}`
+                  : toPascalCase("Try Adjusting Your Filters Or Search Terms")
                 }
               </p>
               {filters.search && (
                 <div className="space-y-2">
-                  <p className="text-sm text-gray-600">Suggestions:</p>
+                  <p className="text-sm text-gray-600">{toPascalCase("Suggestions")}:</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     <button
                       onClick={() => setFilters({ ...filters, search: "plumber" })}
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
-                      Plumber
+                      {toPascalCase("Plumber")}
                     </button>
                     <button
                       onClick={() => setFilters({ ...filters, search: "electrician" })}
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
-                      Electrician
+                      {toPascalCase("Electrician")}
                     </button>
                     <button
                       onClick={() => setFilters({ ...filters, search: "cleaning" })}
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
-                      Cleaning
+                      {toPascalCase("Cleaning")}
                     </button>
                     <button
                       onClick={() => setFilters({ ...filters, search: "repair" })}
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
-                      Repair
+                      {toPascalCase("Repair")}
                     </button>
                   </div>
                 </div>
@@ -518,7 +524,7 @@ const ServicesPage = () => {
                   >
                     <div className="flex flex-col md:flex-row">
                       {/* Image */}
-                      <div className="md:w-72 h-48 md:h-auto relative flex-shrink-0">
+                      <div className="md:w-72 h-48 md:h-[50vh] relative flex-shrink-0">
                         <img
                           src={service.images?.[0]?.url || "https://via.placeholder.com/300x200?text=No+Image"}
                           alt={service.title}
@@ -526,7 +532,7 @@ const ServicesPage = () => {
                         />
                         {service.featured && (
                           <span className="absolute top-3 left-3 bg-yellow-500 text-white text-xs font-semibold px-2 py-1 rounded">
-                            Featured
+                            {toPascalCase("Featured")}
                           </span>
                         )}
                       </div>
@@ -546,28 +552,37 @@ const ServicesPage = () => {
                                 <div className="flex-1 min-w-0">
                                   {service.vendor.company && (
                                     <p className="text-sm font-bold text-gray-600 truncate">
-                                      {filters.search ? 
-                                        highlightSearchTerm(service.vendor.company, filters.search) :
-                                        service.vendor.company
-                                      }
-                                    </p>
+  {filters.search
+    ? highlightSearchTerm(
+        toPascalCase(service.vendor.company),
+        filters.search
+      )
+    : toPascalCase(service.vendor.company)}
+</p>
+
                                   )}
-                                  <p className="text-[12px]  text-gray-900 truncate">
-                                    {filters.search ? 
-                                      highlightSearchTerm(service.vendor.name || 'Vendor Name', filters.search) :
-                                      (service.vendor.name || 'Vendor Name')
-                                    }
-                                  </p>
+                                 <p className="text-[12px] text-gray-900 truncate">
+  {filters.search
+    ? highlightSearchTerm(
+        toPascalCase(service.vendor.name || "Vendor Name"),
+        filters.search
+      )
+    : toPascalCase(service.vendor.name || "Vendor Name")}
+</p>
+
                                   
-                                  {service.vendor.address && (
-                                    <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-                                      <MapPin className="w-3 h-3 inline mr-1" />
-                                      {filters.search ? 
-                                        highlightSearchTerm(service.vendor.address, filters.search) :
-                                        service.vendor.address
-                                      }
-                                    </p>
-                                  )}
+                                {service.vendor.address && (
+  <p className="text-xs text-gray-500 line-clamp-1 mt-1">
+    <MapPin className="w-3 h-3 inline mr-1" />
+    {filters.search
+      ? highlightSearchTerm(
+          toPascalCase(service.vendor.address),
+          filters.search
+        )
+      : toPascalCase(service.vendor.address)}
+  </p>
+)}
+
                                 </div>
                                 {service.verified && (
                                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
@@ -577,16 +592,19 @@ const ServicesPage = () => {
 
                             {/* Service Title - Now below vendor */}
                             <div className="mb-2">
-                              <h3
-                                onClick={() => handleHireNow(service._id)}
-                                className="text-base md:text-lg font-semibold text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
-                              >
-                                {filters.search ? 
-                                  highlightSearchTerm(service.title, filters.search) :
-                                  service.title
-                                }
-                              </h3>
-                            </div>
+  <h3
+    onClick={() => handleHireNow(service._id)}
+    className="text-base md:text-lg font-semibold text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
+  >
+    {filters.search
+      ? highlightSearchTerm(
+          toPascalCase(service.title),
+          filters.search
+        )
+      : toPascalCase(service.title)}
+  </h3>
+</div>
+
 
                             {/* Rating */}
                             <div className="flex items-center gap-3 mb-3">
@@ -596,25 +614,25 @@ const ServicesPage = () => {
                                     {avgRating} <Star className="w-3 h-3 fill-white" />
                                   </span>
                                   <span className="text-gray-600 text-sm">
-                                    {reviewCount} {reviewCount === 1 ? "Review" : "Reviews"}
+                                    {reviewCount} {reviewCount === 1 ? toPascalCase("Review") : toPascalCase("Reviews")}
                                   </span>
                                 </>
                               ) : (
                                 <span className="text-gray-400 text-sm flex items-center gap-1">
                                   <Star className="w-4 h-4" />
-                                  No reviews yet
+                                  {toPascalCase("No Reviews Yet")}
                                 </span>
                               )}
                               {service.category && (
                                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                  {service.category}
+                                  {toPascalCase(service.category)}
                                 </span>
                               )}
                             </div>
 
                             {/* Description */}
                             <p className="text-gray-600 text-sm mb-3">
-                              {service.description || "Professional service provider offering quality services."}
+                              {toPascalCase(service.description) || "Professional Service Provider Offering Quality Services."}
                             </p>
 
                             {/* Location & Timing */}
@@ -624,8 +642,8 @@ const ServicesPage = () => {
                                   <MapPin className="w-4 h-4 text-gray-400" />
                                   <span>
                                     {filters.search ? 
-                                      highlightSearchTerm(service.location, filters.search) :
-                                      service.location
+                                      highlightSearchTerm(toPascalCase(service.location), filters.search) :
+                                      toPascalCase(service.location)
                                     }
                                   </span>
                                 </div>
@@ -634,11 +652,11 @@ const ServicesPage = () => {
                             </div>
                             <div className="bg-white rounded-lg mt- shadow-sm mt-2">
                 <h2 className="text-lg font-bold text-gray-900  flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-blue-600" /> Working Hours
+                  <Calendar className="w-5 h-5 text-blue-600" /> {toPascalCase("Working Hours")}
                 </h2>
                 <div className="bg-gray-50 rounded-lg  px-2">
                   <p className="text-gray-700 font-medium">
-                    {service.vendor?.workingDaysTimings || "Monday - Saturday: 9:00 AM - 6:00 PM"}
+                    {toPascalCase(service.vendor?.workingDaysTimings) || "Monday - Saturday: 9:00 AM - 6:00 PM"}
                   </p>
                 </div>
               </div>
@@ -653,7 +671,7 @@ const ServicesPage = () => {
                               </div>
                             )} */}
                            <div className="text-right">
-                                                                <p className="text-xl font-bold text-gray-900">Contact for Price</p>
+                                                                <p className="text-xl font-bold text-gray-900">{toPascalCase("Contact For Price")}</p>
 
                                 {/* <p className="text-xs text-gray-500">Price</p> */}
                               </div>
@@ -669,7 +687,7 @@ const ServicesPage = () => {
                                 className="px-4 py-2.5 border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors flex items-center gap-2"
                               >
                                 <MessageSquare className="w-4 h-4" />
-                                Add Review
+                                {toPascalCase("Add Review")}
                               </button>
                             </div>
                           </div>
@@ -689,7 +707,7 @@ const ServicesPage = () => {
         isOpen={reviewModal.isOpen}
         onClose={handleCloseReviewModal}
         serviceId={reviewModal.serviceId}
-        serviceName={reviewModal.serviceName}
+        serviceName={toPascalCase(reviewModal.serviceName)}
         onReviewAdded={handleReviewAdded}
       />
       

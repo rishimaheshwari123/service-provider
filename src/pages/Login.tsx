@@ -13,6 +13,7 @@ import { login } from "@/service/operations/auth";
 import { Eye, EyeOff } from "lucide-react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
+import ForgotPassword from "@/components/ForgotPassword";
 
 // 🔹 Zod schema with phone validation
 const loginSchema = z.object({
@@ -30,6 +31,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const Login = () => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -48,6 +50,23 @@ const Login = () => {
       console.error("Login error:", error);
     }
   };
+
+  if (showForgotPassword) {
+    return (
+      <div>
+        <Navbar />
+        <ForgotPassword 
+          userType="user"
+          onBack={() => setShowForgotPassword(false)}
+          onSuccess={() => {
+            setShowForgotPassword(false);
+            navigate('/login');
+          }}
+        />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
    <div>
@@ -75,7 +94,16 @@ const Login = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">{t('pages.login.password')}</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">{t('pages.login.password')}</Label>
+              <button
+                type="button"
+                onClick={() => setShowForgotPassword(true)}
+                className="text-sm text-primary hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
             <div className="relative">
               <Input
                 id="password"

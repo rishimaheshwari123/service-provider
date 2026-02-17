@@ -352,6 +352,190 @@ const changePasswordCtrl = async (req, res) => {
   }
 };
 
+// Forgot Password - Send OTP
+const forgotPasswordCtrl = async (req, res) => {
+  try {
+    const { phone, otpMethod = 'sms' } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+
+    // Check if user exists
+    const user = await authModel.findOne({ phone });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with this phone number",
+      });
+    }
+
+    // Generate OTP
+    const { generateOTP, sendSMSOTP, sendWhatsAppOTP } = require('../utils/otpService');
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save OTP to user (we'll add these fields to schema)
+    user.resetPasswordOTP = otp;
+    user.resetPasswordOTPExpiry = otpExpiry;
+    await user.save();
+
+    // Send OTP based on method
+    let otpResult;
+    if (otpMethod === 'whatsapp') {
+      otpResult = await sendWhatsAppOTP(phone, otp);
+    } else {
+      otpResult = await sendSMSOTP(phone, otp);
+    }
+
+    if (otpResult.success) {
+      return res.status(200).json({
+        success: true,
+        message: `Password reset OTP sent via ${otpMethod.toUpperCase()}`,
+        method: otpResult.method || otpMethod,
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send OTP. Please try again.",
+      });
+    }
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// Verify OTP for Password Reset
+const verifyResetOTPCtrl = async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+
+    if (!phone || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number and OTP are required",
+      });
+    }
+
+    const user = await authModel.findOne({ phone });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if OTP exists and is not expired
+    if (!user.resetPasswordOTP || !user.resetPasswordOTPExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP found. Please request a new one.",
+      });
+    }
+
+    if (new Date() > user.resetPasswordOTPExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new one.",
+      });
+    }
+
+    if (user.resetPasswordOTP !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // OTP is valid - generate a temporary token for password reset
+    const resetToken = jwt.sign(
+      { userId: user._id, purpose: 'password_reset' },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // Clear OTP fields
+    user.resetPasswordOTP = undefined;
+    user.resetPasswordOTPExpiry = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      resetToken,
+    });
+  } catch (error) {
+    console.error("Verify reset OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// Reset Password
+const resetPasswordCtrl = async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token and new password are required",
+      });
+    }
+
+    // Verify reset token
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    if (decoded.purpose !== 'password_reset') {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid reset token",
+      });
+    }
+
+    const user = await authModel.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
 module.exports = {
   registerCtrl,
   loginCtrl,
@@ -360,5 +544,8 @@ module.exports = {
   deleteAuthCtrl,
   getUserInquiries,
   changeUserTypeCtrl,
-  changePasswordCtrl
+  changePasswordCtrl,
+  forgotPasswordCtrl,
+  verifyResetOTPCtrl,
+  resetPasswordCtrl
 };

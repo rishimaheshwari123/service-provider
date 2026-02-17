@@ -13,6 +13,7 @@ import { useDispatch } from "react-redux";
 import { Eye, EyeOff } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ForgotPassword from "@/components/ForgotPassword";
 
 // Zod schema
 const loginSchema = z.object({
@@ -30,6 +31,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 const VendorLogin = () => {
   const { t } = useTranslation();
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -48,6 +50,23 @@ const VendorLogin = () => {
       console.error("Login error:", error);
     }
   };
+
+  if (showForgotPassword) {
+    return (
+      <div>
+        <Navbar />
+        <ForgotPassword 
+          userType="vendor"
+          onBack={() => setShowForgotPassword(false)}
+          onSuccess={() => {
+            setShowForgotPassword(false);
+            navigate('/partner/login');
+          }}
+        />
+        <Footer />
+      </div>
+    );
+  }
 
   return (
   <div>
@@ -80,9 +99,18 @@ const VendorLogin = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">
-                {t('partnerLogin.password')} <span className="text-red-500">*</span>
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">
+                  {t('partnerLogin.password')} <span className="text-red-500">*</span>
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  Forgot Password?
+                </button>
+              </div>
               <div className="relative">
                 <Input
                   id="password"
