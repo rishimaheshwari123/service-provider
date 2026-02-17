@@ -148,6 +148,34 @@ const vendorSchema = new mongoose.Schema(
         document3: { type: String, },
         document4: { type: String, },
         document5: { type: String, },
+
+        // OTP Verification Fields
+        otp: {
+            type: String,
+        },
+        otpExpiry: {
+            type: Date,
+        },
+        isPhoneVerified: {
+            type: Boolean,
+            default: false,
+        },
+        isWhatsappVerified: {
+            type: Boolean,
+            default: false,
+        },
+        preferredOtpMethod: {
+            type: String,
+            enum: ["whatsapp", "sms"],
+        },
+
+        // Password Reset Fields
+        resetPasswordOTP: {
+            type: String,
+        },
+        resetPasswordOTPExpiry: {
+            type: Date,
+        },
     },
 
     { timestamps: true }

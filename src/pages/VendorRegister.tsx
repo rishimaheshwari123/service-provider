@@ -13,9 +13,11 @@ import { Progress } from "@/components/ui/progress";
 import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
 import { getAllCategoriesAPI } from "../service/operations/category";
+import { sendOTP, verifyOTP } from "../service/operations/otp";
 import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { toast } from "sonner";
 
 // Zod schema for validation
 const vendorSchema = z.object({
@@ -92,7 +94,7 @@ const STEPS = [
 
 const VendorRegister = () => {
   const navigate = useNavigate();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(1); // Back to step 1
   const [acceptedTermsAndPrivacy, setAcceptedTermsAndPrivacy] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -116,6 +118,12 @@ const VendorRegister = () => {
     document5: null,
   });
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+
+  // Simple OTP states
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
 
   const {
     register,
@@ -147,10 +155,27 @@ const VendorRegister = () => {
     setValue("workingDays", `${selectedDays.join(", ")} | ${workingTime}`);
   }, []);
 
+  // Check verification status when phone/whatsapp numbers change
+  useEffect(() => {
+    const checkVerificationStatus = async () => {
+      const phoneNumber = watch("phone");
+      const whatsappNumber = watch("whatsappNumber");
+      
+      // Reset verification status when numbers change
+      if (phoneNumber || whatsappNumber) {
+        setIsPhoneVerified(false);
+        setOtpSent(false);
+        setOtp('');
+      }
+    };
+    
+    checkVerificationStatus();
+  }, [watch("phone"), watch("whatsappNumber"), hasWhatsApp]);
+
   const validateStep = async (step: number): Promise<boolean> => {
     const fieldsToValidate: Record<number, (keyof VendorFormData)[]> = {
       1: ["company", "typeOfService", "description", "category", "subCategory", "name"],
-      2: ["address", "serviceLocation", "phone", "alternatePhone"], // Added alternatePhone
+      2: ["address", "serviceLocation", "phone", "alternatePhone"],
       3: ["businessType"],
       4: [],
       5: ["workingDays"],
@@ -165,12 +190,102 @@ const VendorRegister = () => {
     
     // Check if WhatsApp selection is made for step 2
     if (step === 2 && hasWhatsApp === null) {
-      return false; // WhatsApp selection is required
+      return false;
     }
     
     const fields = fieldsToValidate[step];
     if (fields.length === 0) return true;
     return await trigger(fields);
+  };
+
+  // Simple OTP functions
+  const handleSendOTP = async () => {
+    const phoneNumber = watch("phone");
+    const whatsappNumber = watch("whatsappNumber");
+    
+    // Determine which number to verify based on WhatsApp selection
+    let numberToVerify;
+    let preferredMethod;
+    
+    if (hasWhatsApp) {
+      // If user has WhatsApp, verify WhatsApp number
+      numberToVerify = whatsappNumber;
+      preferredMethod = 'whatsapp';
+      
+      if (!whatsappNumber || whatsappNumber.length !== 10) {
+        toast.error('Please enter a valid 10-digit WhatsApp number');
+        return;
+      }
+    } else {
+      // If user doesn't have WhatsApp, verify phone number via SMS
+      numberToVerify = phoneNumber;
+      preferredMethod = 'sms';
+      
+      if (!phoneNumber || phoneNumber.length !== 10) {
+        toast.error('Please enter a valid 10-digit phone number');
+        return;
+      }
+    }
+
+    setOtpLoading(true);
+    
+    const otpData = {
+      phone: numberToVerify, // Use the number to be verified as the primary phone
+      preferredMethod: preferredMethod,
+      forceResend: true // Add this flag to force resend even if already verified
+    };
+    
+    // For WhatsApp, also send the WhatsApp number
+    if (hasWhatsApp && whatsappNumber) {
+      otpData.whatsappNumber = whatsappNumber;
+    }
+
+    const result = await sendOTP(otpData);
+    
+    if (result.success) {
+      setOtpSent(true);
+      // Reset verification status to allow re-verification
+      setIsPhoneVerified(false);
+      
+      // Show specific message based on method used
+      if (result.method === 'sms_fallback') {
+        toast.success('OTP sent via SMS to your WhatsApp number (WhatsApp temporarily unavailable)');
+      } else if (result.method === 'whatsapp') {
+        toast.success('🎉 OTP sent via WhatsApp successfully!');
+      } else {
+        toast.success('OTP sent via SMS');
+      }
+    }
+    
+    setOtpLoading(false);
+  };
+
+  const handleVerifyOTP = async () => {
+    const phoneNumber = watch("phone");
+    const whatsappNumber = watch("whatsappNumber");
+    
+    // Use the same number that was used for sending OTP
+    const numberToVerify = hasWhatsApp ? whatsappNumber : phoneNumber;
+    
+    if (!otp || otp.length !== 6) {
+      toast.error('Please enter a valid 6-digit OTP');
+      return;
+    }
+
+    setOtpLoading(true);
+    
+    const result = await verifyOTP({
+      phone: numberToVerify,
+      otp: otp
+    });
+    
+    if (result.success) {
+      setIsPhoneVerified(true);
+      setOtpSent(false);
+      setOtp('');
+    }
+    
+    setOtpLoading(false);
   };
 
   const nextStep = async () => {
@@ -499,9 +614,31 @@ const VendorRegister = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Primary Contact Number <span className="text-red-500">*</span> <span className="text-xs text-blue-600">(Used for Login)</span></Label>
-                      <Input {...register("phone")} placeholder="10-digit number" />
+                      <Label>Primary Contact Number <span className="text-red-500">*</span>
+                        {hasWhatsApp === false && isPhoneVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input 
+                          {...register("phone")} 
+                          placeholder="10-digit number" 
+                          className={hasWhatsApp === false && isPhoneVerified ? "bg-green-50 border-green-200" : ""}
+                        />
+                        {hasWhatsApp === false && (
+                          <Button
+                            type="button"
+                            onClick={handleSendOTP}
+                            disabled={otpLoading || !watch("phone") || watch("phone").length !== 10}
+                            className="whitespace-nowrap"
+                            variant="outline"
+                          >
+                            {otpLoading ? "Sending..." : isPhoneVerified ? "Resend" : "Verify"}
+                          </Button>
+                        )}
+                      </div>
                       {errors.phone && <p className="text-sm text-red-500">{errors.phone.message}</p>}
+                      {hasWhatsApp === false && isPhoneVerified && (
+                        <p className="text-xs text-green-600">Phone number verified! ✓</p>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <Label>Alternate Contact Number</Label>
@@ -520,6 +657,10 @@ const VendorRegister = () => {
                           setHasWhatsApp(hasWA);
                           if (!hasWA) {
                             setValue("whatsappNumber", "");
+                            // Reset verification status when WhatsApp option changes
+                            setIsPhoneVerified(false);
+                            setOtpSent(false);
+                            setOtp('');
                           }
                         }}
                         className="flex gap-4"
@@ -536,12 +677,81 @@ const VendorRegister = () => {
                     </div>
                     {hasWhatsApp && (
                       <div className="space-y-2">
-                        <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
-                        <Input {...register("whatsappNumber")} placeholder="10-digit WhatsApp number" />
+                        <Label>WhatsApp Number <span className="text-red-500">*</span>
+                          {isPhoneVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            {...register("whatsappNumber")} 
+                            placeholder="10-digit WhatsApp number" 
+                            className={isPhoneVerified ? "bg-green-50 border-green-200" : ""}
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleSendOTP}
+                            disabled={otpLoading || !watch("whatsappNumber") || watch("whatsappNumber").length !== 10}
+                            className="whitespace-nowrap"
+                            variant="outline"
+                          >
+                            {otpLoading ? "Sending..." : isPhoneVerified ? "Resend" : "Verify"}
+                          </Button>
+                        </div>
                         {errors.whatsappNumber && <p className="text-sm text-red-500">{errors.whatsappNumber.message}</p>}
+                        {isPhoneVerified && (
+                          <p className="text-xs text-green-600">WhatsApp number verified! ✓</p>
+                        )}
                       </div>
                     )}
                   </div>
+
+                  {/* OTP Verification Section */}
+                  {otpSent && !isPhoneVerified && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                      <div className="text-center">
+                        <p className="text-blue-800 font-medium">
+                          OTP sent to your {hasWhatsApp ? 'WhatsApp' : 'phone'}: 
+                          <span className="font-bold"> {hasWhatsApp ? watch("whatsappNumber") : watch("phone")}</span>
+                        </p>
+                        <p className="text-blue-600 text-sm">Enter the 6-digit code below</p>
+                        {hasWhatsApp && (
+                          <p className="text-green-600 text-xs mt-1">
+                            💬 WhatsApp OTP sent! Check your WhatsApp messages.
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <Input
+                          value={otp}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                            setOtp(value);
+                          }}
+                          placeholder="Enter 6-digit OTP"
+                          maxLength={6}
+                          className="text-center text-lg tracking-widest"
+                        />
+                        <Button
+                          type="button"
+                          onClick={handleVerifyOTP}
+                          disabled={otpLoading || otp.length !== 6}
+                          className="whitespace-nowrap"
+                        >
+                          {otpLoading ? "Verifying..." : "Verify OTP"}
+                        </Button>
+                      </div>
+                      <div className="text-center">
+                        <Button
+                          type="button"
+                          onClick={handleSendOTP}
+                          variant="link"
+                          disabled={otpLoading}
+                          className="text-sm"
+                        >
+                          Resend OTP
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">

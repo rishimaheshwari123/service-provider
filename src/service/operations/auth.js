@@ -1,10 +1,11 @@
 import { toast } from "react-toastify";
 import { setUser, setToken } from "../../redux/authSlice";
 import { apiConnector } from "../apiConnector";
-import { endpoints } from "../apis";
+import { endpoints, vendor } from "../apis";
 import Swal from "sweetalert2";
 const {
-  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER
+  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER,
+  FORGOT_PASSWORD_API, VERIFY_RESET_OTP_API, RESET_PASSWORD_API
 } = endpoints;
 
 export async function login(phone, password, dispatch) {
@@ -212,4 +213,150 @@ export const deleteUserAPI = async (id) => {
     toast.dismiss(toastId);
   }
 
+};
+
+// Forgot Password Functions
+export const forgotPassword = async (phone, otpMethod = 'sms') => {
+  const toastId = toast.loading("Sending OTP...");
+
+  try {
+    const response = await apiConnector("POST", FORGOT_PASSWORD_API, {
+      phone,
+      otpMethod
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "OTP sent successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("FORGOT PASSWORD API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to send OTP!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const verifyResetOTP = async (phone, otp) => {
+  const toastId = toast.loading("Verifying OTP...");
+
+  try {
+    const response = await apiConnector("POST", VERIFY_RESET_OTP_API, {
+      phone,
+      otp
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "OTP verified successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("VERIFY RESET OTP API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to verify OTP!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const resetPassword = async (resetToken, newPassword) => {
+  const toastId = toast.loading("Resetting password...");
+
+  try {
+    const response = await apiConnector("POST", RESET_PASSWORD_API, {
+      resetToken,
+      newPassword
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Password reset successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("RESET PASSWORD API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to reset password!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+// Vendor Forgot Password Functions
+export const vendorForgotPassword = async (phone, otpMethod = 'sms') => {
+  const toastId = toast.loading("Sending OTP...");
+
+  try {
+    const response = await apiConnector("POST", vendor.FORGOT_PASSWORD_API, {
+      phone,
+      otpMethod
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "OTP sent successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("VENDOR FORGOT PASSWORD API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to send OTP!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const vendorVerifyResetOTP = async (phone, otp) => {
+  const toastId = toast.loading("Verifying OTP...");
+
+  try {
+    const response = await apiConnector("POST", vendor.VERIFY_RESET_OTP_API, {
+      phone,
+      otp
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "OTP verified successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("VENDOR VERIFY RESET OTP API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to verify OTP!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const vendorResetPassword = async (resetToken, newPassword) => {
+  const toastId = toast.loading("Resetting password...");
+
+  try {
+    const response = await apiConnector("POST", vendor.RESET_PASSWORD_API, {
+      resetToken,
+      newPassword
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Password reset successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("VENDOR RESET PASSWORD API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to reset password!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
 };

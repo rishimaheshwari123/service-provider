@@ -183,12 +183,9 @@ const getAllCategoriesCtrl = async (req, res) => {
         categories: groupedCategories[normalizedKey].sort((a, b) => a.name.localeCompare(b.name)) // Sort categories within group
       }));
     
-    console.log("🔍 Grouped Categories Debug:");
     autoFilledGroups.forEach(group => {
-      console.log(`📂 ${group.title}: ${group.categories.length} categories`);
       // Show first few category names for debugging
       const categoryNames = group.categories.slice(0, 3).map(cat => cat.name).join(', ');
-      console.log(`   Categories: ${categoryNames}${group.categories.length > 3 ? '...' : ''}`);
     });
     
     return res.status(200).json({ 

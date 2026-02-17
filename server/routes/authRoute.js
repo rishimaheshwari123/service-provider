@@ -1,10 +1,13 @@
 const express = require("express")
-const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl } = require("../controllers/authCtrl")
+const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl } = require("../controllers/authCtrl")
 const router = express.Router()
 
 
 router.post("/login", loginCtrl)
 router.post("/register", registerCtrl)
+router.post("/forgot-password", forgotPasswordCtrl)
+router.post("/verify-reset-otp", verifyResetOTPCtrl)
+router.post("/reset-password", resetPasswordCtrl)
 router.get("/getAll", getAllUsers)
 router.put("/update/:id", editPermissionCtrl)
 router.delete("/delete/:id", deleteAuthCtrl)

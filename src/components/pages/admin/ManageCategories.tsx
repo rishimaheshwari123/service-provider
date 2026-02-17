@@ -325,6 +325,13 @@ const ManageCategories = () => {
     load();
   }, []);
 
+  const toPascalCase = (str) =>
+  str
+    ?.toLowerCase()
+    .split(" ")
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
   const downloadCategoriesExcel = () => {
     const data = categories.map((category) => ({
       "Category Name": category.name,
@@ -427,7 +434,7 @@ const ManageCategories = () => {
                             </div>
                           )}
                           <div>
-                            <span className="font-medium mr-2">{c.name}</span>
+<span className="font-medium mr-2">{toPascalCase(c.name)}</span>
                             {c.autoFilled && (
                               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded mr-2">
                                 {c.autoFilled}
@@ -506,7 +513,8 @@ const ManageCategories = () => {
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="font-medium">
-                              {p.vendor?.name || "Unknown"}
+                             <span>{toPascalCase(p.vendor?.name || "Unknown")}</span>
+
                             </span>
                             <span className="text-xs text-gray-500">
                               {p.vendor?.email || p.vendor?.phone || ""}

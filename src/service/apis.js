@@ -13,7 +13,9 @@ export const endpoints = {
   CHANGE_USER_TYPE: BASE_URL + "/auth/change-type",
   EDIT_USER_PERMISSION_API: BASE_URL + "/auth/update",
   DELETE_USER: BASE_URL + "/auth/delete",
-
+  FORGOT_PASSWORD_API: BASE_URL + "/auth/forgot-password",
+  VERIFY_RESET_OTP_API: BASE_URL + "/auth/verify-reset-otp",
+  RESET_PASSWORD_API: BASE_URL + "/auth/reset-password",
 }
 
 export const image = {
@@ -22,6 +24,8 @@ export const image = {
 export const vendor = {
   LOGIN_API: BASE_URL + "/vendor/login",
   SIGNUP_API: BASE_URL + "/vendor/register",
+  SEND_OTP_API: BASE_URL + "/vendor/send-otp",
+  VERIFY_OTP_API: BASE_URL + "/vendor/verify-otp",
   GET_ALL_VENDOR: BASE_URL + "/vendor/getAll",
   GET_VENDOR: BASE_URL + "/vendor/get",
   UPDATE_VENDOR: BASE_URL + "/vendor/update",
@@ -31,6 +35,9 @@ export const vendor = {
   REQUST_FOR_THE_UPDATE_PROFILE_API: BASE_URL + "/vendor/request-update",
   DELETE_VENDOR: BASE_URL + "/vendor/delete",
   MY_PROFILE: BASE_URL + "/vendor/my-profile",
+  FORGOT_PASSWORD_API: BASE_URL + "/vendor/forgot-password",
+  VERIFY_RESET_OTP_API: BASE_URL + "/vendor/verify-reset-otp",
+  RESET_PASSWORD_API: BASE_URL + "/vendor/reset-password",
 }
 
 export const property = {

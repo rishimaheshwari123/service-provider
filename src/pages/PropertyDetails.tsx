@@ -36,6 +36,13 @@ import BookNowModal from "./BookNowModal";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+const toPascalCase = (text) => {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .replace(/\b\w/g, char => char.toUpperCase());
+};
+
 const PropertyDetails = () => {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -68,11 +75,11 @@ const PropertyDetails = () => {
         if (response) {
           setProperty(response);
         } else {
-          toast.error("Service not found");
+          toast.error(toPascalCase("Service Not Found"));
         }
       } catch (error) {
         console.error("Error fetching property:", error);
-        toast.error("Failed to load service details");
+        toast.error(toPascalCase("Failed To Load Service Details"));
       } finally {
         setLoading(false);
       }
@@ -99,7 +106,7 @@ const PropertyDetails = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name || !formData.phone) {
-      toast.error("Please fill required fields");
+      toast.error(toPascalCase("Please Fill Required Fields"));
       return;
     }
     try {
@@ -110,12 +117,12 @@ const PropertyDetails = () => {
         user: user?._id,
       });
       if (response) {
-        toast.success("Enquiry sent successfully!");
+        toast.success(toPascalCase("Enquiry Sent Successfully!"));
         setIsModalOpen(false);
         setFormData({ name: "", email: "", phone: "", message: "" });
       }
     } catch (error) {
-      toast.error("Failed to send enquiry");
+      toast.error(toPascalCase("Failed To Send Enquiry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -123,12 +130,12 @@ const PropertyDetails = () => {
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
-    toast.success("Link copied!");
+    toast.success(toPascalCase("Link Copied!"));
   };
 
   const handleCall = async () => {
     if (!property?.vendor?.phone) {
-      toast.error("Phone not available");
+      toast.error(toPascalCase("Phone Not Available"));
       return;
     }
     try {
@@ -147,7 +154,7 @@ const PropertyDetails = () => {
         await createAuditForPropertyCallAndEmailAPI(id, user._id, "show_number");
       }
       setShowPhone(true);
-      toast.success("Number revealed!");
+      toast.success(toPascalCase("Number Revealed!"));
     } catch (error) {
       console.error("Error logging show number action:", error);
       // Still show the number even if logging fails
@@ -165,7 +172,7 @@ const PropertyDetails = () => {
         await createAuditForPropertyCallAndEmailAPI(id, user._id, "show_provider_number");
       }
       setShowProviderPhone(true);
-      toast.success("Provider number revealed!");
+      toast.success(toPascalCase("Provider Number Revealed!"));
     } catch (error) {
       console.error("Error logging show provider number action:", error);
       // Still show the number even if logging fails
@@ -203,9 +210,9 @@ const PropertyDetails = () => {
       <>
         <Navbar />
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-          <h2 className="text-xl font-bold mb-4">Service Not Found</h2>
+          <h2 className="text-xl font-bold mb-4">{toPascalCase("Service Not Found")}</h2>
           <button onClick={() => navigate("/services")} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
-            Back to Services
+            {toPascalCase("Back To Services")}
           </button>
         </div>
       </>
@@ -224,11 +231,11 @@ const PropertyDetails = () => {
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <button onClick={() => navigate("/")} className="hover:text-blue-600">Home</button>
+              <button onClick={() => navigate("/")} className="hover:text-blue-600">{toPascalCase("Home")}</button>
               <span>/</span>
-              <button onClick={() => navigate("/services")} className="hover:text-blue-600">Services</button>
+              <button onClick={() => navigate("/services")} className="hover:text-blue-600">{toPascalCase("Services")}</button>
               <span>/</span>
-              <span className="text-gray-900 font-medium truncate">{property.title}</span>
+              <span className="text-gray-900 font-medium truncate">{toPascalCase(property.title)}</span>
             </div>
           </div>
         </div>
@@ -288,10 +295,10 @@ const PropertyDetails = () => {
                 <div className="flex-1 p-5">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
-                      <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">{property.title}</h1>
+                      <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">{toPascalCase(property.title)}</h1>
                       <p className="text-gray-500 flex items-center gap-1 text-sm">
                         <MapPin className="w-4 h-4" />
-                        {property.location || "Location not specified"}
+                        {toPascalCase(property.location) || toPascalCase("Location Not Specified")}
                       </p>
                     </div>
                     {avgRating > 0 && (
@@ -305,29 +312,29 @@ const PropertyDetails = () => {
                   <div className="flex items-center gap-3 mb-4">
                     {avgRating > 0 && (
                       <>
-                        <span className="text-sm text-gray-600">{reviewCount} Ratings</span>
+                        <span className="text-sm text-gray-600">{reviewCount} {toPascalCase("Ratings")}</span>
                         <span className="text-gray-300">|</span>
                       </>
                     )}
                     {property.category && (
-                      <span className="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{property.category}</span>
+                      <span className="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{toPascalCase(property.category)}</span>
                     )}
                     {property.verified && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" /> Verified
+                        <CheckCircle className="w-4 h-4" /> {toPascalCase("Verified")}
                       </span>
                     )}
                   </div>
 
                   <div className="flex flex-wrap gap-2 mb-4">
                     <span className="inline-flex items-center gap-1 text-xs bg-green-50 text-green-700 px-2 py-1 rounded">
-                      <Clock className="w-3 h-3" /> Open Now
+                      <Clock className="w-3 h-3" /> {toPascalCase("Open Now")}
                     </span>
                     <span className="inline-flex items-center gap-1 text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded">
-                      <ThumbsUp className="w-3 h-3" /> Trusted
+                      <ThumbsUp className="w-3 h-3" /> {toPascalCase("Trusted")}
                     </span>
                     <span className="inline-flex items-center gap-1 text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded">
-                      <Shield className="w-3 h-3" /> Safe
+                      <Shield className="w-3 h-3" /> {toPascalCase("Safe")}
                     </span>
                   </div>
 
@@ -341,12 +348,12 @@ const PropertyDetails = () => {
                         {isShowingNumber ? (
                           <>
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            Loading...
+                            {toPascalCase("Loading...")}
                           </>
                         ) : (
                           <>
                             <Phone className="w-4 h-4" />
-                            Show Number
+                            {toPascalCase("Show Number")}
                           </>
                         )}
                       </button>
@@ -363,7 +370,7 @@ const PropertyDetails = () => {
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(vendorPhone);
-                            toast.success("Number copied!");
+                            toast.success(toPascalCase("Number Copied!"));
                           }}
                           className="p-2.5 border border-gray-300 rounded-lg hover:bg-gray-50"
                         >
@@ -376,20 +383,20 @@ const PropertyDetails = () => {
                       className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
                     >
                       <MessageSquare className="w-4 h-4" />
-                      Send Enquiry
+                      {toPascalCase("Send Enquiry")}
                     </button>
                   </div>
 
                   <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
                     <button onClick={handleShare} className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
-                      <Share2 className="w-4 h-4" /> Share
+                      <Share2 className="w-4 h-4" /> {toPascalCase("Share")}
                     </button>
                   </div>
                 </div>
 
                 {/* Service Provider Information - Top Right */}
                 <div className="lg:w-[300px] flex-shrink-0 p-5 border-l border-gray-100">
-                  <h3 className="font-bold text-gray-900 mb-4">Service Provider Information</h3>
+                  <h3 className="font-bold text-gray-900 mb-4">{toPascalCase("Service Provider Information")}</h3>
                   <div className="space-y-4">
                     {/* Provider Basic Info */}
                     <div className="flex items-center gap-3">
@@ -397,8 +404,8 @@ const PropertyDetails = () => {
                         {property.vendor?.name?.charAt(0) || "S"}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm">{property.vendor?.company || "Professional Services"}</p>
-                        <p className="text-xs text-gray-500">{property.vendor?.name || "Service Provider"}</p>
+                        <p className="font-semibold text-gray-900 text-sm">{toPascalCase(property.vendor?.company) || toPascalCase("Professional Services")}</p>
+                        <p className="text-xs text-gray-500">{toPascalCase(property.vendor?.name) || toPascalCase("Service Provider")}</p>
                       </div>
                     </div>
                     
@@ -408,9 +415,9 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Building className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">Type of Service</p>
+                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Type Of Service")}</p>
                           <p className="text-xs text-gray-600">
-                            {property.vendor?.typeOfService || <span className="text-gray-400 italic">Not Added</span>}
+                            {toPascalCase(property.vendor?.typeOfService) || <span className="text-gray-400 italic">{toPascalCase("Not Added")}</span>}
                           </p>
                         </div>
                       </div>
@@ -419,18 +426,18 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">Year of Establishment</p>
+                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Year Of Establishment")}</p>
                           <p className="text-xs text-gray-600">
-                            {property.vendor?.yearOfEstablishment || <span className="text-gray-400 italic">Not Added</span>}
+                            {property.vendor?.yearOfEstablishment || <span className="text-gray-400 italic">{toPascalCase("Not Added")}</span>}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
                         <LocateIcon className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">Address</p>
+                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Address")}</p>
                           <p className="text-xs text-gray-600">
-                            {property.vendor?.address || <span className="text-gray-400 italic">Not Added</span>}
+                            {toPascalCase(property.vendor?.address) || <span className="text-gray-400 italic">{toPascalCase("Not Added")}</span>}
                           </p>
                         </div>
                       </div>
@@ -439,16 +446,16 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Star className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">Experience</p>
+                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Experience")}</p>
                           {property.vendor?.experience?.fields?.length > 0 ? (
                             <div>
-                              <p className="text-xs text-gray-600">{property.vendor.experience.fields.slice(0, 2).join(", ")}</p>
+                              <p className="text-xs text-gray-600">{property.vendor.experience.fields.slice(0, 2).map(field => toPascalCase(field)).join(", ")}</p>
                               {property.vendor.experience.totalYears && (
-                                <p className="text-xs text-gray-500">{property.vendor.experience.totalYears} years</p>
+                                <p className="text-xs text-gray-500">{property.vendor.experience.totalYears} {toPascalCase("Years")}</p>
                               )}
                             </div>
                           ) : (
-                            <p className="text-xs text-gray-400 italic">Not Added</p>
+                            <p className="text-xs text-gray-400 italic">{toPascalCase("Not Added")}</p>
                           )}
                         </div>
                       </div>
@@ -457,7 +464,7 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Phone className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-700">Phone</p>
+                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Phone")}</p>
                           {property.vendor?.phone ? (
                             !showProviderPhone ? (
                               <button
@@ -465,7 +472,7 @@ const PropertyDetails = () => {
                                 disabled={isShowingProviderNumber}
                                 className="text-xs bg-green-100 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed text-green-700 px-2 py-1 rounded font-medium mt-1"
                               >
-                                {isShowingProviderNumber ? "Loading..." : "Show Number"}
+                                {isShowingProviderNumber ? toPascalCase("Loading...") : toPascalCase("Show Number")}
                               </button>
                             ) : (
                               <div className="flex items-center gap-1 mt-1">
@@ -473,7 +480,7 @@ const PropertyDetails = () => {
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(property.vendor.phone);
-                                    toast.success("Number copied!");
+                                    toast.success(toPascalCase("Number Copied!"));
                                   }}
                                   className="p-0.5 hover:bg-gray-100 rounded"
                                 >
@@ -482,7 +489,7 @@ const PropertyDetails = () => {
                               </div>
                             )
                           ) : (
-                            <p className="text-xs text-gray-400 italic">Not Added</p>
+                            <p className="text-xs text-gray-400 italic">{toPascalCase("Not Added")}</p>
                           )}
                         </div>
                       </div>
@@ -498,16 +505,16 @@ const PropertyDetails = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
             <div className="lg:col-span-2 space-y-5">
               <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-3">About</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-3">{toPascalCase("About")}</h2>
                 <p className="text-gray-600 text-sm leading-relaxed">
-                  {property.description || "Professional service provider offering quality services at competitive prices."}
+                  {toPascalCase(property.description) || toPascalCase("Professional Service Provider Offering Quality Services At Competitive Prices.")}
                 </p>
               </div>
 
               <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-3">Services Offered</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-3">{toPascalCase("Services Offered")}</h2>
                 <div className="flex flex-wrap gap-2">
-                  {["Professional Service", "Home Visit", "Online Consultation", "24/7 Support", "Affordable Pricing"].map((s, i) => (
+                  {[toPascalCase("Professional Service"), toPascalCase("Home Visit"), toPascalCase("Online Consultation"), toPascalCase("24/7 Support"), toPascalCase("Affordable Pricing")].map((s, i) => (
                     <span key={i} className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full">{s}</span>
                   ))}
                 </div>
@@ -516,11 +523,11 @@ const PropertyDetails = () => {
               {/* Working Hours - Show workingDaysTimings directly */}
               <div className="bg-white rounded-lg p-5 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-blue-600" /> Working Hours
+                  <Calendar className="w-5 h-5 text-blue-600" /> {toPascalCase("Working Hours")}
                 </h2>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-gray-700 font-medium">
-                    {property.vendor?.workingDaysTimings || "Monday - Saturday: 9:00 AM - 6:00 PM"}
+                    {toPascalCase(property.vendor?.workingDaysTimings) || "Monday - Saturday: 9:00 AM - 6:00 PM"}
                   </p>
                 </div>
               </div>
@@ -528,7 +535,7 @@ const PropertyDetails = () => {
 
             <div className="space-y-5">
               <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h3 className="font-bold text-gray-900 mb-4">Quick Contact</h3>
+                <h3 className="font-bold text-gray-900 mb-4">{toPascalCase("Quick Contact")}</h3>
                 <div className="space-y-3">
                   {!showPhone ? (
                     <button
@@ -544,9 +551,9 @@ const PropertyDetails = () => {
                         )}
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">Call Now</p>
+                        <p className="text-xs text-gray-500">{toPascalCase("Call Now")}</p>
                         <p className="font-semibold text-green-700">
-                          {isShowingNumber ? "Loading..." : "Show Number"}
+                          {isShowingNumber ? toPascalCase("Loading...") : toPascalCase("Show Number")}
                         </p>
                       </div>
                     </button>
@@ -560,7 +567,7 @@ const PropertyDetails = () => {
                         <Phone className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">Call Now</p>
+                        <p className="text-xs text-gray-500">{toPascalCase("Call Now")}</p>
                         <p className="font-semibold text-green-700">{vendorPhone}</p>
                       </div>
                     </a>
@@ -571,7 +578,7 @@ const PropertyDetails = () => {
                         <Mail className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">Email</p>
+                        <p className="text-xs text-gray-500">{toPascalCase("Email")}</p>
                         <p className="font-semibold text-blue-700 text-sm truncate">{property.vendor.email}</p>
                       </div>
                     </a>
@@ -594,30 +601,30 @@ const PropertyDetails = () => {
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
             <div className="bg-white rounded-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="font-bold text-lg">Send Enquiry</h2>
+                <h2 className="font-bold text-lg">{toPascalCase("Send Enquiry")}</h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-100 rounded">
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="p-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">Name *</label>
+                  <label className="block text-sm font-medium mb-1">{toPascalCase("Name")} *</label>
                   <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Phone *</label>
+                  <label className="block text-sm font-medium mb-1">{toPascalCase("Phone")} *</label>
                   <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Email</label>
+                  <label className="block text-sm font-medium mb-1">{toPascalCase("Email")}</label>
                   <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">Message</label>
+                  <label className="block text-sm font-medium mb-1">{toPascalCase("Message")}</label>
                   <textarea name="message" value={formData.message} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
                 </div>
                 <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
-                  {isSubmitting ? "Sending..." : <><Send className="w-4 h-4" /> Send Enquiry</>}
+                  {isSubmitting ? toPascalCase("Sending...") : <><Send className="w-4 h-4" /> {toPascalCase("Send Enquiry")}</>}
                 </button>
               </form>
             </div>

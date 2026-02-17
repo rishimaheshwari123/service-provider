@@ -2,7 +2,8 @@ const bcrypt = require("bcryptjs");
 const vendorModel = require("../models/vendorModel");
 const jwt = require("jsonwebtoken");
 
-const { uploadImageToCloudinary } = require("../config/imageUploader")
+const { uploadImageToCloudinary } = require("../config/imageUploader");
+const { generateOTP, sendSMSOTP, sendWhatsAppOTP, sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
 
 // Helper function to convert text to PascalCase
 const toPascalCase = (text) => {
@@ -75,13 +76,97 @@ const vendorRegisterCtrl = async (req, res) => {
       });
     }
 
-    const existingUser = await vendorModel.findOne({ phone });
+    // Check if vendor exists and is phone verified
+    console.log('🔍 Looking for existing vendor with:');
+    console.log('- Phone:', phone);
+    console.log('- WhatsApp:', whatsappNumber);
+    
+    const existingUser = await vendorModel.findOne({
+      $or: [
+        { phone: phone },
+        { whatsappNumber: phone },
+        ...(whatsappNumber && whatsappNumber !== '' && whatsappNumber !== phone ? [{ whatsappNumber: whatsappNumber }] : [])
+      ]
+    });
+    
+    console.log('🔍 Existing user found:', !!existingUser);
     if (existingUser) {
+      console.log('- User ID:', existingUser._id);
+      console.log('- User phone:', existingUser.phone);
+      console.log('- User whatsapp:', existingUser.whatsappNumber);
+      console.log('- Phone verified:', existingUser.isPhoneVerified);
+      console.log('- WhatsApp verified:', existingUser.isWhatsappVerified);
+      console.log('- Has name:', !!existingUser.name);
+      console.log('- Has email:', !!existingUser.email);
+    }
+    
+    // Only block if vendor is FULLY registered (has name, email, etc.) and verified
+    if (existingUser && existingUser.isPhoneVerified && existingUser.name && existingUser.email) {
       return res.status(400).json({
         success: false,
         message: "Vendor already exists. Please sign in to continue.",
       });
     }
+
+    // For registration, we need either phone or whatsapp to be verified
+    // Check if the numbers being used in registration are verified
+    let isVerified = false;
+    
+    console.log('🔍 Checking verification status:');
+    console.log('- Phone from request:', phone);
+    console.log('- WhatsApp from request:', whatsappNumber);
+    console.log('- WhatsApp is empty/undefined:', !whatsappNumber || whatsappNumber === '');
+    
+    if (existingUser) {
+      console.log('- Existing user found');
+      console.log('- Existing user phone:', existingUser.phone);
+      console.log('- Existing user whatsapp:', existingUser.whatsappNumber);
+      console.log('- Phone verified:', existingUser.isPhoneVerified);
+      console.log('- WhatsApp verified:', existingUser.isWhatsappVerified);
+      
+      // If WhatsApp number is empty, null, undefined, or same as phone - user is not using WhatsApp
+      if (!whatsappNumber || whatsappNumber === '' || whatsappNumber === phone) {
+        console.log('🔄 User not using WhatsApp, checking phone verification');
+        // User is not using WhatsApp, check phone verification
+        if (existingUser.phone === phone && existingUser.isPhoneVerified) {
+          isVerified = true;
+          console.log('✅ Phone number verified for registration:', phone);
+        }
+      } else {
+        console.log('🔄 User using WhatsApp, checking WhatsApp verification');
+        // User is using WhatsApp, check WhatsApp verification
+        if (existingUser.whatsappNumber === whatsappNumber && existingUser.isWhatsappVerified) {
+          isVerified = true;
+          console.log('✅ WhatsApp number verified for registration:', whatsappNumber);
+        }
+      }
+      
+      // Additional fallback: if phone matches and is verified, allow registration regardless
+      if (!isVerified && existingUser.phone === phone && existingUser.isPhoneVerified) {
+        isVerified = true;
+        console.log('✅ Phone verification fallback successful:', phone);
+      }
+    } else {
+      console.log('❌ No existing user found with provided numbers');
+    }
+    
+    if (!isVerified) {
+      console.log('❌ Verification failed for registration:');
+      console.log('- Phone:', phone);
+      console.log('- WhatsApp Number:', whatsappNumber);
+      console.log('- Existing User Phone:', existingUser?.phone);
+      console.log('- Existing User WhatsApp:', existingUser?.whatsappNumber);
+      console.log('- Phone Verified:', existingUser?.isPhoneVerified);
+      console.log('- WhatsApp Verified:', existingUser?.isWhatsappVerified);
+      
+      return res.status(400).json({
+        success: false,
+        message: "Phone number not verified. Please verify your phone number with OTP first.",
+        requiresOTP: true
+      });
+    }
+    
+    console.log('✅ Verification successful, proceeding with registration');
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
@@ -153,7 +238,6 @@ const vendorRegisterCtrl = async (req, res) => {
       if (uploadPromises.length > 0) {
         console.log(`📤 Starting ${uploadPromises.length} file uploads...`);
         await Promise.all(uploadPromises);
-        console.log("📁 All file uploads completed:", Object.keys(fileUpdates));
       } else {
         console.log("📁 No files to upload");
       }
@@ -258,15 +342,19 @@ const vendorRegisterCtrl = async (req, res) => {
       workingDaysTimings: sanitizeValue(workingDays), // Fix: map workingDays to workingDaysTimings
     };
 
-    const user = await vendorModel.create({
-      ...sanitizedData,
-      password: hashedPassword,
-      numberOfStaff: processedNumberOfStaff,
-      bankDetail: processedBankDetail, 
-      experience: processedExperience,
-      // File uploads
-      ...fileUpdates
-    });
+    const user = await vendorModel.findByIdAndUpdate(
+      existingUser._id,
+      {
+        ...sanitizedData,
+        password: hashedPassword,
+        numberOfStaff: processedNumberOfStaff,
+        bankDetail: processedBankDetail, 
+        experience: processedExperience,
+        // File uploads
+        ...fileUpdates
+      },
+      { new: true }
+    );
 
     // Populate category for transformation
     const populatedUser = await vendorModel.findById(user._id).populate('category', 'name');
@@ -285,6 +373,47 @@ const vendorRegisterCtrl = async (req, res) => {
       httpOnly: true,
     };
     res.cookie("token", token, options);
+
+    // Send welcome messages after successful registration
+    try {
+      console.log('🎉 Sending welcome messages to new vendor:', transformedUser.name);
+      
+      // Send both SMS welcome messages
+      const phoneNumber = transformedUser.phone;
+      const vendorName = transformedUser.name;
+      const supportContact = '+91 78798 84363';
+      
+      // Send first welcome SMS (registration confirmation)
+      const welcomeSMS1Result = await sendWelcomeSMS1(phoneNumber, vendorName);
+      if (welcomeSMS1Result.success) {
+        console.log('✅ Welcome SMS 1 sent successfully');
+      } else {
+        console.error('❌ Welcome SMS 1 failed:', welcomeSMS1Result.message);
+      }
+      
+      // Send second welcome SMS (account registered)
+      const welcomeSMS2Result = await sendWelcomeSMS2(phoneNumber, vendorName, supportContact);
+      if (welcomeSMS2Result.success) {
+        console.log('✅ Welcome SMS 2 sent successfully');
+      } else {
+        console.error('❌ Welcome SMS 2 failed:', welcomeSMS2Result.message);
+      }
+      
+      // Send WhatsApp welcome message if user has WhatsApp verified
+      if (transformedUser.whatsappNumber && transformedUser.isWhatsappVerified) {
+        console.log('📱 Sending WhatsApp welcome message...');
+        const whatsappWelcomeResult = await sendWhatsAppWelcome(transformedUser.whatsappNumber, vendorName, supportContact);
+        if (whatsappWelcomeResult.success) {
+          console.log('✅ WhatsApp welcome message sent successfully');
+        } else {
+          console.error('❌ WhatsApp welcome message failed:', whatsappWelcomeResult.message);
+        }
+      }
+      
+    } catch (welcomeError) {
+      console.error('❌ Error sending welcome messages:', welcomeError);
+      // Don't fail the registration if welcome messages fail
+    }
 
     return res.status(200).json({
       success: true,
@@ -395,7 +524,14 @@ const updateVendorStatusCtrl = async (req, res) => {
       });
     }
 
-
+    // Get the vendor before updating to check previous status
+    const existingVendor = await vendorModel.findById(id);
+    if (!existingVendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
 
     const updatedVendor = await vendorModel.findByIdAndUpdate(
       id,
@@ -403,11 +539,36 @@ const updateVendorStatusCtrl = async (req, res) => {
       { new: true }
     );
 
-    if (!updatedVendor) {
-      return res.status(404).json({
-        success: false,
-        message: "Vendor not found",
-      });
+    // Send approval messages if status changed to "approved"
+    if (status === "approved" && existingVendor.status !== "approved") {
+      console.log('🎉 Vendor approved! Sending approval messages...');
+      
+      try {
+        // Always send SMS approval message
+        if (updatedVendor.phone) {
+          const smsResult = await sendApprovalSMS(updatedVendor.phone);
+          if (smsResult.success) {
+            console.log('✅ Approval SMS sent successfully');
+          } else {
+            console.error('❌ Approval SMS failed:', smsResult.message);
+          }
+        }
+        
+        // Send WhatsApp approval message if vendor has WhatsApp verified
+        if (updatedVendor.whatsappNumber && updatedVendor.isWhatsappVerified) {
+          console.log('📱 Sending WhatsApp approval message...');
+          const whatsappResult = await sendApprovalWhatsApp(updatedVendor.whatsappNumber);
+          if (whatsappResult.success) {
+            console.log('✅ WhatsApp approval message sent successfully');
+          } else {
+            console.error('❌ WhatsApp approval message failed:', whatsappResult.message);
+          }
+        }
+        
+      } catch (approvalError) {
+        console.error('❌ Error sending approval messages:', approvalError);
+        // Don't fail the status update if approval messages fail
+      }
     }
 
     return res.status(200).json({
@@ -671,9 +832,7 @@ updateVendorProfileCtrl = async (req, res) => {
 
       // Wait for all uploads to complete
       if (uploadPromises.length > 0) {
-        console.log(`📤 Starting ${uploadPromises.length} file uploads...`);
         await Promise.all(uploadPromises);
-        console.log("📁 All file uploads completed:", Object.keys(fileUpdates));
       }
 
     } catch (uploadError) {
@@ -836,6 +995,388 @@ const deleteVendorCtrl = async (req, res) => {
   }
 };
 
+// Send OTP for vendor registration
+const sendVendorOTP = async (req, res) => {
+  try {
+    const { phone, whatsappNumber, preferredMethod, forceResend } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required"
+      });
+    }
+
+    // For WhatsApp method, we'll verify the WhatsApp number
+    // For SMS method, we'll verify the phone number
+    const numberToVerify = preferredMethod === 'whatsapp' && whatsappNumber ? whatsappNumber : phone;
+
+    // Check if vendor already exists with this number
+    const existingVendor = await vendorModel.findOne({ 
+      $or: [
+        { phone: numberToVerify },
+        { whatsappNumber: numberToVerify }
+      ]
+    });
+    
+    // Only block if vendor is fully registered (has name and is verified)
+    if (existingVendor && existingVendor.isPhoneVerified && existingVendor.name && !forceResend) {
+      return res.status(400).json({
+        success: false,
+        message: "Vendor already exists with this number"
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    let otpResult;
+    let targetNumber = numberToVerify;
+
+    // Send OTP based on preferred method
+    if (preferredMethod === 'whatsapp' && whatsappNumber) {
+      console.log('🔄 Attempting WhatsApp OTP to:', whatsappNumber);
+      otpResult = await sendWhatsAppOTP(whatsappNumber, otp);
+    } else {
+      console.log('🔄 Attempting SMS OTP to:', phone);
+      otpResult = await sendSMSOTP(phone, otp);
+      targetNumber = phone;
+    }
+
+    if (!otpResult.success) {
+      return res.status(500).json({
+        success: false,
+        message: otpResult.message,
+        error: otpResult.error
+      });
+    }
+
+    // Determine the actual method used and message
+    let actualMethod = preferredMethod;
+    let responseMessage = otpResult.message;
+    
+    if (otpResult.method === 'sms_fallback') {
+      actualMethod = 'sms_fallback';
+      responseMessage = `OTP sent via SMS to your WhatsApp number (${targetNumber}) - WhatsApp temporarily unavailable`;
+    }
+
+    // Store or update OTP in database using the number being verified
+    if (existingVendor) {
+      existingVendor.otp = otp;
+      existingVendor.otpExpiry = otpExpiry;
+      existingVendor.preferredOtpMethod = preferredMethod;
+      
+      // Reset verification status for re-verification
+      if (forceResend) {
+        existingVendor.isPhoneVerified = false;
+        existingVendor.isWhatsappVerified = false;
+      }
+      
+      // Update the correct number field
+      if (preferredMethod === 'whatsapp' && whatsappNumber) {
+        existingVendor.whatsappNumber = whatsappNumber;
+      } else {
+        existingVendor.phone = phone;
+      }
+      
+      await existingVendor.save();
+    } else {
+      const vendorData = {
+        otp,
+        otpExpiry,
+        preferredOtpMethod: preferredMethod,
+        status: 'pending',
+        isPhoneVerified: false,
+        isWhatsappVerified: false
+      };
+      
+      // Set the correct number field
+      if (preferredMethod === 'whatsapp' && whatsappNumber) {
+        vendorData.whatsappNumber = whatsappNumber;
+        vendorData.phone = phone; // Also store phone as backup
+      } else {
+        vendorData.phone = phone;
+      }
+      
+      await vendorModel.create(vendorData);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: responseMessage,
+      method: actualMethod,
+      targetNumber: targetNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1****$3'), // Mask middle digits
+      originalMethod: preferredMethod // Show what user originally requested
+    });
+
+  } catch (error) {
+    console.error("❌ Send OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error sending OTP",
+      error: error.message
+    });
+  }
+};
+
+// Verify OTP for vendor registration
+const verifyVendorOTP = async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+
+    if (!phone || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number and OTP are required"
+      });
+    }
+
+    // Find vendor with the phone number (could be in phone or whatsappNumber field)
+    const vendor = await vendorModel.findOne({
+      $or: [
+        { phone: phone },
+        { whatsappNumber: phone }
+      ]
+    });
+    
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "No registration found with this number"
+      });
+    }
+
+    // Check if OTP is valid and not expired
+    if (vendor.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP"
+      });
+    }
+
+    if (new Date() > vendor.otpExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new one."
+      });
+    }
+
+    // Mark as verified based on which method was used
+    vendor.isPhoneVerified = true;
+    if (vendor.preferredOtpMethod === 'whatsapp') {
+      vendor.isWhatsappVerified = true;
+    }
+    
+    // Clear OTP data
+    vendor.otp = undefined;
+    vendor.otpExpiry = undefined;
+    
+    await vendor.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully. You can now complete your registration.",
+      isVerified: true,
+      method: vendor.preferredOtpMethod
+    });
+
+  } catch (error) {
+    console.error("❌ Verify OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error verifying OTP",
+      error: error.message
+    });
+  }
+};
+
+
+// Vendor Forgot Password - Send OTP
+const vendorForgotPasswordCtrl = async (req, res) => {
+  try {
+    const { phone, otpMethod = 'sms' } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required",
+      });
+    }
+
+    // Check if vendor exists
+    const vendor = await vendorModel.findOne({ phone });
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found with this phone number",
+      });
+    }
+
+    // Generate OTP
+    const { generateOTP, sendSMSOTP, sendWhatsAppOTP } = require('../utils/otpService');
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Save OTP to vendor
+    vendor.resetPasswordOTP = otp;
+    vendor.resetPasswordOTPExpiry = otpExpiry;
+    await vendor.save();
+
+    // Send OTP based on method
+    let otpResult;
+    if (otpMethod === 'whatsapp') {
+      // Use whatsapp number if available, otherwise use phone
+      const whatsappNumber = vendor.whatsappNumber || phone;
+      otpResult = await sendWhatsAppOTP(whatsappNumber, otp);
+    } else {
+      otpResult = await sendSMSOTP(phone, otp);
+    }
+
+    if (otpResult.success) {
+      return res.status(200).json({
+        success: true,
+        message: `Password reset OTP sent via ${otpMethod.toUpperCase()}`,
+        method: otpResult.method || otpMethod,
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send OTP. Please try again.",
+      });
+    }
+  } catch (error) {
+    console.error("Vendor forgot password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// Vendor Verify OTP for Password Reset
+const vendorVerifyResetOTPCtrl = async (req, res) => {
+  try {
+    const { phone, otp } = req.body;
+
+    if (!phone || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number and OTP are required",
+      });
+    }
+
+    const vendor = await vendorModel.findOne({ phone });
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    // Check if OTP exists and is not expired
+    if (!vendor.resetPasswordOTP || !vendor.resetPasswordOTPExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP found. Please request a new one.",
+      });
+    }
+
+    if (new Date() > vendor.resetPasswordOTPExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new one.",
+      });
+    }
+
+    if (vendor.resetPasswordOTP !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // OTP is valid - generate a temporary token for password reset
+    const resetToken = jwt.sign(
+      { vendorId: vendor._id, purpose: 'password_reset' },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // Clear OTP fields
+    vendor.resetPasswordOTP = undefined;
+    vendor.resetPasswordOTPExpiry = undefined;
+    await vendor.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP verified successfully",
+      resetToken,
+    });
+  } catch (error) {
+    console.error("Vendor verify reset OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// Vendor Reset Password
+const vendorResetPasswordCtrl = async (req, res) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+
+    if (!resetToken || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset token and new password are required",
+      });
+    }
+
+    // Verify reset token
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid or expired reset token",
+      });
+    }
+
+    if (decoded.purpose !== 'password_reset') {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid reset token",
+      });
+    }
+
+    const vendor = await vendorModel.findById(decoded.vendorId);
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    vendor.password = hashedPassword;
+    await vendor.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Vendor reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
 
 module.exports = {
   vendorRegisterCtrl,
@@ -847,5 +1388,10 @@ module.exports = {
   updateVendorPercentageCtrl,
   updateWorkingHours,
   requestProfileUpdateCtrl,
-  deleteVendorCtrl
+  deleteVendorCtrl,
+  sendVendorOTP,
+  verifyVendorOTP,
+  vendorForgotPasswordCtrl,
+  vendorVerifyResetOTPCtrl,
+  vendorResetPasswordCtrl
 };
