@@ -146,7 +146,7 @@ const updatePropertyCtrl = async (req, res) => {
 
 const getPropertiesCtrl = async (req, res) => {
     try {
-        const { category, categoryId, includeInactive } = req.query;
+        const { category, includeInactive } = req.query;
 
         let query = {};
         
@@ -155,13 +155,23 @@ const getPropertiesCtrl = async (req, res) => {
             query.status = 'active';
         }
         
-        // Add category filter - prioritize categoryId if provided
-        if (categoryId) {
-            // Convert string to ObjectId for proper matching
-            query.category = new mongoose.Types.ObjectId(categoryId);
-        } else if (category && category !== 'all') {
-            // Use case-insensitive regex to match category names
-            query.category = { $regex: new RegExp(category, 'i') };
+        // Add category filter
+        if (category && category !== 'all') {
+            // Normalize both: lowercase and remove all spaces for exact matching
+            const normalizedSearchCategory = category.toLowerCase().replace(/\s+/g, '');
+            
+            // Find all properties and filter by normalized category name
+            const allProperties = await Property.find(query).populate('vendor').populate('review');
+            const filteredProperties = allProperties.filter(prop => {
+                if (!prop.category) return false;
+                const propCategoryNormalized = prop.category.toLowerCase().replace(/\s+/g, '');
+                return propCategoryNormalized === normalizedSearchCategory;
+            });
+            
+            return res.status(200).json({
+                success: true,
+                properties: filteredProperties
+            });
         }
 
         const properties = await Property.find(query).populate('vendor').populate('review');
