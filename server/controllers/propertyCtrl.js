@@ -1,6 +1,7 @@
 const Property = require('../models/propertyModel');
 const { uploadImageToCloudinary } = require("../config/imageUploader");
 const AuditLogs = require("../models/auditLogs");  // correct path use karna
+const mongoose = require('mongoose');
 
 const createPropertyCtrl = async (req, res) => {
     try {
@@ -156,7 +157,8 @@ const getPropertiesCtrl = async (req, res) => {
         
         // Add category filter - prioritize categoryId if provided
         if (categoryId) {
-            query.category = categoryId;
+            // Convert string to ObjectId for proper matching
+            query.category = new mongoose.Types.ObjectId(categoryId);
         } else if (category && category !== 'all') {
             // Use case-insensitive regex to match category names
             query.category = { $regex: new RegExp(category, 'i') };
