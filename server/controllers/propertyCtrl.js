@@ -145,7 +145,7 @@ const updatePropertyCtrl = async (req, res) => {
 
 const getPropertiesCtrl = async (req, res) => {
     try {
-        const { category, includeInactive } = req.query;
+        const { category, categoryId, includeInactive } = req.query;
 
         let query = {};
         
@@ -154,8 +154,10 @@ const getPropertiesCtrl = async (req, res) => {
             query.status = 'active';
         }
         
-        // Add category filter if provided
-        if (category && category !== 'all') {
+        // Add category filter - prioritize categoryId if provided
+        if (categoryId) {
+            query.category = categoryId;
+        } else if (category && category !== 'all') {
             // Use case-insensitive regex to match category names
             query.category = { $regex: new RegExp(category, 'i') };
         }
