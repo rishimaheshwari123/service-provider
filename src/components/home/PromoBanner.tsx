@@ -160,10 +160,10 @@ export default function PromoBanner() {
         {/* Desktop Layout */}
         <div className="hidden lg:grid lg:grid-cols-5 gap-5">
           {/* Main Banner Slider - Takes 2 columns - Now shows only ads */}
-          <div className="lg:col-span-2 relative rounded-3xl overflow-hidden min-h-[320px] shadow-lg border border-white/50">
+          <div className="lg:col-span-2 relative rounded-3xl overflow-hidden min-h-[380px] shadow-lg border border-white/50">
             {ads.length > 0 ? (
               // Display ads in main banner area with original styling
-              <div className="relative w-full h-[320px]">
+              <div className="relative w-full h-[380px]">
                 {/* Navigation buttons for multiple ads */}
                 {ads.length > 1 && (
                   <>

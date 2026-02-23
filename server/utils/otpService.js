@@ -14,14 +14,38 @@ const sendSMSOTP = async (phoneNumber, otp) => {
         
         const response = await axios.get(smsUrl);
         
-        console.log('SMS OTP sent successfully:', response.data);
+        console.log('SMS OTP response:', response.data);
+        
+        // Check for insufficient credits error
+        if (response.data && response.data.ErrorCode === '21') {
+            console.error('❌ SMS insufficient credits:', response.data.ErrorMessage);
+            return {
+                success: false,
+                message: 'SMS service temporarily unavailable. Please contact support.',
+                error: 'Insufficient SMS credits',
+                errorCode: '21'
+            };
+        }
+        
+        // Check for other error codes
+        if (response.data && response.data.ErrorCode && response.data.ErrorCode !== '0') {
+            console.error('❌ SMS error:', response.data);
+            return {
+                success: false,
+                message: 'Failed to send SMS OTP',
+                error: response.data.ErrorMessage || 'SMS service error',
+                errorCode: response.data.ErrorCode
+            };
+        }
+        
+        console.log('✅ SMS OTP sent successfully');
         return {
             success: true,
             message: 'SMS OTP sent successfully',
             data: response.data
         };
     } catch (error) {
-        console.error('Error sending SMS OTP:', error);
+        console.error('❌ Error sending SMS OTP:', error);
         return {
             success: false,
             message: 'Failed to send SMS OTP',
@@ -278,8 +302,7 @@ const sendWhatsAppOTP = async (whatsappNumber, otp) => {
             biz_opaque_callback_data: "vendor_registration_otp"
         };
 
-        console.log('🔄 Sending WhatsApp OTP to:', whatsappNumber);
-        console.log('📱 Using correct API endpoint...');
+        console.log('🔄 Attempting WhatsApp OTP to:', whatsappNumber);
 
         // Use the correct API endpoint from your working curl
         const response = await axios.post(
@@ -314,18 +337,46 @@ const sendWhatsAppOTP = async (whatsappNumber, otp) => {
 
     } catch (error) {
         console.error('❌ WhatsApp API failed:', error.response?.status, error.message);
-        console.error('📄 Error details:', error.response?.data);
         
-        // WhatsApp API failed, use SMS as fallback
-        console.log('🔄 WhatsApp failed, using SMS fallback for WhatsApp number...');
+        // Check for insufficient credits error
+        if (error.response?.data?.response?.[0]?.status?.includes('Insufficient credits')) {
+            console.error('❌ WhatsApp insufficient credits');
+            
+            // Try SMS fallback
+            console.log('🔄 WhatsApp failed due to insufficient credits, trying SMS fallback...');
+            try {
+                const smsResult = await sendSMSOTP(whatsappNumber, otp);
+                
+                if (smsResult.success) {
+                    return {
+                        success: true,
+                        message: 'OTP sent via SMS (WhatsApp credits insufficient)',
+                        data: smsResult.data,
+                        method: 'sms_fallback',
+                        originalMethod: 'whatsapp'
+                    };
+                } else if (smsResult.errorCode === '21') {
+                    // Both services have insufficient credits
+                    return {
+                        success: false,
+                        message: 'OTP service temporarily unavailable. Please contact support or try again later.',
+                        error: 'Both WhatsApp and SMS services have insufficient credits'
+                    };
+                }
+            } catch (smsError) {
+                console.error('❌ SMS fallback also failed:', smsError);
+            }
+        }
         
+        // For other WhatsApp errors, try SMS fallback
+        console.log('🔄 WhatsApp failed, trying SMS fallback...');
         try {
             const smsResult = await sendSMSOTP(whatsappNumber, otp);
             
             if (smsResult.success) {
                 return {
                     success: true,
-                    message: 'OTP sent via SMS to your WhatsApp number (WhatsApp API temporarily unavailable)',
+                    message: 'OTP sent via SMS (WhatsApp temporarily unavailable)',
                     data: smsResult.data,
                     method: 'sms_fallback',
                     originalMethod: 'whatsapp'
@@ -337,7 +388,7 @@ const sendWhatsAppOTP = async (whatsappNumber, otp) => {
         
         return {
             success: false,
-            message: 'Failed to send OTP via WhatsApp or SMS',
+            message: 'Failed to send OTP. Please try again or contact support.',
             error: error.response?.data || error.message
         };
     }

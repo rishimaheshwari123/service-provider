@@ -614,13 +614,24 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Service Location / Area Covered</Label>
-                      <Input 
-                        value={formData.serviceLocation || ""} 
-                        onChange={(e) => handleInputChange("serviceLocation", e.target.value)}
-                        placeholder="e.g., Sagar, Bhopal, All MP" 
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Pincode</Label>
+                        <Input 
+                          value={formData.pincode || ""} 
+                          onChange={(e) => handleInputChange("pincode", e.target.value)}
+                          placeholder="Enter 6-digit pincode" 
+                          maxLength={6}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Service Location / Area Covered</Label>
+                        <Input 
+                          value={formData.serviceLocation || ""} 
+                          onChange={(e) => handleInputChange("serviceLocation", e.target.value)}
+                          placeholder="e.g., Sagar, Bhopal, All MP" 
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1266,12 +1277,20 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       {vendor.address}
                     </p>
                   </div>
-                  <div>
-                    <Label>Service Location / Area Covered</Label>
-                    <p className="mt-1 text-gray-900 flex items-start gap-2">
-                      <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
-                      {vendor.serviceLocation || "-"}
-                    </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Pincode</Label>
+                      <p className="mt-1 text-gray-900">
+                        {vendor.pincode || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Service Location / Area Covered</Label>
+                      <p className="mt-1 text-gray-900 flex items-start gap-2">
+                        <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
+                        {vendor.serviceLocation || "-"}
+                      </p>
+                    </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

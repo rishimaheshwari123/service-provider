@@ -31,12 +31,10 @@ const transformVendorForDisplay = (vendorObj) => {
   };
 };
 
-
-
 const vendorRegisterCtrl = async (req, res) => {
   try {
     const {
-      name, email, password, phone, company, address, adhar, pan, description, status = "pending",
+      name, email, password, phone, company, address, adhar, pan, description, status = "pending",pincode,
       // New fields
       typeOfService, category, subCategory, yearOfEstablishment, serviceLocation,
       alternatePhone, whatsappNumber, businessType, gstNumber, tradeLicense,
@@ -340,6 +338,7 @@ const vendorRegisterCtrl = async (req, res) => {
       referralCode: sanitizeValue(referralCode),
       referralName: sanitizeValue(referralName),
       workingDaysTimings: sanitizeValue(workingDays), // Fix: map workingDays to workingDaysTimings
+      pincode: sanitizeValue(pincode),
     };
 
     const user = await vendorModel.findByIdAndUpdate(
@@ -1011,7 +1010,7 @@ const sendVendorOTP = async (req, res) => {
     // For SMS method, we'll verify the phone number
     const numberToVerify = preferredMethod === 'whatsapp' && whatsappNumber ? whatsappNumber : phone;
 
-    // Check if vendor already exists with this number
+    // Check if phone number is already registered in vendor collection ONLY
     const existingVendor = await vendorModel.findOne({ 
       $or: [
         { phone: numberToVerify },
@@ -1019,11 +1018,11 @@ const sendVendorOTP = async (req, res) => {
       ]
     });
     
-    // Only block if vendor is fully registered (has name and is verified)
+    // Block if vendor is fully registered (has name and is verified)
     if (existingVendor && existingVendor.isPhoneVerified && existingVendor.name && !forceResend) {
       return res.status(400).json({
         success: false,
-        message: "Vendor already exists with this number"
+        message: "This phone number is already registered as a vendor. Please use a different number or login."
       });
     }
 
@@ -1378,6 +1377,77 @@ const vendorResetPasswordCtrl = async (req, res) => {
   }
 };
 
+// Admin Reset Vendor Password (No OTP Required)
+const adminResetVendorPasswordCtrl = async (req, res) => {
+  try {
+    console.log("📝 Admin reset password request received");
+    console.log("Request body:", req.body);
+    
+    const { vendorId, newPassword, confirmPassword } = req.body;
+
+    // Validate input
+    if (!vendorId || !newPassword || !confirmPassword) {
+      console.log("❌ Validation failed: Missing fields");
+      return res.status(400).json({
+        success: false,
+        message: "Vendor ID, new password, and confirm password are required",
+      });
+    }
+
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+      console.log("❌ Validation failed: Passwords don't match");
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    // Validate password length
+    if (newPassword.length < 6) {
+      console.log("❌ Validation failed: Password too short");
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    // Find vendor
+    console.log("🔍 Looking for vendor:", vendorId);
+    const vendor = await vendorModel.findById(vendorId);
+    if (!vendor) {
+      console.log("❌ Vendor not found");
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    console.log("✅ Vendor found:", vendor.name, vendor.phone);
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    vendor.password = hashedPassword;
+    await vendor.save();
+
+    console.log(`✅ Admin reset password for vendor: ${vendor.phone}`);
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor password reset successfully by admin",
+    });
+  } catch (error) {
+    console.error("❌ Admin reset vendor password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   vendorRegisterCtrl,
   vendorLoginCtrl,
@@ -1393,5 +1463,6 @@ module.exports = {
   verifyVendorOTP,
   vendorForgotPasswordCtrl,
   vendorVerifyResetOTPCtrl,
-  vendorResetPasswordCtrl
+  vendorResetPasswordCtrl,
+  adminResetVendorPasswordCtrl
 };

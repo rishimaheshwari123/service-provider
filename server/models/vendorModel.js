@@ -89,6 +89,10 @@ const vendorSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+         pincode: {
+            type: String,
+            trim: true,
+        },
         
         role: {
             type: String,
