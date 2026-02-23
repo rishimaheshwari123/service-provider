@@ -52,6 +52,7 @@ export const getAllPropertyAPI = async (filters = {}) => {
   try {
     // Build query parameters
     const params = new URLSearchParams();
+    
     if (filters.category && filters.category !== 'all') {
       params.append('category', filters.category);
     }
