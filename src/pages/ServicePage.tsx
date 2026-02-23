@@ -466,22 +466,87 @@ const toPascalCase = (text) => {
               <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : filteredServices.length === 0 ? (
-            <div className="text-center py-20">
-              <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-10 h-10 text-gray-400" />
+            <div className="text-center py-20 max-w-4xl mx-auto">
+              {/* Icon */}
+              <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Search className="w-12 h-12 text-blue-600" />
               </div>
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">
-                {filters.search ? toPascalCase("No Services Found") : toPascalCase("No Services Available")}
-              </h3>
-              <p className="text-gray-500 mb-4">
-                {filters.search 
-                  ? `${toPascalCase("No Results Found For")} "${filters.search}". ${toPascalCase("Try Adjusting Your Search Terms.")}`
-                  : toPascalCase("Try Adjusting Your Filters Or Search Terms")
-                }
-              </p>
+              
+              {/* English Section */}
+              <div className="mb-8 pb-8 border-b border-gray-200">
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                  Service Coming Soon in Your Area 🚀
+                </h3>
+                <p className="text-gray-600 mb-6 text-lg">
+                  This service is not available at the moment — but we're expanding fast!
+                </p>
+                
+                {/* Service Provider CTA */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                  <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
+                    <span className="text-2xl">👨‍🔧</span>
+                    <span className="text-left">
+                      <strong>Are you a service provider?</strong><br />
+                      Register now on our app and start receiving customer leads.
+                    </span>
+                  </p>
+                  <button
+                    onClick={() => navigate("/vendor/register")}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+                  >
+                    Register Now
+                  </button>
+                </div>
+                
+                {/* Customer Interest */}
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                  <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
+                    <span className="text-2xl">📩</span>
+                    <span className="text-left">
+                      <strong>Want this service in your area?</strong><br />
+                      Leave your contact details, and we'll notify you when it's live.
+                    </span>
+                  </p>
+                  <button
+                    onClick={() => navigate("/contact")}
+                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+                  >
+                    Notify Me
+                  </button>
+                </div>
+              </div>
+              
+              {/* Hindi Section */}
+              <div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                  सेवा उपलब्ध नहीं है 😔
+                </h3>
+                <p className="text-gray-600 mb-4 text-lg">
+                  क्षमा करें! यह सेवा फिलहाल आपके क्षेत्र में उपलब्ध नहीं है।
+                </p>
+                <p className="text-gray-600 mb-6">
+                  हम लगातार नए सेवा प्रदाताओं को जोड़ रहे हैं और जल्द ही यह सेवा आपके क्षेत्र में उपलब्ध होगी।
+                </p>
+                
+                {/* Service Provider CTA - Hindi */}
+                <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
+                  <p className="text-gray-700 mb-4">
+                    <span className="text-2xl">👉</span>{" "}
+                    यदि आप किसी भी प्रकार की सेवा प्रदान करते हैं, तो कृपया हमारे ऐप पर रजिस्टर करें और अपने व्यवसाय को बढ़ाएं।
+                  </p>
+                  <button
+                    onClick={() => navigate("/vendor/register")}
+                    className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+                  >
+                    सेवा प्रदाता के रूप में रजिस्टर करें
+                  </button>
+                </div>
+              </div>
+              
+              {/* Search Suggestions (if search was used) */}
               {filters.search && (
-                <div className="space-y-2">
-                  <p className="text-sm text-gray-600">{toPascalCase("Suggestions")}:</p>
+                <div className="mt-8 pt-8 border-t border-gray-200">
+                  <p className="text-sm text-gray-600 mb-3">{toPascalCase("Suggestions")}:</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     <button
                       onClick={() => setFilters({ ...filters, search: "plumber" })}

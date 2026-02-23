@@ -345,7 +345,7 @@ const CategoriesPage = () => {
                   <div>
                     {groupedData.autoFilledGroups.map((group) => (
                       <div key={group.title} className="mb-10">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6 ">
                           {group.title}
                         </h2>
                         <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-4">

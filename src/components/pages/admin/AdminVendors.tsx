@@ -69,9 +69,12 @@ import {
   CheckCircle,
   XCircle,
   FileText,
+  Key,
 } from "lucide-react";
 import { signUp } from "@/service/operations/vendor";
 import { getAllCategoriesAPI, purchaseCategoryAPI } from "@/service/operations/category";
+import { sendOTP, verifyOTP } from "@/service/operations/otp";
+import { vendor } from "@/service/apis";
 import * as XLSX from "xlsx";
 
 interface Category {
@@ -127,6 +130,14 @@ const VendorManagement = () => {
     open: false,
     vendor: null,
   });
+  const [resetPasswordDialog, setResetPasswordDialog] = useState({
+    open: false,
+    vendor: null,
+  });
+  const [resetPasswordData, setResetPasswordData] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [loadingProperties, setLoadingProperties] = useState(false);
@@ -160,6 +171,13 @@ const VendorManagement = () => {
     document4: null,
     document5: null,
   });
+  
+  // OTP Verification States
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [otpLoading, setOtpLoading] = useState(false);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -177,6 +195,7 @@ const VendorManagement = () => {
     
     // Step 2: Contact Details
     address: "",
+    pincode: "",
     serviceLocation: "",
     phone: "",
     alternatePhone: "",
@@ -276,7 +295,7 @@ const VendorManagement = () => {
   };
 
   const nextStep = () => {
-    // Validate step 2 for WhatsApp selection
+    // Validate step 2 for WhatsApp selection and OTP verification
     if (currentStep === 2) {
       if (hasWhatsApp === null) {
         toast({
@@ -294,6 +313,15 @@ const VendorManagement = () => {
         });
         return;
       }
+      // Check OTP verification
+      if (!isPhoneVerified) {
+        toast({
+          title: "Error",
+          description: "Please verify your phone number with OTP before proceeding",
+          variant: "destructive",
+        });
+        return;
+      }
     }
     
     if (currentStep < 7) {
@@ -304,6 +332,105 @@ const VendorManagement = () => {
   const prevStep = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    }
+  };
+
+  // OTP Functions
+  const handleSendOTP = async () => {
+    const phoneNumber = formData.phone;
+    const whatsappNumber = formData.whatsappNumber;
+    
+    // Determine which number to verify based on WhatsApp selection
+    let numberToVerify;
+    let preferredMethod;
+    
+    if (hasWhatsApp) {
+      numberToVerify = whatsappNumber;
+      preferredMethod = 'whatsapp';
+      
+      if (!whatsappNumber || whatsappNumber.length !== 10) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid 10-digit WhatsApp number",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      numberToVerify = phoneNumber;
+      preferredMethod = 'sms';
+      
+      if (!phoneNumber || phoneNumber.length !== 10) {
+        toast({
+          title: "Error",
+          description: "Please enter a valid 10-digit phone number",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    setOtpLoading(true);
+    
+    const otpData = {
+      phone: numberToVerify,
+      preferredMethod: preferredMethod,
+      forceResend: true
+    };
+    
+    if (hasWhatsApp && whatsappNumber) {
+      otpData.whatsappNumber = whatsappNumber;
+    }
+    
+    const result = await sendOTP(otpData);
+    setOtpLoading(false);
+    
+    if (result.success) {
+      setOtpSent(true);
+      setIsPhoneVerified(false);
+      
+      toast({
+        title: "Success",
+        description: hasWhatsApp 
+          ? `OTP sent to WhatsApp number ${whatsappNumber}` 
+          : `OTP sent to phone number ${phoneNumber}`,
+      });
+    }
+  };
+
+  const handleVerifyOTP = async () => {
+    const phoneNumber = formData.phone;
+    const whatsappNumber = formData.whatsappNumber;
+    
+    const numberToVerify = hasWhatsApp ? whatsappNumber : phoneNumber;
+    
+    if (!otp || otp.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit OTP",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setOtpLoading(true);
+    
+    const result = await verifyOTP({
+      phone: numberToVerify,
+      otp: otp
+    });
+    
+    setOtpLoading(false);
+    
+    if (result.success) {
+      setIsPhoneVerified(true);
+      setOtpSent(false);
+      setOtp('');
+      
+      toast({
+        title: "Success",
+        description: "Phone number verified successfully!",
+      });
     }
   };
 
@@ -516,6 +643,90 @@ const VendorManagement = () => {
     }
   };
 
+  const handleResetPassword = async () => {
+    if (!resetPasswordDialog.vendor) return;
+
+    // Validate passwords
+    if (!resetPasswordData.newPassword || !resetPasswordData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill in both password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (resetPasswordData.newPassword !== resetPasswordData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (resetPasswordData.newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 6 characters long",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSubmitting(true);
+      
+      const response = await fetch(vendor.ADMIN_RESET_PASSWORD_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          vendorId: resetPasswordDialog.vendor._id,
+          newPassword: resetPasswordData.newPassword,
+          confirmPassword: resetPasswordData.confirmPassword,
+        }),
+      });
+
+      // Check if response is ok
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Server error: ${response.status} - ${errorText || 'Unknown error'}`);
+      }
+
+      // Try to parse JSON
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        console.error("Failed to parse JSON response:", jsonError);
+        throw new Error("Invalid response from server. Please check server logs.");
+      }
+
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Vendor password reset successfully",
+        });
+        setResetPasswordDialog({ open: false, vendor: null });
+        setResetPasswordData({ newPassword: "", confirmPassword: "" });
+      } else {
+        throw new Error(data.message || "Failed to reset password");
+      }
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset password. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleFormChange = (e) => {
     setFormData({
       ...formData,
@@ -663,6 +874,7 @@ const VendorManagement = () => {
           yearOfEstablishment: "",
           name: "",
           address: "",
+          pincode: "",
           serviceLocation: "",
           phone: "",
           alternatePhone: "",
@@ -1116,25 +1328,60 @@ const VendorManagement = () => {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <Label>Service Location / Area Covered <span className="text-red-500">*</span></Label>
-                      <Input
-                        name="serviceLocation"
-                        placeholder="e.g., Sagar, Bhopal, All MP"
-                        value={formData.serviceLocation}
-                        onChange={handleFormChange}
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Pincode</Label>
+                        <Input
+                          name="pincode"
+                          placeholder="Enter 6-digit pincode"
+                          value={formData.pincode}
+                          onChange={handleFormChange}
+                          maxLength={6}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Service Location / Area Covered <span className="text-red-500">*</span></Label>
+                        <Input
+                          name="serviceLocation"
+                          placeholder="e.g., Sagar, Bhopal, All MP"
+                          value={formData.serviceLocation}
+                          onChange={handleFormChange}
+                        />
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Primary Contact Number <span className="text-red-500">*</span> <span className="text-xs text-blue-600">(Used for Login)</span></Label>
-                        <Input
-                          name="phone"
-                          placeholder="10-digit number"
-                          value={formData.phone}
-                          onChange={handleFormChange}
-                        />
+                        <Label>Primary Contact Number <span className="text-red-500">*</span> 
+                          {hasWhatsApp === false && isPhoneVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                        </Label>
+                        <div className="flex gap-2">
+                          <Input
+                            name="phone"
+                            placeholder="10-digit number"
+                            value={formData.phone}
+                            onChange={(e) => {
+                              handleFormChange(e);
+                              setIsPhoneVerified(false);
+                              setOtpSent(false);
+                              setOtp('');
+                            }}
+                            className={hasWhatsApp === false && isPhoneVerified ? "bg-green-50 border-green-200" : ""}
+                          />
+                          {hasWhatsApp === false && (
+                            <Button
+                              type="button"
+                              onClick={handleSendOTP}
+                              disabled={otpLoading || !formData.phone || formData.phone.length !== 10}
+                              variant="outline"
+                            >
+                              {otpLoading ? "Sending..." : isPhoneVerified ? "Resend" : "Verify"}
+                            </Button>
+                          )}
+                        </div>
+                        {hasWhatsApp === false && isPhoneVerified && (
+                          <p className="text-xs text-green-600">Phone number verified! ✓</p>
+                        )}
                       </div>
                       <div className="space-y-2">
                         <Label>Alternate Contact Number</Label>
@@ -1173,16 +1420,86 @@ const VendorManagement = () => {
                       </div>
                       {hasWhatsApp && (
                         <div className="space-y-2">
-                          <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
-                          <Input
-                            name="whatsappNumber"
-                            placeholder="10-digit WhatsApp number"
-                            value={formData.whatsappNumber}
-                            onChange={handleFormChange}
-                          />
+                          <Label>WhatsApp Number <span className="text-red-500">*</span>
+                            {isPhoneVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                          </Label>
+                          <div className="flex gap-2">
+                            <Input
+                              name="whatsappNumber"
+                              placeholder="10-digit WhatsApp number"
+                              value={formData.whatsappNumber}
+                              onChange={(e) => {
+                                handleFormChange(e);
+                                setIsPhoneVerified(false);
+                                setOtpSent(false);
+                                setOtp('');
+                              }}
+                              className={isPhoneVerified ? "bg-green-50 border-green-200" : ""}
+                            />
+                            <Button
+                              type="button"
+                              onClick={handleSendOTP}
+                              disabled={otpLoading || !formData.whatsappNumber || formData.whatsappNumber.length !== 10}
+                              variant="outline"
+                            >
+                              {otpLoading ? "Sending..." : isPhoneVerified ? "Resend" : "Verify"}
+                            </Button>
+                          </div>
+                          {isPhoneVerified && (
+                            <p className="text-xs text-green-600">WhatsApp number verified! ✓</p>
+                          )}
                         </div>
                       )}
                     </div>
+
+                    {/* OTP Verification Section */}
+                    {otpSent && !isPhoneVerified && (
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
+                        <div className="text-center">
+                          <p className="text-blue-800 font-medium">
+                            OTP sent to your {hasWhatsApp ? 'WhatsApp' : 'phone'}: 
+                            <span className="font-bold"> {hasWhatsApp ? formData.whatsappNumber : formData.phone}</span>
+                          </p>
+                          <p className="text-blue-600 text-sm">Enter the 6-digit code below</p>
+                          {hasWhatsApp && (
+                            <p className="text-green-600 text-xs mt-1">
+                              💬 WhatsApp OTP sent! Check your WhatsApp messages.
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex gap-2">
+                          <Input
+                            value={otp}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                              setOtp(value);
+                            }}
+                            placeholder="Enter 6-digit OTP"
+                            maxLength={6}
+                            className="text-center text-lg tracking-widest"
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleVerifyOTP}
+                            disabled={otpLoading || otp.length !== 6}
+                            className="whitespace-nowrap"
+                          >
+                            {otpLoading ? "Verifying..." : "Verify OTP"}
+                          </Button>
+                        </div>
+                        <div className="text-center">
+                          <Button
+                            type="button"
+                            onClick={handleSendOTP}
+                            variant="link"
+                            disabled={otpLoading}
+                            className="text-sm"
+                          >
+                            Resend OTP
+                          </Button>
+                        </div>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -1196,6 +1513,47 @@ const VendorManagement = () => {
                         />
                       </div>
                     </div>
+
+                    {/* OTP Verification Warning */}
+                    {!isPhoneVerified && (
+                      <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-yellow-700 font-medium">
+                              ⚠️ OTP Verification Required
+                            </p>
+                            <p className="text-sm text-yellow-600 mt-1">
+                              Please verify the {hasWhatsApp ? 'WhatsApp number' : 'phone number'} with OTP before proceeding to the next step.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {isPhoneVerified && (
+                      <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                        <div className="flex items-start">
+                          <div className="flex-shrink-0">
+                            <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-green-700 font-medium">
+                              ✓ Phone Number Verified
+                            </p>
+                            <p className="text-sm text-green-600 mt-1">
+                              You can now proceed to the next step.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1868,6 +2226,18 @@ const VendorManagement = () => {
                                 Approve
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setResetPasswordDialog({
+                                  open: true,
+                                  vendor,
+                                })
+                              }
+                              className="text-blue-600"
+                            >
+                              <Key className="w-4 h-4 mr-2" />
+                              Reset Password
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
                                 setDeleteDialog({
@@ -2681,6 +3051,83 @@ const VendorManagement = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog 
+        open={resetPasswordDialog.open} 
+        onOpenChange={(open) => {
+          setResetPasswordDialog({ open, vendor: resetPasswordDialog.vendor });
+          if (!open) {
+            setResetPasswordData({ newPassword: "", confirmPassword: "" });
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Key className="w-5 h-5 text-blue-600" />
+              Reset Vendor Password
+            </DialogTitle>
+            <DialogDescription>
+              Reset password for vendor: {resetPasswordDialog.vendor?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="newPassword">New Password</Label>
+              <Input
+                id="newPassword"
+                type="password"
+                placeholder="Enter new password"
+                value={resetPasswordData.newPassword}
+                onChange={(e) => setResetPasswordData({ ...resetPasswordData, newPassword: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm new password"
+                value={resetPasswordData.confirmPassword}
+                onChange={(e) => setResetPasswordData({ ...resetPasswordData, confirmPassword: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setResetPasswordDialog({ open: false, vendor: null });
+                setResetPasswordData({ newPassword: "", confirmPassword: "" });
+              }}
+              disabled={submitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleResetPassword}
+              disabled={submitting}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Resetting...
+                </>
+              ) : (
+                <>
+                  <Key className="w-4 h-4 mr-2" />
+                  Reset Password
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Service Modal */}
       <AdminEditServiceModal
