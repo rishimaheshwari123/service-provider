@@ -1,7 +1,10 @@
 const cloudinary = require("cloudinary").v2
 
 exports.uploadImageToCloudinary = async (file, folder, height, quality) => {
-  const options = { folder }
+  const options = { 
+    folder,
+    secure: true // Force HTTPS URLs
+  }
   if (height) {
     options.height = height
   }

@@ -6,8 +6,6 @@ exports.imageUpload = async(req,res)=>{
     const {thumbnail} = req.files 
     console.log(thumbnail)
 
-
-
     const thumbnailImage = await uploadImageToCloudinary(
         thumbnail,
         process.env.FOLDER_NAME
@@ -16,12 +14,19 @@ exports.imageUpload = async(req,res)=>{
       res.status(200).json({
         success:true,
         message:"Image upload successfully",
-        thumbnailImage
+        thumbnailImage: {
+          url: thumbnailImage.secure_url,
+          public_id: thumbnailImage.public_id
+        }
       })
 
-
     }catch(error){
-
+      console.error('Image upload error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Image upload failed', 
+        error: error.message 
+      });
     }
 }
 
@@ -34,7 +39,7 @@ exports.uploadImages = async (req, res) => {
     if (!req.files || Object.keys(req.files).length === 0) {
       return res.status(400).json({ success: false, message: 'No files were uploaded.' });
     }
-console.log(req.files)
+    console.log(req.files)
     const files = req.files.thumbnail; // Assumes files are uploaded with the name 'thumbnail'
     const urls = [];
 
@@ -43,8 +48,12 @@ console.log(req.files)
 
     // Upload each file to Cloudinary
     for (const file of fileArray) {
-      const newpath = await uploadImageToCloudinary(file, process.env.FOLDER_NAME);
-      urls.push(newpath);
+      const result = await uploadImageToCloudinary(file, process.env.FOLDER_NAME);
+      // Extract secure_url and public_id from result
+      urls.push({
+        url: result.secure_url,
+        public_id: result.public_id
+      });
       fs.unlinkSync(file.tempFilePath); // Delete the temp file
     }
 
@@ -55,6 +64,6 @@ console.log(req.files)
     });
   } catch (error) {
     console.error('Image upload error:', error);
-    res.status(500).json({ success: false, message: 'Image upload failed', error });
+    res.status(500).json({ success: false, message: 'Image upload failed', error: error.message });
   }
 };
