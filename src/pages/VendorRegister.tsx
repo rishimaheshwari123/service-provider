@@ -254,14 +254,8 @@ const VendorRegister = () => {
       // Reset verification status to allow re-verification
       setIsPhoneVerified(false);
       
-      // Show specific message based on method used
-      if (result.method === 'sms_fallback') {
-        toast.success('OTP sent via SMS to your WhatsApp number (WhatsApp temporarily unavailable)');
-      } else if (result.method === 'whatsapp') {
-        toast.success('🎉 OTP sent via WhatsApp successfully!');
-      } else {
-        toast.success('OTP sent via SMS');
-      }
+      // Don't show additional toast here - sendOTP already shows it
+      // The toast from sendOTP function will display the correct message
     }
     
     setOtpLoading(false);
