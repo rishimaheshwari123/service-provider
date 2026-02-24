@@ -4,6 +4,8 @@ import { vendor } from "../apis";
 // Send OTP function
 export const sendOTP = async (phoneData) => {
   try {
+    console.log('📤 Sending OTP request:', phoneData);
+    
     const response = await fetch(vendor.SEND_OTP_API, {
       method: "POST",
       headers: {
@@ -13,9 +15,10 @@ export const sendOTP = async (phoneData) => {
     });
 
     const result = await response.json();
+    console.log('📥 OTP Response:', result);
 
     if (result.success) {
-      toast.success(result.message);
+      toast.success(result.message || "OTP sent successfully!");
       return result;
     } else {
       toast.error(result.message || "Failed to send OTP");

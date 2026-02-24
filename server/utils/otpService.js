@@ -27,8 +27,23 @@ const sendSMSOTP = async (phoneNumber, otp) => {
             };
         }
         
+        // Check for success - ErrorCode can be '0', '00', '000', or ErrorMessage 'Done'
+        if (response.data && (
+            response.data.ErrorCode === '0' || 
+            response.data.ErrorCode === '00' || 
+            response.data.ErrorCode === '000' ||
+            response.data.ErrorMessage === 'Done'
+        )) {
+            console.log('✅ SMS OTP sent successfully');
+            return {
+                success: true,
+                message: 'SMS OTP sent successfully',
+                data: response.data
+            };
+        }
+        
         // Check for other error codes
-        if (response.data && response.data.ErrorCode && response.data.ErrorCode !== '0') {
+        if (response.data && response.data.ErrorCode) {
             console.error('❌ SMS error:', response.data);
             return {
                 success: false,
@@ -38,7 +53,8 @@ const sendSMSOTP = async (phoneNumber, otp) => {
             };
         }
         
-        console.log('✅ SMS OTP sent successfully');
+        // Default success if we got here
+        console.log('✅ SMS OTP sent successfully (default)');
         return {
             success: true,
             message: 'SMS OTP sent successfully',
