@@ -147,6 +147,13 @@ const PropertyDetails = () => {
   };
 
   const handleShowNumber = async () => {
+    // Check if user is logged in
+    if (!token) {
+      toast.error(toPascalCase("Please Login To View Number"));
+      navigate("/login");
+      return;
+    }
+
     try {
       setIsShowingNumber(true);
       // Create audit log for show number action
@@ -165,6 +172,13 @@ const PropertyDetails = () => {
   };
 
   const handleShowProviderNumber = async () => {
+    // Check if user is logged in
+    if (!token) {
+      toast.error(toPascalCase("Please Login To View Number"));
+      navigate("/login");
+      return;
+    }
+
     try {
       setIsShowingProviderNumber(true);
       // Create audit log for show provider number action
