@@ -1,5 +1,5 @@
 const Property = require('../models/propertyModel');
-const { uploadImageToCloudinary } = require("../config/imageUploader");
+const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const AuditLogs = require("../models/auditLogs");  // correct path use karna
 const mongoose = require('mongoose');
 

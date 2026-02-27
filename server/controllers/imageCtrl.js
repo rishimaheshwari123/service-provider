@@ -1,4 +1,4 @@
-const {uploadImageToCloudinary} = require("../config/imageUploader")
+const {uploadImageToCloudinary} = require("../config/s3Uploader")
 const fs = require('fs');
 
 exports.imageUpload = async(req,res)=>{
@@ -46,7 +46,7 @@ exports.uploadImages = async (req, res) => {
     // Ensure files is an array
     const fileArray = Array.isArray(files) ? files : [files];
 
-    // Upload each file to Cloudinary
+    // Upload each file to S3
     for (const file of fileArray) {
       const result = await uploadImageToCloudinary(file, process.env.FOLDER_NAME);
       // Extract secure_url and public_id from result
@@ -54,7 +54,9 @@ exports.uploadImages = async (req, res) => {
         url: result.secure_url,
         public_id: result.public_id
       });
-      fs.unlinkSync(file.tempFilePath); // Delete the temp file
+      if (fs.existsSync(file.tempFilePath)) {
+        fs.unlinkSync(file.tempFilePath); // Delete the temp file
+      }
     }
 
     res.status(200).json({

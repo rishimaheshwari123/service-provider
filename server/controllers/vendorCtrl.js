@@ -2,7 +2,7 @@ const bcrypt = require("bcryptjs");
 const vendorModel = require("../models/vendorModel");
 const jwt = require("jsonwebtoken");
 
-const { uploadImageToCloudinary } = require("../config/imageUploader");
+const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const { generateOTP, sendSMSOTP, sendWhatsAppOTP, sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
 
 // Helper function to convert text to PascalCase
@@ -200,7 +200,7 @@ const vendorRegisterCtrl = async (req, res) => {
               try {
                 console.log(`📤 ${docKey} upload attempt ${attempt}/${retries + 1}`);
                 
-                // Add small delay to avoid overwhelming Cloudinary
+                // Add small delay to avoid overwhelming S3
                 if (attempt > 1) {
                   await new Promise(resolve => setTimeout(resolve, 500));
                 }
