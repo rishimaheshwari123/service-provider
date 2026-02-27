@@ -1,4 +1,4 @@
-const { uploadImageToCloudinary } = require("../config/imageUploader");
+const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const blogModel = require("../models/blogModel")
 
 const createBlogsCtrl = async (req, res) => {

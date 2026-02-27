@@ -2,7 +2,7 @@ const express = require("express")
 const app = express();
 const cookieParser = require("cookie-parser")
 const cors = require("cors")
-const { cloudinaryConnect } = require("./config/cloudinary")
+const { s3Connect } = require("./config/s3Config")
 const fileUpload = require("express-fileupload");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
@@ -36,7 +36,7 @@ app.use(
 app.use(express.json())
 app.use(cookieParser());
 
-cloudinaryConnect();
+s3Connect();
 
 
 // routes  

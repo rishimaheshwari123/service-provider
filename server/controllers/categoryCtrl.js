@@ -1,6 +1,6 @@
 const Category = require("../models/categoryModel");
 const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
-const { uploadImageToCloudinary } = require("../config/imageUploader");
+const { uploadImageToCloudinary } = require("../config/s3Uploader");
 
 const createCategoryCtrl = async (req, res) => {
   try {
@@ -22,9 +22,9 @@ const createCategoryCtrl = async (req, res) => {
 
     let imageUrl = "";
     if (req.files && req.files.image) {
-      console.log("Uploading image to cloudinary...");
+      console.log("Uploading image to S3...");
       const result = await uploadImageToCloudinary(req.files.image, "categories", 400, 80);
-      console.log("Cloudinary result:", result);
+      console.log("S3 upload result:", result);
       imageUrl = result.secure_url;
     } else {
       console.log("No image file received");
@@ -423,9 +423,9 @@ const updateCategoryCtrl = async (req, res) => {
 
     // Handle image upload
     if (req.files && req.files.image) {
-      console.log("Uploading image to cloudinary...");
+      console.log("Uploading image to S3...");
       const result = await uploadImageToCloudinary(req.files.image, "categories", 400, 80);
-      console.log("Cloudinary result:", result);
+      console.log("S3 upload result:", result);
       category.image = result.secure_url;
     } else {
       console.log("No image file received in update");
