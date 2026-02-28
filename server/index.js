@@ -6,11 +6,15 @@ const { s3Connect } = require("./config/s3Config")
 const fileUpload = require("express-fileupload");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
+const compression = require("compression");
 
 dotenv.config();
 
 const PORT = process.env.PORT || 8000
 connectDB();
+
+// Compression middleware for better performance
+app.use(compression());
 
 // CORS first
 app.use(cors({
@@ -56,6 +60,7 @@ app.use("/api/v1/booking", require("./routes/bookingRoute"));
 app.use("/api/v1/category", require("./routes/categoryRoute"));
 app.use("/api/v1/razorpay", require("./routes/razorpayRoute"))
 app.use("/api/v1/audit", require("./routes/auditLogs"))
+app.use("/api/v1/communication-logs", require("./routes/communicationLogsRoute"))
 
 
 

@@ -1,15 +1,16 @@
 const axios = require('axios');
+const { logSMS, logWhatsApp } = require('./communicationLogger');
 
 // Generate 6-digit OTP
 const generateOTP = () => {
-    return Math.floor(100000 + Math.random() * 900000).toString();
+    return Math.floor(100000 + Math.random() + 900000).toString();
 };
 
 // Send SMS OTP
-const sendSMSOTP = async (phoneNumber, otp) => {
+const sendSMSOTP = async (phoneNumber, otp, vendorId = null, userId = null, vendorName = null) => {
+    const smsText = `MeraGharSansaar: Your OTP for mobile number verification is ${otp}. This code is valid for 10 minutes. Please do not share with anyone. Regards Niyati Solutions`;
+    
     try {
-        const smsText = `MeraGharSansaar: Your OTP for mobile number verification is ${otp}. This code is valid for 10 minutes. Please do not share with anyone. Regards Niyati Solutions`;
-        
         const smsUrl = `http://182.18.162.128/api/mt/SendSMS?user=niyatisolutions&password=123456&senderid=NSOLN&channel=trans&DCS=0&flashsms=0&number=91${phoneNumber}&text=${encodeURIComponent(smsText)}&route=29`;
         
         const response = await axios.get(smsUrl);
@@ -19,6 +20,20 @@ const sendSMSOTP = async (phoneNumber, otp) => {
         // Check for insufficient credits error
         if (response.data && response.data.ErrorCode === '21') {
             console.error('❌ SMS insufficient credits:', response.data.ErrorMessage);
+            
+            // Log failed SMS
+            await logSMS({
+                phone: phoneNumber,
+                name: vendorName,
+                message: smsText,
+                purpose: "OTP",
+                status: "Failed",
+                response: response.data,
+                errorMessage: "Insufficient SMS credits",
+                vendorId,
+                userId,
+            });
+            
             return {
                 success: false,
                 message: 'SMS service temporarily unavailable. Please contact support.',
@@ -35,6 +50,19 @@ const sendSMSOTP = async (phoneNumber, otp) => {
             response.data.ErrorMessage === 'Done'
         )) {
             console.log('✅ SMS OTP sent successfully');
+            
+            // Log successful SMS
+            await logSMS({
+                phone: phoneNumber,
+                name: vendorName,
+                message: smsText,
+                purpose: "OTP",
+                status: "Success",
+                response: response.data,
+                vendorId,
+                userId,
+            });
+            
             return {
                 success: true,
                 message: 'SMS OTP sent successfully',
@@ -45,6 +73,20 @@ const sendSMSOTP = async (phoneNumber, otp) => {
         // Check for other error codes
         if (response.data && response.data.ErrorCode) {
             console.error('❌ SMS error:', response.data);
+            
+            // Log failed SMS
+            await logSMS({
+                phone: phoneNumber,
+                name: vendorName,
+                message: smsText,
+                purpose: "OTP",
+                status: "Failed",
+                response: response.data,
+                errorMessage: response.data.ErrorMessage || 'SMS service error',
+                vendorId,
+                userId,
+            });
+            
             return {
                 success: false,
                 message: 'Failed to send SMS OTP',
@@ -55,6 +97,19 @@ const sendSMSOTP = async (phoneNumber, otp) => {
         
         // Default success if we got here
         console.log('✅ SMS OTP sent successfully (default)');
+        
+        // Log successful SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "OTP",
+            status: "Success",
+            response: response.data,
+            vendorId,
+            userId,
+        });
+        
         return {
             success: true,
             message: 'SMS OTP sent successfully',
@@ -62,6 +117,19 @@ const sendSMSOTP = async (phoneNumber, otp) => {
         };
     } catch (error) {
         console.error('❌ Error sending SMS OTP:', error);
+        
+        // Log failed SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "OTP",
+            status: "Failed",
+            errorMessage: error.message,
+            vendorId,
+            userId,
+        });
+        
         return {
             success: false,
             message: 'Failed to send SMS OTP',

@@ -351,6 +351,8 @@ export default function PromoBanner() {
                       src={currentAd.image} 
                       alt="Advertisement" 
                       className="relative z-10 w-full h-full object-contain rounded-2xl"
+                      loading="lazy"
+                      decoding="async"
                     />
                   )}
                   
