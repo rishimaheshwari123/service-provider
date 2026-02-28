@@ -177,8 +177,15 @@ const Sidebar = () => {
     {
       to: "/admin/logs",
       icon: Files,
-      label: "Logs",
+      label: "Audit Logs",
       color: "text-indigo-600",
+      permission: null,
+    },
+    {
+      to: "/admin/communication-logs",
+      icon: MessageSquare,
+      label: "Communication Logs",
+      color: "text-green-600",
       permission: null,
     },
   ];
