@@ -380,10 +380,11 @@ const vendorRegisterCtrl = async (req, res) => {
       // Send both SMS welcome messages
       const phoneNumber = transformedUser.phone;
       const vendorName = transformedUser.name;
+      const vendorId = transformedUser._id;
       const supportContact = '+91 78798 84363';
       
       // Send first welcome SMS (registration confirmation)
-      const welcomeSMS1Result = await sendWelcomeSMS1(phoneNumber, vendorName);
+      const welcomeSMS1Result = await sendWelcomeSMS1(phoneNumber, vendorName, vendorId);
       if (welcomeSMS1Result.success) {
         console.log('✅ Welcome SMS 1 sent successfully');
       } else {
@@ -391,7 +392,7 @@ const vendorRegisterCtrl = async (req, res) => {
       }
       
       // Send second welcome SMS (account registered)
-      const welcomeSMS2Result = await sendWelcomeSMS2(phoneNumber, vendorName, supportContact);
+      const welcomeSMS2Result = await sendWelcomeSMS2(phoneNumber, vendorName, supportContact, vendorId);
       if (welcomeSMS2Result.success) {
         console.log('✅ Welcome SMS 2 sent successfully');
       } else {
@@ -401,7 +402,7 @@ const vendorRegisterCtrl = async (req, res) => {
       // Send WhatsApp welcome message if user has WhatsApp verified
       if (transformedUser.whatsappNumber && transformedUser.isWhatsappVerified) {
         console.log('📱 Sending WhatsApp welcome message...');
-        const whatsappWelcomeResult = await sendWhatsAppWelcome(transformedUser.whatsappNumber, vendorName, supportContact);
+        const whatsappWelcomeResult = await sendWhatsAppWelcome(transformedUser.whatsappNumber, vendorName, supportContact, vendorId);
         if (whatsappWelcomeResult.success) {
           console.log('✅ WhatsApp welcome message sent successfully');
         } else {
@@ -545,7 +546,7 @@ const updateVendorStatusCtrl = async (req, res) => {
       try {
         // Always send SMS approval message
         if (updatedVendor.phone) {
-          const smsResult = await sendApprovalSMS(updatedVendor.phone);
+          const smsResult = await sendApprovalSMS(updatedVendor.phone, updatedVendor.name, updatedVendor._id);
           if (smsResult.success) {
             console.log('✅ Approval SMS sent successfully');
           } else {
@@ -556,7 +557,7 @@ const updateVendorStatusCtrl = async (req, res) => {
         // Send WhatsApp approval message if vendor has WhatsApp verified
         if (updatedVendor.whatsappNumber && updatedVendor.isWhatsappVerified) {
           console.log('📱 Sending WhatsApp approval message...');
-          const whatsappResult = await sendApprovalWhatsApp(updatedVendor.whatsappNumber);
+          const whatsappResult = await sendApprovalWhatsApp(updatedVendor.whatsappNumber, updatedVendor.name, updatedVendor._id);
           if (whatsappResult.success) {
             console.log('✅ WhatsApp approval message sent successfully');
           } else {
@@ -1036,10 +1037,22 @@ const sendVendorOTP = async (req, res) => {
     // Send OTP based on preferred method
     if (preferredMethod === 'whatsapp' && whatsappNumber) {
       console.log('🔄 Attempting WhatsApp OTP to:', whatsappNumber);
-      otpResult = await sendWhatsAppOTP(whatsappNumber, otp);
+      otpResult = await sendWhatsAppOTP(
+        whatsappNumber, 
+        otp, 
+        existingVendor?._id, 
+        null, 
+        existingVendor?.name
+      );
     } else {
       console.log('🔄 Attempting SMS OTP to:', phone);
-      otpResult = await sendSMSOTP(phone, otp);
+      otpResult = await sendSMSOTP(
+        phone, 
+        otp, 
+        existingVendor?._id, 
+        null, 
+        existingVendor?.name
+      );
       targetNumber = phone;
     }
 
@@ -1227,9 +1240,9 @@ const vendorForgotPasswordCtrl = async (req, res) => {
     if (otpMethod === 'whatsapp') {
       // Use whatsapp number if available, otherwise use phone
       const whatsappNumber = vendor.whatsappNumber || phone;
-      otpResult = await sendWhatsAppOTP(whatsappNumber, otp);
+      otpResult = await sendWhatsAppOTP(whatsappNumber, otp, vendor._id, null, vendor.name);
     } else {
-      otpResult = await sendSMSOTP(phone, otp);
+      otpResult = await sendSMSOTP(phone, otp, vendor._id, null, vendor.name);
     }
 
     if (otpResult.success) {

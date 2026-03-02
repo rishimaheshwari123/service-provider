@@ -19,6 +19,7 @@ import { getAllPropertyAPI } from "@/service/operations/property";
 import { getAllCategoriesAPI } from "@/service/operations/category";
 import { getAllReatingAPI, addRating } from "@/service/operations/rating";
 import { matchesSearchTerm, sortByRelevance, highlightSearchTerm } from "@/utils/searchUtils";
+import { logSearch } from "@/utils/searchLogger";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReviewModal from "@/components/ReviewModal";
@@ -50,6 +51,7 @@ const ServicesPage = () => {
     price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
     category: "all",
     autoFilled: "", // Add autoFilled filter
+    shouldAutoSearch: false, // Flag for auto-search from URL params
   });
 
   // TEMPORARY FLAG: Set to false when real reviews are available
@@ -73,6 +75,12 @@ const ServicesPage = () => {
     };
     console.log("Parsed filters:", newFilters);
     setFilters(newFilters);
+    
+    // If there are URL parameters, trigger search automatically
+    if (location.search) {
+      // Set a flag to trigger search after data is loaded
+      setFilters(prev => ({ ...prev, ...newFilters, shouldAutoSearch: true }));
+    }
   }, [location.search]);
 
   useEffect(() => {
@@ -147,7 +155,7 @@ const ServicesPage = () => {
   }, []);
 
   // Memoize the applyFilters function to prevent unnecessary re-renders
-  const applyFilters = useCallback((newFilters) => {
+  const applyFilters = useCallback((newFilters, shouldLog = false) => {
     const [minPrice, maxPrice] = newFilters.price;
     const searchTerm = newFilters.search?.toLowerCase().trim() || "";
 
@@ -212,21 +220,48 @@ const ServicesPage = () => {
 
     console.log("Final filtered services:", filtered.length);
     console.log("=== END FILTER DEBUG ===");
+    
+    // Log the search only if explicitly requested (button click)
+    if (shouldLog && searchTerm) {
+      logSearch({
+        searchQuery: searchTerm,
+        category: newFilters.category === "all" ? "All Categories" : newFilters.category,
+        location: "Unknown",
+        page: "Services",
+        resultsCount: filtered.length,
+      });
+    }
+    
     setFilteredServices(filtered);
   }, [services, categories]);
 
-  // Apply filters when services, categories, or filters change
+  // Apply filters only on initial load or when services/categories change
   useEffect(() => {
     if (services.length > 0 && categories.length > 0 && dataInitialized) {
-      console.log("Applying filters with categories loaded:", categories.length);
-      applyFilters(filters);
+      console.log("Applying initial filters with categories loaded:", categories.length);
+      
+      // Check if we should auto-search (from URL params)
+      if (filters.shouldAutoSearch) {
+        applyFilters(filters, false); // false = don't log on initial load
+        // Reset the flag
+        setFilters(prev => ({ ...prev, shouldAutoSearch: false }));
+      } else {
+        // Just show all services without filtering
+        applyFilters({ ...filters, search: "", category: "all" }, false);
+      }
     }
-  }, [services, categories, filters, dataInitialized, applyFilters]);
+  }, [services, categories, dataInitialized]);
+
+  // Note: Removed filters from dependency array so it doesn't auto-filter on every change
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFilters(prevFilters => ({ ...prevFilters, [name]: value }));
   }, []);
+
+  const handleSearch = useCallback(() => {
+    applyFilters(filters, true); // true = should log
+  }, [filters, applyFilters]);
 
   const handleCategoryChange = useCallback((value) => {
     setFilters(prevFilters => ({ ...prevFilters, category: value }));
@@ -320,8 +355,17 @@ const toPascalCase = (text) => {
       price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
       category: "all",
       autoFilled: "",
+      shouldAutoSearch: false,
     });
-  }, []);
+    // Apply filters to show all services
+    applyFilters({
+      search: "",
+      price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
+      category: "all",
+      autoFilled: "",
+      shouldAutoSearch: false,
+    }, false);
+  }, [applyFilters]);
 
   return (
     <>
@@ -345,7 +389,7 @@ const toPascalCase = (text) => {
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
                         // Trigger search on Enter key
-                        applyFilters(filters);
+                        handleSearch();
                       }
                       if (e.key === "Escape") {
                         // Clear search on Escape key
@@ -362,6 +406,14 @@ const toPascalCase = (text) => {
                     </button>
                   )}
                 </div>
+                <button
+                  onClick={handleSearch}
+                  className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="hidden sm:inline">{toPascalCase("Find Services")}</span>
+                  <span className="sm:hidden">{toPascalCase("Find")}</span>
+                </button>
               </div>
 
               {/* Category & Filter Button */}

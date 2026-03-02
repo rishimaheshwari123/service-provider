@@ -64,4 +64,48 @@ const deleteAddCtrl = async (req, res) => {
     }
 }
 
-module.exports = { createAddCtrl, getAllAds, deleteAddCtrl }
+const updateAddCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { url } = req.body;
+        const image = req.files?.image;
+
+        const ad = await adsModel.findById(id);
+        if (!ad) {
+            return res.status(404).json({
+                success: false,
+                message: "Ad not found"
+            })
+        }
+
+        const updateData = {};
+        
+        if (url) {
+            updateData.url = url;
+        }
+
+        if (image) {
+            const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+            updateData.image = thumbnailImage.secure_url;
+        }
+
+        const updatedAd = await adsModel.findByIdAndUpdate(
+            id,
+            updateData,
+            { new: true }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Ad updated successfully!",
+            ad: updatedAd
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error in updating ads api!"
+        })
+    }
+}
+
+module.exports = { createAddCtrl, getAllAds, deleteAddCtrl, updateAddCtrl }

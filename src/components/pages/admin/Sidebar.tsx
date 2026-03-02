@@ -16,6 +16,7 @@ import {
   ListChecks,
   ListOrdered,
   Settings,
+  Search,
 } from "lucide-react";
 import { UserCog, FilePlus2, Files } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -186,6 +187,13 @@ const Sidebar = () => {
       icon: MessageSquare,
       label: "Communication Logs",
       color: "text-green-600",
+      permission: null,
+    },
+    {
+      to: "/admin/search-logs",
+      icon: Search,
+      label: "Search Logs",
+      color: "text-purple-600",
       permission: null,
     },
   ];

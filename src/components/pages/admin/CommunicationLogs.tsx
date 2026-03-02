@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaDownload, FaFilter, FaSms, FaWhatsapp, FaEnvelope, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import axios from "axios";
-
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+import { communicationLogs } from "../../../service/apis";
 
 export default function CommunicationLogs() {
   const [logs, setLogs] = useState<any[]>([]);
@@ -32,7 +31,7 @@ export default function CommunicationLogs() {
         if (value) params.append(key, value.toString());
       });
 
-      const response = await axios.get(`${BASE_URL}/communication-logs?${params}`);
+      const response = await axios.get(`${communicationLogs.GET_ALL_LOGS_API}?${params}`);
       
       if (response.data && response.data.logs) {
         setLogs(response.data.logs || []);
@@ -57,7 +56,7 @@ export default function CommunicationLogs() {
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
 
-      const response = await axios.get(`${BASE_URL}/communication-logs/stats?${params}`);
+      const response = await axios.get(`${communicationLogs.GET_STATS_API}?${params}`);
       
       if (response.data && response.data.stats) {
         setStats(response.data.stats);
@@ -78,7 +77,7 @@ export default function CommunicationLogs() {
         }
       });
 
-      const response = await axios.get(`${BASE_URL}/communication-logs/download?${params}`, {
+      const response = await axios.get(`${communicationLogs.DOWNLOAD_LOGS_API}?${params}`, {
         responseType: "blob",
       });
 
@@ -238,7 +237,6 @@ export default function CommunicationLogs() {
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Date & Time</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Type</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Purpose</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Recipient</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Phone</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Status</th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">Cost</th>
@@ -271,9 +269,7 @@ export default function CommunicationLogs() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{log.purpose}</td>
-                      <td className="px-4 py-3 text-sm text-gray-600">
-                        {log.recipient?.name || log.vendorId?.name || log.userId?.name || "-"}
-                      </td>
+                     
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {log.recipient?.phone || log.vendorId?.phone || "-"}
                       </td>

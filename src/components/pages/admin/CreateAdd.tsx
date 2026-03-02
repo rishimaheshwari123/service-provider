@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { FaPlusCircle, FaTrashAlt } from "react-icons/fa";
+import { FaPlusCircle, FaTrashAlt, FaEdit } from "react-icons/fa";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { AnimatePresence, motion } from "framer-motion";
-import { createAd, getAllAds, deleteAd } from "@/service/operations/ads";
+import { createAd, getAllAds, deleteAd, updateAd } from "@/service/operations/ads";
 
 function CreateAdd() {
   const [openCreate, setOpenCreate] = useState(false);
+  const [editMode, setEditMode] = useState(false);
+  const [editingAdId, setEditingAdId] = useState(null);
   const [formData, setFormData] = useState({
     image: null,
     url: "",
@@ -52,14 +54,19 @@ function CreateAdd() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.image || !formData.url) {
-      toast.error("Please fill all required fields");
+    if (!formData.url) {
+      toast.error("Please provide URL");
+      return;
+    }
+
+    if (!editMode && !formData.image) {
+      toast.error("Please provide an image");
       return;
     }
 
     try {
       Swal.fire({
-        title: "Creating Ad...",
+        title: editMode ? "Updating Ad..." : "Creating Ad...",
         allowOutsideClick: false,
         allowEscapeKey: false,
         showConfirmButton: false,
@@ -70,23 +77,48 @@ function CreateAdd() {
 
       const formDataToSend = new FormData();
       formDataToSend.append("url", formData.url);
-      formDataToSend.append("image", formData.image);
+      if (formData.image) {
+        formDataToSend.append("image", formData.image);
+      }
 
-      await dispatch(createAd(formDataToSend, token));
+      if (editMode && editingAdId) {
+        await dispatch(updateAd(editingAdId, formDataToSend, token));
+      } else {
+        await dispatch(createAd(formDataToSend, token));
+      }
       
       Swal.close();
       Swal.fire({
-        title: "Ad created successfully!",
+        title: editMode ? "Ad updated successfully!" : "Ad created successfully!",
         icon: "success",
       });
       
       setFormData({ url: "", image: null });
       setOpenCreate(false);
+      setEditMode(false);
+      setEditingAdId(null);
       fetchAllAds();
     } catch (error) {
       Swal.close();
-      console.error("Error creating ad:", error);
+      console.error("Error with ad:", error);
     }
+  };
+
+  const handleEdit = (ad) => {
+    setEditMode(true);
+    setEditingAdId(ad._id);
+    setFormData({
+      url: ad.url,
+      image: null,
+    });
+    setOpenCreate(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditMode(false);
+    setEditingAdId(null);
+    setFormData({ url: "", image: null });
+    setOpenCreate(false);
   };
 
   const handleDelete = async (id) => {
@@ -136,7 +168,12 @@ function CreateAdd() {
 
         <div className="flex justify-end mb-6">
           <button
-            onClick={() => setOpenCreate(!openCreate)}
+            onClick={() => {
+              setEditMode(false);
+              setEditingAdId(null);
+              setFormData({ url: "", image: null });
+              setOpenCreate(!openCreate);
+            }}
             className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white font-semibold rounded-full shadow-lg hover:bg-indigo-700 transition-transform duration-200 transform hover:scale-105"
           >
             <FaPlusCircle className="text-lg" />
@@ -154,7 +191,7 @@ function CreateAdd() {
               className="bg-white p-6 rounded-xl shadow-lg mb-8"
             >
               <h2 className="text-2xl font-semibold mb-4 text-gray-800">
-                Create New Ad
+                {editMode ? "Edit Ad" : "Create New Ad"}
               </h2>
               <form onSubmit={handleSubmit}>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -181,7 +218,7 @@ function CreateAdd() {
                       className="block text-gray-700 font-medium mb-2"
                       htmlFor="image"
                     >
-                      Ad Image *
+                      Ad Image {editMode ? "(Optional - leave empty to keep current)" : "*"}
                     </label>
                     <input
                       className="w-full text-gray-700 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200"
@@ -189,7 +226,7 @@ function CreateAdd() {
                       type="file"
                       accept="image/*"
                       onChange={handleFileChange}
-                      required
+                      required={!editMode}
                     />
                     <p className="text-xs text-gray-500 mt-1">
                       Recommended size: 400x300px or similar aspect ratio
@@ -201,11 +238,11 @@ function CreateAdd() {
                     type="submit"
                     className="flex-1 py-3 bg-green-600 text-white font-semibold rounded-lg shadow hover:bg-green-700 transition-colors"
                   >
-                    Create Ad
+                    {editMode ? "Update Ad" : "Create Ad"}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setOpenCreate(false)}
+                    onClick={handleCancelEdit}
                     className="px-6 py-3 bg-gray-500 text-white font-semibold rounded-lg shadow hover:bg-gray-600 transition-colors"
                   >
                     Cancel
@@ -278,13 +315,22 @@ function CreateAdd() {
                             {new Date(ad.createdAt).toLocaleDateString()}
                           </td>
                           <td className="py-4 px-6 whitespace-nowrap">
-                            <button
-                              onClick={() => handleDelete(ad._id)}
-                              className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-full hover:bg-red-50"
-                              title="Delete Ad"
-                            >
-                              <FaTrashAlt className="text-lg" />
-                            </button>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEdit(ad)}
+                                className="text-blue-600 hover:text-blue-800 transition-colors p-2 rounded-full hover:bg-blue-50"
+                                title="Edit Ad"
+                              >
+                                <FaEdit className="text-lg" />
+                              </button>
+                              <button
+                                onClick={() => handleDelete(ad._id)}
+                                className="text-red-600 hover:text-red-800 transition-colors p-2 rounded-full hover:bg-red-50"
+                                title="Delete Ad"
+                              >
+                                <FaTrashAlt className="text-lg" />
+                              </button>
+                            </div>
                           </td>
                         </motion.tr>
                       ))
