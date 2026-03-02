@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Search, MapPin, Briefcase } from "lucide-react";
 import { getAllCategoriesAPI } from "@/service/operations/category";
+import { logSearch } from "@/utils/searchLogger";
 
 const TopSearchBar = () => {
   const { t } = useTranslation();
@@ -50,9 +51,19 @@ const TopSearchBar = () => {
     if (filters.location) searchTerms.push(filters.location);
     if (filters.search) searchTerms.push(filters.search);
     
+    const searchQuery = searchTerms.join(" ");
+    
     if (searchTerms.length > 0) {
-      params.append("search", searchTerms.join(" "));
+      params.append("search", searchQuery);
     }
+    
+    // Log the search
+    logSearch({
+      searchQuery: searchQuery || "empty search",
+      category: filters.category === "all" ? "All Categories" : filters.category,
+      location: filters.location || "Unknown",
+      page: "Home",
+    });
     
     navigate(`/services?${params.toString()}`);
   };

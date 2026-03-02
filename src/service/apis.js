@@ -122,4 +122,18 @@ export const ads = {
   CREATE_AD_API: BASE_URL + "/ads/create",
   GET_ALL_ADS_API: BASE_URL + "/ads/getAll",
   DELETE_AD_API: BASE_URL + "/ads/delete",
+  UPDATE_AD_API: BASE_URL + "/ads/update",
+}
+
+export const communicationLogs = {
+  GET_ALL_LOGS_API: BASE_URL + "/communication-logs",
+  GET_STATS_API: BASE_URL + "/communication-logs/stats",
+  DOWNLOAD_LOGS_API: BASE_URL + "/communication-logs/download",
+}
+
+export const searchLogs = {
+  CREATE_LOG_API: BASE_URL + "/search-logs/create",
+  GET_ALL_LOGS_API: BASE_URL + "/search-logs",
+  GET_STATS_API: BASE_URL + "/search-logs/stats",
+  DOWNLOAD_LOGS_API: BASE_URL + "/search-logs/download",
 }

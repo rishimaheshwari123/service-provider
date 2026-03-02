@@ -386,9 +386,9 @@ const forgotPasswordCtrl = async (req, res) => {
     // Send OTP based on method
     let otpResult;
     if (otpMethod === 'whatsapp') {
-      otpResult = await sendWhatsAppOTP(phone, otp);
+      otpResult = await sendWhatsAppOTP(phone, otp, null, user._id, user.name);
     } else {
-      otpResult = await sendSMSOTP(phone, otp);
+      otpResult = await sendSMSOTP(phone, otp, null, user._id, user.name);
     }
 
     if (otpResult.success) {

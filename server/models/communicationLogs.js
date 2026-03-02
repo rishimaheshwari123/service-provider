@@ -33,7 +33,7 @@ const communicationLogsSchema = new mongoose.Schema(
     },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "auth",
     },
     vendorId: {
       type: mongoose.Schema.Types.ObjectId,

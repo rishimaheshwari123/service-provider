@@ -139,15 +139,28 @@ const sendSMSOTP = async (phoneNumber, otp, vendorId = null, userId = null, vend
 };
 
 // Send Welcome SMS - Registration Confirmation
-const sendWelcomeSMS1 = async (phoneNumber, vendorName) => {
+const sendWelcomeSMS1 = async (phoneNumber, vendorName, vendorId = null) => {
+    const smsText = `Welcome to MeraGharSansaar! Dear ${vendorName} We're glad to have you on our Platform as our service partner. Start receiving customer requests and grow your business with us. Team NiyatiSolutions`;
+    
     try {
-        const smsText = `Welcome to MeraGharSansaar! Dear ${vendorName} We're glad to have you on our Platform as our service partner. Start receiving customer requests and grow your business with us. Team NiyatiSolutions`;
-        
         const smsUrl = `http://182.18.162.128/api/mt/SendSMS?user=niyatisolutions&password=123456&senderid=NSOLN&channel=trans&DCS=0&flashsms=0&number=91${phoneNumber}&text=${encodeURIComponent(smsText)}&route=29`;
         
         const response = await axios.get(smsUrl);
         
         console.log('Welcome SMS 1 sent successfully:', response.data);
+        
+        // Log successful SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "Welcome",
+            status: "Success",
+            response: response.data,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: true,
             message: 'Welcome SMS sent successfully',
@@ -155,6 +168,19 @@ const sendWelcomeSMS1 = async (phoneNumber, vendorName) => {
         };
     } catch (error) {
         console.error('Error sending Welcome SMS 1:', error);
+        
+        // Log failed SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "Welcome",
+            status: "Failed",
+            errorMessage: error.message,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: false,
             message: 'Failed to send Welcome SMS',
@@ -164,15 +190,28 @@ const sendWelcomeSMS1 = async (phoneNumber, vendorName) => {
 };
 
 // Send Welcome SMS - Account Registered
-const sendWelcomeSMS2 = async (phoneNumber, vendorName, supportContact = '+91 78798 84363') => {
+const sendWelcomeSMS2 = async (phoneNumber, vendorName, supportContact = '+91 78798 84363', vendorId = null) => {
+    const smsText = `Welcome to MeraGharSansaar! Dear ${vendorName} Your service provider account is successfully registered. You can now start receiving service requests. For support, contact ${supportContact}. Regards: NiyatiSolutions`;
+    
     try {
-        const smsText = `Welcome to MeraGharSansaar! Dear ${vendorName} Your service provider account is successfully registered. You can now start receiving service requests. For support, contact ${supportContact}. Regards: NiyatiSolutions`;
-        
         const smsUrl = `http://182.18.162.128/api/mt/SendSMS?user=niyatisolutions&password=123456&senderid=NSOLN&channel=trans&DCS=0&flashsms=0&number=91${phoneNumber}&text=${encodeURIComponent(smsText)}&route=29`;
         
         const response = await axios.get(smsUrl);
         
         console.log('Welcome SMS 2 sent successfully:', response.data);
+        
+        // Log successful SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "Welcome",
+            status: "Success",
+            response: response.data,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: true,
             message: 'Registration confirmation SMS sent successfully',
@@ -180,6 +219,19 @@ const sendWelcomeSMS2 = async (phoneNumber, vendorName, supportContact = '+91 78
         };
     } catch (error) {
         console.error('Error sending Welcome SMS 2:', error);
+        
+        // Log failed SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "Welcome",
+            status: "Failed",
+            errorMessage: error.message,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: false,
             message: 'Failed to send registration confirmation SMS',
@@ -189,15 +241,28 @@ const sendWelcomeSMS2 = async (phoneNumber, vendorName, supportContact = '+91 78
 };
 
 // Send SMS approval message (Hindi)
-const sendApprovalSMS = async (phoneNumber) => {
+const sendApprovalSMS = async (phoneNumber, vendorName = null, vendorId = null) => {
+    const smsText = `मेराघरसंसार में आपका सेवा प्रदाता पंजीकरण सफल हो गया है। अब आप सेवा अनुरोध प्राप्त कर सकते हैं। NIYATI SOLUTIONS`;
+    
     try {
-        const smsText = `मेराघरसंसार में आपका सेवा प्रदाता पंजीकरण सफल हो गया है। अब आप सेवा अनुरोध प्राप्त कर सकते हैं। NIYATI SOLUTIONS`;
-        
         const smsUrl = `http://182.18.162.128/api/mt/SendSMS?user=niyatisolutions&password=123456&senderid=NSOLN&channel=trans&DCS=8&flashsms=0&number=91${phoneNumber}&text=${encodeURIComponent(smsText)}&route=29`;
         
         const response = await axios.get(smsUrl);
         
         console.log('✅ Approval SMS sent successfully:', response.data);
+        
+        // Log successful SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "Approval",
+            status: "Success",
+            response: response.data,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: true,
             message: 'Approval SMS sent successfully',
@@ -205,6 +270,19 @@ const sendApprovalSMS = async (phoneNumber) => {
         };
     } catch (error) {
         console.error('❌ Error sending approval SMS:', error);
+        
+        // Log failed SMS
+        await logSMS({
+            phone: phoneNumber,
+            name: vendorName,
+            message: smsText,
+            purpose: "Approval",
+            status: "Failed",
+            errorMessage: error.message,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: false,
             message: 'Failed to send approval SMS',
@@ -214,7 +292,9 @@ const sendApprovalSMS = async (phoneNumber) => {
 };
 
 // Send WhatsApp approval message (Hindi)
-const sendApprovalWhatsApp = async (whatsappNumber) => {
+const sendApprovalWhatsApp = async (whatsappNumber, vendorName = null, vendorId = null) => {
+    const messageText = "मेराघरसंसार में आपका सेवा प्रदाता पंजीकरण सफल हो गया है। अब आप सेवा अनुरोध प्राप्त कर सकते हैं।";
+    
     try {
         const whatsappPayload = {
             messaging_product: "whatsapp",
@@ -255,6 +335,18 @@ const sendApprovalWhatsApp = async (whatsappNumber) => {
         if (response.data && response.data.messages && response.data.messages[0]) {
             const messageStatus = response.data.messages[0].message_status;
             if (messageStatus === 'accepted') {
+                // Log successful WhatsApp
+                await logWhatsApp({
+                    phone: whatsappNumber,
+                    name: vendorName,
+                    message: messageText,
+                    purpose: "Approval",
+                    status: "Success",
+                    response: response.data,
+                    vendorId,
+                    userId: null,
+                });
+                
                 return {
                     success: true,
                     message: 'WhatsApp approval message sent successfully',
@@ -267,6 +359,19 @@ const sendApprovalWhatsApp = async (whatsappNumber) => {
 
     } catch (error) {
         console.error('❌ WhatsApp approval message failed:', error.response?.status, error.message);
+        
+        // Log failed WhatsApp
+        await logWhatsApp({
+            phone: whatsappNumber,
+            name: vendorName,
+            message: messageText,
+            purpose: "Approval",
+            status: "Failed",
+            errorMessage: error.message,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: false,
             message: 'Failed to send WhatsApp approval message',
@@ -276,7 +381,9 @@ const sendApprovalWhatsApp = async (whatsappNumber) => {
 };
 
 // Send WhatsApp welcome message
-const sendWhatsAppWelcome = async (whatsappNumber, vendorName, supportContact = '+91 78798 84363') => {
+const sendWhatsAppWelcome = async (whatsappNumber, vendorName, supportContact = '+91 78798 84363', vendorId = null) => {
+    const messageText = `Welcome to MeraGharSansaar! Dear ${vendorName}, Your service provider account is successfully registered. For support, contact ${supportContact}.`;
+    
     try {
         const whatsappPayload = {
             messaging_product: "whatsapp",
@@ -326,6 +433,18 @@ const sendWhatsAppWelcome = async (whatsappNumber, vendorName, supportContact = 
         if (response.data && response.data.messages && response.data.messages[0]) {
             const messageStatus = response.data.messages[0].message_status;
             if (messageStatus === 'accepted') {
+                // Log successful WhatsApp
+                await logWhatsApp({
+                    phone: whatsappNumber,
+                    name: vendorName,
+                    message: messageText,
+                    purpose: "Welcome",
+                    status: "Success",
+                    response: response.data,
+                    vendorId,
+                    userId: null,
+                });
+                
                 return {
                     success: true,
                     message: 'WhatsApp welcome message sent successfully',
@@ -338,6 +457,19 @@ const sendWhatsAppWelcome = async (whatsappNumber, vendorName, supportContact = 
 
     } catch (error) {
         console.error('❌ WhatsApp welcome message failed:', error.response?.status, error.message);
+        
+        // Log failed WhatsApp
+        await logWhatsApp({
+            phone: whatsappNumber,
+            name: vendorName,
+            message: messageText,
+            purpose: "Welcome",
+            status: "Failed",
+            errorMessage: error.message,
+            vendorId,
+            userId: null,
+        });
+        
         return {
             success: false,
             message: 'Failed to send WhatsApp welcome message',
@@ -347,7 +479,9 @@ const sendWhatsAppWelcome = async (whatsappNumber, vendorName, supportContact = 
 };
 
 // Send WhatsApp OTP
-const sendWhatsAppOTP = async (whatsappNumber, otp) => {
+const sendWhatsAppOTP = async (whatsappNumber, otp, vendorId = null, userId = null, vendorName = null) => {
+    const messageText = `Your OTP for mobile number verification is ${otp}. This code is valid for 10 minutes.`;
+    
     try {
         // Correct WhatsApp API configuration based on your working curl
         const whatsappPayload = {
@@ -407,6 +541,18 @@ const sendWhatsAppOTP = async (whatsappNumber, otp) => {
         if (response.data && response.data.messages && response.data.messages[0]) {
             const messageStatus = response.data.messages[0].message_status;
             if (messageStatus === 'accepted') {
+                // Log successful WhatsApp
+                await logWhatsApp({
+                    phone: whatsappNumber,
+                    name: vendorName,
+                    message: messageText,
+                    purpose: "OTP",
+                    status: "Success",
+                    response: response.data,
+                    vendorId,
+                    userId,
+                });
+                
                 return {
                     success: true,
                     message: 'WhatsApp OTP sent successfully',
@@ -422,6 +568,18 @@ const sendWhatsAppOTP = async (whatsappNumber, otp) => {
     } catch (error) {
         console.error('❌ WhatsApp API failed:', error.response?.status, error.message);
         
+        // Log failed WhatsApp
+        await logWhatsApp({
+            phone: whatsappNumber,
+            name: vendorName,
+            message: messageText,
+            purpose: "OTP",
+            status: "Failed",
+            errorMessage: error.message,
+            vendorId,
+            userId,
+        });
+        
         // Check for insufficient credits error
         if (error.response?.data?.response?.[0]?.status?.includes('Insufficient credits')) {
             console.error('❌ WhatsApp insufficient credits');
@@ -429,7 +587,7 @@ const sendWhatsAppOTP = async (whatsappNumber, otp) => {
             // Try SMS fallback
             console.log('🔄 WhatsApp failed due to insufficient credits, trying SMS fallback...');
             try {
-                const smsResult = await sendSMSOTP(whatsappNumber, otp);
+                const smsResult = await sendSMSOTP(whatsappNumber, otp, vendorId, userId, vendorName);
                 
                 if (smsResult.success) {
                     return {
@@ -455,7 +613,7 @@ const sendWhatsAppOTP = async (whatsappNumber, otp) => {
         // For other WhatsApp errors, try SMS fallback
         console.log('🔄 WhatsApp failed, trying SMS fallback...');
         try {
-            const smsResult = await sendSMSOTP(whatsappNumber, otp);
+            const smsResult = await sendSMSOTP(whatsappNumber, otp, vendorId, userId, vendorName);
             
             if (smsResult.success) {
                 return {
