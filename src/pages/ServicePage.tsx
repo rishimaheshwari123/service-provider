@@ -162,16 +162,43 @@ const ServicesPage = () => {
     console.log("=== APPLY FILTERS DEBUG ===");
     console.log("Categories available:", categories.length);
     console.log("Services available:", services.length);
+    console.log("Selected category:", newFilters.category);
     console.log("AutoFilled filter:", newFilters.autoFilled);
 
     let filtered = services.filter((service) => {
       // Use the utility function for consistent search logic
       const matchSearch = matchesSearchTerm(service, searchTerm);
 
-      // Category matching - check both category name and autoFilled
+      // Category matching - handle both string and object category
       let matchCategory = true;
       if (newFilters.category !== "all") {
-        matchCategory = (service as any).category?.toLowerCase() === newFilters.category.toLowerCase();
+        const serviceCategory = (service as any).category;
+        const filterCategory = newFilters.category.toLowerCase().trim();
+        
+        // Handle if category is an object with name property
+        let serviceCategoryName = "";
+        if (typeof serviceCategory === "string") {
+          serviceCategoryName = serviceCategory.toLowerCase().trim();
+        } else if (serviceCategory && typeof serviceCategory === "object") {
+          serviceCategoryName = (serviceCategory.name || serviceCategory.title || "").toLowerCase().trim();
+        }
+        
+        // Match if service category starts with filter category (handles "Advocate - A", "Advocate - B" etc.)
+        // or if they are exactly equal
+        matchCategory = serviceCategoryName === filterCategory || 
+                       serviceCategoryName.startsWith(filterCategory + " -") ||
+                       serviceCategoryName.startsWith(filterCategory + "-");
+        
+        // Debug log for category mismatch
+        if (!matchCategory && searchTerm === "") {
+          console.log("Category mismatch:", {
+            serviceName: (service as any).name || (service as any).title,
+            serviceCategory: serviceCategory,
+            serviceCategoryName: serviceCategoryName,
+            filterCategory: newFilters.category,
+            match: matchCategory
+          });
+        }
       }
       
       // AutoFilled matching - filter by autoFilled field from categories
@@ -375,9 +402,9 @@ const toPascalCase = (text) => {
         <div className="bg-white border-b sticky top-16 z-40">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex flex-col md:flex-row md:items-center gap-3">
-              {/* Search Bar */}
-              <div className="flex-1 flex gap-2">
-                <div className="relative flex-1">
+              {/* Search Input */}
+              <div className="flex-1">
+                <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
                     type="text"
@@ -406,17 +433,9 @@ const toPascalCase = (text) => {
                     </button>
                   )}
                 </div>
-                <button
-                  onClick={handleSearch}
-                  className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-                >
-                  <Search className="w-4 h-4" />
-                  <span className="hidden sm:inline">{toPascalCase("Find Services")}</span>
-                  <span className="sm:hidden">{toPascalCase("Find")}</span>
-                </button>
               </div>
 
-              {/* Category & Filter Button */}
+              {/* Category, Find Button & Filter Button */}
               <div className="flex gap-2">
                 <select
                   value={filters.category}
@@ -430,6 +449,16 @@ const toPascalCase = (text) => {
                     </option>
                   ))}
                 </select>
+                
+                <button
+                  onClick={handleSearch}
+                  className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
+                >
+                  <Search className="w-4 h-4" />
+                  <span className="hidden sm:inline">{toPascalCase("Find Services")}</span>
+                  <span className="sm:hidden">{toPascalCase("Find")}</span>
+                </button>
+                
                 <button
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
