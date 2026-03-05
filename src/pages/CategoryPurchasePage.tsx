@@ -29,7 +29,7 @@ const CategoryPurchasePage = () => {
 
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "prepaid" | "qr">("cash");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "prepaid" | "qr">(isAdmin ? "cash" : "qr");
   const [transactionId, setTransactionId] = useState<string>("");
 
   const base_url = BASE_URL;
@@ -350,24 +350,27 @@ const CategoryPurchasePage = () => {
               <h4 className="font-semibold text-lg text-gray-800">Choose Payment Method:</h4>
               
               <div className="space-y-3">
-                <label className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  paymentMethod === "cash" ? "border-yellow-500 bg-yellow-50" : "border-gray-200 hover:border-gray-300"
-                }`}>
-                  <input
-                    type="radio"
-                    name="paymentMethod"
-                    value="cash"
-                    checked={paymentMethod === "cash"}
-                    onChange={(e) => setPaymentMethod(e.target.value as "cash")}
-                    className="text-yellow-500 w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <div className="font-medium text-lg">💵 Cash (Admin Approval)</div>
-                    <div className="text-sm text-gray-500">
-                      Pay later and get admin approval
+                {/* Cash option - Only show for admin registrations */}
+                {isAdmin && (
+                  <label className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                    paymentMethod === "cash" ? "border-yellow-500 bg-yellow-50" : "border-gray-200 hover:border-gray-300"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cash"
+                      checked={paymentMethod === "cash"}
+                      onChange={(e) => setPaymentMethod(e.target.value as "cash")}
+                      className="text-yellow-500 w-4 h-4"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-lg">💵 Cash (Admin Approval)</div>
+                      <div className="text-sm text-gray-500">
+                        Pay later and get admin approval
+                      </div>
                     </div>
-                  </div>
-                </label>
+                  </label>
+                )}
 
                 <label className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                   paymentMethod === "qr" ? "border-yellow-500 bg-yellow-50" : "border-gray-200 hover:border-gray-300"
