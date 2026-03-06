@@ -7,7 +7,7 @@ const StatsSection = () => {
   const stats = [
     {
       icon: Users,
-      value: "1000+",
+      value: "100+",
       label: t("pages.home.verifiedExperts", "Verified Experts"),
       description: t("pages.home.skilledProfessionals", "Skilled Professionals"),
     },
@@ -19,7 +19,7 @@ const StatsSection = () => {
     },
     {
       icon: Globe,
-      value: "2000+",
+      value: t("pages.home.multple"),
       label: t("pages.home.projectsCompleted", "Projects Completed"),
       description: t("pages.home.successfulCollaborations", "Successful Collaborations"),
     },
