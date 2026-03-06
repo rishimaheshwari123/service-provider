@@ -202,7 +202,7 @@ const VendorRegister = () => {
     
     // Check if Document 1 is uploaded for step 6
     if (step === 6 && !documents.document1) {
-      toast.error("Document 1 is mandatory. Please upload at least one document to proceed.");
+      toast.error("Aadhaar Card is mandatory. Please upload your Aadhaar Card to proceed.");
       return false;
     }
     
@@ -1030,7 +1030,7 @@ const VendorRegister = () => {
                   {[1, 2, 3, 4, 5].map((num) => (
                     <div key={num} className="space-y-2">
                       <Label>
-                        Document {num}
+                        {num === 1 ? 'Aadhaar Card' : `Document ${num}`}
                         {num === 1 && <span className="text-red-500"> *</span>}
                       </Label>
                       <div className="flex items-center gap-3">
@@ -1048,7 +1048,7 @@ const VendorRegister = () => {
                             ) : (
                               <div className="flex items-center justify-center gap-2 text-gray-500">
                                 <Upload size={20} />
-                                <span>{num === 1 ? 'Click to upload (Required)' : 'Click to upload'}</span>
+                                <span>{num === 1 ? 'Upload Aadhaar Card (Required)' : 'Click to upload'}</span>
                               </div>
                             )}
                           </div>
@@ -1071,7 +1071,7 @@ const VendorRegister = () => {
                         )}
                       </div>
                       {num === 1 && !documents.document1 && (
-                        <p className="text-xs text-red-500">This document is required to proceed</p>
+                        <p className="text-xs text-red-500">Aadhaar Card is required to proceed</p>
                       )}
                     </div>
                   ))}
