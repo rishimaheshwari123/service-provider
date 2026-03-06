@@ -200,6 +200,12 @@ const VendorRegister = () => {
       return false;
     }
     
+    // Check if Document 1 is uploaded for step 6
+    if (step === 6 && !documents.document1) {
+      toast.error("Document 1 is mandatory. Please upload at least one document to proceed.");
+      return false;
+    }
+    
     const fields = fieldsToValidate[step];
     if (fields.length === 0) return true;
     return await trigger(fields);
@@ -1023,10 +1029,15 @@ const VendorRegister = () => {
                   {/* Documents Section */}
                   {[1, 2, 3, 4, 5].map((num) => (
                     <div key={num} className="space-y-2">
-                      <Label>Document {num}</Label>
+                      <Label>
+                        Document {num}
+                        {num === 1 && <span className="text-red-500"> *</span>}
+                      </Label>
                       <div className="flex items-center gap-3">
                         <label className="flex-1 cursor-pointer">
-                          <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-yellow-500 transition-colors">
+                          <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-yellow-500 transition-colors ${
+                            num === 1 && !documents.document1 ? 'border-red-300 bg-red-50' : ''
+                          }`}>
                             {documents[`document${num}`] ? (
                               <div className="flex items-center justify-center gap-2 text-green-600">
                                 <Check size={20} />
@@ -1037,7 +1048,7 @@ const VendorRegister = () => {
                             ) : (
                               <div className="flex items-center justify-center gap-2 text-gray-500">
                                 <Upload size={20} />
-                                <span>Click to upload</span>
+                                <span>{num === 1 ? 'Click to upload (Required)' : 'Click to upload'}</span>
                               </div>
                             )}
                           </div>
@@ -1059,6 +1070,9 @@ const VendorRegister = () => {
                           </Button>
                         )}
                       </div>
+                      {num === 1 && !documents.document1 && (
+                        <p className="text-xs text-red-500">This document is required to proceed</p>
+                      )}
                     </div>
                   ))}
                 </div>
