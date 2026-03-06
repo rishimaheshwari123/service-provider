@@ -13,7 +13,7 @@ const StatsSection = () => {
     },
     {
       icon: Award,
-      value: "95%",
+      value: "100%",
       label: t("pages.home.clientSatisfaction", "Client Satisfaction"),
       description: t("pages.home.jobsCompleted", "Jobs Completed"),
     },
