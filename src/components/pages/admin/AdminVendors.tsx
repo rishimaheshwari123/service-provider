@@ -102,6 +102,7 @@ import {
   requestForTheUpdateProfileAPI,
   deleteVendorAPI,
 } from "@/service/operations/vendor";
+import { getVendorPendingCategoryPurchasesAPI, getPurchasedCategoriesAPI } from "@/service/operations/category";
 import { updatePropertyStatusAPI, getVendorPropertyAPI, deletePropertyAPI } from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
 import { RootState } from "@/redux/store";
@@ -147,6 +148,9 @@ const VendorManagement = () => {
   const [editServiceModalOpen, setEditServiceModalOpen] = useState(false);
   const [serviceToEdit, setServiceToEdit] = useState<any | null>(null);
   const [updatingPercentage, setUpdatingPercentage] = useState({});
+  const [vendorPendingPayments, setVendorPendingPayments] = useState<Record<string, boolean>>({});
+  const [vendorPurchasedCategories, setVendorPurchasedCategories] = useState<Record<string, boolean>>({});
+  const [paymentStatusLoading, setPaymentStatusLoading] = useState(false);
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [accepted, setAccepted] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -245,10 +249,16 @@ const VendorManagement = () => {
           initialPercentages[vendor._id] = vendor.percentage || "";
         });
         setPercentages(initialPercentages);
+        
         toast({
           title: "Success",
           description: `Loaded ${response.length} vendors successfully`,
         });
+        
+        // Load payment status in background (non-blocking)
+        setLoading(false); // Show vendors immediately
+        checkPendingPayments(response); // Load payment status in background
+        
       } else {
         setVendors([]);
         toast({
@@ -256,6 +266,7 @@ const VendorManagement = () => {
           description: "No vendors found",
           variant: "default",
         });
+        setLoading(false);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
@@ -265,8 +276,70 @@ const VendorManagement = () => {
         description: "Failed to load vendors. Please try again.",
         variant: "destructive",
       });
-    } finally {
       setLoading(false);
+    }
+  };
+
+  // Check pending payments for all vendors - OPTIMIZED
+  const checkPendingPayments = async (vendorsList) => {
+    console.log("🔍 Checking pending payments for", vendorsList.length, "vendors");
+    setPaymentStatusLoading(true);
+    
+    try {
+      // Make all API calls in parallel instead of sequential
+      const results = await Promise.allSettled(
+        vendorsList.map(async (vendor) => {
+          try {
+            const [pendingPurchases, purchasedCategories] = await Promise.all([
+              getVendorPendingCategoryPurchasesAPI(vendor._id),
+              getPurchasedCategoriesAPI(vendor._id)
+            ]);
+            
+            return {
+              vendorId: vendor._id,
+              vendorName: vendor.name,
+              hasPending: pendingPurchases && pendingPurchases.length > 0,
+              hasPurchased: purchasedCategories && purchasedCategories.length > 0,
+              pendingCount: pendingPurchases?.length || 0,
+              purchasedCount: purchasedCategories?.length || 0
+            };
+          } catch (error) {
+            console.error(`❌ Error for vendor ${vendor.name}:`, error);
+            return {
+              vendorId: vendor._id,
+              vendorName: vendor.name,
+              hasPending: false,
+              hasPurchased: false,
+              pendingCount: 0,
+              purchasedCount: 0
+            };
+          }
+        })
+      );
+      
+      const pendingMap = {};
+      const purchasedMap = {};
+      
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          const data = result.value;
+          pendingMap[data.vendorId] = data.hasPending;
+          purchasedMap[data.vendorId] = data.hasPurchased;
+          
+          console.log(`✅ ${data.vendorName}: Pending=${data.pendingCount}, Paid=${data.purchasedCount}`);
+        }
+      });
+      
+      console.log("✅ Payment check completed for all vendors");
+      setVendorPendingPayments(pendingMap);
+      setVendorPurchasedCategories(purchasedMap);
+      
+    } catch (error) {
+      console.error("❌ Error checking payments:", error);
+      setVendorPendingPayments({});
+      setVendorPurchasedCategories({});
+    } finally {
+      setPaymentStatusLoading(false);
     }
   };
 
@@ -2017,6 +2090,7 @@ const VendorManagement = () => {
                     <TableHead>Company</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Payment Status</TableHead>
                     <TableHead>Documents</TableHead>
                     <TableHead>Commission %</TableHead>
                     <TableHead>Registered</TableHead>
@@ -2065,7 +2139,34 @@ const VendorManagement = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{getStatusBadge(vendor.status)}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-col gap-1">
+                          {getStatusBadge(vendor.status)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {paymentStatusLoading ? (
+                          <Badge className="bg-gray-100 text-gray-600 border-gray-200">
+                            <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            Loading...
+                          </Badge>
+                        ) : vendorPendingPayments[vendor._id] ? (
+                          <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Payment Pending
+                          </Badge>
+                        ) : vendorPurchasedCategories[vendor._id] ? (
+                          <Badge className="bg-green-100 text-green-800 border-green-200">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Paid
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+                            <X className="w-3 h-3 mr-1" />
+                            No Purchase
+                          </Badge>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <div className="space-y-1">
                           <div className="flex items-center gap-1 text-xs">
