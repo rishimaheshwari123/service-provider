@@ -411,6 +411,7 @@
     "paymentBilling": "Payment & Billing",
     "technicalIssues": "Technical Issues",
     "generalFeedback": "General Feedback",
+    "deleteUser": "Delete User",
     "other": "Other",
     "faqBookHomeCleaning": "How do I book a Home Cleaning service?",
     "faqBookHomeCleaningAnswer": "Navigate to the 'Book Services' page, select 'Home Cleaning', choose your preferred date/time and service package, then confirm your booking with payment.",

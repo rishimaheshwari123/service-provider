@@ -393,6 +393,9 @@ const CustomerSupport = () => {
                       <option value="general_feedback">
                         {t("support.generalFeedback")}
                       </option>
+                      <option value="delete_user">
+                        {t("support.deleteUser")}
+                      </option>
                       <option value="other">{t("support.other")}</option>
                     </select>
                   </div>
