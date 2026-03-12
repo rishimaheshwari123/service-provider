@@ -74,6 +74,7 @@ export const blog = {
   CREATE_BLOG_API: BASE_URL + "/blog/create",
   GET_ALL_BLOG_API: BASE_URL + "/blog/getAll",
   GET_SINGLE_BLOG_API: BASE_URL + "/blog/get",
+  GET_SINGLE_BLOG_BY_SLUG_API: BASE_URL + "/blog/slug",
   DELETE_BLOG_API: BASE_URL + "/blog/delete",
   UPDATE_BLOG_API: BASE_URL + "/blog",
 }

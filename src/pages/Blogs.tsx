@@ -1,5 +1,3 @@
-"use client";
-
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Search, Calendar, ArrowRight, Clock } from "lucide-react";
 import { getAllBlogsAPI } from "@/service/operations/blog";
+import { getAllCategoriesAPI } from "@/service/operations/category";
 import { useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -23,17 +22,17 @@ import PromoBanner from "@/components/home/PromoBanner";
 const Blogs = () => {
   const navigate = useNavigate();
   const [blogs, setBlogs] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("all-types");
+  const [selectedCategory, setSelectedCategory] = useState("all-categories");
   const [sortBy, setSortBy] = useState("newest");
-  const [uniqueTypes, setUniqueTypes] = useState([]);
 
-  // Extract unique blog types
-  const extractUniqueTypes = (blogs) => {
-    const types = [...new Set(blogs.map((blog) => blog.type).filter(Boolean))];
-    setUniqueTypes(types);
+  // Extract unique blog categories
+  const extractUniqueCategories = (blogs) => {
+    const categories = [...new Set(blogs.map((blog) => blog.category).filter(Boolean))];
+    return categories;
   };
 
   const getAllBlogs = async () => {
@@ -42,7 +41,6 @@ const Blogs = () => {
       const response = await getAllBlogsAPI();
       if (response) {
         setBlogs(response);
-        extractUniqueTypes(response);
       }
     } catch (error) {
       console.error("Error fetching blogs:", error);
@@ -52,8 +50,20 @@ const Blogs = () => {
     }
   };
 
+  const getAllCategories = async () => {
+    try {
+      const response = await getAllCategoriesAPI();
+      if (response) {
+        setCategories(response);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
   useEffect(() => {
     getAllBlogs();
+    getAllCategories();
   }, []);
 
   // Format date
@@ -78,11 +88,11 @@ const Blogs = () => {
         blog.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         blog.desc?.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesType =
-        selectedType === "all-types" ||
-        blog.type?.toLowerCase() === selectedType.toLowerCase();
+      const matchesCategory =
+        selectedCategory === "all-categories" ||
+        blog.category?.toLowerCase() === selectedCategory.toLowerCase();
 
-      return matchesSearch && matchesType;
+      return matchesSearch && matchesCategory;
     })
     .sort((a: any, b: any) => {
       switch (sortBy) {
@@ -98,14 +108,14 @@ const Blogs = () => {
     });
 
   // Handle blog click
-  const handleBlogClick = (blogId) => {
-    navigate(`/blog/${blogId}`);
+  const handleBlogClick = (blogSlug) => {
+    navigate(`/blog/${blogSlug}`);
   };
 
   // Clear filters
   const clearFilters = () => {
     setSearchTerm("");
-    setSelectedType("all-types");
+    setSelectedCategory("all-categories");
     setSortBy("newest");
   };
 
@@ -154,7 +164,7 @@ const Blogs = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Search and Filters */}
           <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="md:col-span-2">
                 <Input
                   placeholder="Search blogs..."
@@ -163,6 +173,21 @@ const Blogs = () => {
                   className="h-12 text-black placeholder:text-gray-500"
                 />
               </div>
+
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="h-12">
+                  <SelectValue placeholder="All Categories" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all-categories">All Categories</SelectItem>
+                  <SelectItem value="General">General</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category._id} value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="h-12">
@@ -177,7 +202,7 @@ const Blogs = () => {
             </div>
 
             {/* Clear Filters Button */}
-            {(searchTerm || selectedType !== "all-types") && (
+            {(searchTerm || selectedCategory !== "all-categories") && (
               <div className="mt-4 flex justify-center">
                 <Button variant="outline" onClick={clearFilters}>
                   Clear All Filters
@@ -187,7 +212,7 @@ const Blogs = () => {
           </div>
 
           {/* Active Filters Display */}
-          {(searchTerm || selectedType !== "all-types") && (
+          {(searchTerm || selectedCategory !== "all-categories") && (
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-700 mb-2">
                 Active Filters:
@@ -201,12 +226,12 @@ const Blogs = () => {
                     Search: {searchTerm}
                   </Badge>
                 )}
-                {selectedType !== "all-types" && (
+                {selectedCategory !== "all-categories" && (
                   <Badge
                     variant="secondary"
                     className="bg-amber-100 text-amber-800"
                   >
-                    Type: {selectedType}
+                    Category: {selectedCategory}
                   </Badge>
                 )}
               </div>
@@ -227,7 +252,7 @@ const Blogs = () => {
                 <Card
                   key={blog._id}
                   className="overflow-hidden hover:shadow-xl transition-all duration-300 group bg-white cursor-pointer"
-                  onClick={() => handleBlogClick(blog._id)}
+                  onClick={() => handleBlogClick(blog.slug)}
                 >
                   <div className="relative">
                     <img
@@ -239,7 +264,7 @@ const Blogs = () => {
                     />
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-amber-500 text-white">
-                        {blog.type}
+                        {blog.category || blog.type}
                       </Badge>
                     </div>
                   </div>
@@ -270,7 +295,7 @@ const Blogs = () => {
                         className="w-full gradient-gold text-white group-hover:bg-amber-600"
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleBlogClick(blog._id);
+                          handleBlogClick(blog.slug);
                         }}
                       >
                         Read More
