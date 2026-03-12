@@ -4,7 +4,7 @@ import { blog } from "../apis";
 
 
 const {
-  CREATE_BLOG_API, GET_ALL_BLOG_API, DELETE_BLOG_API, GET_SINGLE_BLOG_API, UPDATE_BLOG_API } = blog;
+  CREATE_BLOG_API, GET_ALL_BLOG_API, DELETE_BLOG_API, GET_SINGLE_BLOG_API, GET_SINGLE_BLOG_BY_SLUG_API, UPDATE_BLOG_API } = blog;
 
 export const createBlogAPI = async (formDataToSend) => {
   const toastId = toast.loading("Loading...");
@@ -90,6 +90,29 @@ export const getSingleBlogAPI = async (id) => {
     console.error("blog API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to get blog!");
     return [];
+  } finally {
+    toast.dismiss(toastId);
+  }
+
+};
+
+export const getSingleBlogBySlugAPI = async (slug) => {
+
+  const toastId = toast.loading("Loading...");
+
+  try {
+    const response = await apiConnector("GET", `${GET_SINGLE_BLOG_BY_SLUG_API}/${slug}`);
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message)
+    return response?.data?.blog;
+  } catch (error) {
+    console.error("blog API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to get blog!");
+    return null;
   } finally {
     toast.dismiss(toastId);
   }
