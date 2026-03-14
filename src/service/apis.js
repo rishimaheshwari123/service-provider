@@ -16,6 +16,7 @@ export const endpoints = {
   FORGOT_PASSWORD_API: BASE_URL + "/auth/forgot-password",
   VERIFY_RESET_OTP_API: BASE_URL + "/auth/verify-reset-otp",
   RESET_PASSWORD_API: BASE_URL + "/auth/reset-password",
+  ADMIN_RESET_USER_PASSWORD_API: BASE_URL + "/auth/admin-reset-password",
 }
 
 export const image = {

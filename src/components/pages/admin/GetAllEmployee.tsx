@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { X, Edit } from "lucide-react";
+import { X, Edit, Key } from "lucide-react";
 import {
   getAllUsersAPI,
   editPermissionAPI,
   deleteUserAPI,
 } from "@/service/operations/auth";
 import { FaTrash } from "react-icons/fa";
+import { endpoints } from "@/service/apis";
 
 const Modal = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
@@ -33,6 +34,12 @@ const Modal = ({ isOpen, onClose, children, title }) => {
 
 export const GetAllEmployee = () => {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
+  const [resetPasswordEmployee, setResetPasswordEmployee] = useState(null);
+  const [resetPasswordData, setResetPasswordData] = useState({
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [roleFilter, setRoleFilter] = useState("all"); // New state for role filtering
@@ -44,6 +51,7 @@ export const GetAllEmployee = () => {
   const initialEditFormData = {
     name: "",
     email: "",
+    phone: "",
     type: "active", // Active / Inactive
     role: "user", // Admin / User / Staff / Subadmin / Other
     isVendor: false,
@@ -139,6 +147,7 @@ export const GetAllEmployee = () => {
     setEditFormData({
       name: employee.name || "",
       email: employee.email || "",
+      phone: employee.phone || "",
       type: employee.type || "active",
       role: employee.role || "user",
       isVendor: employee.isVendor || false,
@@ -193,6 +202,79 @@ export const GetAllEmployee = () => {
   const handleDelete = async (id) => {
     await deleteUserAPI(id);
     fetchEmployees();
+  };
+
+  const handleResetPasswordClick = (employee) => {
+    setResetPasswordEmployee(employee);
+    setResetPasswordData({
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setShowResetPasswordModal(true);
+  };
+
+  const handleResetPasswordChange = (e) => {
+    const { name, value } = e.target;
+    setResetPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleResetPasswordSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!resetPasswordEmployee) return;
+
+    // Validation
+    if (resetPasswordData.newPassword !== resetPasswordData.confirmPassword) {
+      setMessage("Passwords do not match!");
+      setIsSuccess(false);
+      return;
+    }
+
+    if (resetPasswordData.newPassword.length < 6) {
+      setMessage("Password must be at least 6 characters long!");
+      setIsSuccess(false);
+      return;
+    }
+
+    setMessage("Resetting password...");
+    setIsSuccess(false);
+
+    try {
+      const response = await fetch(endpoints.ADMIN_RESET_USER_PASSWORD_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: resetPasswordEmployee._id,
+          newPassword: resetPasswordData.newPassword,
+          confirmPassword: resetPasswordData.confirmPassword,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage("Password reset successfully!");
+        setIsSuccess(true);
+        setShowResetPasswordModal(false);
+        setResetPasswordEmployee(null);
+        setResetPasswordData({
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        setMessage(data.message || "Failed to reset password");
+        setIsSuccess(false);
+      }
+    } catch (error) {
+      console.error("Error resetting password:", error);
+      setMessage("An error occurred while resetting password");
+      setIsSuccess(false);
+    }
   };
 
   return (
@@ -257,6 +339,29 @@ export const GetAllEmployee = () => {
                 className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 shadow-sm text-gray-800 bg-white"
                 required
               />
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label
+                htmlFor="edit-phone"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                id="edit-phone"
+                name="phone"
+                value={editFormData.phone}
+                onChange={handleEditChange}
+                placeholder="+91 1234567890"
+                pattern="[0-9+\s\-()]+"
+                className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 shadow-sm text-gray-800 bg-white"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Enter phone number with country code (e.g., +91 1234567890)
+              </p>
             </div>
 
             {/* Status */}
@@ -346,6 +451,115 @@ export const GetAllEmployee = () => {
                 className="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition-all duration-300"
               >
                 Update Employee
+              </button>
+            </div>
+          </form>
+        )}
+      </Modal>
+
+      {/* Reset Password Modal */}
+      <Modal
+        isOpen={showResetPasswordModal}
+        onClose={() => {
+          setShowResetPasswordModal(false);
+          setResetPasswordEmployee(null);
+          setResetPasswordData({
+            newPassword: "",
+            confirmPassword: "",
+          });
+          setMessage("");
+        }}
+        title={`Reset Password: ${resetPasswordEmployee?.name || ""}`}
+      >
+        {resetPasswordEmployee && (
+          <form onSubmit={handleResetPasswordSubmit} className="space-y-6">
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <Key className="h-5 w-5 text-yellow-400" />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-yellow-700">
+                    You are about to reset the password for <strong>{resetPasswordEmployee.name}</strong> ({resetPasswordEmployee.email})
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* New Password */}
+            <div>
+              <label
+                htmlFor="newPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                New Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                id="newPassword"
+                name="newPassword"
+                value={resetPasswordData.newPassword}
+                onChange={handleResetPasswordChange}
+                className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-green-500 focus:border-green-500 transition-all duration-200 shadow-sm text-gray-800 bg-white"
+                required
+                minLength={6}
+                placeholder="Enter new password (min 6 characters)"
+              />
+            </div>
+
+            {/* Confirm Password */}
+            <div>
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                value={resetPasswordData.confirmPassword}
+                onChange={handleResetPasswordChange}
+                className="w-full px-5 py-3 border border-gray-300 rounded-xl focus:ring-green-500 focus:border-green-500 transition-all duration-200 shadow-sm text-gray-800 bg-white"
+                required
+                minLength={6}
+                placeholder="Confirm new password"
+              />
+            </div>
+
+            {/* Password Requirements */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="text-sm font-semibold text-blue-800 mb-2">Password Requirements:</h4>
+              <ul className="text-xs text-blue-700 space-y-1">
+                <li>• Minimum 6 characters long</li>
+                <li>• Both passwords must match</li>
+                <li>• Use a strong, unique password</li>
+              </ul>
+            </div>
+
+            <div className="flex justify-end space-x-4 mt-6">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResetPasswordModal(false);
+                  setResetPasswordEmployee(null);
+                  setResetPasswordData({
+                    newPassword: "",
+                    confirmPassword: "",
+                  });
+                  setMessage("");
+                }}
+                className="px-6 py-3 bg-gray-300 text-gray-800 font-semibold rounded-xl shadow-md hover:bg-gray-400 transition-all duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-3 bg-green-600 text-white font-bold rounded-xl shadow-lg hover:bg-green-700 transition-all duration-300 flex items-center gap-2"
+              >
+                <Key className="h-5 w-5" />
+                Reset Password
               </button>
             </div>
           </form>
@@ -541,6 +755,14 @@ export const GetAllEmployee = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-4">
+                      
+                       <button
+                        onClick={() => handleResetPasswordClick(employee)}
+                        className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-all duration-200"
+                        title="Reset Password"
+                      >
+                        Reset Password
+                      </button>
                       <button
                         onClick={() => handleEditClick(employee)}
                         className="text-indigo-600 hover:text-indigo-900 transition-colors duration-200 transform hover:scale-110"
@@ -548,6 +770,7 @@ export const GetAllEmployee = () => {
                       >
                         <Edit className="h-5 w-5" />
                       </button>
+                     
                       <button
                         onClick={() => handleDelete(employee._id)}
                         className="text-red-600 hover:text-red-900 transition-colors duration-200 transform hover:scale-110"
