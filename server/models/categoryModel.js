@@ -18,6 +18,18 @@ const categorySchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    premiumPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
+    premiumPlusPrice: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: 0,
+    },
     image: {
       type: String,
       default: "",

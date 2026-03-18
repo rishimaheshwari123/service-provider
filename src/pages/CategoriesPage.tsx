@@ -79,6 +79,8 @@ interface Category {
   _id: string;
   name: string;
   price: number;
+  premiumPrice?: number;
+  premiumPlusPrice?: number;
   autoFilled: string;
   image?: string;
   createdAt: string;

@@ -21,6 +21,33 @@ const vendorCategoryPurchaseSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+    priceTier: {
+      type: String,
+      enum: ["basic", "premium", "premiumPlus"],
+      default: "basic",
+    },
+    selectedPrice: {
+      type: Number,
+      min: 0,
+    },
+    finalPrice: {
+      type: Number,
+      min: 0,
+    },
+    // Coupon information
+    couponCode: {
+      type: String,
+      trim: true,
+    },
+    couponId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Coupon",
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     paymentMode: {
       type: String,
       enum: ["prepaid", "cash", "qr"],

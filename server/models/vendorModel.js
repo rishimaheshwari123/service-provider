@@ -44,6 +44,16 @@ const vendorSchema = new mongoose.Schema(
             type: String,
             trim: true,
         },
+        // Price tier information for selected category
+        selectedPriceTier: {
+            type: String,
+            enum: ["basic", "premium", "premiumPlus"],
+            default: "basic",
+        },
+        selectedPrice: {
+            type: Number,
+            min: 0,
+        },
         yearOfEstablishment: {
             type: String,
             trim: true,

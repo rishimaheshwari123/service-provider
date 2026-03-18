@@ -38,7 +38,9 @@ const vendorRegisterCtrl = async (req, res) => {
       // New fields
       typeOfService, category, subCategory, yearOfEstablishment, serviceLocation,
       alternatePhone, whatsappNumber, businessType, gstNumber, tradeLicense,
-      numberOfStaff, referralCode, referralName, workingDays, bankDetail, experience
+      numberOfStaff, referralCode, referralName, workingDays, bankDetail, experience,
+      // Price tier fields
+      priceTier, selectedPrice
     } = req.body;
     
     const files = req.files;
@@ -339,6 +341,9 @@ const vendorRegisterCtrl = async (req, res) => {
       referralName: sanitizeValue(referralName),
       workingDaysTimings: sanitizeValue(workingDays), // Fix: map workingDays to workingDaysTimings
       pincode: sanitizeValue(pincode),
+      // Price tier information
+      selectedPriceTier: sanitizeValue(priceTier) || "basic",
+      selectedPrice: selectedPrice ? parseInt(sanitizeValue(selectedPrice)) : 0,
     };
 
     const user = await vendorModel.findByIdAndUpdate(
