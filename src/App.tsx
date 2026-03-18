@@ -53,6 +53,7 @@ import AuditLogsPage from "./components/pages/vendor/AuditLogs";
 import AdminAuditLogs from "./components/pages/admin/AdminAuditLogs";
 import CommunicationLogs from "./components/pages/admin/CommunicationLogs";
 import SearchLogs from "./components/pages/admin/SearchLogs";
+import CouponManagement from "./components/pages/admin/CouponManagement";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminServices from "./components/pages/admin/AdminServices";
@@ -136,6 +137,7 @@ const App = () => {
                 <Route path="logs" element={<AdminAuditLogs />} />
                 <Route path="communication-logs" element={<CommunicationLogs />} />
                 <Route path="search-logs" element={<SearchLogs />} />
+                <Route path="coupons" element={<CouponManagement />} />
                 <Route path="add-service/:id" element={<VendorAddService />} />
               </Route>
             )}

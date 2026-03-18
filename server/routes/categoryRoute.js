@@ -14,6 +14,7 @@ const {
 } = require("../controllers/categoryCtrl");
 
 const { createPropertiesForExistingPurchases } = require("../utils/createPropertiesForExistingPurchases");
+const { bulkUpdateCategoryReferences } = require("../utils/updateCategoryReferences");
 
 const router = express.Router();
 
@@ -47,6 +48,35 @@ router.get("/pending/:vendorId", getVendorPendingPurchasesCtrl);
 // Admin: approve or reject a pending purchase
 router.put("/approve/:purchaseId", approvePurchaseCtrl);
 router.put("/reject/:purchaseId", rejectPurchaseCtrl);
+
+// Utility: Bulk update category references
+router.post("/bulk-update-references", async (req, res) => {
+  try {
+    const { updates } = req.body; // Array of {oldName, newName} objects
+    
+    if (!updates || !Array.isArray(updates)) {
+      return res.status(400).json({
+        success: false,
+        message: "Updates array is required"
+      });
+    }
+    
+    const result = await bulkUpdateCategoryReferences(updates);
+    
+    return res.status(200).json({
+      success: true,
+      message: `Bulk update completed. ${result.totalUpdated} properties updated.`,
+      result
+    });
+  } catch (error) {
+    console.error("Error in bulk category update:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating category references",
+      error: error.message
+    });
+  }
+});
 
 // Utility: Create properties for existing purchases (one-time use)
 router.post("/create-properties-for-existing", async (req, res) => {

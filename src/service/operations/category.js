@@ -37,7 +37,13 @@ export const updateCategoryAPI = async (id, formData) => {
     const url = `${UPDATE_CATEGORY_API}/${id}`;
     const res = await apiConnector("PUT", url, formData);
     if (!res?.data?.success) throw new Error(res?.data?.message || "Failed");
-    toast.success(res?.data?.message || "Category updated");
+    
+    // Show enhanced success message if properties were updated
+    const successMessage = res?.data?.updatedPropertiesCount > 0 
+      ? `${res?.data?.message} (${res?.data?.updatedPropertiesCount} services updated)`
+      : res?.data?.message || "Category updated";
+    
+    toast.success(successMessage);
     return res?.data?.category;
   } catch (error) {
     console.error("UPDATE_CATEGORY_API ERROR:", error);
