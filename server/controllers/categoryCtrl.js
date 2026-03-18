@@ -416,7 +416,45 @@ const updateCategoryCtrl = async (req, res) => {
       return res.status(404).json({ success: false, message: "Category not found" });
     }
 
-    if (name !== undefined) category.name = name;
+    // Store old name for updating related services
+    const oldName = category.name;
+    let updatedPropertiesCount = 0;
+
+    // Update category fields
+    if (name !== undefined && name !== oldName) {
+      // Update category name
+      category.name = name;
+      
+      // Update all properties that use this category name
+      const Property = require("../models/propertyModel");
+      
+      // Update properties where category field matches old name
+      const categoryUpdateResult = await Property.updateMany(
+        { category: oldName },
+        { 
+          $set: { 
+            category: name,
+            title: name // Also update title if it matches the category name
+          }
+        }
+      );
+      
+      // Update properties where title matches old name but category might be different
+      const titleUpdateResult = await Property.updateMany(
+        { 
+          title: oldName,
+          category: { $ne: name } // Don't update if category was already updated above
+        },
+        { 
+          $set: { title: name }
+        }
+      );
+      
+      updatedPropertiesCount = categoryUpdateResult.modifiedCount + titleUpdateResult.modifiedCount;
+      
+      console.log(`Updated ${updatedPropertiesCount} properties with new category name: ${oldName} -> ${name}`);
+    }
+    
     if (price !== undefined) category.price = price;
     if (active !== undefined) category.active = active;
     if (autoFilled !== undefined) category.autoFilled = autoFilled;
@@ -433,7 +471,17 @@ const updateCategoryCtrl = async (req, res) => {
 
     await category.save();
     console.log("Category updated:", category);
-    return res.status(200).json({ success: true, message: "Category updated", category });
+    
+    const responseMessage = updatedPropertiesCount > 0 
+      ? `Category updated successfully. ${updatedPropertiesCount} related services also updated.`
+      : "Category updated successfully";
+    
+    return res.status(200).json({ 
+      success: true, 
+      message: responseMessage, 
+      category,
+      updatedPropertiesCount 
+    });
   } catch (error) {
     console.error("Error updating category:", error);
     return res.status(500).json({ success: false, message: "Server error" });

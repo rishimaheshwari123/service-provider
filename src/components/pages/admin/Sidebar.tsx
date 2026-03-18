@@ -196,6 +196,13 @@ const Sidebar = () => {
       color: "text-purple-600",
       permission: null,
     },
+    {
+      to: "/admin/coupons",
+      icon: Files,
+      label: "Coupon Management",
+      color: "text-yellow-600",
+      permission: null,
+    },
   ];
 
   // Filter menu items based on user permissions

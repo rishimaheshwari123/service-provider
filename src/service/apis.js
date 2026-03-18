@@ -139,3 +139,14 @@ export const searchLogs = {
   GET_STATS_API: BASE_URL + "/search-logs/stats",
   DOWNLOAD_LOGS_API: BASE_URL + "/search-logs/download",
 }
+
+export const coupon = {
+  CREATE_COUPON_API: BASE_URL + "/coupon/create",
+  GET_ALL_COUPONS_API: BASE_URL + "/coupon/getAll",
+  GET_COUPON_BY_ID_API: BASE_URL + "/coupon",
+  VALIDATE_COUPON_API: BASE_URL + "/coupon/validate",
+  APPLY_COUPON_API: BASE_URL + "/coupon/apply",
+  UPDATE_COUPON_API: BASE_URL + "/coupon",
+  DELETE_COUPON_API: BASE_URL + "/coupon",
+  GET_COUPON_STATS_API: BASE_URL + "/coupon/stats",
+}
