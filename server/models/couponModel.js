@@ -56,7 +56,7 @@ const couponSchema = new mongoose.Schema({
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'auth',
-        required: true
+        required: false
     },
     usageHistory: [{
         user: {

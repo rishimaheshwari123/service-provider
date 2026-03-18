@@ -69,7 +69,13 @@ const ManageCategories = () => {
   const [isRejecting, setIsRejecting] = useState(false); // State to manage loading on reject submit
   const [searchText, setSearchText] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
-  const [modalForm, setModalForm] = useState({ name: "", price: "", autoFilled: "" });
+  const [modalForm, setModalForm] = useState({ 
+    name: "", 
+    price: "", 
+    premiumPrice: "", 
+    premiumPlusPrice: "", 
+    autoFilled: "" 
+  });
   const [modalImageFile, setModalImageFile] = useState<File | null>(null);
   const [modalImagePreview, setModalImagePreview] = useState<string>("");
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
@@ -172,6 +178,8 @@ const ManageCategories = () => {
     setModalForm({ 
       name: category.name, 
       price: String(category.price), 
+      premiumPrice: String(category.premiumPrice || 0),
+      premiumPlusPrice: String(category.premiumPlusPrice || 0),
       autoFilled: category.autoFilled || "" 
     });
     setModalImageFile(null);
@@ -182,7 +190,13 @@ const ManageCategories = () => {
 
   const openAddModal = () => {
     setEditingCategory(null);
-    setModalForm({ name: "", price: "", autoFilled: "" });
+    setModalForm({ 
+      name: "", 
+      price: "", 
+      premiumPrice: "", 
+      premiumPlusPrice: "", 
+      autoFilled: "" 
+    });
     setModalImageFile(null);
     setModalImagePreview("");
     setIsEditMode(false);
@@ -197,6 +211,8 @@ const ManageCategories = () => {
     const formData = new FormData();
     formData.append("name", modalForm.name.trim());
     formData.append("price", modalForm.price);
+    formData.append("premiumPrice", modalForm.premiumPrice || "0");
+    formData.append("premiumPlusPrice", modalForm.premiumPlusPrice || "0");
     if (modalForm.autoFilled) formData.append("autoFilled", modalForm.autoFilled.trim());
     if (modalImageFile) formData.append("image", modalImageFile);
     
@@ -209,7 +225,13 @@ const ManageCategories = () => {
       
       setModalOpen(false);
       setEditingCategory(null);
-      setModalForm({ name: "", price: "", autoFilled: "" });
+      setModalForm({ 
+        name: "", 
+        price: "", 
+        premiumPrice: "", 
+        premiumPlusPrice: "", 
+        autoFilled: "" 
+      });
       setModalImageFile(null);
       setModalImagePreview("");
       setIsEditMode(false);
@@ -336,7 +358,9 @@ const ManageCategories = () => {
     const data = categories.map((category) => ({
       "Category Name": category.name,
       "Auto Filled": category.autoFilled || "",
-      "Price": category.price,
+      "Basic Price": category.price,
+      "Premium Price": category.premiumPrice || 0,
+      "Premium Plus Price": category.premiumPlusPrice || 0,
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(data);
@@ -347,7 +371,9 @@ const ManageCategories = () => {
     const colWidths = [
       { wch: 30 }, // Category Name
       { wch: 20 }, // Auto Filled
-      { wch: 10 }, // Price
+      { wch: 12 }, // Basic Price
+      { wch: 12 }, // Premium Price
+      { wch: 15 }, // Premium Plus Price
     ];
     worksheet["!cols"] = colWidths;
 
@@ -434,13 +460,21 @@ const ManageCategories = () => {
                             </div>
                           )}
                           <div>
-<span className="font-medium mr-2">{toPascalCase(c.name)}</span>
+                            <span className="font-medium mr-2">{toPascalCase(c.name)}</span>
                             {c.autoFilled && (
                               <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded mr-2">
                                 {c.autoFilled}
                               </span>
                             )}
-                            <span className="text-gray-600">₹{c.price}</span>
+                            <div className="flex gap-2 mt-1">
+                              <span className="text-gray-600 text-sm">Basic: ₹{c.price}</span>
+                              {c.premiumPrice > 0 && (
+                                <span className="text-orange-600 text-sm">Premium: ₹{c.premiumPrice}</span>
+                              )}
+                              {c.premiumPlusPrice > 0 && (
+                                <span className="text-purple-600 text-sm">Premium+: ₹{c.premiumPlusPrice}</span>
+                              )}
+                            </div>
                           </div>
                         </div>
                         <div className="flex gap-2">
@@ -500,7 +534,7 @@ const ManageCategories = () => {
                     <TableRow>
                       <TableHead>Partner</TableHead>
                       <TableHead>Category</TableHead>
-                      <TableHead>Price</TableHead>
+                      <TableHead>Plan & Price</TableHead>
                       <TableHead>Mode</TableHead>
                       <TableHead>Transaction ID</TableHead>
                       <TableHead>Requested At</TableHead>
@@ -522,7 +556,40 @@ const ManageCategories = () => {
                           </div>
                         </TableCell>
                         <TableCell>{p.category?.name || "-"}</TableCell>
-                        <TableCell>₹{p.category?.price ?? "-"}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium capitalize">
+                              {p.priceTier || "Basic"}
+                            </span>
+                            <div className="text-sm">
+                              {p.discountAmount > 0 ? (
+                                <div className="flex flex-col">
+                                  <span className="text-gray-500 line-through">
+                                    ₹{p.selectedPrice || p.category?.price || "-"}
+                                  </span>
+                                  <span className="text-green-600 font-medium">
+                                    ₹{p.finalPrice || (p.selectedPrice - p.discountAmount) || "-"}
+                                  </span>
+                                  <span className="text-xs text-green-600">
+                                    Saved ₹{p.discountAmount} with coupon
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-600">
+                                  ₹{p.finalPrice || p.selectedPrice || p.category?.price || "-"}
+                                </span>
+                              )}
+                            </div>
+                            {/* Coupon Information */}
+                            {p.couponCode && (
+                              <div className="mt-1">
+                                <span className="text-xs text-purple-600 bg-purple-50 px-2 py-1 rounded">
+                                  Coupon: {p.couponCode}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell className="capitalize">
                           {p.paymentMode || "cash"}
                         </TableCell>
@@ -618,6 +685,31 @@ const ManageCategories = () => {
 
                   {/* Payment Info */}
                   <div className="mt-1 md:mt-0 flex flex-col md:flex-row items-start md:items-center gap-4 text-sm">
+                    {/* Price Tier & Amount */}
+                    {(p.priceTier || p.selectedPrice) && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500">Plan & Price</span>
+                        <span className="font-medium capitalize">
+                          {p.priceTier || "Basic"} - ₹{p.finalPrice || p.selectedPrice || "N/A"}
+                        </span>
+                        {p.discountAmount > 0 && (
+                          <span className="text-xs text-green-600">
+                            Saved ₹{p.discountAmount} with coupon
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Coupon Information */}
+                    {p.couponCode && (
+                      <div className="flex flex-col">
+                        <span className="text-xs text-gray-500">Coupon Used</span>
+                        <span className="font-medium text-purple-600">
+                          {p.couponCode}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Purchased At */}
                     {p.createdAt && (
                       <span className="text-gray-600">
@@ -875,13 +967,31 @@ const ManageCategories = () => {
               <p className="text-xs text-gray-500 mt-1">This will auto-fill in vendor registration when category is selected</p>
             </div>
             <div>
-              <Label htmlFor="modal-price">Price</Label>
+              <Label htmlFor="modal-price">Basic Price</Label>
               <Input
                 id="modal-price"
                 value={modalForm.price}
                 onChange={(e) => setModalForm({ ...modalForm, price: e.target.value })}
                 placeholder="e.g. 499"
                 required
+              />
+            </div>
+            <div>
+              <Label htmlFor="modal-premium-price">Premium Price</Label>
+              <Input
+                id="modal-premium-price"
+                value={modalForm.premiumPrice}
+                onChange={(e) => setModalForm({ ...modalForm, premiumPrice: e.target.value })}
+                placeholder="e.g. 799"
+              />
+            </div>
+            <div>
+              <Label htmlFor="modal-premium-plus-price">Premium Plus Price</Label>
+              <Input
+                id="modal-premium-plus-price"
+                value={modalForm.premiumPlusPrice}
+                onChange={(e) => setModalForm({ ...modalForm, premiumPlusPrice: e.target.value })}
+                placeholder="e.g. 999"
               />
             </div>
             <div>
@@ -919,7 +1029,13 @@ const ManageCategories = () => {
                 onClick={() => {
                   setModalOpen(false);
                   setEditingCategory(null);
-                  setModalForm({ name: "", price: "", autoFilled: "" });
+                  setModalForm({ 
+                    name: "", 
+                    price: "", 
+                    premiumPrice: "", 
+                    premiumPlusPrice: "", 
+                    autoFilled: "" 
+                  });
                   setModalImageFile(null);
                   setModalImagePreview("");
                   setIsEditMode(false);

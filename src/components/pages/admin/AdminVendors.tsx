@@ -461,6 +461,8 @@ const VendorManagement = () => {
     if (result.success) {
       setOtpSent(true);
       setIsPhoneVerified(false);
+      // Clear the OTP input when resending
+      setOtp('');
       
       toast({
         title: "Success",

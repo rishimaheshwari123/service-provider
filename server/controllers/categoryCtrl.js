@@ -4,7 +4,7 @@ const { uploadImageToCloudinary } = require("../config/s3Uploader");
 
 const createCategoryCtrl = async (req, res) => {
   try {
-    const { name, price, autoFilled } = req.body;
+    const { name, price, premiumPrice, premiumPlusPrice, autoFilled } = req.body;
     
     // Debug logs
     console.log("=== CREATE CATEGORY DEBUG ===");
@@ -30,7 +30,14 @@ const createCategoryCtrl = async (req, res) => {
       console.log("No image file received");
     }
 
-    const category = await Category.create({ name, price, autoFilled: autoFilled || "", image: imageUrl });
+    const category = await Category.create({ 
+      name, 
+      price, 
+      premiumPrice: premiumPrice || 0,
+      premiumPlusPrice: premiumPlusPrice || 0,
+      autoFilled: autoFilled || "", 
+      image: imageUrl 
+    });
     console.log("Category created:", category);
     return res.status(201).json({ success: true, message: "Category created", category });
   } catch (error) {
@@ -252,11 +259,40 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
 
 const purchaseCategoryCtrl = async (req, res) => {
   try {
-    const { vendorId, categoryId, transactionId, paymentMode = "prepaid", paymentMethod, assignedByAdmin, status, isAdmin } = req.body;
+    const { 
+      vendorId, 
+      categoryId, 
+      transactionId, 
+      paymentMode = "prepaid", 
+      paymentMethod, 
+      assignedByAdmin, 
+      status, 
+      isAdmin,
+      priceTier = "basic",
+      selectedPrice,
+      finalPrice,
+      // Coupon information
+      couponCode,
+      couponId,
+      discountAmount = 0
+    } = req.body;
+    
     // Support both paymentMode (old) and paymentMethod (new from admin assign)
     const finalPaymentMode = paymentMethod || paymentMode;
     
-    console.log("Purchase request received:", { vendorId, categoryId, finalPaymentMode, assignedByAdmin, status, isAdmin });
+    console.log("Purchase request received:", { 
+      vendorId, 
+      categoryId, 
+      finalPaymentMode, 
+      assignedByAdmin, 
+      status, 
+      isAdmin,
+      priceTier,
+      selectedPrice,
+      finalPrice,
+      couponCode,
+      discountAmount
+    });
     
     if (!vendorId || !categoryId) {
       return res.status(400).json({ success: false, message: "vendorId and categoryId are required" });
@@ -276,6 +312,21 @@ const purchaseCategoryCtrl = async (req, res) => {
       return res.status(404).json({ success: false, message: "Category not found or inactive" });
     }
 
+    // Calculate price based on tier if not provided
+    let calculatedPrice = selectedPrice || finalPrice;
+    if (!calculatedPrice) {
+      switch (priceTier) {
+        case "premium":
+          calculatedPrice = category.premiumPrice || category.price;
+          break;
+        case "premiumPlus":
+          calculatedPrice = category.premiumPlusPrice || category.price;
+          break;
+        default:
+          calculatedPrice = category.price;
+      }
+    }
+
     // Check existing purchase
     let purchase = await VendorCategoryPurchase.findOne({ vendor: vendorId, category: categoryId });
     let shouldCreateProperty = false;
@@ -292,6 +343,12 @@ const purchaseCategoryCtrl = async (req, res) => {
         purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
         purchase.assignedByAdmin = assignedByAdmin || isAdmin;
+        purchase.priceTier = priceTier;
+        purchase.selectedPrice = calculatedPrice;
+        purchase.finalPrice = finalPrice || calculatedPrice;
+        purchase.couponCode = couponCode;
+        purchase.couponId = couponId;
+        purchase.discountAmount = discountAmount;
         await purchase.save();
         purchase = await purchase.populate("category");
         shouldCreateProperty = true; // Create property when admin assigns/approves
@@ -302,6 +359,12 @@ const purchaseCategoryCtrl = async (req, res) => {
         purchase.status = "purchased";
         purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
+        purchase.priceTier = priceTier;
+        purchase.selectedPrice = selectedPrice;
+        purchase.finalPrice = finalPrice || calculatedPrice;
+        purchase.couponCode = couponCode;
+        purchase.couponId = couponId;
+        purchase.discountAmount = discountAmount;
         await purchase.save();
         shouldCreateProperty = true; // Create property for online payments
       } 
@@ -309,6 +372,12 @@ const purchaseCategoryCtrl = async (req, res) => {
       else if (finalPaymentMode === "cash" || finalPaymentMode === "qr") {
         purchase.status = isAdmin ? "purchased" : "pending";
         purchase.paymentMode = finalPaymentMode;
+        purchase.priceTier = priceTier;
+        purchase.selectedPrice = selectedPrice;
+        purchase.finalPrice = finalPrice || calculatedPrice;
+        purchase.couponCode = couponCode;
+        purchase.couponId = couponId;
+        purchase.discountAmount = discountAmount;
         await purchase.save();
         if (isAdmin) {
           shouldCreateProperty = true; // Create property if admin approves cash/QR payment
@@ -353,7 +422,13 @@ const purchaseCategoryCtrl = async (req, res) => {
         status: finalStatus, 
         transactionId, 
         paymentMode: finalPaymentMode,
-        assignedByAdmin: assignedByAdmin || isAdmin || false
+        assignedByAdmin: assignedByAdmin || isAdmin || false,
+        priceTier: priceTier,
+        selectedPrice: selectedPrice,
+        finalPrice: finalPrice || calculatedPrice,
+        couponCode: couponCode,
+        couponId: couponId,
+        discountAmount: discountAmount
       });
       purchase = await purchase.populate("category");
       
@@ -388,9 +463,23 @@ const getPurchasedCategoriesCtrl = async (req, res) => {
 
     const purchases = await VendorCategoryPurchase.find({ vendor: vendorId, status: "purchased" })
       .populate("category");
-    const categories = purchases.map((p) => p.category).filter(Boolean);
+    
+    // Return full purchase information including price tier
+    const purchaseData = purchases.map((purchase) => ({
+      _id: purchase._id,
+      category: purchase.category,
+      priceTier: purchase.priceTier || "basic",
+      selectedPrice: purchase.selectedPrice,
+      paymentMode: purchase.paymentMode,
+      status: purchase.status,
+      createdAt: purchase.createdAt,
+      transactionId: purchase.transactionId
+    }));
 
-    return res.status(200).json({ success: true, categories });
+    return res.status(200).json({ 
+      success: true, 
+      categories: purchaseData // Keep the same response structure for backward compatibility
+    });
   } catch (error) {
     console.error("Error fetching purchased categories:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -400,7 +489,7 @@ const getPurchasedCategoriesCtrl = async (req, res) => {
 const updateCategoryCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, active, autoFilled } = req.body;
+    const { name, price, premiumPrice, premiumPlusPrice, active, autoFilled } = req.body;
     
     // Debug logs
     console.log("=== UPDATE CATEGORY DEBUG ===");
@@ -456,6 +545,8 @@ const updateCategoryCtrl = async (req, res) => {
     }
     
     if (price !== undefined) category.price = price;
+    if (premiumPrice !== undefined) category.premiumPrice = premiumPrice;
+    if (premiumPlusPrice !== undefined) category.premiumPlusPrice = premiumPlusPrice;
     if (active !== undefined) category.active = active;
     if (autoFilled !== undefined) category.autoFilled = autoFilled;
 

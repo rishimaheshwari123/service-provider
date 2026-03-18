@@ -79,7 +79,10 @@ type VendorFormData = z.infer<typeof vendorSchema>;
 interface Category {
   _id: string;
   name: string;
-  autoFilled?: string;
+  price: number;
+  premiumPrice?: number;
+  premiumPlusPrice?: number;
+  autoFilled: string;
 }
 
 const STEPS = [
@@ -98,6 +101,8 @@ const VendorRegister = () => {
   const [acceptedTermsAndPrivacy, setAcceptedTermsAndPrivacy] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedCategoryData, setSelectedCategoryData] = useState<Category | null>(null);
+  const [selectedPriceTier, setSelectedPriceTier] = useState<"basic" | "premium" | "premiumPlus">("basic");
   const [selectedAutoFilled, setSelectedAutoFilled] = useState("");
   const [workingDays, setWorkingDays] = useState({
     monday: true,
@@ -141,10 +146,41 @@ const VendorRegister = () => {
 
   const ownerName = watch("name");
 
+  // Get current price based on selected tier
+  const getCurrentPrice = () => {
+    if (!selectedCategoryData) return 0;
+    switch (selectedPriceTier) {
+      case "premium":
+        return selectedCategoryData.premiumPrice || selectedCategoryData.price;
+      case "premiumPlus":
+        return selectedCategoryData.premiumPlusPrice || selectedCategoryData.price;
+      default:
+        return selectedCategoryData.price;
+    }
+  };
+
   useEffect(() => {
     const fetchCategories = async () => {
-      const data = await getAllCategoriesAPI();
-      setCategories(data || []);
+      try {
+        console.log("🔍 Fetching categories...");
+        const data = await getAllCategoriesAPI();
+        console.log("📥 Categories received:", data);
+        console.log("📊 Categories count:", data?.length || 0);
+        if (data && data.length > 0) {
+          console.log("📋 First category sample:", data[0]);
+          console.log("🏷️ Sample category fields:", {
+            id: data[0]._id,
+            name: data[0].name,
+            price: data[0].price,
+            premiumPrice: data[0].premiumPrice,
+            premiumPlusPrice: data[0].premiumPlusPrice,
+            autoFilled: data[0].autoFilled
+          });
+        }
+        setCategories(data || []);
+      } catch (error) {
+        console.error("❌ Error fetching categories:", error);
+      }
     };
     fetchCategories();
     
@@ -259,6 +295,8 @@ const VendorRegister = () => {
       setOtpSent(true);
       // Reset verification status to allow re-verification
       setIsPhoneVerified(false);
+      // Clear the OTP input when resending
+      setOtp('');
       
       // Don't show additional toast here - sendOTP already shows it
       // The toast from sendOTP function will display the correct message
@@ -343,6 +381,10 @@ const VendorRegister = () => {
     // Add category and subCategory
     if (category) formData.append("category", category);
     if (subCategory) formData.append("subCategory", subCategory);
+    
+    // Add price tier information
+    formData.append("priceTier", selectedPriceTier);
+    formData.append("selectedPrice", getCurrentPrice().toString());
     
     // Add numberOfStaff as single value (ensure no duplicates)
     if (vendorData.numberOfStaff) {
@@ -551,16 +593,23 @@ const VendorRegister = () => {
                       <Select 
                         value={selectedCategory}
                         onValueChange={(val) => {
+                          console.log("🎯 Category selected:", val);
                           setSelectedCategory(val);
                           setValue("category", val);
                           const selectedCat = categories.find(c => c._id === val);
+                          console.log("📋 Selected category data:", selectedCat);
+                          setSelectedCategoryData(selectedCat || null);
                           if (selectedCat?.autoFilled) {
+                            console.log("✅ Auto-filling with:", selectedCat.autoFilled);
                             setSelectedAutoFilled(selectedCat.autoFilled);
                             setValue("subCategory", selectedCat.autoFilled);
                           } else {
+                            console.log("❌ No autoFilled value found");
                             setSelectedAutoFilled("");
                             setValue("subCategory", "");
                           }
+                          // Reset price tier when category changes
+                          setSelectedPriceTier("basic");
                         }}
                       >
                         <SelectTrigger>
@@ -574,6 +623,9 @@ const VendorRegister = () => {
                       </Select>
                       {errors.category && <p className="text-sm text-red-500">{errors.category.message}</p>}
                     </div>
+
+                  
+
                     <div className="space-y-2">
                       <Label>Category (Auto Filled) <span className="text-red-500">*</span></Label>
                       <Input 
@@ -589,6 +641,85 @@ const VendorRegister = () => {
                       <p className="text-xs text-gray-500">This field auto-fills when you select a category</p>
                     </div>
                   </div>
+
+                    {/* Price Tier Selection - Show only when category is selected */}
+                    {/* {selectedCategoryData && (
+                      <div className="space-y-2">
+                        <Label>Select Plan <span className="text-red-500">*</span></Label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                          <label className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                            selectedPriceTier === "basic" 
+                              ? "border-green-500 bg-green-50 text-green-700" 
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}>
+                            <input
+                              type="radio"
+                              name="priceTier"
+                              value="basic"
+                              checked={selectedPriceTier === "basic"}
+                              onChange={() => setSelectedPriceTier("basic")}
+                              className="sr-only"
+                            />
+                            <div className="text-center">
+                              <div className="font-semibold text-sm">Basic Plan</div>
+                              <div className="text-lg font-bold">₹{selectedCategoryData.price}</div>
+                              <div className="text-xs text-gray-500 mt-1">Standard features</div>
+                            </div>
+                          </label>
+
+                          {selectedCategoryData.premiumPrice > 0 && (
+                            <label className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              selectedPriceTier === "premium" 
+                                ? "border-orange-500 bg-orange-50 text-orange-700" 
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}>
+                              <input
+                                type="radio"
+                                name="priceTier"
+                                value="premium"
+                                checked={selectedPriceTier === "premium"}
+                                onChange={() => setSelectedPriceTier("premium")}
+                                className="sr-only"
+                              />
+                              <div className="text-center">
+                                <div className="font-semibold text-sm">Premium Plan</div>
+                                <div className="text-lg font-bold">₹{selectedCategoryData.premiumPrice}</div>
+                                <div className="text-xs text-gray-500 mt-1">Enhanced features</div>
+                              </div>
+                            </label>
+                          )}
+
+                          {selectedCategoryData.premiumPlusPrice > 0 && (
+                            <label className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                              selectedPriceTier === "premiumPlus" 
+                                ? "border-purple-500 bg-purple-50 text-purple-700" 
+                                : "border-gray-200 hover:border-gray-300"
+                            }`}>
+                              <input
+                                type="radio"
+                                name="priceTier"
+                                value="premiumPlus"
+                                checked={selectedPriceTier === "premiumPlus"}
+                                onChange={() => setSelectedPriceTier("premiumPlus")}
+                                className="sr-only"
+                              />
+                              <div className="text-center">
+                                <div className="font-semibold text-sm">Premium Plus</div>
+                                <div className="text-lg font-bold">₹{selectedCategoryData.premiumPlusPrice}</div>
+                                <div className="text-xs text-gray-500 mt-1">All premium features</div>
+                              </div>
+                            </label>
+                          )}
+                        </div>
+                        
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="text-center">
+                            <span className="text-sm text-blue-600">Selected Plan Price: </span>
+                            <span className="text-xl font-bold text-blue-700">₹{getCurrentPrice()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )} */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
