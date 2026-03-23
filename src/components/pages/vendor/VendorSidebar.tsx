@@ -107,6 +107,13 @@ const VendorSidebar = () => {
       permission: null,
     },
     {
+      to: "/vendor/upload-service-image",
+      icon: ListChecks, // list or get services
+      label: "Upload Service Images",
+      color: "text-teal-600",
+      permission: null,
+    },
+    {
       to: "/vendor/inquiry-services",
       icon: MessageSquare, // inquiries/messages
       label: "Service Inquiry",

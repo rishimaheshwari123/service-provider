@@ -1,8 +1,8 @@
 
 
-export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
+// export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
 // export const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
-// export const BASE_URL = "http://localhost:8000/api/v1"
+export const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -40,6 +40,7 @@ export const vendor = {
   VERIFY_RESET_OTP_API: BASE_URL + "/vendor/verify-reset-otp",
   RESET_PASSWORD_API: BASE_URL + "/vendor/reset-password",
   ADMIN_RESET_PASSWORD_API: BASE_URL + "/vendor/admin-reset-password",
+  UPLOAD_PROFILE_IMAGE_API: BASE_URL + "/vendor/upload-profile-image",
 }
 
 export const property = {

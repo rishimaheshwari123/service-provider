@@ -1466,6 +1466,71 @@ const adminResetVendorPasswordCtrl = async (req, res) => {
   }
 };
 
+// Update vendor profile image only
+const updateVendorProfileImageCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const files = req.files;
+
+    console.log("📸 Profile image update request for vendor:", id);
+    console.log("📄 Files received:", files ? Object.keys(files) : "No files");
+
+    if (!files?.profilePhoto) {
+      return res.status(400).json({
+        success: false,
+        message: "Profile photo is required",
+      });
+    }
+
+    // Upload profile photo to S3
+    try {
+      console.log("📸 Uploading profile photo...");
+      const uploadResult = await uploadImageToCloudinary(files.profilePhoto, "profilePhoto");
+      
+      // Update vendor with new profile photo URL
+      const updatedVendor = await vendorModel.findByIdAndUpdate(
+        id,
+        { $set: { profilePhoto: uploadResult.secure_url } },
+        { new: true, runValidators: true }
+      ).populate('category', 'name');
+
+      if (!updatedVendor) {
+        return res.status(404).json({
+          success: false,
+          message: "Vendor not found",
+        });
+      }
+
+      console.log("✅ Profile photo updated successfully:", uploadResult.secure_url);
+
+      // Transform vendor data for display
+      const vendorObj = updatedVendor.toObject();
+      const transformedVendor = transformVendorForDisplay(vendorObj);
+
+      return res.status(200).json({
+        success: true,
+        message: "Profile photo updated successfully",
+        vendor: transformedVendor,
+        profilePhoto: uploadResult.secure_url,
+      });
+    } catch (uploadError) {
+      console.error("❌ Profile photo upload error:", uploadError);
+      return res.status(500).json({
+        success: false,
+        message: "Error uploading profile photo. Please try again.",
+        error: uploadError.message,
+      });
+    }
+  } catch (error) {
+    console.error("❌ Update profile image error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating profile photo",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   vendorRegisterCtrl,
   vendorLoginCtrl,
@@ -1482,5 +1547,6 @@ module.exports = {
   vendorForgotPasswordCtrl,
   vendorVerifyResetOTPCtrl,
   vendorResetPasswordCtrl,
-  adminResetVendorPasswordCtrl
+  adminResetVendorPasswordCtrl,
+  updateVendorProfileImageCtrl
 };

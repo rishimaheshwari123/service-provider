@@ -787,10 +787,11 @@ const toPascalCase = (text) => {
                                 <div className="flex items-center gap-1">
                                   <MapPin className="w-4 h-4 text-gray-400" />
                                   <span>
-                                    {filters.search ? 
+                                    {/* {filters.search ? 
                                       highlightSearchTerm(toPascalCase(service.location), filters.search) :
                                       toPascalCase(service.location)
-                                    }
+                                    } */}
+                                    {toPascalCase(service?.vendor?.serviceLocation)}
                                   </span>
                                 </div>
                               )}

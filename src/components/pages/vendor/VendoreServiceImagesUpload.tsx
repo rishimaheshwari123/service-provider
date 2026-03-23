@@ -15,6 +15,7 @@ import {
 } from "@/service/operations/property";
 import { toast } from "sonner";
 import { EditServiceModal } from "./edit-property-modal";
+import { EditPropertyDirectEdit } from "./EditPropertyDirectEdit";
 
 interface Service {
   _id: string;
@@ -29,7 +30,7 @@ interface Service {
   vendor: string;
 }
 
-const VendorServices = () => {
+const VendoreServiceImagesUpload = () => {
   const navigate = useNavigate();
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [services, setServices] = useState<Service[]>([]);
@@ -174,9 +175,7 @@ const VendorServices = () => {
               <CardHeader>
                 <CardTitle className="text-lg">{service.title}</CardTitle>
                 <div className="flex items-center justify-between">
-                  {/* <span className="text-2xl font-bold text-green-600">
-                    ₹{service.price}
-                  </span> */}
+                 
                   <span className="text-sm text-gray-500 capitalize">
                     {service.category}
                   </span>
@@ -196,37 +195,24 @@ const VendorServices = () => {
                     </p>
                   )}
                 </div>
-                <div className="flex space-x-2">
-                  <Button
-                    size="sm"
-                    variant={service.status === 'active' ? 'destructive' : 'default'}
-                    onClick={() => handleToggleStatus(service._id, service.status || 'active')}
-                    className={service.status === 'active' ? '' : 'bg-green-600 hover:bg-green-700'}
-                  >
-                    {service.status === 'active' ? 'Deactivate' : 'Activate'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEditService(service)}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(service._id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+               <div className="w-full">
+  <Button
+    className="w-full flex items-center bg-green-400 justify-center gap-2"
+    size="sm"
+    variant="outline"
+    onClick={() => handleEditService(service)}
+  >
+    <Edit className="w-4 h-4" />
+    Upload Images
+  </Button>
+</div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
 
-      <EditServiceModal
+      <EditPropertyDirectEdit
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         service={selectedService}
@@ -237,4 +223,4 @@ const VendorServices = () => {
   );
 };
 
-export default VendorServices;
+export default VendoreServiceImagesUpload;

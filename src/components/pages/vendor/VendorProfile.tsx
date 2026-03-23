@@ -34,6 +34,7 @@ import {
   getVendorByIdAPI,
   updateVendorProfileAPI,
   requestForTheUpdateProfileAPI,
+  uploadVendorProfileImageAPI,
 } from "@/service/operations/vendor";
 import { getAllCategoriesAPI } from "@/service/operations/category";
 import { useSelector } from "react-redux";
@@ -141,6 +142,7 @@ const VendorProfile = () => {
     document4: null,
     document5: null,
   });
+  const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
@@ -236,6 +238,32 @@ const VendorProfile = () => {
 
   const handleFileChange = (docKey: string, file: File | null) => {
     setDocuments(prev => ({ ...prev, [docKey]: file }));
+  };
+
+  const handleProfileImageUpload = async (file: File) => {
+    if (!user?._id) return;
+    
+    try {
+      setUploadingProfileImage(true);
+      const response = await uploadVendorProfileImageAPI(user._id, file);
+      
+      if (response.success) {
+        // Update vendor state with new profile photo
+        setVendor(prev => prev ? { ...prev, profilePhoto: response.profilePhoto } : null);
+        toast({
+          title: "Success",
+          description: "Profile photo updated successfully",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to upload profile photo",
+        variant: "destructive",
+      });
+    } finally {
+      setUploadingProfileImage(false);
+    }
   };
 
   const nextStep = () => {
@@ -1136,23 +1164,69 @@ const VendorProfile = () => {
               <Card>
                 <CardContent className="pt-6">
                   <div className="text-center">
-                    <Avatar className="w-24 h-24 mx-auto mb-4">
-                      {vendor.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
-                        <AvatarImage
-                          src={vendor.profilePhoto}
-                          alt={vendor.name}
+                    <div className="relative inline-block">
+                      <Avatar className="w-24 h-24 mx-auto mb-4">
+                        {vendor.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
+                          <AvatarImage
+                            src={vendor.profilePhoto}
+                            alt={vendor.name}
+                          />
+                        ) : (
+                          <AvatarFallback className="text-2xl">
+                            {getInitials(vendor.name)}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      
+                      {/* Profile Image Upload Button */}
+                      <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer shadow-lg transition-colors">
+                        <Upload className="w-4 h-4" />
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleProfileImageUpload(file);
+                            }
+                          }}
+                          disabled={uploadingProfileImage}
                         />
-                      ) : (
-                        <AvatarFallback className="text-2xl">
-                          {getInitials(vendor.name)}
-                        </AvatarFallback>
+                      </label>
+                      
+                      {uploadingProfileImage && (
+                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                        </div>
                       )}
-                    </Avatar>
+                    </div>
 
                     <h2 className="text-xl font-semibold text-gray-900">
                       {vendor.name}
                     </h2>
                     <p className="text-gray-600">{vendor.company}</p>
+                    
+                    {/* Alternative Profile Image Upload Button */}
+                    <div className="mt-3 mb-3">
+                      <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg cursor-pointer transition-colors text-sm">
+                        <Upload className="w-4 h-4" />
+                        {uploadingProfileImage ? "Uploading..." : "Change Photo"}
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleProfileImageUpload(file);
+                            }
+                          }}
+                          disabled={uploadingProfileImage}
+                        />
+                      </label>
+                    </div>
+                    
                     <div className="flex justify-center mt-3">
                       <Badge
                         variant={

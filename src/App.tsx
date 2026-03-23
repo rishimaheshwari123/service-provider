@@ -59,6 +59,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminServices from "./components/pages/admin/AdminServices";
 import CategoriesPage from "./pages/CategoriesPage";
 import ScrollToTop from "./pages/ScrollToTop";
+import VendoreServiceImagesUpload from "./components/pages/vendor/VendoreServiceImagesUpload";
 const queryClient = new QueryClient();
 
 // Loading component for Suspense fallback
@@ -157,6 +158,7 @@ const App = () => {
                 <Route path="inquiry-services" element={<VendorGetInquiry />} />
                 <Route path="bookings" element={<VendorBookings />} />
                 <Route path="tasks" element={<Task />} />
+                <Route path="upload-service-image" element={<VendoreServiceImagesUpload/>} />
                 <Route path="logs" element={<AuditLogsPage />} />
                 <Route
                   path="purchase-categories"
