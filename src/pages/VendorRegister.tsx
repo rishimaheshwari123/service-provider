@@ -631,6 +631,7 @@ const VendorRegister = () => {
                       <Input 
                         placeholder="Auto-filled based on category" 
                         value={selectedAutoFilled}
+                        disabled
                         onChange={(e) => {
                           setSelectedAutoFilled(e.target.value);
                           setValue("subCategory", e.target.value);

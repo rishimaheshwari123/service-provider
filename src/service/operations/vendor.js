@@ -13,7 +13,8 @@ const {
   UPDATE_VENDOR_PERSANTAGE,
   UPDATE_VENDOR_WORKING_HOURS,
   REQUST_FOR_THE_UPDATE_PROFILE_API,
-  DELETE_VENDOR
+  DELETE_VENDOR,
+  UPLOAD_PROFILE_IMAGE_API
 } = vendor;
 
 export async function login(phone, password, dispatch) {
@@ -342,6 +343,37 @@ export const deleteVendorAPI = async (id) => {
   } catch (error) {
     console.error("DELETE Vendor API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to delete vendor!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const uploadVendorProfileImageAPI = async (id, profilePhoto) => {
+  const toastId = toast.loading("Uploading profile photo...");
+
+  try {
+    const formData = new FormData();
+    formData.append("profilePhoto", profilePhoto);
+
+    const response = await apiConnector(
+      "PUT", 
+      `${UPLOAD_PROFILE_IMAGE_API}/${id}`, 
+      formData,
+      {
+        "Content-Type": "multipart/form-data"
+      }
+    );
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Profile photo updated successfully");
+    return response?.data;
+  } catch (error) {
+    console.error("UPLOAD Profile Image API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to upload profile photo!");
     throw error;
   } finally {
     toast.dismiss(toastId);
