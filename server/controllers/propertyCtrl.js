@@ -27,17 +27,38 @@ const createPropertyCtrl = async (req, res) => {
             });
         }
 
+        // Validate category ObjectId
+        if (!mongoose.Types.ObjectId.isValid(category)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid category ID',
+            });
+        }
+
+        // Verify category exists
+        const Category = require('../models/categoryModel');
+        const categoryExists = await Category.findById(category);
+        if (!categoryExists) {
+            return res.status(404).json({
+                success: false,
+                message: 'Category not found',
+            });
+        }
+
         // Create new property
         const property = await Property.create({
             title,
             price,
             location,
             type,
-            category,
+            category, // Now ObjectId
             description,
             images: imagesArray,
             vendor,
         });
+
+        // Populate category for response
+        await property.populate('category', 'name');
 
         return res.status(201).json({
             success: true,
@@ -63,7 +84,9 @@ const getPropertiesByVendor = async (req, res) => {
             return res.status(400).json({ message: 'Vendor ID is required' });
         }
 
-        const properties = await Property.find({ vendor }).populate('vendor');
+        const properties = await Property.find({ vendor })
+            .populate('vendor')
+            .populate('category', 'name');
 
         res.status(200).json({
             success: true,
@@ -119,7 +142,27 @@ const updatePropertyCtrl = async (req, res) => {
         if (price) property.price = price;
         if (location) property.location = location;
         if (type) property.type = type;
-        if (category) property.category = category;
+        if (category) {
+            // Validate category ObjectId
+            if (!mongoose.Types.ObjectId.isValid(category)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid category ID',
+                });
+            }
+            
+            // Verify category exists
+            const Category = require('../models/categoryModel');
+            const categoryExists = await Category.findById(category);
+            if (!categoryExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Category not found',
+                });
+            }
+            
+            property.category = category;
+        }
         if (description !== undefined) property.description = description; // Allow empty description
         
         // Always update images array (even if empty) - this allows removal of all images
@@ -155,26 +198,35 @@ const getPropertiesCtrl = async (req, res) => {
             query.status = 'active';
         }
         
-        // Add category filter
+        // Add category filter - prioritize ObjectId filtering
         if (category && category !== 'all') {
-            // Normalize both: lowercase and remove all spaces for exact matching
-            const normalizedSearchCategory = category.toLowerCase().replace(/\s+/g, '');
-            
-            // Find all properties and filter by normalized category name
-            const allProperties = await Property.find(query).populate('vendor').populate('review');
-            const filteredProperties = allProperties.filter(prop => {
-                if (!prop.category) return false;
-                const propCategoryNormalized = prop.category.toLowerCase().replace(/\s+/g, '');
-                return propCategoryNormalized === normalizedSearchCategory;
-            });
-            
-            return res.status(200).json({
-                success: true,
-                properties: filteredProperties
-            });
+            // First check if category is a valid ObjectId
+            if (mongoose.Types.ObjectId.isValid(category)) {
+                // Use ObjectId directly for efficient filtering
+                query.category = category;
+            } else {
+                // If not ObjectId, treat as category name (backward compatibility)
+                const Category = require('../models/categoryModel');
+                const categoryDoc = await Category.findOne({ 
+                    name: { $regex: new RegExp(`^${category}$`, 'i') }
+                });
+                
+                if (categoryDoc) {
+                    query.category = categoryDoc._id;
+                } else {
+                    // Category not found, return empty results
+                    return res.status(200).json({
+                        success: true,
+                        properties: []
+                    });
+                }
+            }
         }
 
-        const properties = await Property.find(query).populate('vendor').populate('review');
+        const properties = await Property.find(query)
+            .populate('vendor')
+            .populate('review')
+            .populate('category', 'name');
 
         res.status(200).json({
             success: true,
@@ -195,10 +247,9 @@ const getPropertiesByIdCtrl = async (req, res) => {
         // ----------------------------
         // Fetch property
         // ----------------------------
-        const property = await Property.findById(id).populate({
-            path: "vendor",
-           
-        });
+        const property = await Property.findById(id)
+            .populate('vendor')
+            .populate('category', 'name');
 
         res.status(200).json({
             success: true,
@@ -271,4 +322,56 @@ const updatePropertyStatusCtrl = async (req, res) => {
     }
 };
 
-module.exports = { createPropertyCtrl, getPropertiesByVendor, updatePropertyCtrl, getPropertiesCtrl, getPropertiesByIdCtrl, deletePropertyCtrl, updatePropertyStatusCtrl };
+const migrateCategoryNamesToIds = async (req, res) => {
+  try {
+    const properties = await Property.find({
+      category: { $type: "string" }
+    });
+
+    let migrated = 0;
+    let failed = [];
+
+    for (let property of properties) {
+      try {
+        const category = await Category.findOne({ 
+          name: { $regex: new RegExp(`^${property.category.trim()}$`, 'i') }
+        });
+
+        if (category) {
+          await Property.findByIdAndUpdate(property._id, {
+            category: category._id
+          });
+          migrated++;
+        } else {
+          failed.push({
+            propertyId: property._id,
+            categoryName: property.category,
+            propertyTitle: property.title
+          });
+        }
+      } catch (error) {
+        failed.push({
+          propertyId: property._id,
+          categoryName: property.category,
+          error: error.message
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Migration completed. ${migrated} properties migrated.`,
+      migrated,
+      failed: failed.length,
+      failedDetails: failed
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Migration failed",
+      error: error.message
+    });
+  }
+};
+
+module.exports = { createPropertyCtrl, getPropertiesByVendor, updatePropertyCtrl, getPropertiesCtrl, getPropertiesByIdCtrl, deletePropertyCtrl, updatePropertyStatusCtrl, migrateCategoryNamesToIds };

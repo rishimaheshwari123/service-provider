@@ -80,7 +80,7 @@ export const EditPropertyDirectEdit = ({
         price: service.price || "",
         location: service.location || "",
         type: service.type || "",
-        category: service.category || "",
+        category: service.category?._id || service.category || "",
         description: service.description || "",
         images: service.images || [],
         vendor: service.vendor || "",

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -53,6 +53,12 @@ const ServicesPage = () => {
     autoFilled: "", // Add autoFilled filter
     shouldAutoSearch: false, // Flag for auto-search from URL params
   });
+  
+  // Category dropdown search state
+  const [categorySearchOpen, setCategorySearchOpen] = useState(false);
+  const [categorySearchTerm, setCategorySearchTerm] = useState("");
+  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(-1);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
   // TEMPORARY FLAG: Set to false when real reviews are available
   const USE_MOCK_REVIEWS = false;
@@ -61,9 +67,7 @@ const ServicesPage = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.log("=== PARSING URL PARAMETERS ===");
     const params = new URLSearchParams(location.search);
-    console.log("URL search params:", location.search);
     const minPrice = Number(params.get("minPrice")) || MIN_PRICE_LIMIT;
     const maxPrice = Number(params.get("maxPrice")) || MAX_PRICE_LIMIT;
 
@@ -71,9 +75,9 @@ const ServicesPage = () => {
       search: params.get("search") || params.get("title") || params.get("location") || "",
       price: [minPrice, maxPrice],
       category: params.get("category") || "all",
-      autoFilled: params.get("autoFilled") || "", // Add autoFilled parameter
+      autoFilled: params.get("autoFilled") || "",
+      shouldAutoSearch: false,
     };
-    console.log("Parsed filters:", newFilters);
     setFilters(newFilters);
     
     // If there are URL parameters, trigger search automatically
@@ -83,12 +87,26 @@ const ServicesPage = () => {
     }
   }, [location.search]);
 
+  // Close category dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setCategorySearchOpen(false);
+        setCategorySearchTerm("");
+      }
+    };
+
+    if (categorySearchOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [categorySearchOpen]);
+
   useEffect(() => {
     const initializeData = async () => {
       if (dataInitialized) return; // Prevent multiple initializations
       
       try {
-        console.log("=== INITIALIZING DATA ===");
         setDataInitialized(true);
         
         // First fetch categories and reviews
@@ -97,17 +115,8 @@ const ServicesPage = () => {
           getAllReatingAPI()
         ]);
         
-        console.log("Categories fetched:", categoriesData?.length || 0);
-        console.log("Sample categories:", categoriesData?.slice(0, 5).map(cat => ({
-          name: cat.name,
-          autoFilled: cat.autoFilled
-        })));
-        
         setCategories(categoriesData || []);
         setAllReviews(reviewsData || []);
-        
-        console.log("Fetched reviews:", reviewsData);
-        console.log("Total reviews count:", reviewsData?.length || 0);
         
         // Then fetch services only once
         await fetchServices();
@@ -122,27 +131,12 @@ const ServicesPage = () => {
 
   const fetchServices = useCallback(async (categoryFilter = null) => {
     try {
-      console.log("=== FETCHING SERVICES ===");
-      console.log("Category filter:", categoryFilter);
       setLoading(true);
       const filterParams: any = {};
       if (categoryFilter && categoryFilter !== 'all') {
         filterParams.category = categoryFilter;
       }
       const allServices = await getAllPropertyAPI(filterParams);
-      console.log("Fetched services:", allServices?.length || 0);
-      console.log("Services count:", allServices?.length || 0);
-      
-      // Log first service to see its structure
-      if (allServices && allServices.length > 0) {
-        console.log("First service structure:", {
-          id: allServices[0]._id,
-          title: allServices[0].title,
-          category: allServices[0].category,
-          vendor: allServices[0].vendor?.name
-        });
-        console.log("Sample services categories:", allServices.slice(0, 5).map(s => s.category));
-      }
       
       setServices(allServices || []);
       setFilteredServices(allServices || []);
@@ -159,69 +153,60 @@ const ServicesPage = () => {
     const [minPrice, maxPrice] = newFilters.price;
     const searchTerm = newFilters.search?.toLowerCase().trim() || "";
 
-    console.log("=== APPLY FILTERS DEBUG ===");
-    console.log("Categories available:", categories.length);
-    console.log("Services available:", services.length);
-    console.log("Selected category:", newFilters.category);
-    console.log("AutoFilled filter:", newFilters.autoFilled);
-
     let filtered = services.filter((service) => {
       // Use the utility function for consistent search logic
       const matchSearch = matchesSearchTerm(service, searchTerm);
 
-      // Category matching - handle both string and object category
+      // Category filtering optimization:
+      // If category is selected and not "all", backend has already filtered by category
+      // So we skip frontend category filtering to avoid double processing
       let matchCategory = true;
       if (newFilters.category !== "all") {
-        const serviceCategory = (service as any).category;
-        const filterCategory = newFilters.category.toLowerCase().trim();
+        // Only apply frontend category filtering if we're showing all services
+        // (i.e., when backend didn't filter by category)
+        const isBackendFiltered = services.length > 0 && services.every(s => {
+          const serviceCategory = (s as any).category;
+          const filterCategoryId = newFilters.category;
+          
+          if (serviceCategory && typeof serviceCategory === 'object' && serviceCategory._id) {
+            return serviceCategory._id === filterCategoryId;
+          } else if (typeof serviceCategory === 'string') {
+            return serviceCategory === filterCategoryId;
+          }
+          return false;
+        });
         
-        // Handle if category is an object with name property
-        let serviceCategoryName = "";
-        if (typeof serviceCategory === "string") {
-          serviceCategoryName = serviceCategory.toLowerCase().trim();
-        } else if (serviceCategory && typeof serviceCategory === "object") {
-          serviceCategoryName = (serviceCategory.name || serviceCategory.title || "").toLowerCase().trim();
-        }
-        
-        // Match if service category starts with filter category (handles "Advocate - A", "Advocate - B" etc.)
-        // or if they are exactly equal
-        matchCategory = serviceCategoryName === filterCategory || 
-                       serviceCategoryName.startsWith(filterCategory + " -") ||
-                       serviceCategoryName.startsWith(filterCategory + "-");
-        
-        // Debug log for category mismatch
-        if (!matchCategory && searchTerm === "") {
-          console.log("Category mismatch:", {
-            serviceName: (service as any).name || (service as any).title,
-            serviceCategory: serviceCategory,
-            serviceCategoryName: serviceCategoryName,
-            filterCategory: newFilters.category,
-            match: matchCategory
-          });
+        // If backend already filtered, all services match the category
+        if (isBackendFiltered) {
+          matchCategory = true;
+        } else {
+          // Apply frontend filtering only if backend didn't filter
+          const serviceCategory = (service as any).category;
+          const filterCategoryId = newFilters.category;
+          
+          if (serviceCategory && typeof serviceCategory === 'object' && serviceCategory._id) {
+            matchCategory = serviceCategory._id === filterCategoryId;
+          } else if (typeof serviceCategory === 'string') {
+            matchCategory = serviceCategory === filterCategoryId;
+          } else {
+            matchCategory = false;
+          }
         }
       }
       
       // AutoFilled matching - filter by autoFilled field from categories
       let matchAutoFilled = true;
       if (newFilters.autoFilled) {
-        // Handle multiple autoFilled values separated by comma
         const autoFilledValues = newFilters.autoFilled.split(',').map(v => v.trim().toLowerCase());
-        console.log("Looking for autoFilled values:", autoFilledValues);
         
-        // Get all categories that match any of the autoFilled values
         const matchingCategories = categories.filter(cat => 
           cat.autoFilled && autoFilledValues.some(value => 
             cat.autoFilled.toLowerCase() === value
           )
         );
         
-        console.log("Found matching categories:", matchingCategories.length);
-        console.log("Matching category names:", matchingCategories.map(cat => `${cat.name} (${cat.autoFilled})`));
-        
-        // Get all category names that match
         const matchingCategoryNames = matchingCategories.map(cat => cat.name.toLowerCase());
         
-        // Check if this service's category is in the matching categories
         if (matchingCategoryNames.length > 0) {
           matchAutoFilled = matchingCategoryNames.includes((service as any).category?.toLowerCase());
         } else {
@@ -244,15 +229,12 @@ const ServicesPage = () => {
     if (searchTerm) {
       filtered = sortByRelevance(filtered, searchTerm);
     }
-
-    console.log("Final filtered services:", filtered.length);
-    console.log("=== END FILTER DEBUG ===");
     
     // Log the search only if explicitly requested (button click)
     if (shouldLog && searchTerm) {
       logSearch({
         searchQuery: searchTerm,
-        category: newFilters.category === "all" ? "All Categories" : newFilters.category,
+        category: newFilters.category === "all" ? "All Categories" : getCategoryNameById(newFilters.category),
         location: "Unknown",
         page: "Services",
         resultsCount: filtered.length,
@@ -265,19 +247,145 @@ const ServicesPage = () => {
   // Apply filters only on initial load or when services/categories change
   useEffect(() => {
     if (services.length > 0 && categories.length > 0 && dataInitialized) {
-      console.log("Applying initial filters with categories loaded:", categories.length);
-      
       // Check if we should auto-search (from URL params)
       if (filters.shouldAutoSearch) {
-        applyFilters(filters, false); // false = don't log on initial load
+        // Trigger search with URL parameters using the same logic as handleSearch
+        const searchWithUrlParams = async () => {
+          try {
+            setLoading(true);
+            
+            // Fetch all services fresh for URL param filtering
+            const allServices = await getAllPropertyAPI();
+            
+            // Apply all filters on frontend using fresh data
+            const [minPrice, maxPrice] = filters.price;
+            const searchTerm = filters.search?.toLowerCase().trim() || "";
+
+            let filtered = (allServices || []).filter((service) => {
+              // Search filtering - match against multiple fields
+              let matchSearch = true;
+              if (searchTerm) {
+                const searchFields = [
+                  service.title,
+                  service.description,
+                  service.location,
+                  service.state,
+                  service.city,
+                  service.zipcode,
+                  service.pincode,
+                  service.address,
+                  service.category?.name || service.category,
+                  service.vendor?.name,
+                  service.vendor?.company,
+                  service.vendor?.address,
+                  service.vendor?.city,
+                  service.vendor?.state,
+                  service.vendor?.pincode,
+                  service.vendor?.zipcode,
+                  service.vendor?.location,
+                  service.vendor?.serviceLocation,
+                ];
+                
+                matchSearch = searchFields.some(field => 
+                  field && field.toString().toLowerCase().includes(searchTerm)
+                );
+              }
+
+              // Category filtering on frontend
+              let matchCategory = true;
+              if (filters.category !== "all") {
+                const serviceCategory = (service as any).category;
+                const filterCategoryId = filters.category;
+                
+                // Handle if category is an object with _id property
+                if (serviceCategory && typeof serviceCategory === 'object' && serviceCategory._id) {
+                  matchCategory = serviceCategory._id === filterCategoryId;
+                } else if (typeof serviceCategory === 'string') {
+                  // Handle legacy string category (ObjectId as string)
+                  matchCategory = serviceCategory === filterCategoryId;
+                } else {
+                  matchCategory = false;
+                }
+              }
+              
+              // AutoFilled matching - filter by autoFilled field from categories
+              let matchAutoFilled = true;
+              if (filters.autoFilled) {
+                const autoFilledValues = filters.autoFilled.split(',').map(v => v.trim().toLowerCase());
+                
+                const matchingCategories = categories.filter(cat => 
+                  cat.autoFilled && autoFilledValues.some(value => 
+                    cat.autoFilled.toLowerCase() === value
+                  )
+                );
+                
+                const matchingCategoryNames = matchingCategories.map(cat => cat.name.toLowerCase());
+                
+                if (matchingCategoryNames.length > 0) {
+                  matchAutoFilled = matchingCategoryNames.includes((service as any).category?.name?.toLowerCase() || (service as any).category?.toLowerCase());
+                } else {
+                  matchAutoFilled = false;
+                }
+              }
+
+              // Handle price filtering - skip if price is "NA" or not a valid number
+              const servicePrice = Number((service as any).price);
+              const matchPrice = 
+                (service as any).price === "NA" || 
+                (service as any).price === "N/A" || 
+                isNaN(servicePrice) || 
+                (servicePrice >= minPrice && servicePrice <= maxPrice);
+
+              return matchSearch && matchCategory && matchAutoFilled && matchPrice;
+            });
+
+            // Sort by relevance if there's a search term
+            if (searchTerm) {
+              filtered = filtered.sort((a, b) => {
+                // Priority scoring for relevance
+                let scoreA = 0;
+                let scoreB = 0;
+                
+                // Vendor name match gets highest priority
+                if (a.vendor?.name?.toLowerCase().includes(searchTerm)) scoreA += 100;
+                if (b.vendor?.name?.toLowerCase().includes(searchTerm)) scoreB += 100;
+                
+                // Title match gets high priority
+                if (a.title?.toLowerCase().includes(searchTerm)) scoreA += 50;
+                if (b.title?.toLowerCase().includes(searchTerm)) scoreB += 50;
+                
+                // Location matches get medium priority
+                if (a.location?.toLowerCase().includes(searchTerm)) scoreA += 25;
+                if (b.location?.toLowerCase().includes(searchTerm)) scoreB += 25;
+                
+                if (a.city?.toLowerCase().includes(searchTerm)) scoreA += 20;
+                if (b.city?.toLowerCase().includes(searchTerm)) scoreB += 20;
+                
+                // Category match gets lower priority
+                const aCategoryName = a.category?.name || a.category;
+                const bCategoryName = b.category?.name || b.category;
+                if (aCategoryName?.toLowerCase().includes(searchTerm)) scoreA += 10;
+                if (bCategoryName?.toLowerCase().includes(searchTerm)) scoreB += 10;
+                
+                return scoreB - scoreA;
+              });
+            }
+            
+            setFilteredServices(filtered);
+          } catch (error) {
+            console.error("Error in URL param search:", error);
+          } finally {
+            setLoading(false);
+          }
+        };
+        
+        searchWithUrlParams();
         // Reset the flag
         setFilters(prev => ({ ...prev, shouldAutoSearch: false }));
-      } else {
-        // Just show all services without filtering
-        applyFilters({ ...filters, search: "", category: "all" }, false);
       }
+      // Remove the else clause that was resetting filteredServices to all services
     }
-  }, [services, categories, dataInitialized]);
+  }, [services, categories, dataInitialized, filters.shouldAutoSearch]);
 
   // Note: Removed filters from dependency array so it doesn't auto-filter on every change
 
@@ -286,13 +394,203 @@ const ServicesPage = () => {
     setFilters(prevFilters => ({ ...prevFilters, [name]: value }));
   }, []);
 
-  const handleSearch = useCallback(() => {
-    applyFilters(filters, true); // true = should log
-  }, [filters, applyFilters]);
+  const handleSearch = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Always fetch all services first
+      const allServices = await getAllPropertyAPI();
+      
+      // Now apply all filters on frontend using fresh data
+      const [minPrice, maxPrice] = filters.price;
+      const searchTerm = filters.search?.toLowerCase().trim() || "";
+
+      let filtered = (allServices || []).filter((service) => {
+        // Search filtering - match against multiple fields
+        let matchSearch = true;
+        if (searchTerm) {
+          const searchFields = [
+            service.title,
+            service.description,
+            service.location,
+            service.state,
+            service.city,
+            service.zipcode,
+            service.pincode,
+            service.address,
+            service.category?.name || service.category,
+            service.vendor?.name,
+            service.vendor?.company,
+            service.vendor?.address,
+            service.vendor?.city,
+            service.vendor?.state,
+            service.vendor?.pincode,
+            service.vendor?.zipcode,
+            service.vendor?.location,
+            service.vendor?.serviceLocation,
+          ];
+          
+          matchSearch = searchFields.some(field => 
+            field && field.toString().toLowerCase().includes(searchTerm)
+          );
+        }
+
+        // Category filtering on frontend
+        let matchCategory = true;
+        if (filters.category !== "all") {
+          const serviceCategory = (service as any).category;
+          const filterCategoryId = filters.category;
+          
+          // Handle if category is an object with _id property
+          if (serviceCategory && typeof serviceCategory === 'object' && serviceCategory._id) {
+            matchCategory = serviceCategory._id === filterCategoryId;
+          } else if (typeof serviceCategory === 'string') {
+            // Handle legacy string category (ObjectId as string)
+            matchCategory = serviceCategory === filterCategoryId;
+          } else {
+            matchCategory = false;
+          }
+        }
+        
+        // AutoFilled matching - filter by autoFilled field from categories
+        let matchAutoFilled = true;
+        if (filters.autoFilled) {
+          const autoFilledValues = filters.autoFilled.split(',').map(v => v.trim().toLowerCase());
+          
+          const matchingCategories = categories.filter(cat => 
+            cat.autoFilled && autoFilledValues.some(value => 
+              cat.autoFilled.toLowerCase() === value
+            )
+          );
+          
+          const matchingCategoryNames = matchingCategories.map(cat => cat.name.toLowerCase());
+          
+          if (matchingCategoryNames.length > 0) {
+            matchAutoFilled = matchingCategoryNames.includes((service as any).category?.name?.toLowerCase() || (service as any).category?.toLowerCase());
+          } else {
+            matchAutoFilled = false;
+          }
+        }
+
+        // Handle price filtering - skip if price is "NA" or not a valid number
+        const servicePrice = Number((service as any).price);
+        const matchPrice = 
+          (service as any).price === "NA" || 
+          (service as any).price === "N/A" || 
+          isNaN(servicePrice) || 
+          (servicePrice >= minPrice && servicePrice <= maxPrice);
+
+        return matchSearch && matchCategory && matchAutoFilled && matchPrice;
+      });
+
+      // Sort by relevance if there's a search term
+      if (searchTerm) {
+        filtered = filtered.sort((a, b) => {
+          // Priority scoring for relevance
+          let scoreA = 0;
+          let scoreB = 0;
+          
+          // Vendor name match gets highest priority
+          if (a.vendor?.name?.toLowerCase().includes(searchTerm)) scoreA += 100;
+          if (b.vendor?.name?.toLowerCase().includes(searchTerm)) scoreB += 100;
+          
+          // Title match gets high priority
+          if (a.title?.toLowerCase().includes(searchTerm)) scoreA += 50;
+          if (b.title?.toLowerCase().includes(searchTerm)) scoreB += 50;
+          
+          // Location matches get medium priority
+          if (a.location?.toLowerCase().includes(searchTerm)) scoreA += 25;
+          if (b.location?.toLowerCase().includes(searchTerm)) scoreB += 25;
+          
+          if (a.city?.toLowerCase().includes(searchTerm)) scoreA += 20;
+          if (b.city?.toLowerCase().includes(searchTerm)) scoreB += 20;
+          
+          // Category match gets lower priority
+          const aCategoryName = a.category?.name || a.category;
+          const bCategoryName = b.category?.name || b.category;
+          if (aCategoryName?.toLowerCase().includes(searchTerm)) scoreA += 10;
+          if (bCategoryName?.toLowerCase().includes(searchTerm)) scoreB += 10;
+          
+          return scoreB - scoreA;
+        });
+      }
+      
+      // Log the search
+      if (searchTerm) {
+        logSearch({
+          searchQuery: searchTerm,
+          category: filters.category === "all" ? "All Categories" : getCategoryNameById(filters.category),
+          location: "Unknown",
+          page: "Services",
+          resultsCount: filtered.length,
+        });
+      }
+      
+      setFilteredServices(filtered);
+    } catch (error) {
+      console.error("Error in handleSearch:", error);
+      toast.error("Failed to search services");
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, categories]);
+
+  // Helper function to get category name from ID
+  const getCategoryNameById = (categoryId: string) => {
+    if (categoryId === "all") return "All Categories";
+    const category = categories?.find(cat => cat._id === categoryId);
+    return category?.name || categoryId;
+  };
+
+  // Filter categories based on search term
+  const filteredCategories = useMemo(() => {
+    if (!categorySearchTerm.trim()) return categories;
+    return categories.filter(cat => 
+      cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
+    );
+  }, [categories, categorySearchTerm]);
 
   const handleCategoryChange = useCallback((value) => {
     setFilters(prevFilters => ({ ...prevFilters, category: value }));
+    setCategorySearchOpen(false);
+    setCategorySearchTerm("");
+    setSelectedCategoryIndex(-1);
+    
+    // Don't fetch services immediately - wait for user to click "Find Services"
   }, []);
+
+  // Handle keyboard navigation in category dropdown
+  const handleCategoryKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!categorySearchOpen) return;
+    
+    const allOptions = ["all", ...filteredCategories.map(cat => cat._id)];
+    
+    switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
+        setSelectedCategoryIndex(prev => 
+          prev < allOptions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case "ArrowUp":
+        e.preventDefault();
+        setSelectedCategoryIndex(prev => 
+          prev > 0 ? prev - 1 : allOptions.length - 1
+        );
+        break;
+      case "Enter":
+        e.preventDefault();
+        if (selectedCategoryIndex >= 0) {
+          handleCategoryChange(allOptions[selectedCategoryIndex]);
+        }
+        break;
+      case "Escape":
+        setCategorySearchOpen(false);
+        setCategorySearchTerm("");
+        setSelectedCategoryIndex(-1);
+        break;
+    }
+  }, [categorySearchOpen, filteredCategories, selectedCategoryIndex, handleCategoryChange]);
 
   const handleHireNow = useCallback((id) => {
     navigate(`/service/${id}`);
@@ -376,23 +674,31 @@ const toPascalCase = (text) => {
     return "bg-red-500";
   }, []);
 
-  const clearFilters = useCallback(() => {
-    setFilters({
-      search: "",
-      price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
-      category: "all",
-      autoFilled: "",
-      shouldAutoSearch: false,
-    });
-    // Apply filters to show all services
-    applyFilters({
-      search: "",
-      price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
-      category: "all",
-      autoFilled: "",
-      shouldAutoSearch: false,
-    }, false);
-  }, [applyFilters]);
+  const clearFilters = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Reset filters
+      const clearedFilters = {
+        search: "",
+        price: [MIN_PRICE_LIMIT, MAX_PRICE_LIMIT],
+        category: "all",
+        autoFilled: "",
+        shouldAutoSearch: false,
+      };
+      setFilters(clearedFilters);
+      
+      // Fetch all services fresh
+      const allServices = await getAllPropertyAPI();
+      setServices(allServices || []);
+      setFilteredServices(allServices || []);
+    } catch (error) {
+      console.error("Error clearing filters:", error);
+      toast.error("Failed to clear filters");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
     <>
@@ -403,7 +709,7 @@ const toPascalCase = (text) => {
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex flex-col md:flex-row md:items-center gap-3">
               {/* Search Input */}
-              <div className="flex-1">
+              <div className="flex-1 max-w-2xl">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
@@ -435,20 +741,81 @@ const toPascalCase = (text) => {
                 </div>
               </div>
 
-              {/* Category, Find Button & Filter Button */}
+              {/* Category Searchable Dropdown, Find Button & Filter Button */}
               <div className="flex gap-2">
-                <select
-                  value={filters.category}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  className="px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white min-w-[160px]"
-                >
-                  <option value="all">{toPascalCase(t("pages.home.allCategories"))}</option>
-                  {categories?.map((cat) => (
-                    <option key={cat._id} value={cat.name}>
-                      {toPascalCase(cat.name)}
-                    </option>
-                  ))}
-                </select>
+                {/* Custom Searchable Category Dropdown */}
+                <div className="relative min-w-[300px]" ref={categoryDropdownRef}>
+                  <button
+                    onClick={() => {
+                      setCategorySearchOpen(!categorySearchOpen);
+                      setSelectedCategoryIndex(-1);
+                    }}
+                    onKeyDown={handleCategoryKeyDown}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white text-left flex items-center justify-between text-base"
+                  >
+                    <span className="truncate">
+                      {toPascalCase(getCategoryNameById(filters.category))}
+                    </span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${categorySearchOpen ? "rotate-180" : ""}`} />
+                  </button>
+                  
+                  {categorySearchOpen && (
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+                      {/* Search Input */}
+                      <div className="p-4 border-b border-gray-200">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search categories..."
+                            value={categorySearchTerm}
+                            onChange={(e) => {
+                              setCategorySearchTerm(e.target.value);
+                              setSelectedCategoryIndex(-1);
+                            }}
+                            onKeyDown={handleCategoryKeyDown}
+                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:border-blue-600 text-base"
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Category Options */}
+                      <div className="max-h-72 overflow-y-auto">
+                        {/* All Categories Option */}
+                        <button
+                          onClick={() => handleCategoryChange("all")}
+                          className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
+                            filters.category === "all" ? "bg-blue-50 text-blue-600" : ""
+                          } ${selectedCategoryIndex === 0 ? "bg-gray-100" : ""}`}
+                        >
+                          <span>{toPascalCase(t("pages.home.allCategories"))}</span>
+                          {filters.category === "all" && <CheckCircle className="w-5 h-5" />}
+                        </button>
+                        
+                        {/* Filtered Categories */}
+                        {filteredCategories.length > 0 ? (
+                          filteredCategories.map((cat, index) => (
+                            <button
+                              key={cat._id}
+                              onClick={() => handleCategoryChange(cat._id)}
+                              className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
+                                filters.category === cat._id ? "bg-blue-50 text-blue-600" : ""
+                              } ${selectedCategoryIndex === index + 1 ? "bg-gray-100" : ""}`}
+                            >
+                              <span className="truncate">{toPascalCase(cat.name)}</span>
+                              {filters.category === cat._id && <CheckCircle className="w-5 h-5" />}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-4 py-4 text-gray-500 text-center text-base">
+                            No categories found
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 
                 <button
                   onClick={handleSearch}
@@ -521,7 +888,7 @@ const toPascalCase = (text) => {
                   )}
                   {filters.category !== "all" && (
                     <span className="ml-2 text-blue-600 font-medium">
-                      {toPascalCase("In")} {toPascalCase(filters.category)}
+                      {toPascalCase("In")} {toPascalCase(getCategoryNameById(filters.category))}
                     </span>
                   )}
                   {filters.autoFilled && (
@@ -771,7 +1138,7 @@ const toPascalCase = (text) => {
                               )}
                               {service.category && (
                                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                  {toPascalCase(service.category)}
+                                  {toPascalCase(service.category?.name || service.category)}
                                 </span>
                               )}
                             </div>

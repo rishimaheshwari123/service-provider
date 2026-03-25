@@ -80,7 +80,7 @@ export const EditServiceModal = ({
         price: service.price || "",
         location: service.location || "",
         type: service.type || "",
-        category: service.category || "",
+        category: service.category?._id || service.category || "",
         description: service.description || "",
         images: service.images || [],
         vendor: service.vendor || "",
@@ -233,28 +233,38 @@ export const EditServiceModal = ({
             </div>
 
             <div>
-              <Label>Category *</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value) => handleInputChange("category", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat._id} value={cat.name}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {categories.length === 0 && (
-                <p className="text-sm text-gray-500 mt-1">
-                  No purchased categories found. Please purchase categories first.
-                </p>
-              )}
-            </div>
+  <Label>Category *</Label>
+
+  <Select
+    value={formData.category || "default"}
+    onValueChange={(value) => handleInputChange("category", value)}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder="Select category" />
+    </SelectTrigger>
+
+    <SelectContent>
+      {/* Default disabled option */}
+      <SelectItem value="default" disabled>
+        Select category
+      </SelectItem>
+
+      {categories
+        .filter((c) => c.status === "purchased")
+        .map((c) => (
+          <SelectItem key={c._id} value={c.category._id}>
+            {c.category.name}
+          </SelectItem>
+        ))}
+    </SelectContent>
+  </Select>
+
+  {categories.length === 0 && (
+    <p className="text-sm text-gray-500 mt-1">
+      No purchased categories found. Please purchase categories first.
+    </p>
+  )}
+</div>
 
             <div>
               <Label>Description</Label>

@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { CloudCog } from "lucide-react";
 
 const VendorAddService = () => {
   const { id } = useParams<{ id: string }>(); // vendorId for admin
@@ -68,6 +69,7 @@ const VendorAddService = () => {
       if (!vendorId) return;
 
       const cats = await getPurchasedCategoriesAPI(vendorId);
+      console.log("cats",cats);
       setMyCategories(cats);
       
       // Load all categories for purchase option
@@ -183,7 +185,7 @@ const VendorAddService = () => {
       setMyCategories(cats);
       
       // Auto-select the purchased category
-      setFormData(prev => ({ ...prev, category: selectedCategoryToPurchase.name }));
+      setFormData(prev => ({ ...prev, category: selectedCategoryToPurchase._id }));
       
     } catch (error) {
       console.error("Error purchasing category:", error);
@@ -305,28 +307,30 @@ const VendorAddService = () => {
                   </Button>
                 </div>
                 <Select
-                  value={formData.category}
-                  onValueChange={(value) =>
-                    handleSelectChange("category", value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        myCategories.length
-                          ? "Select category"
-                          : "No purchased categories - Purchase one first"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {myCategories.map((c) => (
-                      <SelectItem key={c._id} value={c.name}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+  value={formData.category}
+  onValueChange={(value) =>
+    handleSelectChange("category", value)
+  }
+>
+  <SelectTrigger>
+    <SelectValue placeholder="Select category" />
+  </SelectTrigger>
+
+  <SelectContent>
+    {/* Default disabled option */}
+    <SelectItem value="default" disabled>
+      Select category
+    </SelectItem>
+
+    {myCategories
+      .filter((c) => c.status === "purchased")
+      .map((c) => (
+        <SelectItem key={c._id} value={c.category._id}>
+          {c.category.name}
+        </SelectItem>
+      ))}
+  </SelectContent>
+</Select>
                 
                 {myCategories.length === 0 ? (
                   <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">

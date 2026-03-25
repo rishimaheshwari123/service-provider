@@ -85,7 +85,7 @@ export const AdminEditServiceModal = ({
         price: service.price || "",
         location: service.location || "",
         type: service.type || "",
-        category: service.category || "",
+        category: service.category?._id || service.category || "",
         description: service.description || "",
         images: service.images || [],
         vendor: typeof service.vendor === 'string' ? service.vendor : service.vendor._id || "",
@@ -255,7 +255,7 @@ export const AdminEditServiceModal = ({
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((cat) => (
-                      <SelectItem key={cat._id} value={cat.name}>
+                      <SelectItem key={cat._id} value={cat._id}>
                         {cat.name}
                       </SelectItem>
                     ))}

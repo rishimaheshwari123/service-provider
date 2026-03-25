@@ -83,8 +83,8 @@ export default function CategoryGrid() {
     fetchCategories();
   }, []);
 
-  const handleCategoryClick = (categoryName: string) => {
-    window.location.href = `/services?category=${encodeURIComponent(categoryName)}`;
+  const handleCategoryClick = (categoryId: string) => {
+    window.location.href = `/services?category=${encodeURIComponent(categoryId)}`;
   };
 
   const handleViewAll = () => {
@@ -110,7 +110,7 @@ export default function CategoryGrid() {
             return (
               <div
                 key={cat._id}
-                onClick={() => handleCategoryClick(cat.name)}
+                onClick={() => handleCategoryClick(cat._id)}
                 className="cursor-pointer flex flex-col items-center group"
               >
                 <div className="w-14 h-14 md:w-16 md:h-16 border-2 border-gray-200 rounded-lg flex items-center justify-center mb-2 group-hover:border-blue-600 group-hover:shadow-md transition-all duration-200 bg-white">
@@ -158,7 +158,7 @@ export default function CategoryGrid() {
                     {group.items.map((cat) => (
                       <div
                         key={cat._id}
-                        onClick={() => handleCategoryClick(cat.name)}
+                        onClick={() => handleCategoryClick(cat._id)}
                         className="cursor-pointer group"
                       >
                         <div className="aspect-[4/3] rounded-lg overflow-hidden mb-2 bg-gray-200">

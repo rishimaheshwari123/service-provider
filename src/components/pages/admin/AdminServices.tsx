@@ -114,7 +114,7 @@ const AdminServices = () => {
           service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (typeof service.vendor === 'object' && service.vendor?.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
           (typeof service.vendor === 'object' && service.vendor?.company?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          service.category.toLowerCase().includes(searchTerm.toLowerCase())
+          (service.category?.name || service.category || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -214,7 +214,7 @@ const AdminServices = () => {
     const excelData = filteredServices.map((service) => ({
       "Service ID": service._id,
       "Service Title": service.title,
-      "Category": service.category,
+      "Category": service.category?.name || service.category,
       "Type": service.type,
       "Price": service.price,
       "Description": service.description || "",
@@ -397,7 +397,7 @@ const AdminServices = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{service.category}</Badge>
+                      <Badge variant="outline">{service.category?.name || service.category}</Badge>
                     </TableCell>
                     <TableCell>{service.location}</TableCell>
                     <TableCell>{getStatusBadge(service.status || 'active')}</TableCell>

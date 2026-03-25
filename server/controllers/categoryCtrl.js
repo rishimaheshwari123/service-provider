@@ -227,7 +227,7 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
     // Check if property already exists for this vendor-category combination
     const existingProperty = await Property.findOne({ 
       vendor: vendorId, 
-      category: category.name 
+      category: categoryId // Now using ObjectId
     });
     
     if (existingProperty) {
@@ -241,7 +241,7 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
       price: category.price.toString(), // Category price
       location: vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
       type: "service", // Default type
-      category: category.name, // Category name
+      category: categoryId, // Category ObjectId
       description: vendor.description || category.autoFilled || `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
       images: category.image ? [{ url: category.image }] : [], // Category image
       vendor: vendorId, // Vendor ID
