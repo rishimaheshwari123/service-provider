@@ -230,7 +230,6 @@ const VendorServices = () => {
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         service={selectedService}
-        onSave={handleSaveService}
         fetchServices={fetchServices}
       />
     </div>

@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { updatePropertyAPI } from "@/service/operations/property"; // rename later to updateServiceAPI
+import { vendorUpdatePropertyAPI } from "@/service/operations/property";
 import { imageUpload } from "@/service/operations/image";
 import { getPurchasedCategoriesAPI } from "@/service/operations/category";
 import { useSelector } from "react-redux";
@@ -27,9 +27,22 @@ import type { RootState } from "@/redux/store";
 interface Image {
   public_id: string;
   url: string;
+  _id?: string; // MongoDB _id for existing images
 }
 
 interface Service {
+  _id: string;
+  title: string;
+  price: string;
+  location: string;
+  type: string;
+  category: string | { _id: string; name: string };
+  description?: string;
+  images?: Image[];
+  vendor: string;
+}
+
+interface ServiceFormData {
   _id: string;
   title: string;
   price: string;
@@ -45,7 +58,6 @@ interface EditServiceModalProps {
   isOpen: boolean;
   onClose: () => void;
   service: Service | null;
-  onSave: (updatedService: Service) => void;
   fetchServices: () => void;
 }
 
@@ -53,11 +65,10 @@ export const EditServiceModal = ({
   isOpen,
   onClose,
   service,
-  onSave,
   fetchServices,
 }: EditServiceModalProps) => {
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
-  const [formData, setFormData] = useState<Service>({
+  const [formData, setFormData] = useState<ServiceFormData>({
     _id: "",
     title: "",
     price: "",
@@ -74,18 +85,32 @@ export const EditServiceModal = ({
 
   useEffect(() => {
     if (service) {
+      // Extract category ID whether it's a string or object
+      const categoryId = typeof service.category === 'string' 
+        ? service.category 
+        : service.category?._id || "";
+      
       setFormData({
         _id: service._id,
         title: service.title || "",
         price: service.price || "",
         location: service.location || "",
         type: service.type || "",
-        category: service.category?._id || service.category || "",
+        category: categoryId,
         description: service.description || "",
         images: service.images || [],
         vendor: service.vendor || "",
       });
-      setImages(service.images || []);
+      
+      // Process images - use _id as public_id for existing images
+      const processedImages = (service.images || []).map((img) => ({
+        public_id: img._id || img.public_id || img.url, // Use _id as the unique identifier
+        url: img.url,
+        _id: img._id,
+      }));
+      
+      console.log('Loading existing images:', processedImages);
+      setImages(processedImages);
     }
   }, [service]);
 
@@ -103,7 +128,7 @@ export const EditServiceModal = ({
   }, [user, isOpen]);
 
   const handleInputChange = (
-    field: keyof Service,
+    field: keyof ServiceFormData,
     value: string | number | File
   ) => {
     setFormData((prev) => ({
@@ -116,11 +141,17 @@ export const EditServiceModal = ({
     try {
       const response = await imageUpload(acceptedFiles);
       if (response) {
-        const uploadedImages = response.map((img: any) => ({
-          public_id: img.asset_id,
+        const uploadedImages = response.map((img: any, index: number) => ({
+          public_id: img.asset_id || img.public_id || `uploaded-${index}-${Date.now()}`,
           url: img.url,
+          // New uploads don't have _id yet
         }));
-        setImages((prev) => [...prev, ...uploadedImages]);
+        console.log('Uploading new images:', uploadedImages);
+        setImages((prev) => {
+          const combined = [...prev, ...uploadedImages];
+          console.log('Combined images after upload:', combined);
+          return combined;
+        });
         toast.success("Images uploaded successfully!");
       }
     } catch {
@@ -129,7 +160,13 @@ export const EditServiceModal = ({
   };
 
   const removeImage = (publicId: string) => {
-    setImages(images.filter((img) => img.public_id !== publicId));
+    console.log('Removing image with public_id:', publicId);
+    console.log('Current images:', images.map(img => ({ public_id: img.public_id, url: img.url })));
+    setImages((prevImages) => {
+      const filtered = prevImages.filter((img) => img.public_id !== publicId);
+      console.log('Images after removal:', filtered.map(img => ({ public_id: img.public_id, url: img.url })));
+      return filtered;
+    });
   };
 
   const handleSave = async () => {
@@ -159,14 +196,13 @@ export const EditServiceModal = ({
       // Always send images array, even if empty (this allows removal of all images)
       dataToSend.append("images", JSON.stringify(images));
 
-      const response = await updatePropertyAPI(service?._id, dataToSend);
+      const response = await vendorUpdatePropertyAPI(service?._id, dataToSend);
       if (response?.success) {
-        onSave(response.property);
-        toast.success("Service updated successfully!");
+        toast.success(response?.message || "Update request submitted successfully!");
         fetchServices();
         onClose();
       } else {
-        toast.error(response?.message || "Failed to update service");
+        toast.error(response?.message || "Failed to submit update request");
       }
     } catch (error) {
       console.error(error);
@@ -301,12 +337,17 @@ export const EditServiceModal = ({
 
               {images.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-                  {images.map((img, i) => (
-                    <div key={i} className="relative">
+                  {images.map((img) => (
+                    <div key={img.public_id} className="relative">
                       <button
                         type="button"
-                        onClick={() => removeImage(img.public_id)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Button clicked for image:', img.public_id);
+                          removeImage(img.public_id);
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
                       >
                         ✕
                       </button>

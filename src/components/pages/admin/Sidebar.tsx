@@ -99,6 +99,13 @@ const Sidebar = () => {
       permission: null,
     },
     {
+      to: "/admin/service-update-requests",
+      icon: FileText,
+      label: "Service Update Requests",
+      color: "text-orange-600",
+      permission: null,
+    },
+    {
       to: "/admin/vendors",
       icon: UserCog, // vendors = manage users type
       label: "Manage Partners",

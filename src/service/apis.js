@@ -47,10 +47,21 @@ export const property = {
   CREATE_PROPERTY_API: BASE_URL + "/property/create",
   GET_VENDOR_PROPERTY_API: BASE_URL + "/property/get-vendor-property",
   GET_ALL_PROPERTY_API: BASE_URL + "/property/getAll",
-  UPDATE_PROPERTY_API: BASE_URL + "/property/update",
+  UPDATE_PROPERTY_API: BASE_URL + "/property/update", // Admin direct update
+  VENDOR_UPDATE_PROPERTY_API: BASE_URL + "/property/vendor-update", // Vendor update request
   UPDATE_PROPERTY_STATUS_API: BASE_URL + "/property/update-status",
+  UPLOAD_SERVICE_IMAGE_API: BASE_URL + "/property/upload-service-image",
   DELETE_PROPERTY_API: BASE_URL + "/property/delete",
   GET_PROPERTY_BY_ID_API: BASE_URL + "/property/get",
+}
+
+export const serviceUpdateRequest = {
+  CREATE_UPDATE_REQUEST_API: BASE_URL + "/service-update-request/create-update-request",
+  CREATE_IMAGE_UPDATE_REQUEST_API: BASE_URL + "/service-update-request/create-image-update-request",
+  GET_VENDOR_REQUESTS_API: BASE_URL + "/service-update-request/vendor",
+  GET_PENDING_REQUESTS_API: BASE_URL + "/service-update-request/pending",
+  APPROVE_REQUEST_API: BASE_URL + "/service-update-request/approve",
+  REJECT_REQUEST_API: BASE_URL + "/service-update-request/reject",
 }
 
 export const category = {

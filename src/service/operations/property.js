@@ -5,7 +5,15 @@ import { property } from "../apis";
 
 const {
   CREATE_PROPERTY_API,
-  GET_VENDOR_PROPERTY_API, UPDATE_PROPERTY_API, GET_ALL_PROPERTY_API, DELETE_PROPERTY_API, GET_PROPERTY_BY_ID_API, UPDATE_PROPERTY_STATUS_API } = property;
+  GET_VENDOR_PROPERTY_API, 
+  UPDATE_PROPERTY_API,
+  VENDOR_UPDATE_PROPERTY_API,
+  GET_ALL_PROPERTY_API, 
+  DELETE_PROPERTY_API, 
+  GET_PROPERTY_BY_ID_API, 
+  UPDATE_PROPERTY_STATUS_API,
+  UPLOAD_SERVICE_IMAGE_API
+} = property;
 
 export const createPropertyAPI = async (formData) => {
   const toastId = toast.loading("Loading...");
@@ -97,28 +105,48 @@ export const getPropertyBYIDAPI = async (id, userId) => {
 
 
 
+// Admin direct update (no approval needed)
 export const updatePropertyAPI = async (id, formData) => {
-
-  const toastId = toast.loading("Loading...");
+  const toastId = toast.loading("Updating service...");
 
   try {
     const response = await apiConnector("PUT", `${UPDATE_PROPERTY_API}/${id}`, formData);
-
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
     }
 
-    toast.success(response?.data?.message)
+    toast.success(response?.data?.message || "Service updated successfully!");
     return response?.data;
   } catch (error) {
-    console.error("UPDATE Vendor API ERROR:", error);
-    toast.error(error?.response?.data?.message || "Failed to vendor product!");
+    console.error("UPDATE Property API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to update service!");
     return [];
   } finally {
     toast.dismiss(toastId);
   }
+};
 
+// Vendor update request (requires approval)
+export const vendorUpdatePropertyAPI = async (id, formData) => {
+  const toastId = toast.loading("Submitting update request...");
+
+  try {
+    const response = await apiConnector("PUT", `${VENDOR_UPDATE_PROPERTY_API}/${id}`, formData);
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Update request submitted successfully! Waiting for admin approval.");
+    return response?.data;
+  } catch (error) {
+    console.error("VENDOR UPDATE Property API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to submit update request!");
+    return [];
+  } finally {
+    toast.dismiss(toastId);
+  }
 };
 
 export const deletePropertyAPI = async (id) => {
@@ -157,6 +185,27 @@ export const updatePropertyStatusAPI = async (id, status) => {
   } catch (error) {
     console.error("UPDATE Property Status API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to update property status!");
+    return null;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const uploadServiceImageAPI = async (id, imageData) => {
+  const toastId = toast.loading("Submitting image update request...");
+
+  try {
+    const response = await apiConnector("PUT", `${UPLOAD_SERVICE_IMAGE_API}/${id}`, imageData);
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Image update request submitted successfully! Waiting for admin approval.");
+    return response?.data;
+  } catch (error) {
+    console.error("UPLOAD Service Image API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to submit image update request!");
     return null;
   } finally {
     toast.dismiss(toastId);
