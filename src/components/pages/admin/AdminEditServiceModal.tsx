@@ -25,6 +25,7 @@ import { getAllCategoriesAPI } from "@/service/operations/category";
 interface Image {
   public_id: string;
   url: string;
+  _id?: string; // MongoDB _id for existing images
 }
 
 interface Service {
@@ -91,7 +92,16 @@ export const AdminEditServiceModal = ({
         vendor: typeof service.vendor === 'string' ? service.vendor : service.vendor._id || "",
         status: service.status || "active",
       });
-      setImages(service.images || []);
+      
+      // Process images - use _id as public_id for existing images
+      const processedImages = (service.images || []).map((img) => ({
+        public_id: img._id || img.public_id || img.url, // Use _id as the unique identifier
+        url: img.url,
+        _id: img._id,
+      }));
+      
+      console.log('Loading existing images:', processedImages);
+      setImages(processedImages);
     }
   }, [service]);
 
@@ -133,7 +143,13 @@ export const AdminEditServiceModal = ({
   };
 
   const removeImage = (publicId: string) => {
-    setImages(images.filter((img) => img.public_id !== publicId));
+    console.log('Removing image with public_id:', publicId);
+    console.log('Current images:', images.map(img => ({ public_id: img.public_id, url: img.url })));
+    setImages((prevImages) => {
+      const filtered = prevImages.filter((img) => img.public_id !== publicId);
+      console.log('Images after removal:', filtered.map(img => ({ public_id: img.public_id, url: img.url })));
+      return filtered;
+    });
   };
 
   const handleSave = async () => {
@@ -320,12 +336,17 @@ export const AdminEditServiceModal = ({
 
               {images.length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-                  {images.map((img, i) => (
-                    <div key={i} className="relative">
+                  {images.map((img) => (
+                    <div key={img.public_id} className="relative">
                       <button
                         type="button"
-                        onClick={() => removeImage(img.public_id)}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Button clicked for image:', img.public_id);
+                          removeImage(img.public_id);
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
                       >
                         ✕
                       </button>

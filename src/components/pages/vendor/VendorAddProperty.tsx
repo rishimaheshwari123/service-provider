@@ -411,8 +411,8 @@ const VendorAddService = () => {
 
                 {images.length > 0 && (
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-                    {images.map((image, index) => (
-                      <div key={index} className="relative">
+                    {images.map((image) => (
+                      <div key={image.public_id} className="relative">
                         <button
                           type="button"
                           onClick={() => removeImage(image.public_id)}

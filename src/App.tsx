@@ -47,6 +47,7 @@ import AllBookingsPage from "./components/pages/admin/AllBookingsPage";
 import Task from "./components/pages/vendor/Task";
 import { AddRoles } from "./components/pages/admin/AddRoles";
 import ManageCategories from "./components/pages/admin/ManageCategories";
+import ServiceUpdateRequests from "./components/pages/admin/ServiceUpdateRequests";
 import PurchaseCategories from "./components/pages/vendor/PurchaseCategories";
 import VendorAddService from "./components/pages/vendor/VendorAddProperty";
 import AuditLogsPage from "./components/pages/vendor/AuditLogs";
@@ -124,6 +125,7 @@ const App = () => {
               >
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="services" element={<AdminServices />} />
+                <Route path="service-update-requests" element={<ServiceUpdateRequests />} />
                 <Route path="vendors" element={<VendorManagement />} />
                 <Route path="add-blog" element={<AddBlog />} />
                 <Route path="get-blog" element={<GetBlog />} />
