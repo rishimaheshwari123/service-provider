@@ -7,7 +7,7 @@ exports.createRating = async (req, res) => {
   try {
     const { rating, review, userId, property, guestName, guestEmail } = req.body;
 
-    if (!rating || !review || !property) {
+    if (!rating  || !property) {
       return res.status(400).json({
         success: false,
         message: "Rating, review, and property are required",

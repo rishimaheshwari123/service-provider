@@ -17,7 +17,7 @@ const ratingAndReviewSchema = new mongoose.Schema({
 	},
 	review: {
 		type: String,
-		required: true,
+		// required: true,
 	},
 	// Guest user fields
 	guestName: {
