@@ -177,7 +177,7 @@ const VendoreServiceImagesUpload = () => {
                 <div className="flex items-center justify-between">
                  
                   <span className="text-sm text-gray-500 capitalize">
-                    {service.category}
+                    {service.category?.name || service.category}
                   </span>
                 </div>
               </CardHeader>

@@ -17,10 +17,14 @@ import { useNavigate } from "react-router-dom";
 import ReviewModal from "@/components/ReviewModal";
 
 // Utility function to truncate text to 4 words
-const truncateText = (text: string, wordLimit: number = 4): string => {
+const truncateText = (text: string | any, wordLimit: number = 4): string => {
   if (!text) return '';
-  const words = text.split(' ');
-  if (words.length <= wordLimit) return text;
+  
+  // Convert to string if it's an object
+  const textStr = typeof text === 'string' ? text : String(text);
+  
+  const words = textStr.split(' ');
+  if (words.length <= wordLimit) return textStr;
   return words.slice(0, wordLimit).join(' ') + '...';
 };
 
@@ -321,8 +325,8 @@ const ServicesSlider = () => {
                       </h3>
 
                       {/* Category */}
-                      <p className="text-gray-500 text-xs md:text-sm mb-2" title={service.category || "Professional Service"}>
-                        {truncateText(service.category || "Professional Service")}
+                      <p className="text-gray-500 text-xs md:text-sm mb-2" title={service.category?.name || "Professional Service"}>
+                        {truncateText(service.category?.name || "Professional Service")}
                       </p>
 
                       {/* Location */}

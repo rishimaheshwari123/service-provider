@@ -49,7 +49,7 @@ export const matchesSearchTerm = (service: any, searchTerm: string): boolean => 
     service.zipcode,
     service.pincode,
     service.address,
-    service.category,
+    service.category?.name || service.category,
     // Vendor fields
     service.vendor?.name,
     service.vendor?.company,

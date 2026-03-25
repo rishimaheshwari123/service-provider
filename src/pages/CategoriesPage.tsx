@@ -233,8 +233,8 @@ const CategoriesPage = () => {
     }
   };
 
-  const handleCategoryClick = (categoryName: string) => {
-    navigate(`/services?category=${encodeURIComponent(categoryName)}`);
+  const handleCategoryClick = (categoryId: string) => {
+    navigate(`/services?category=${encodeURIComponent(categoryId)}`);
   };
 
   if (loading) {
@@ -304,7 +304,7 @@ const CategoriesPage = () => {
                       return (
                         <div
                           key={cat._id}
-                          onClick={() => handleCategoryClick(cat.name)}
+                          onClick={() => handleCategoryClick(cat._id)}
                           className="cursor-pointer flex flex-col items-center group"
                         >
                           <div className="w-14 h-14 md:w-16 md:h-16 border-2 border-blue-200 rounded-lg flex items-center justify-center mb-2 group-hover:border-blue-600 group-hover:shadow-md transition-all duration-200 bg-blue-50">
@@ -356,7 +356,7 @@ const CategoriesPage = () => {
                             return (
                               <div
                                 key={cat._id}
-                                onClick={() => handleCategoryClick(cat.name)}
+                                onClick={() => handleCategoryClick(cat._id)}
                                 className="cursor-pointer flex flex-col items-center group"
                               >
                                 <div className="w-14 h-14 md:w-16 md:h-16 border-2 border-blue-200 rounded-lg flex items-center justify-center mb-2 group-hover:border-blue-600 group-hover:shadow-md transition-all duration-200 bg-blue-50">
@@ -394,7 +394,7 @@ const CategoriesPage = () => {
                         return (
                           <div
                             key={cat._id}
-                            onClick={() => handleCategoryClick(cat.name)}
+                            onClick={() => handleCategoryClick(cat._id)}
                             className="cursor-pointer flex flex-col items-center group"
                           >
                             <div className="w-14 h-14 md:w-16 md:h-16 border-2 border-blue-200 rounded-lg flex items-center justify-center mb-2 group-hover:border-blue-600 group-hover:shadow-md transition-all duration-200 bg-blue-50">

@@ -17,8 +17,8 @@ export default function PopularSearches() {
     fetchCategories();
   }, []);
 
-  const handleCategoryClick = (categoryName: string) => {
-    navigate(`/services?category=${encodeURIComponent(categoryName)}`);
+  const handleCategoryClick = (categoryId: string) => {
+    navigate(`/services?category=${encodeURIComponent(categoryId)}`);
   };
 
   const itemsPerView = 5;
@@ -92,7 +92,7 @@ export default function PopularSearches() {
             {categories.map((cat, index) => (
               <div
                 key={cat._id}
-                onClick={() => handleCategoryClick(cat.name)}
+                onClick={() => handleCategoryClick(cat._id)}
                 className="flex-shrink-0 w-[204px] cursor-pointer group"
               >
                 {/* Card */}
