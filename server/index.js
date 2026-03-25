@@ -63,6 +63,7 @@ app.use("/api/v1/audit", require("./routes/auditLogs"))
 app.use("/api/v1/communication-logs", require("./routes/communicationLogsRoute"))
 app.use("/api/v1/search-logs", require("./routes/searchLogsRoute"))
 app.use("/api/v1/coupon", require("./routes/couponRoute"))
+app.use("/api/v1/service-update-request", require("./routes/serviceUpdateRequestRoute"))
 
 
 

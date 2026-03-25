@@ -99,6 +99,7 @@ const getPropertiesByVendor = async (req, res) => {
 };
 
 
+// Admin direct update (no approval needed)
 const updatePropertyCtrl = async (req, res) => {
     try {
         const { id } = req.params;
@@ -113,7 +114,7 @@ const updatePropertyCtrl = async (req, res) => {
             status,
         } = req.body;
 
-        // Parse images safely - handle empty string, null, undefined, or empty array
+        // Parse images safely
         let imagesArray = [];
         if (images) {
             if (typeof images === 'string') {
@@ -143,15 +144,13 @@ const updatePropertyCtrl = async (req, res) => {
         if (location) property.location = location;
         if (type) property.type = type;
         if (category) {
-            // Validate category ObjectId
             if (!mongoose.Types.ObjectId.isValid(category)) {
                 return res.status(400).json({
                     success: false,
                     message: 'Invalid category ID',
                 });
             }
-            
-            // Verify category exists
+
             const Category = require('../models/categoryModel');
             const categoryExists = await Category.findById(category);
             if (!categoryExists) {
@@ -160,14 +159,11 @@ const updatePropertyCtrl = async (req, res) => {
                     message: 'Category not found',
                 });
             }
-            
+
             property.category = category;
         }
-        if (description !== undefined) property.description = description; // Allow empty description
-        
-        // Always update images array (even if empty) - this allows removal of all images
+        if (description !== undefined) property.description = description;
         property.images = imagesArray;
-        
         if (status && ['active', 'inactive'].includes(status)) property.status = status;
 
         await property.save();
@@ -184,7 +180,125 @@ const updatePropertyCtrl = async (req, res) => {
             message: 'Error updating property!',
         });
     }
-};
+}
+
+// Vendor update request (requires approval)
+const vendorUpdatePropertyRequestCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const {
+            title,
+            price,
+            location,
+            type,
+            category,
+            description,
+            images,
+            status,
+            reason
+        } = req.body;
+
+        // Parse images safely
+        let imagesArray = [];
+        if (images) {
+            if (typeof images === 'string') {
+                try {
+                    imagesArray = JSON.parse(images);
+                } catch (error) {
+                    console.log("Error parsing images:", error);
+                    imagesArray = [];
+                }
+            } else if (Array.isArray(images)) {
+                imagesArray = images;
+            }
+        }
+
+        // Find property
+        const property = await Property.findById(id);
+        if (!property) {
+            return res.status(404).json({
+                success: false,
+                message: 'Property not found',
+            });
+        }
+
+        // Validate category if provided
+        if (category) {
+            if (!mongoose.Types.ObjectId.isValid(category)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Invalid category ID',
+                });
+            }
+
+            const Category = require('../models/categoryModel');
+            const categoryExists = await Category.findById(category);
+            if (!categoryExists) {
+                return res.status(404).json({
+                    success: false,
+                    message: 'Category not found',
+                });
+            }
+        }
+
+        // Check if there's already a pending request
+        const ServiceUpdateRequest = require('../models/serviceUpdateRequestModel');
+        const existingRequest = await ServiceUpdateRequest.findOne({
+            property: id,
+            status: 'pending'
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({
+                success: false,
+                message: 'There is already a pending update request for this service. Please wait for admin approval.',
+            });
+        }
+
+        // Create update request
+        const updateRequest = new ServiceUpdateRequest({
+            property: id,
+            vendor: property.vendor,
+            requestType: 'update',
+            proposedChanges: {
+                title: title || property.title,
+                price: price || property.price,
+                location: location || property.location,
+                type: type || property.type,
+                category: category || property.category,
+                description: description !== undefined ? description : property.description,
+                images: imagesArray.length > 0 ? imagesArray : property.images,
+                status: status || property.status,
+            },
+            currentValues: {
+                title: property.title,
+                price: property.price,
+                location: property.location,
+                type: property.type,
+                category: property.category,
+                description: property.description,
+                images: property.images,
+                status: property.status,
+            },
+            reason: reason || 'Service update request'
+        });
+
+        await updateRequest.save();
+
+        return res.status(201).json({
+            success: true,
+            message: 'Update request submitted successfully! Waiting for admin approval.',
+            request: updateRequest,
+        });
+
+    } catch (error) {
+        console.error('Error creating service update request:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error submitting update request!',
+        });
+    }
+}
 
 
 const getPropertiesCtrl = async (req, res) => {
@@ -374,4 +488,93 @@ const migrateCategoryNamesToIds = async (req, res) => {
   }
 };
 
-module.exports = { createPropertyCtrl, getPropertiesByVendor, updatePropertyCtrl, getPropertiesCtrl, getPropertiesByIdCtrl, deletePropertyCtrl, updatePropertyStatusCtrl, migrateCategoryNamesToIds };
+// Upload service image request (goes through approval)
+const uploadServiceImageRequestCtrl = async (req, res) => {
+    try {
+        const { id } = req.params; // property id
+        const { images, reason } = req.body;
+
+        // Parse images safely
+        let imagesArray = [];
+        if (images) {
+            if (typeof images === 'string') {
+                try {
+                    imagesArray = JSON.parse(images);
+                } catch (error) {
+                    console.log("Error parsing images:", error);
+                    imagesArray = [];
+                }
+            } else if (Array.isArray(images)) {
+                imagesArray = images;
+            }
+        }
+
+        // Find the property
+        const property = await Property.findById(id).populate('category');
+        if (!property) {
+            return res.status(404).json({
+                success: false,
+                message: 'Property not found',
+            });
+        }
+
+        // Check if there's already a pending request for this property
+        const ServiceUpdateRequest = require('../models/serviceUpdateRequestModel');
+        const existingRequest = await ServiceUpdateRequest.findOne({
+            property: id,
+            status: 'pending'
+        });
+
+        if (existingRequest) {
+            return res.status(400).json({
+                success: false,
+                message: 'There is already a pending update request for this service. Please wait for admin approval.',
+            });
+        }
+
+        // Create the image update request
+        const updateRequest = new ServiceUpdateRequest({
+            property: id,
+            vendor: property.vendor,
+            requestType: 'image_update',
+            proposedChanges: {
+                title: property.title,
+                price: property.price,
+                location: property.location,
+                type: property.type,
+                category: property.category._id,
+                description: property.description,
+                images: imagesArray,
+                status: property.status,
+            },
+            currentValues: {
+                title: property.title,
+                price: property.price,
+                location: property.location,
+                type: property.type,
+                category: property.category._id,
+                description: property.description,
+                images: property.images,
+                status: property.status,
+            },
+            reason: reason || 'Service image update request'
+        });
+
+        await updateRequest.save();
+
+        return res.status(201).json({
+            success: true,
+            message: 'Image update request submitted successfully! Waiting for admin approval.',
+            request: updateRequest,
+        });
+
+    } catch (error) {
+        console.error('Error creating image update request:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Error submitting image update request!',
+        });
+    }
+};
+
+module.exports = { createPropertyCtrl, getPropertiesByVendor, updatePropertyCtrl, vendorUpdatePropertyRequestCtrl, getPropertiesCtrl, getPropertiesByIdCtrl, deletePropertyCtrl, updatePropertyStatusCtrl, migrateCategoryNamesToIds, uploadServiceImageRequestCtrl };
