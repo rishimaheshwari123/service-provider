@@ -38,7 +38,9 @@ import Footer from "@/components/Footer";
 
 const toPascalCase = (text) => {
   if (!text) return "";
-  return text
+  // Handle objects with name property (like category objects)
+  const str = typeof text === 'string' ? text : text.name || String(text);
+  return str
     .toLowerCase()
     .replace(/\b\w/g, char => char.toUpperCase());
 };
