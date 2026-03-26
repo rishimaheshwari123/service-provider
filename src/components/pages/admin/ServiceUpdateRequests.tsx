@@ -12,7 +12,7 @@ interface ServiceUpdateRequest {
   property: {
     _id: string;
     title: string;
-  };
+  } | null;
   vendor: {
     _id: string;
     name: string;
@@ -221,7 +221,7 @@ const ServiceUpdateRequests: React.FC = () => {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-lg font-semibold text-gray-800">
-                      {request.property.title}
+                      {request.property?.title || 'Property Deleted'}
                     </h3>
                     <p className="text-sm text-gray-600">
                       Request by: {request.vendor.name} ({request.vendor.phone})
@@ -302,7 +302,7 @@ const ServiceUpdateRequests: React.FC = () => {
             </h3>
             
             <p className="text-gray-600 mb-4">
-              Are you sure you want to {actionType} this service update request for "{selectedRequest.property.title}"?
+              Are you sure you want to {actionType} this service update request for "{selectedRequest.property?.title || 'Property Deleted'}"?
             </p>
             
             <div className="mb-4">
