@@ -316,8 +316,8 @@ const getPropertiesCtrl = async (req, res) => {
         if (category && category !== 'all') {
             // First check if category is a valid ObjectId
             if (mongoose.Types.ObjectId.isValid(category)) {
-                // Use ObjectId directly for efficient filtering
-                query.category = category;
+                // Convert to ObjectId for proper type matching
+                query.category = new mongoose.Types.ObjectId(category);
             } else {
                 // If not ObjectId, treat as category name (backward compatibility)
                 const Category = require('../models/categoryModel');
