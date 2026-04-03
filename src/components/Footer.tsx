@@ -104,6 +104,15 @@ const Footer = () => {
                   {t("nav.contact")}
                 </Link>
               </li>
+                <li>
+                <Link
+                  to="/customer-support"
+                  className="flex items-center text-gray-400 hover:text-primary transition-colors text-base"
+                >
+                  <ChevronRight size={16} className="mr-2 text-primary/70" />
+                  {t("footer.deleteUser", "Delete User")}
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -158,6 +167,7 @@ const Footer = () => {
                   {t("footer.privacyPolicy", "Privacy Policy")}
                 </Link>
               </li>
+            
             </ul>
           </div>
 
