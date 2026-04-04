@@ -161,13 +161,21 @@ const VendorProfileMangeByAdmin = ({ user }) => {
     try {
       setLoading(true);
       const data = await getVendorByIdAPI(user?._id);
-      console.log(data);
+      console.log("📋 Fetched vendor data (Admin):", data);
+      console.log("📋 Category data:", data.category);
+      console.log("📋 Category type:", typeof data.category);
+      
       setVendor(data);
       setFormData(data);
       
-      // Initialize category selection
+      // Initialize category selection - handle both object and string
       if (data.category) {
-        setSelectedCategory(data.category);
+        // If category is an object, extract the ID
+        const categoryId = typeof data.category === 'object' ? data.category._id : data.category;
+        setSelectedCategory(categoryId);
+        console.log("✅ Selected category ID (Admin):", categoryId);
+      } else {
+        console.log("⚠️ No category found in vendor data");
       }
       if (data.subCategory) {
         setSelectedAutoFilled(data.subCategory);

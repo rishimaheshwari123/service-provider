@@ -44,6 +44,8 @@ import { updatePropertyStatusAPI, deletePropertyAPI } from "@/service/operations
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
 import { BASE_URL } from "@/service/apis";
 import * as XLSX from "xlsx";
+import { RootState } from "@/redux/store.ts";
+import { useSelector } from "react-redux";
 
 interface Service {
   _id: string;
@@ -75,6 +77,7 @@ const AdminServices = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
   const { toast } = useToast();
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const fetchServices = async () => {
     try {
@@ -280,6 +283,14 @@ const AdminServices = () => {
             <p className="text-gray-600">Loading services...</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!user?.isManageService) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
       </div>
     );
   }

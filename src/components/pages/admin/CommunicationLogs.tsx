@@ -2,8 +2,12 @@ import { useState, useEffect } from "react";
 import { FaDownload, FaFilter, FaSms, FaWhatsapp, FaEnvelope, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 import axios from "axios";
 import { communicationLogs } from "../../../service/apis";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 export default function CommunicationLogs() {
+    const { user } = useSelector((state: RootState) => state.auth);
+
   const [logs, setLogs] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -124,6 +128,14 @@ export default function CommunicationLogs() {
       </span>
     );
   };
+  
+  if (!user?.isLogs) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">

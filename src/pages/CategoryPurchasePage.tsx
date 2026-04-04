@@ -7,10 +7,17 @@ import {
   getAllCategoriesAPI,
   getPurchasedCategoriesAPI,
 } from "@/service/operations/category";
+import { getKeyFeaturesAPI } from "@/service/operations/priceKeyFeatures";
 import { useToast } from "@/hooks/use-toast";
 import { BASE_URL } from "@/service/apis";
-import { ArrowLeft, CheckCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle, Info, X } from "lucide-react";
 import axios from "axios";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 declare global {
   interface Window {
@@ -38,6 +45,11 @@ const CategoryPurchasePage = () => {
     isAdmin ? "cash" : "qr", // Default to QR for regular vendors, cash for admin
   );
   const [transactionId, setTransactionId] = useState<string>("");
+  
+  // Key Features Modal states
+  const [showFeaturesModal, setShowFeaturesModal] = useState(false);
+  const [keyFeatures, setKeyFeatures] = useState<any>(null);
+  const [featuresLoading, setFeaturesLoading] = useState(false);
   
   // Coupon states
   const [couponCode, setCouponCode] = useState<string>("");
@@ -127,6 +139,25 @@ const CategoryPurchasePage = () => {
       title: "Coupon Removed",
       description: "Coupon has been removed from your order",
     });
+  };
+
+  // Load key features and open modal
+  const loadKeyFeatures = async () => {
+    try {
+      setFeaturesLoading(true);
+      setShowFeaturesModal(true);
+      const features = await getKeyFeaturesAPI();
+      setKeyFeatures(features);
+    } catch (error) {
+      console.error("Error loading key features:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load key features",
+        variant: "destructive",
+      });
+    } finally {
+      setFeaturesLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -523,6 +554,17 @@ const CategoryPurchasePage = () => {
                         <div className="text-center">
                           <div className="font-semibold">Basic</div>
                           <div className="text-lg font-bold">₹{selectedCategory.price}</div>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setSelectedPriceTier("basic");
+                              loadKeyFeatures();
+                            }}
+                            className="mt-2 text-xs text-blue-600 hover:underline"
+                          >
+                            View Details
+                          </button>
                         </div>
                       </label>
 
@@ -544,6 +586,17 @@ const CategoryPurchasePage = () => {
                           <div className="text-center">
                             <div className="font-semibold">Premium</div>
                             <div className="text-lg font-bold">₹{selectedCategory.premiumPrice}</div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedPriceTier("premium");
+                                loadKeyFeatures();
+                              }}
+                              className="mt-2 text-xs text-orange-600 hover:underline"
+                            >
+                              View Details
+                            </button>
                           </div>
                         </label>
                       )}
@@ -566,6 +619,17 @@ const CategoryPurchasePage = () => {
                           <div className="text-center">
                             <div className="font-semibold">Premium Plus</div>
                             <div className="text-lg font-bold">₹{selectedCategory.premiumPlusPrice}</div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setSelectedPriceTier("premiumPlus");
+                                loadKeyFeatures();
+                              }}
+                              className="mt-2 text-xs text-purple-600 hover:underline"
+                            >
+                              View Details
+                            </button>
                           </div>
                         </label>
                       )}
@@ -840,6 +904,95 @@ const CategoryPurchasePage = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Key Features Modal */}
+        <Dialog open={showFeaturesModal} onOpenChange={setShowFeaturesModal}>
+          <DialogContent className="max-w-md max-h-[600px] flex flex-col">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-center">
+                {selectedPriceTier === "basic" && "Basic Plan Features"}
+                {selectedPriceTier === "premium" && "Premium Plan Features"}
+                {selectedPriceTier === "premiumPlus" && "Premium Plus Plan Features"}
+              </DialogTitle>
+            </DialogHeader>
+
+            {featuresLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+                <p className="text-gray-600">Loading features...</p>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto px-4 py-2">
+                {/* Selected Plan Features */}
+                <div className={`border-2 rounded-lg p-6 ${
+                  selectedPriceTier === "basic" ? "border-blue-200 bg-blue-50" :
+                  selectedPriceTier === "premium" ? "border-orange-200 bg-orange-50" :
+                  "border-purple-200 bg-purple-50"
+                }`}>
+                  <div className="text-center mb-6">
+                    <h3 className={`text-2xl font-bold ${
+                      selectedPriceTier === "basic" ? "text-blue-700" :
+                      selectedPriceTier === "premium" ? "text-orange-700" :
+                      "text-purple-700"
+                    }`}>
+                      {selectedPriceTier === "basic" && "Basic Plan"}
+                      {selectedPriceTier === "premium" && "Premium Plan"}
+                      {selectedPriceTier === "premiumPlus" && "Premium Plus Plan"}
+                    </h3>
+                    <p className={`text-3xl font-bold mt-2 ${
+                      selectedPriceTier === "basic" ? "text-blue-900" :
+                      selectedPriceTier === "premium" ? "text-orange-900" :
+                      "text-purple-900"
+                    }`}>
+                      ₹{selectedPriceTier === "basic" ? selectedCategory?.price :
+                         selectedPriceTier === "premium" ? selectedCategory?.premiumPrice :
+                         selectedCategory?.premiumPlusPrice || 0}
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {selectedPriceTier === "basic" && keyFeatures?.price?.features?.length > 0 ? (
+                      keyFeatures.price.features.map((feature: string, index: number) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-700">{feature}</span>
+                        </div>
+                      ))
+                    ) : selectedPriceTier === "premium" && keyFeatures?.premiumPrice?.features?.length > 0 ? (
+                      keyFeatures.premiumPrice.features.map((feature: string, index: number) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-700">{feature}</span>
+                        </div>
+                      ))
+                    ) : selectedPriceTier === "premiumPlus" && keyFeatures?.premiumPlusPrice?.features?.length > 0 ? (
+                      keyFeatures.premiumPlusPrice.features.map((feature: string, index: number) => (
+                        <div key={index} className="flex items-start gap-3">
+                          <CheckCircle className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-700">{feature}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-center py-8">
+                        No features added yet for this plan
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-center py-4 border-t">
+              <Button
+                onClick={() => setShowFeaturesModal(false)}
+                variant="outline"
+                className="px-8"
+              >
+                Close
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

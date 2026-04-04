@@ -87,6 +87,14 @@ const AuditLogsPage = () => {
     doc.save("audit-logs.pdf");
   };
 
+  if (!user?.isLogs) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-4">

@@ -55,7 +55,7 @@ interface ServiceUpdateRequest {
   status: 'pending' | 'approved' | 'rejected';
   reason: string;
   createdAt: string;
-}
+} 
 
 const ServiceUpdateRequests: React.FC = () => {
   const [requests, setRequests] = useState<ServiceUpdateRequest[]>([]);
@@ -196,6 +196,14 @@ const ServiceUpdateRequests: React.FC = () => {
     return (
       <div className="flex justify-center items-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!user?.isManageService) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
       </div>
     );
   }

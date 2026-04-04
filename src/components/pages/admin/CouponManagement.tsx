@@ -47,7 +47,7 @@ interface CouponStats {
 }
 
 const CouponManagement = () => {
-  const { token } = useSelector((state: RootState) => state.auth);
+  const { token , user} = useSelector((state: RootState) => state.auth);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [stats, setStats] = useState<CouponStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -124,6 +124,14 @@ const CouponManagement = () => {
         return true;
     }
   });
+
+  if (!user?.isCoupen) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">

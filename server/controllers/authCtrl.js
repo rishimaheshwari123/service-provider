@@ -19,10 +19,12 @@ const registerCtrl = async (req, res) => {
       isBlog,
       isUser,
       isSupport,
+      isLogs,
       isJob,
       isAds,
       isBooking,
       isEmpManage,
+      isCoupen,
       isCategoryManage,
       isManageService,
     } = req.body;
@@ -52,6 +54,7 @@ const registerCtrl = async (req, res) => {
       phone,
       role,
       isVendor: isVendor || false,
+      isLogs: isLogs || false,
       isBlog: isBlog || false,
       isUser: isUser || false,
       isSupport: isSupport || false,
@@ -60,6 +63,7 @@ const registerCtrl = async (req, res) => {
       isBooking: isBooking || false,
       isEmpManage: isEmpManage || false,
       isCategoryManage: isCategoryManage || false,
+      isCoupen: isCoupen || false,
       isManageService: isManageService || false,
     });
 
@@ -188,8 +192,10 @@ const editPermissionCtrl = async (req, res) => {
       isVendor,
       isBlog,
       isUser,
+      isCoupen,
       isSupport,
       isJob,
+      isLogs,
       isAds,
       isBooking,
       isEmpManage,
@@ -212,6 +218,8 @@ const editPermissionCtrl = async (req, res) => {
     user.type = type ?? user.type;
 
     user.isVendor = isVendor ?? user.isVendor;
+    user.isLogs = isLogs ?? user.isLogs;
+    user.isCoupen = isCoupen ?? user.isCoupen;
     user.isBlog = isBlog ?? user.isBlog;
     user.isUser = isUser ?? user.isUser;
     user.isSupport = isSupport ?? user.isSupport;
