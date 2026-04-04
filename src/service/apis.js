@@ -162,3 +162,17 @@ export const coupon = {
   DELETE_COUPON_API: BASE_URL + "/coupon",
   GET_COUPON_STATS_API: BASE_URL + "/coupon/stats",
 }
+
+export const priceKeyFeatures = {
+  GET_KEY_FEATURES_API: BASE_URL + "/price-key-features",
+  UPSERT_KEY_FEATURES_API: BASE_URL + "/price-key-features",
+  DELETE_KEY_FEATURES_API: BASE_URL + "/price-key-features",
+}
+
+export const vendorProfileUpdateRequest = {
+  CREATE_UPDATE_REQUEST_API: BASE_URL + "/vendor-profile-update-request",
+  GET_PENDING_REQUESTS_API: BASE_URL + "/vendor-profile-update-request/pending",
+  GET_REQUEST_BY_VENDOR_API: BASE_URL + "/vendor-profile-update-request/vendor",
+  APPROVE_REQUEST_API: BASE_URL + "/vendor-profile-update-request/approve",
+  REJECT_REQUEST_API: BASE_URL + "/vendor-profile-update-request/reject",
+}

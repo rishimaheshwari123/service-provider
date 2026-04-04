@@ -73,6 +73,14 @@ const authSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        isCoupen: {
+            type: Boolean,
+            default: false,
+        },
+        isLogs: {
+            type: Boolean,
+            default: false,
+        },
 
         isCategoryManage: {
             type: Boolean,

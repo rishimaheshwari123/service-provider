@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import KeyFeaturesTab from "./KeyFeaturesTab";
 import {
   Table,
   TableBody,
@@ -409,6 +410,7 @@ const ManageCategories = () => {
               </span>
             )}
           </TabsTrigger>
+          <TabsTrigger value="keyFeatures">Key Features</TabsTrigger>
         </TabsList>
 
         <TabsContent value="categories">
@@ -642,11 +644,15 @@ const ManageCategories = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="keyFeatures">
+          <KeyFeaturesTab />
+        </TabsContent>
       </Tabs>
 
       {/* Purchasers Dialog (Existing) */}
       <Dialog open={purchasersOpen} onOpenChange={setPurchasersOpen}>
-        <DialogContent className="sm:max-w-lg w-full">
+        <DialogContent className="sm:max-w-2xl w-full max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Purchasers - {currentCategory?.name ?? "Unknown Category"}
@@ -669,10 +675,10 @@ const ManageCategories = () => {
               {purchasers?.map((p, idx) => (
                 <div
                   key={idx}
-                  className="flex flex-col md:flex-row items-start md:items-center justify-between py-2 px-2 border-b rounded hover:bg-gray-50 transition"
+                  className="flex flex-col items-start py-3 px-3 border-b rounded hover:bg-gray-50 transition"
                 >
                   {/* Vendor Info */}
-                  <div>
+                  <div className="w-full mb-2">
                     {p.vendor?.name && (
                       <p className="font-medium">{p.vendor?.name}</p>
                     )}
@@ -684,35 +690,10 @@ const ManageCategories = () => {
                   </div>
 
                   {/* Payment Info */}
-                  <div className="mt-1 md:mt-0 flex flex-col md:flex-row items-start md:items-center gap-4 text-sm">
-                    {/* Price Tier & Amount */}
-                    {(p.priceTier || p.selectedPrice) && (
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500">Plan & Price</span>
-                        <span className="font-medium capitalize">
-                          {p.priceTier || "Basic"} - ₹{p.finalPrice || p.selectedPrice || "N/A"}
-                        </span>
-                        {p.discountAmount > 0 && (
-                          <span className="text-xs text-green-600">
-                            Saved ₹{p.discountAmount} with coupon
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Coupon Information */}
-                    {p.couponCode && (
-                      <div className="flex flex-col">
-                        <span className="text-xs text-gray-500">Coupon Used</span>
-                        <span className="font-medium text-purple-600">
-                          {p.couponCode}
-                        </span>
-                      </div>
-                    )}
-
+                  <div className="w-full flex flex-wrap items-center gap-2 text-sm">
                     {/* Purchased At */}
                     {p.createdAt && (
-                      <span className="text-gray-600">
+                      <span className="text-gray-600 text-xs">
                         {new Date(p.createdAt).toLocaleString()}
                       </span>
                     )}
@@ -747,7 +728,7 @@ const ManageCategories = () => {
 
                     {/* Transaction ID if online */}
                     {(p.paymentMode === "prepaid" || p.paymentMode === "qr") && p.transactionId && (
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-gray-500 text-xs truncate max-w-[150px]" title={p.transactionId}>
                         Txn: {p.transactionId}
                       </span>
                     )}

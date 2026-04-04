@@ -32,7 +32,7 @@ const ServicesPage = () => {
   const { t } = useTranslation();
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [allReviews, setAllReviews] = useState<any[]>([]);
   const [showFilters, setShowFilters] = useState(false);

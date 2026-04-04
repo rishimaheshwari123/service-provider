@@ -64,6 +64,8 @@ export const GetAllEmployee = () => {
     isEmpManage: false,
     isCategoryManage: false,
     isManageService: false,
+    isCoupen: false,
+    isLogs: false,
   };
 
   const [editFormData, setEditFormData] = useState(initialEditFormData);
@@ -79,6 +81,8 @@ export const GetAllEmployee = () => {
     { id: "isEmpManage", label: "Employee Manage" },
     { id: "isCategoryManage", label: "Category Manage" },
     { id: "isManageService", label: "Service Manage" },
+    { id: "isCoupen", label: "Manage Coupen" },
+    { id: "isLogs", label: "Manage Logs" },
   ];
 
   const fetchEmployees = async () => {
@@ -160,6 +164,8 @@ export const GetAllEmployee = () => {
       isEmpManage: employee.isEmpManage || false,
       isCategoryManage: employee.isCategoryManage || false,
       isManageService: employee.isManageService || false,
+      isCoupen: employee.isCoupen || false,
+      isLogs: employee.isLogs || false,
     });
     setShowEditModal(true);
     setMessage("");

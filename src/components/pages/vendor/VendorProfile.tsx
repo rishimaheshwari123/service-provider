@@ -36,6 +36,7 @@ import {
   requestForTheUpdateProfileAPI,
   uploadVendorProfileImageAPI,
 } from "@/service/operations/vendor";
+import { createProfileUpdateRequestAPI } from "@/service/operations/vendorProfileUpdateRequest";
 import { getAllCategoriesAPI } from "@/service/operations/category";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -164,13 +165,21 @@ const VendorProfile = () => {
     try {
       setLoading(true);
       const data = await getVendorByIdAPI(user?._id);
-      console.log(data);
+      console.log("📋 Fetched vendor data:", data);
+      console.log("📋 Category data:", data.category);
+      console.log("📋 Category type:", typeof data.category);
+      
       setVendor(data);
       setFormData(data);
       
       // Initialize category selection
       if (data.category) {
-        setSelectedCategory(data.category);
+        // If category is an object, extract the ID
+        const categoryId = typeof data.category === 'object' ? data.category._id : data.category;
+        setSelectedCategory(categoryId);
+        console.log("✅ Selected category ID:", categoryId);
+      } else {
+        console.log("⚠️ No category found in vendor data");
       }
       if (data.subCategory) {
         setSelectedAutoFilled(data.subCategory);
@@ -287,12 +296,24 @@ const VendorProfile = () => {
       // Create form data for file + text fields
       const form = new FormData();
 
+      // Get original category ID for comparison
+      const originalCategoryId = typeof vendor?.category === 'object' 
+        ? vendor?.category?._id 
+        : vendor?.category;
+      
+      console.log("🔍 Category comparison in handleSave:");
+      console.log("  Original category ID:", originalCategoryId);
+      console.log("  Selected category ID:", selectedCategory);
+      console.log("  FormData category:", formData.category);
+
       // Add basic text fields (exclude workingHours and other special fields)
       Object.entries(formData).forEach(([key, value]) => {
         if (
           key !== "bankDetail" &&
           key !== "experience" &&
           key !== "workingHours" && // Exclude workingHours from general update
+          key !== "categoryId" && // Exclude categoryId (redundant with category)
+          key !== "category" && // Handle category separately
           key !== "profilePhoto" &&
           key !== "document1" &&
           key !== "document2" &&
@@ -305,6 +326,14 @@ const VendorProfile = () => {
           }
         }
       });
+
+      // Only add category if it has actually changed
+      if (selectedCategory && selectedCategory !== originalCategoryId) {
+        console.log("✅ Category changed, adding to form");
+        form.append("category", selectedCategory);
+      } else {
+        console.log("⏭️  Category unchanged, not adding to form");
+      }
 
       // Add nested objects
       if (formData.bankDetail) {
@@ -348,21 +377,22 @@ const VendorProfile = () => {
         form.append("document5", documents.document5);
       }
 
-      const response = await updateVendorProfileAPI(user?._id, form);
+      // Use new API to create profile update request
+      const response = await createProfileUpdateRequestAPI(user?._id, form);
 
       if (response.success) {
-        setVendor((prev) => ({ ...prev, ...formData } as VendorData));
+        setVendor((prev) => ({ ...prev, updateProfileRequest: "requested" }));
         setIsEditing(false);
         setCurrentStep(1); // Reset to first step
         toast({
           title: "Success",
-          description: "Profile updated successfully",
+          description: "Your profile changes have been submitted for admin approval",
         });
       }
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to update profile",
+        description: "Failed to submit profile changes",
         variant: "destructive",
       });
     } finally {
@@ -454,51 +484,32 @@ const VendorProfile = () => {
               </p>
             </div>
             <div className="flex gap-2 items-center">
-              {vendor.updateProfileRequest === "approved" ? (
-                !isEditing ? (
+              {!isEditing ? (
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Edit className="w-4 h-4" />
+                  Edit Profile
+                </Button>
+              ) : (
+                <div className="flex gap-2">
                   <Button
-                    onClick={() => setIsEditing(true)}
+                    onClick={handleSave}
+                    disabled={updating}
                     className="flex items-center gap-2"
                   >
-                    <Edit className="w-4 h-4" />
-                    Edit Profile
+                    <Save className="w-4 h-4" />
+                    {updating ? "Submitting for Approval..." : "Submit for Approval"}
                   </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={handleSave}
-                      disabled={updating}
-                      className="flex items-center gap-2"
-                    >
-                      <Save className="w-4 h-4" />
-                      {updating ? "Saving..." : "Save"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={updating}
-                      className="flex items-center gap-2"
-                    >
-                      <X className="w-4 h-4" />
-                      Cancel
-                    </Button>
-                  </div>
-                )
-              ) : vendor.updateProfileRequest === "requested" ? (
-                <p className="text-yellow-600">
-                  Your request has been sent. Admin will verify and approve
-                  shortly.
-                </p>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <p className="text-yellow-600">
-                    You need permission before updating your profile.
-                  </p>
                   <Button
-                    onClick={handleRequestUpdate}
-                    className="bg-blue-500 text-white hover:bg-blue-600"
+                    variant="outline"
+                    onClick={handleCancel}
+                    disabled={updating}
+                    className="flex items-center gap-2"
                   >
-                    Make Request for Update Profile
+                    <X className="w-4 h-4" />
+                    Cancel
                   </Button>
                 </div>
               )}

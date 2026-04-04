@@ -2,9 +2,13 @@ import { useState, useEffect } from "react";
 import { FaDownload, FaFilter, FaSearch, FaHome, FaList } from "react-icons/fa";
 import axios from "axios";
 import { searchLogs } from "../../../service/apis";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 export default function SearchLogs() {
   const [logs, setLogs] = useState<any[]>([]);
+    const { user } = useSelector((state: RootState) => state.auth);
+
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
@@ -107,6 +111,15 @@ export default function SearchLogs() {
   const handlePageChange = (newPage: number) => {
     setFilters((prev) => ({ ...prev, pageNum: newPage }));
   };
+
+  
+  if (!user?.isLogs) {
+    return (
+      <div className="text-red-600 text-center p-4 font-semibold">
+        You do not have permission to view this page.
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">

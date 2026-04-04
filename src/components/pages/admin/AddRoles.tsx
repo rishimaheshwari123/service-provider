@@ -24,6 +24,8 @@ export const AddRoles = () => {
     isEmpManage: false,
     isCategoryManage: false,
     isManageService: false,
+    isCoupen: false,
+    isLogs: false,
   });
   const [isSuccess, setIsSuccess] = useState(false);
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
@@ -61,6 +63,8 @@ export const AddRoles = () => {
           isEmpManage: false,
           isCategoryManage: false,
           isManageService: false,
+          isCoupen: false,
+          isLogs: false,
         });
         setShowForm(false);
       } else {
@@ -225,6 +229,8 @@ export const AddRoles = () => {
                 { id: "isEmpManage", label: "Employee Manage" },
                 { id: "isCategoryManage", label: "Category Manage" },
                 { id: "isManageService", label: "Service Manage" },
+                { id: "isCoupen", label: "Manage Coupen" },
+                { id: "isLogs", label: " Manage Logs" },
               ].map((permission) => (
                 <div key={permission.id} className="flex items-center">
                   <input

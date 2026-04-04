@@ -2380,62 +2380,6 @@ const VendorManagement = () => {
 
           {selectedVendor && (
             <div className="space-y-6">
-              {/* ---- Update Profile Request Status ---- */}
-              {selectedVendor.updateProfileRequest === "requested" && (
-                <div className="flex items-center justify-between p-4 mb-4 bg-blue-50 rounded-md border border-blue-200">
-                  <span className="font-medium text-blue-700">
-                    Vendor has requested profile update.
-                  </span>
-                  <div className="flex gap-2">
-                    {/* Approve Button */}
-                    <Button
-                      className="bg-green-500 text-white hover:bg-green-600"
-                      onClick={async () => {
-                        const result = await requestForTheUpdateProfileAPI(
-                          selectedVendor._id,
-                          "approved"
-                        );
-                        if (result?.success) {
-                          setSelectedVendor((prev) => ({
-                            ...prev,
-                            updateProfileRequest: "approved",
-                          }));
-                          toast({
-                            title: "Success",
-                            description: `Request update successfully`,
-                          });
-                        }
-                      }}
-                    >
-                      Approve
-                    </Button>
-
-                    {/* Reject Button */}
-                    <Button
-                      className="bg-red-500 text-white hover:bg-red-600"
-                      onClick={async () => {
-                        const result = await requestForTheUpdateProfileAPI(
-                          selectedVendor._id,
-                          "pending"
-                        );
-                        if (result?.success) {
-                          setSelectedVendor((prev) => ({
-                            ...prev,
-                            updateProfileRequest: "pending",
-                          }));
-                          toast({
-                            title: "Success",
-                            description: `Request reject successfully`,
-                          });
-                        }
-                      }}
-                    >
-                      Reject
-                    </Button>
-                  </div>
-                </div>
-              )}
-
               {/* Vendor Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Basic Information Card */}

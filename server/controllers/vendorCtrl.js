@@ -711,8 +711,8 @@ updateVendorProfileCtrl = async (req, res) => {
       }
     });
 
-    // Always set updateProfileRequest to "pending"
-    updateData.updateProfileRequest = "pending";
+    // Always set updateProfileRequest to "requested" (pending admin approval)
+    updateData.updateProfileRequest = "requested";
 
     // Transform experience fields from request body
     if (updateData['experience[fields]'] || updateData['experience[totalYears]']) {

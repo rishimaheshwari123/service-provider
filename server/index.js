@@ -46,6 +46,7 @@ s3Connect();
 // routes  
 app.use("/api/v1/auth", require("./routes/authRoute"))
 app.use("/api/v1/vendor", require("./routes/vendorRoute"))
+app.use("/api/v1/vendor-profile-update-request", require("./routes/vendorProfileUpdateRequestRoute"))
 app.use("/api/v1/image", require("./routes/imageRoute"))
 app.use("/api/v1/blog", require("./routes/blogRoute"))
 app.use("/api/v1/property", require("./routes/propertyRoute"))
@@ -58,6 +59,7 @@ app.use("/api/v1/rating", require("./routes/ratingReview"))
 app.use("/api/v1/ads", require("./routes/adsRoute"));
 app.use("/api/v1/booking", require("./routes/bookingRoute"));
 app.use("/api/v1/category", require("./routes/categoryRoute"));
+app.use("/api/v1/price-key-features", require("./routes/priceKeyFeaturesRoute"));
 app.use("/api/v1/razorpay", require("./routes/razorpayRoute"))
 app.use("/api/v1/audit", require("./routes/auditLogs"))
 app.use("/api/v1/communication-logs", require("./routes/communicationLogsRoute"))
