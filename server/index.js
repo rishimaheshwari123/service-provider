@@ -7,6 +7,7 @@ const fileUpload = require("express-fileupload");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const compression = require("compression");
+const swaggerUi = require('swagger-ui-express');
 
 dotenv.config();
 
@@ -27,7 +28,7 @@ app.use(
   fileUpload({
     useTempFiles: true,
     tempFileDir: "/tmp",
-    limits: { 
+    limits: {
       fileSize: 50 * 1024 * 1024, // 50MB per file
       files: 10 // Allow up to 10 files
     },
@@ -42,7 +43,27 @@ app.use(cookieParser());
 
 s3Connect();
 
+//Swagger API Documentation for dev environment
+if (process.env.NODE_DEV === 'development') {
+  const swaggerOutput = require('./swagger-output.json');
 
+  app.use(
+    '/api-docs',
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerOutput,{
+      explorer: true,
+      swaggerOptions: {
+        persistAuthorization: true,   // keeps JWT across page refreshes
+        displayRequestDuration: true, // shows response time in UI
+        filter: true,                 // enables tag/endpoint search bar
+        tryItOutEnabled: true,
+      },
+      customSiteTitle: 'Mera Ghar Sansar API Docs',
+    })
+  );
+
+  console.log(`Swagger UI  → http://localhost:${process.env.PORT || 8080}/api-docs`)
+}
 // routes  
 app.use("/api/v1/auth", require("./routes/authRoute"))
 app.use("/api/v1/vendor", require("./routes/vendorRoute"))
