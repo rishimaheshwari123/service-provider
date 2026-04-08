@@ -1,1 +1,4 @@
 node_modules
+
+#Ignore the swagger-output.json file
+swagger-output.json
