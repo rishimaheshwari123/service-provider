@@ -38,6 +38,7 @@
     "path": "^0.12.7",
     "razorpay": "^2.9.6",
     "sharp": "^0.34.1",
-    "swagger-autogen": "^2.23.7"
+    "swagger-autogen": "^2.23.7",
+    "swagger-ui-express": "^5.0.1"
   }
 }
