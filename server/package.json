@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
+    "swagger": "node swagger.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js",
-    "dev": "nodemon index.js"
+    "dev": "npm run swagger && nodemon index.js"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +37,7 @@
     "nodemon": "^3.1.9",
     "path": "^0.12.7",
     "razorpay": "^2.9.6",
-    "sharp": "^0.34.1"
+    "sharp": "^0.34.1",
+    "swagger-autogen": "^2.23.7"
   }
 }
