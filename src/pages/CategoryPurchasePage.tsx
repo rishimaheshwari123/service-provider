@@ -503,7 +503,7 @@ const CategoryPurchasePage = () => {
         <Card className="shadow-xl">
           <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-t-lg">
             <CardTitle className="text-xl text-center">
-              Complete Your Registration - Purchase Category
+             Please Pay To Complete The Registration
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
