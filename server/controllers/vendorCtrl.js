@@ -378,47 +378,8 @@ const vendorRegisterCtrl = async (req, res) => {
     };
     res.cookie("token", token, options);
 
-    // Send welcome messages after successful registration
-    try {
-      console.log('🎉 Sending welcome messages to new vendor:', transformedUser.name);
-      
-      // Send both SMS welcome messages
-      const phoneNumber = transformedUser.phone;
-      const vendorName = transformedUser.name;
-      const vendorId = transformedUser._id;
-      const supportContact = '+91 78798 84363';
-      
-      // Send first welcome SMS (registration confirmation)
-      const welcomeSMS1Result = await sendWelcomeSMS1(phoneNumber, vendorName, vendorId);
-      if (welcomeSMS1Result.success) {
-        console.log('✅ Welcome SMS 1 sent successfully');
-      } else {
-        console.error('❌ Welcome SMS 1 failed:', welcomeSMS1Result.message);
-      }
-      
-      // Send second welcome SMS (account registered)
-      const welcomeSMS2Result = await sendWelcomeSMS2(phoneNumber, vendorName, supportContact, vendorId);
-      if (welcomeSMS2Result.success) {
-        console.log('✅ Welcome SMS 2 sent successfully');
-      } else {
-        console.error('❌ Welcome SMS 2 failed:', welcomeSMS2Result.message);
-      }
-      
-      // Send WhatsApp welcome message if user has WhatsApp verified
-      if (transformedUser.whatsappNumber && transformedUser.isWhatsappVerified) {
-        console.log('📱 Sending WhatsApp welcome message...');
-        const whatsappWelcomeResult = await sendWhatsAppWelcome(transformedUser.whatsappNumber, vendorName, supportContact, vendorId);
-        if (whatsappWelcomeResult.success) {
-          console.log('✅ WhatsApp welcome message sent successfully');
-        } else {
-          console.error('❌ WhatsApp welcome message failed:', whatsappWelcomeResult.message);
-        }
-      }
-      
-    } catch (welcomeError) {
-      console.error('❌ Error sending welcome messages:', welcomeError);
-      // Don't fail the registration if welcome messages fail
-    }
+    // Don't send welcome messages on registration anymore
+    // Welcome messages will be sent when vendor purchases their first category
 
     return res.status(200).json({
       success: true,

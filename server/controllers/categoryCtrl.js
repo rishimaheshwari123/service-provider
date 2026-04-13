@@ -1,6 +1,7 @@
 const Category = require("../models/categoryModel");
 const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
+const { sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
 
 const createCategoryCtrl = async (req, res) => {
   try {
@@ -257,6 +258,49 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
   }
 };
 
+// Helper function to send welcome messages to vendor on first purchase
+const sendVendorWelcomeMessages = async (vendor) => {
+  try {
+    console.log('🎉 Sending welcome messages to vendor on first purchase:', vendor.name);
+    
+    const phoneNumber = vendor.phone;
+    const vendorName = vendor.name;
+    const vendorId = vendor._id;
+    const supportContact = '+91 78798 84363';
+    
+    // Send first welcome SMS (registration confirmation)
+    const welcomeSMS1Result = await sendWelcomeSMS1(phoneNumber, vendorName, vendorId);
+    if (welcomeSMS1Result.success) {
+      console.log('✅ Welcome SMS 1 sent successfully');
+    } else {
+      console.error('❌ Welcome SMS 1 failed:', welcomeSMS1Result.message);
+    }
+    
+    // Send second welcome SMS (account registered)
+    const welcomeSMS2Result = await sendWelcomeSMS2(phoneNumber, vendorName, supportContact, vendorId);
+    if (welcomeSMS2Result.success) {
+      console.log('✅ Welcome SMS 2 sent successfully');
+    } else {
+      console.error('❌ Welcome SMS 2 failed:', welcomeSMS2Result.message);
+    }
+    
+    // Send WhatsApp welcome message if user has WhatsApp verified
+    if (vendor.whatsappNumber && vendor.isWhatsappVerified) {
+      console.log('📱 Sending WhatsApp welcome message...');
+      const whatsappWelcomeResult = await sendWhatsAppWelcome(vendor.whatsappNumber, vendorName, supportContact, vendorId);
+      if (whatsappWelcomeResult.success) {
+        console.log('✅ WhatsApp welcome message sent successfully');
+      } else {
+        console.error('❌ WhatsApp welcome message failed:', whatsappWelcomeResult.message);
+      }
+    }
+    
+  } catch (welcomeError) {
+    console.error('❌ Error sending welcome messages:', welcomeError);
+    // Don't fail the purchase if welcome messages fail
+  }
+};
+
 const purchaseCategoryCtrl = async (req, res) => {
   try {
     const { 
@@ -392,6 +436,18 @@ const purchaseCategoryCtrl = async (req, res) => {
         await createPropertyForCategory(vendorId, categoryId);
       }
       
+      // Send welcome messages on ANY purchase (pending or purchased) - not just approved ones
+      // Check if this is the vendor's first purchase attempt (any status)
+      const previousPurchases = await VendorCategoryPurchase.countDocuments({ 
+        vendor: vendorId,
+        _id: { $ne: purchase._id } // Exclude current purchase
+      });
+      
+      if (previousPurchases === 0) {
+        console.log('🎊 This is vendor\'s first purchase! Sending welcome messages...');
+        await sendVendorWelcomeMessages(vendor);
+      }
+      
       const msg = ((finalPaymentMode === "cash" || finalPaymentMode === "qr") && !isAdmin) ? 
         "Purchase requested and pending approval" : "Category purchased";
       return res.status(200).json({ success: true, message: msg, purchase });
@@ -435,6 +491,18 @@ const purchaseCategoryCtrl = async (req, res) => {
       // Create property automatically if conditions are met
       if (shouldCreateProperty) {
         await createPropertyForCategory(vendorId, categoryId);
+      }
+      
+      // Send welcome messages on ANY first purchase (pending or purchased)
+      // Check if this is the vendor's first purchase attempt (any status)
+      const previousPurchases = await VendorCategoryPurchase.countDocuments({ 
+        vendor: vendorId,
+        _id: { $ne: purchase._id } // Exclude current purchase
+      });
+      
+      if (previousPurchases === 0) {
+        console.log('🎊 This is vendor\'s first purchase! Sending welcome messages...');
+        await sendVendorWelcomeMessages(vendor);
       }
       
       let msg;
@@ -730,6 +798,40 @@ const approvePurchaseCtrl = async (req, res) => {
     
     // Create property automatically when purchase is approved
     await createPropertyForCategory(purchase.vendor, purchase.category);
+    
+    // Send approval messages when admin approves the purchase
+    try {
+      const Vendor = require("../models/vendorModel");
+      const vendor = await Vendor.findById(purchase.vendor);
+      
+      if (vendor) {
+        console.log('🎉 Category purchase approved by admin! Sending approval messages...');
+        
+        // Send SMS approval message
+        if (vendor.phone) {
+          const smsResult = await sendApprovalSMS(vendor.phone, vendor.name, vendor._id);
+          if (smsResult.success) {
+            console.log('✅ Approval SMS sent successfully');
+          } else {
+            console.error('❌ Approval SMS failed:', smsResult.message);
+          }
+        }
+        
+        // Send WhatsApp approval message if vendor has WhatsApp verified
+        if (vendor.whatsappNumber && vendor.isWhatsappVerified) {
+          console.log('📱 Sending WhatsApp approval message...');
+          const whatsappResult = await sendApprovalWhatsApp(vendor.whatsappNumber, vendor.name, vendor._id);
+          if (whatsappResult.success) {
+            console.log('✅ WhatsApp approval message sent successfully');
+          } else {
+            console.error('❌ WhatsApp approval message failed:', whatsappResult.message);
+          }
+        }
+      }
+    } catch (approvalError) {
+      console.error('❌ Error sending approval messages:', approvalError);
+      // Don't fail the approval if messages fail
+    }
     
     const populated = await purchase.populate([{ path: "vendor", select: "name email" }, { path: "category", select: "name price" }]);
     return res.status(200).json({ success: true, message: "Purchase approved", purchase: populated });
