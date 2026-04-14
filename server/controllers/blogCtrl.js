@@ -203,7 +203,7 @@ const updateBlogCtrl = async (req, res) => {
 
 const getAllBlogsCtrl = async (req, res) => {
   try {
-    const { page = 1, limit = 10, category, published, search } = req.query;
+    const { page = 1, limit = 100, category, published, search } = req.query;
     
     // Build query
     const query = {};
