@@ -582,32 +582,22 @@ const updateCategoryCtrl = async (req, res) => {
       // Update category name
       category.name = name;
       
-      // Update all properties that use this category name
+      // Update all properties that use this category (by ObjectId, not name)
       const Property = require("../models/propertyModel");
       
-      // Update properties where category field matches old name
-      const categoryUpdateResult = await Property.updateMany(
-        { category: oldName },
-        { 
-          $set: { 
-            category: name,
-            title: name // Also update title if it matches the category name
-          }
-        }
-      );
-      
-      // Update properties where title matches old name but category might be different
+      // Update properties where category ObjectId matches this category
+      // We only need to update the title if it matches the old category name
       const titleUpdateResult = await Property.updateMany(
         { 
-          title: oldName,
-          category: { $ne: name } // Don't update if category was already updated above
+          category: id, // Match by category ObjectId
+          title: oldName // Only update if title matches old category name
         },
         { 
           $set: { title: name }
         }
       );
       
-      updatedPropertiesCount = categoryUpdateResult.modifiedCount + titleUpdateResult.modifiedCount;
+      updatedPropertiesCount = titleUpdateResult.modifiedCount;
       
       console.log(`Updated ${updatedPropertiesCount} properties with new category name: ${oldName} -> ${name}`);
     }
