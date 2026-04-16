@@ -40,6 +40,7 @@ import { createProfileUpdateRequestAPI } from "@/service/operations/vendorProfil
 import { getAllCategoriesAPI } from "@/service/operations/category";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 
 const updateVendorAPI = async (id: string, data: any) => {
   // Simulate API call
@@ -85,6 +86,8 @@ interface VendorData {
     accountHolderName?: string;
     branch?: string;
   };
+  paymentMethod?: "bank" | "upi";
+  upiId?: string;
   experience?: {
     fields?: string[];
     totalYears?: number;
@@ -666,10 +669,10 @@ const VendorProfile = () => {
 
                     <div className="space-y-2">
                       <Label>Service Location / Area Covered</Label>
-                      <Input 
-                        value={formData.serviceLocation || ""} 
-                        onChange={(e) => handleInputChange("serviceLocation", e.target.value)}
-                        placeholder="e.g., Sagar, Bhopal, All MP" 
+                      <LocationAutocomplete
+                        value={formData.serviceLocation || ""}
+                        onChange={(value) => handleInputChange("serviceLocation", value)}
+                        placeholder="Search location (e.g., Sagar, Bhopal, All MP)"
                       />
                     </div>
 
@@ -803,75 +806,125 @@ const VendorProfile = () => {
                 {/* Step 4: Bank Details */}
                 {currentStep === 4 && (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Bank Name</Label>
-                        <Input 
-                          value={formData.bankDetail?.branch || ""} 
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              bankDetail: {
-                                ...prev.bankDetail,
-                                branch: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Enter bank name" 
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Account Holder Name</Label>
-                        <Input 
-                          value={formData.bankDetail?.accountHolderName || ""} 
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              bankDetail: {
-                                ...prev.bankDetail,
-                                accountHolderName: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Name as per bank account" 
-                        />
-                      </div>
+                    {/* Payment Method Selection */}
+                    <div className="space-y-3">
+                      <Label>Select Payment Method</Label>
+                      <RadioGroup
+                        value={formData.paymentMethod || "bank"}
+                        onValueChange={(val: "bank" | "upi") => {
+                          setFormData((prev) => ({
+                            ...prev,
+                            paymentMethod: val,
+                          }));
+                        }}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
+                          <RadioGroupItem value="bank" id="vendor-payment-bank" />
+                          <Label htmlFor="vendor-payment-bank" className="cursor-pointer flex-1">
+                            <div className="font-semibold">Bank Account</div>
+                            <div className="text-xs text-gray-500">Bank details</div>
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
+                          <RadioGroupItem value="upi" id="vendor-payment-upi" />
+                          <Label htmlFor="vendor-payment-upi" className="cursor-pointer flex-1">
+                            <div className="font-semibold">UPI ID</div>
+                            <div className="text-xs text-gray-500">UPI payment</div>
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {/* Bank Details Fields */}
+                    {(formData.paymentMethod || "bank") === "bank" && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Bank Name</Label>
+                            <Input 
+                              value={formData.bankDetail?.branch || ""} 
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  bankDetail: {
+                                    ...prev.bankDetail,
+                                    branch: e.target.value,
+                                  },
+                                }))
+                              }
+                              placeholder="Enter bank name" 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Account Holder Name</Label>
+                            <Input 
+                              value={formData.bankDetail?.accountHolderName || ""} 
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  bankDetail: {
+                                    ...prev.bankDetail,
+                                    accountHolderName: e.target.value,
+                                  },
+                                }))
+                              }
+                              placeholder="Name as per bank account" 
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Account Number</Label>
+                            <Input 
+                              value={formData.bankDetail?.accountNumber || ""} 
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  bankDetail: {
+                                    ...prev.bankDetail,
+                                    accountNumber: e.target.value,
+                                  },
+                                }))
+                              }
+                              placeholder="Enter account number" 
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>IFSC Code</Label>
+                            <Input 
+                              value={formData.bankDetail?.IFSC || ""} 
+                              onChange={(e) =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  bankDetail: {
+                                    ...prev.bankDetail,
+                                    IFSC: e.target.value,
+                                  },
+                                }))
+                              }
+                              placeholder="Enter IFSC code" 
+                              className="uppercase" 
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* UPI ID Field */}
+                    {formData.paymentMethod === "upi" && (
                       <div className="space-y-2">
-                        <Label>Account Number</Label>
+                        <Label>UPI ID</Label>
                         <Input 
-                          value={formData.bankDetail?.accountNumber || ""} 
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              bankDetail: {
-                                ...prev.bankDetail,
-                                accountNumber: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Enter account number" 
+                          value={formData.upiId || ""} 
+                          onChange={(e) => handleInputChange("upiId", e.target.value)}
+                          placeholder="Enter UPI ID (e.g., yourname@paytm, 9876543210@ybl)" 
                         />
+                        <p className="text-xs text-gray-500">
+                          💡 Enter UPI ID from any UPI app (PhonePe, Google Pay, Paytm, etc.)
+                        </p>
                       </div>
-                      <div className="space-y-2">
-                        <Label>IFSC Code</Label>
-                        <Input 
-                          value={formData.bankDetail?.IFSC || ""} 
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              bankDetail: {
-                                ...prev.bankDetail,
-                                IFSC: e.target.value,
-                              },
-                            }))
-                          }
-                          placeholder="Enter IFSC code" 
-                          className="uppercase" 
-                        />
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
@@ -1462,47 +1515,72 @@ const VendorProfile = () => {
                 </CardContent>
               </Card>
 
-              {/* Bank Details */}
+              {/* Payment Details */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <CreditCard className="w-5 h-5" />
-                    Bank Details
+                    Payment Details
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label>Bank Name</Label>
-                      <p className="mt-1 text-gray-900 flex items-center gap-2">
-                        <Building className="w-4 h-4 text-gray-400" />
-                        {vendor.bankDetail?.branch || "-"}
-                      </p>
-                    </div>
-                    <div>
-                      <Label>Account Holder Name</Label>
-                      <p className="mt-1 text-gray-900 flex items-center gap-2">
-                        <User className="w-4 h-4 text-gray-400" />
-                        {vendor.bankDetail?.accountHolderName || "-"}
-                      </p>
-                    </div>
+                  {/* Payment Method */}
+                  <div>
+                    <Label>Payment Method</Label>
+                    <p className="mt-1 text-gray-900 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
+                      <span className="capitalize">{vendor.paymentMethod || "Bank"}</span>
+                    </p>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
+                  {/* Bank Details */}
+                  {(!vendor.paymentMethod || vendor.paymentMethod === "bank") && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Bank Name</Label>
+                          <p className="mt-1 text-gray-900 flex items-center gap-2">
+                            <Building className="w-4 h-4 text-gray-400" />
+                            {vendor.bankDetail?.branch || "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label>Account Holder Name</Label>
+                          <p className="mt-1 text-gray-900 flex items-center gap-2">
+                            <User className="w-4 h-4 text-gray-400" />
+                            {vendor.bankDetail?.accountHolderName || "-"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Account Number</Label>
+                          <p className="mt-1 text-gray-900 flex items-center gap-2">
+                            <CreditCard className="w-4 h-4 text-gray-400" />
+                            {vendor.bankDetail?.accountNumber || "-"}
+                          </p>
+                        </div>
+                        <div>
+                          <Label>IFSC Code</Label>
+                          <p className="mt-1 text-gray-900 flex items-center gap-2">
+                            <CreditCard className="w-4 h-4 text-gray-400" />
+                            {vendor.bankDetail?.IFSC || "-"}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* UPI Details */}
+                  {vendor.paymentMethod === "upi" && (
                     <div>
-                      <Label>Account Number</Label>
+                      <Label>UPI ID</Label>
                       <p className="mt-1 text-gray-900 flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-gray-400" />
-                        {vendor.bankDetail?.accountNumber || "-"}
+                        {vendor.upiId || "-"}
                       </p>
                     </div>
-                    <div>
-                      <Label>IFSC Code</Label>
-                      <p className="mt-1 text-gray-900 flex items-center gap-2">
-                        <CreditCard className="w-4 h-4 text-gray-400" />
-                        {vendor.bankDetail?.IFSC || "-"}
-                      </p>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
 

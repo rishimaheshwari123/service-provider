@@ -18,6 +18,7 @@ import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { toast } from "sonner";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 
 // Zod schema for validation
 const vendorSchema = z.object({
@@ -50,11 +51,13 @@ const vendorSchema = z.object({
   adhar: z.string().regex(/^\d{12}$/, "Aadhar must be 12 digits").optional().or(z.literal("")),
   tradeLicense: z.string().optional().or(z.literal("")),
   
-  // Step 4: Bank Details
+  // Step 4: Bank Details or UPI
+  paymentMethod: z.enum(["bank", "upi"]).optional(),
   bankName: z.string().optional().or(z.literal("")),
   accountHolderName: z.string().optional().or(z.literal("")),
   accountNumber: z.string().optional().or(z.literal("")),
   ifscCode: z.string().optional().or(z.literal("")),
+  upiId: z.string().optional().or(z.literal("")),
   
   // Step 5: Experience
   totalYears: z.string().optional().or(z.literal("")),
@@ -115,6 +118,7 @@ const VendorRegister = () => {
   });
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
   const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<"bank" | "upi">("bank");
   const [documents, setDocuments] = useState<{ [key: string]: File | null }>({
     document1: null,
     document2: null,
@@ -396,11 +400,19 @@ const VendorRegister = () => {
       console.log("👥 Adding default numberOfStaff: 0");
     }
     
-    // Bank details (add only once)
-    if (vendorData.accountNumber) formData.append("bankDetail[accountNumber]", vendorData.accountNumber);
-    if (vendorData.ifscCode) formData.append("bankDetail[IFSC]", vendorData.ifscCode);
-    if (vendorData.accountHolderName) formData.append("bankDetail[accountHolderName]", vendorData.accountHolderName);
-    if (vendorData.bankName) formData.append("bankDetail[branch]", vendorData.bankName);
+    // Payment details - Bank or UPI (add only once)
+    formData.append("paymentMethod", paymentMethod);
+    
+    if (paymentMethod === "bank") {
+      // Bank details
+      if (vendorData.accountNumber) formData.append("bankDetail[accountNumber]", vendorData.accountNumber);
+      if (vendorData.ifscCode) formData.append("bankDetail[IFSC]", vendorData.ifscCode);
+      if (vendorData.accountHolderName) formData.append("bankDetail[accountHolderName]", vendorData.accountHolderName);
+      if (vendorData.bankName) formData.append("bankDetail[branch]", vendorData.bankName);
+    } else if (paymentMethod === "upi") {
+      // UPI details
+      if (vendorData.upiId) formData.append("upiId", vendorData.upiId);
+    }
     
     // Experience (add only once)
     if (vendorData.totalYears) {
@@ -757,8 +769,12 @@ const VendorRegister = () => {
                     </div>
                     <div className="space-y-2">
                       <Label>Service Location / Area Covered <span className="text-red-500">*</span></Label>
-                      <Input {...register("serviceLocation")} placeholder="e.g., Sagar, Bhopal, All MP" />
-                      {errors.serviceLocation && <p className="text-sm text-red-500">{errors.serviceLocation.message}</p>}
+                      <LocationAutocomplete
+                        value={watch("serviceLocation") || ""}
+                        onChange={(value) => setValue("serviceLocation", value)}
+                        placeholder="Search location (e.g., Sagar, Bhopal, All MP)"
+                        error={errors.serviceLocation?.message}
+                      />
                     </div>
                   </div>
 
@@ -999,32 +1015,80 @@ const VendorRegister = () => {
                 </div>
               )}
 
-              {/* Step 4: Bank Details */}
+              {/* Step 4: Bank Details or UPI */}
               {currentStep === 4 && (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-500 bg-yellow-50 p-3 rounded-lg">
-                    💡 Bank details are optional but recommended for faster payment processing.
+                    💡 Payment details are optional but recommended for faster payment processing.
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Bank Name</Label>
-                      <Input {...register("bankName")} placeholder="Enter bank name" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Account Holder Name</Label>
-                      <Input {...register("accountHolderName")} placeholder="Name as per bank account" />
-                    </div>
+                  
+                  {/* Payment Method Selection */}
+                  <div className="space-y-3">
+                    <Label>Select Payment Method</Label>
+                    <RadioGroup
+                      value={paymentMethod}
+                      onValueChange={(val: "bank" | "upi") => {
+                        setPaymentMethod(val);
+                        setValue("paymentMethod", val);
+                      }}
+                      className="flex gap-4"
+                    >
+                      <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
+                        <RadioGroupItem value="bank" id="payment-bank" />
+                        <Label htmlFor="payment-bank" className="cursor-pointer flex-1">
+                          <div className="font-semibold">Bank Account</div>
+                          <div className="text-xs text-gray-500">Enter your bank details</div>
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
+                        <RadioGroupItem value="upi" id="payment-upi" />
+                        <Label htmlFor="payment-upi" className="cursor-pointer flex-1">
+                          <div className="font-semibold">UPI ID</div>
+                          <div className="text-xs text-gray-500">Enter your UPI ID</div>
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                  {/* Bank Details Fields */}
+                  {paymentMethod === "bank" && (
+                    <>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Bank Name</Label>
+                          <Input {...register("bankName")} placeholder="Enter bank name" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Account Holder Name</Label>
+                          <Input {...register("accountHolderName")} placeholder="Name as per bank account" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Account Number</Label>
+                          <Input {...register("accountNumber")} placeholder="Enter account number" />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>IFSC Code</Label>
+                          <Input {...register("ifscCode")} placeholder="Enter IFSC code" className="uppercase" />
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* UPI ID Field */}
+                  {paymentMethod === "upi" && (
                     <div className="space-y-2">
-                      <Label>Account Number</Label>
-                      <Input {...register("accountNumber")} placeholder="Enter account number" />
+                      <Label>UPI ID</Label>
+                      <Input 
+                        {...register("upiId")} 
+                        placeholder="Enter UPI ID (e.g., yourname@paytm, 9876543210@ybl)" 
+                      />
+                      <p className="text-xs text-gray-500">
+                        💡 Enter your UPI ID from any UPI app (PhonePe, Google Pay, Paytm, etc.)
+                      </p>
                     </div>
-                    <div className="space-y-2">
-                      <Label>IFSC Code</Label>
-                      <Input {...register("ifscCode")} placeholder="Enter IFSC code" className="uppercase" />
-                    </div>
-                  </div>
+                  )}
                 </div>
               )}
 

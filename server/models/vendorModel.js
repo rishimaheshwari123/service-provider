@@ -150,6 +150,17 @@ const vendorSchema = new mongoose.Schema(
             branch: { type: String, trim: true },
         },
 
+        // Payment Method (Bank or UPI)
+        paymentMethod: {
+            type: String,
+            enum: ["bank", "upi"],
+            default: "bank",
+        },
+        upiId: {
+            type: String,
+            trim: true,
+        },
+
         // Experience object
         experience: {
             fields: { type: [String], default: [] }, // multiple fields

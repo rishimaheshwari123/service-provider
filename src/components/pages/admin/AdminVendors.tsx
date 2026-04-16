@@ -76,6 +76,7 @@ import { getAllCategoriesAPI, purchaseCategoryAPI } from "@/service/operations/c
 import { sendOTP, verifyOTP } from "@/service/operations/otp";
 import { vendor } from "@/service/apis";
 import * as XLSX from "xlsx";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 
 interface Category {
   _id: string;
@@ -213,11 +214,13 @@ const VendorManagement = () => {
     adhar: "",
     tradeLicense: "",
     
-    // Step 4: Bank Details
+    // Step 4: Bank Details or UPI
+    paymentMethod: "bank",
     bankName: "",
     accountHolderName: "",
     accountNumber: "",
     ifscCode: "",
+    upiId: "",
     
     // Step 5: Experience
     totalYears: "",
@@ -887,12 +890,14 @@ const VendorManagement = () => {
         subCategory, // Include subCategory string
         isAdmin: true, // Flag to identify admin registrations
         numberOfStaff: vendorData.numberOfStaff ? parseInt(vendorData.numberOfStaff) : 0,
-        bankDetail: {
+        paymentMethod: vendorData.paymentMethod,
+        bankDetail: vendorData.paymentMethod === "bank" ? {
           accountNumber: vendorData.accountNumber,
           IFSC: vendorData.ifscCode,
           accountHolderName: vendorData.accountHolderName,
           branch: vendorData.bankName,
-        },
+        } : undefined,
+        upiId: vendorData.paymentMethod === "upi" ? vendorData.upiId : undefined,
         experience: {
           totalYears: vendorData.totalYears ? parseInt(vendorData.totalYears) : 0,
           fields: vendorData.servicesOffered ? vendorData.servicesOffered.split(",").map(s => s.trim()) : [],
@@ -1416,11 +1421,18 @@ const VendorManagement = () => {
                       </div>
                       <div className="space-y-2">
                         <Label>Service Location / Area Covered <span className="text-red-500">*</span></Label>
-                        <Input
-                          name="serviceLocation"
-                          placeholder="e.g., Sagar, Bhopal, All MP"
-                          value={formData.serviceLocation}
-                          onChange={handleFormChange}
+                        <LocationAutocomplete
+                          value={formData.serviceLocation || ""}
+                          onChange={(value) => {
+                            const event = {
+                              target: {
+                                name: "serviceLocation",
+                                value: value
+                              }
+                            };
+                            handleFormChange(event as any);
+                          }}
+                          placeholder="Search location (e.g., Sagar, Bhopal, All MP)"
                         />
                       </div>
                     </div>
@@ -1700,49 +1712,98 @@ const VendorManagement = () => {
                 {currentStep === 4 && (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                      💡 Bank details are optional but recommended for faster payment processing.
+                      💡 Payment details are optional but recommended for faster payment processing.
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Bank Name</Label>
-                        <Input
-                          name="bankName"
-                          placeholder="Enter bank name"
-                          value={formData.bankName}
-                          onChange={handleFormChange}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Account Holder Name</Label>
-                        <Input
-                          name="accountHolderName"
-                          placeholder="Name as per bank account"
-                          value={formData.accountHolderName}
-                          onChange={handleFormChange}
-                        />
-                      </div>
+                    
+                    {/* Payment Method Selection */}
+                    <div className="space-y-3">
+                      <Label>Select Payment Method</Label>
+                      <RadioGroup
+                        value={formData.paymentMethod}
+                        onValueChange={(val) => {
+                          setFormData({ ...formData, paymentMethod: val });
+                        }}
+                        className="flex gap-4"
+                      >
+                        <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
+                          <RadioGroupItem value="bank" id="admin-payment-bank" />
+                          <Label htmlFor="admin-payment-bank" className="cursor-pointer flex-1">
+                            <div className="font-semibold">Bank Account</div>
+                            <div className="text-xs text-gray-500">Enter bank details</div>
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
+                          <RadioGroupItem value="upi" id="admin-payment-upi" />
+                          <Label htmlFor="admin-payment-upi" className="cursor-pointer flex-1">
+                            <div className="font-semibold">UPI ID</div>
+                            <div className="text-xs text-gray-500">Enter UPI ID</div>
+                          </Label>
+                        </div>
+                      </RadioGroup>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    {/* Bank Details Fields */}
+                    {formData.paymentMethod === "bank" && (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Bank Name</Label>
+                            <Input
+                              name="bankName"
+                              placeholder="Enter bank name"
+                              value={formData.bankName}
+                              onChange={handleFormChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Account Holder Name</Label>
+                            <Input
+                              name="accountHolderName"
+                              placeholder="Name as per bank account"
+                              value={formData.accountHolderName}
+                              onChange={handleFormChange}
+                            />
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label>Account Number</Label>
+                            <Input
+                              name="accountNumber"
+                              placeholder="Enter account number"
+                              value={formData.accountNumber}
+                              onChange={handleFormChange}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>IFSC Code</Label>
+                            <Input
+                              name="ifscCode"
+                              placeholder="Enter IFSC code"
+                              value={formData.ifscCode}
+                              onChange={handleFormChange}
+                              className="uppercase"
+                            />
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* UPI ID Field */}
+                    {formData.paymentMethod === "upi" && (
                       <div className="space-y-2">
-                        <Label>Account Number</Label>
+                        <Label>UPI ID</Label>
                         <Input
-                          name="accountNumber"
-                          placeholder="Enter account number"
-                          value={formData.accountNumber}
+                          name="upiId"
+                          placeholder="Enter UPI ID (e.g., yourname@paytm, 9876543210@ybl)"
+                          value={formData.upiId}
                           onChange={handleFormChange}
                         />
+                        <p className="text-xs text-gray-500">
+                          💡 Enter UPI ID from any UPI app (PhonePe, Google Pay, Paytm, etc.)
+                        </p>
                       </div>
-                      <div className="space-y-2">
-                        <Label>IFSC Code</Label>
-                        <Input
-                          name="ifscCode"
-                          placeholder="Enter IFSC code"
-                          value={formData.ifscCode}
-                          onChange={handleFormChange}
-                          className="uppercase"
-                        />
-                      </div>
-                    </div>
+                    )}
                   </div>
                 )}
 
@@ -2523,30 +2584,51 @@ const VendorManagement = () => {
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <CreditCard className="w-5 h-5 text-indigo-600" />
-                      Bank Details
+                      Payment Details
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Bank Name:</span>
-                      <span>{selectedVendor.bankDetail?.branch || "Not Added"}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Account Holder:</span>
-                      <span>{selectedVendor.bankDetail?.accountHolderName || "Not Added"}</span>
-                    </div>
+                    {/* Payment Method */}
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">Account Number:</span>
-                      <span>{selectedVendor.bankDetail?.accountNumber || "Not Added"}</span>
+                      <span className="font-medium">Payment Method:</span>
+                      <span className="capitalize">{selectedVendor.paymentMethod || "Bank"}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-gray-400" />
-                      <span className="font-medium">IFSC Code:</span>
-                      <span>{selectedVendor.bankDetail?.IFSC || "Not Added"}</span>
-                    </div>
+                    
+                    {/* Bank Details */}
+                    {(!selectedVendor.paymentMethod || selectedVendor.paymentMethod === "bank") && (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Building2 className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">Bank Name:</span>
+                          <span>{selectedVendor.bankDetail?.branch || "Not Added"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">Account Holder:</span>
+                          <span>{selectedVendor.bankDetail?.accountHolderName || "Not Added"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">Account Number:</span>
+                          <span>{selectedVendor.bankDetail?.accountNumber || "Not Added"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-gray-400" />
+                          <span className="font-medium">IFSC Code:</span>
+                          <span>{selectedVendor.bankDetail?.IFSC || "Not Added"}</span>
+                        </div>
+                      </>
+                    )}
+                    
+                    {/* UPI Details */}
+                    {selectedVendor.paymentMethod === "upi" && (
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-gray-400" />
+                        <span className="font-medium">UPI ID:</span>
+                        <span>{selectedVendor.upiId || "Not Added"}</span>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
