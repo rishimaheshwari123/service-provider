@@ -274,6 +274,8 @@ const vendorRegisterCtrl = async (req, res) => {
     let processedBankDetail = bankDetail;
     let processedExperience = experience;
     let processedNumberOfStaff = 0;
+    let paymentMethodValue = req.body.paymentMethod || "bank";
+    let upiIdValue = req.body.upiId || "";
     
     // Handle numberOfStaff properly - ensure it's always a single number
     if (numberOfStaff !== undefined && numberOfStaff !== null && numberOfStaff !== '') {
@@ -288,14 +290,22 @@ const vendorRegisterCtrl = async (req, res) => {
       processedNumberOfStaff = parseInt(processedNumberOfStaff[0]) || 0;
     }
     
-    // Handle bank details if sent as flattened fields
-    if (req.body['bankDetail[accountNumber]'] || req.body['bankDetail[IFSC]'] || 
-        req.body['bankDetail[accountHolderName]'] || req.body['bankDetail[branch]']) {
+    // Handle bank details if sent as flattened fields (only if payment method is bank)
+    if (paymentMethodValue === "bank" && (req.body['bankDetail[accountNumber]'] || req.body['bankDetail[IFSC]'] || 
+        req.body['bankDetail[accountHolderName]'] || req.body['bankDetail[branch]'])) {
       processedBankDetail = {
         accountNumber: sanitizeValue(req.body['bankDetail[accountNumber]']) || '',
         IFSC: sanitizeValue(req.body['bankDetail[IFSC]']) || '',
         accountHolderName: sanitizeValue(req.body['bankDetail[accountHolderName]']) || '',
         branch: sanitizeValue(req.body['bankDetail[branch]']) || '',
+      };
+    } else if (paymentMethodValue === "upi") {
+      // Clear bank details if UPI is selected
+      processedBankDetail = {
+        accountNumber: '',
+        IFSC: '',
+        accountHolderName: '',
+        branch: '',
       };
     }
     
@@ -352,7 +362,9 @@ const vendorRegisterCtrl = async (req, res) => {
         ...sanitizedData,
         password: hashedPassword,
         numberOfStaff: processedNumberOfStaff,
+        paymentMethod: paymentMethodValue,
         bankDetail: processedBankDetail, 
+        upiId: paymentMethodValue === "upi" ? sanitizeValue(upiIdValue) : "",
         experience: processedExperience,
         // File uploads
         ...fileUpdates
@@ -693,8 +705,10 @@ updateVendorProfileCtrl = async (req, res) => {
     }
 
     // Transform bank detail fields from request body
-    if (updateData['bankDetail[accountNumber]'] || updateData['bankDetail[IFSC]'] ||
-        updateData['bankDetail[accountHolderName]'] || updateData['bankDetail[branch]']) {
+    const paymentMethod = updateData.paymentMethod || "bank";
+    
+    if (paymentMethod === "bank" && (updateData['bankDetail[accountNumber]'] || updateData['bankDetail[IFSC]'] ||
+        updateData['bankDetail[accountHolderName]'] || updateData['bankDetail[branch]'])) {
       updateData.bankDetail = {
         accountNumber: updateData['bankDetail[accountNumber]'] || '',
         IFSC: updateData['bankDetail[IFSC]'] || '',
@@ -706,6 +720,18 @@ updateVendorProfileCtrl = async (req, res) => {
       delete updateData['bankDetail[IFSC]'];
       delete updateData['bankDetail[accountHolderName]'];
       delete updateData['bankDetail[branch]'];
+      
+      // Clear UPI if bank is selected
+      updateData.upiId = "";
+    } else if (paymentMethod === "upi") {
+      // Clear bank details if UPI is selected
+      updateData.bankDetail = {
+        accountNumber: '',
+        IFSC: '',
+        accountHolderName: '',
+        branch: '',
+      };
+      // UPI ID is already in updateData
     }
 
     // Transform working days to workingDaysTimings field

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getAllVendorAPI } from "@/service/operations/vendor";
+import { getPendingUpdateRequestsAPI } from "@/service/operations/vendorProfileUpdateRequest";
 
 export const useVendorNotifications = () => {
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -8,11 +8,12 @@ export const useVendorNotifications = () => {
   const fetchPendingRequests = async () => {
     try {
       setLoading(true);
-      const response = await getAllVendorAPI();
+      const response = await getPendingUpdateRequestsAPI();
       
       if (response && Array.isArray(response)) {
+        // Count only pending requests
         const pendingCount = response.filter(
-          (vendor) => vendor.updateProfileRequest === "requested"
+          (request) => request.status === "pending"
         ).length;
         setPendingRequestsCount(pendingCount);
       } else {
