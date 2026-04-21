@@ -174,3 +174,118 @@ All colors MUST be HSL.
     }
   }
 }
+
+/* Blog Content Styling */
+.blog-content {
+  white-space: pre-wrap;
+}
+
+.blog-content head {
+  display: none;
+}
+
+.blog-content h1 {
+  @apply text-3xl md:text-4xl font-bold text-black mb-4 mt-0;
+  display: block;
+}
+
+.blog-content h1:first-child {
+  margin-top: 0;
+}
+
+.blog-content h2 {
+  @apply text-2xl md:text-3xl font-bold text-black mb-3 mt-5;
+  display: block;
+}
+
+.blog-content h3 {
+  @apply text-xl md:text-2xl font-semibold text-black mb-3 mt-4;
+  display: block;
+}
+
+.blog-content h4 {
+  @apply text-lg md:text-xl font-semibold text-black mb-2 mt-3;
+  display: block;
+}
+
+.blog-content h5 {
+  @apply text-base md:text-lg font-semibold text-black mb-2 mt-3;
+  display: block;
+}
+
+.blog-content h6 {
+  @apply text-sm md:text-base font-semibold text-black mb-2 mt-2;
+  display: block;
+}
+
+.blog-content p {
+  @apply mb-3 text-black;
+  display: block;
+}
+
+.blog-content a {
+  @apply text-blue-600 hover:text-blue-800 underline;
+}
+
+.blog-content ul {
+  @apply list-none mb-3 ml-0;
+  display: block;
+}
+
+.blog-content ol {
+  @apply list-none mb-3 ml-0;
+  display: block;
+}
+
+.blog-content li {
+  @apply mb-1 text-black;
+  display: list-item;
+}
+
+.blog-content strong,
+.blog-content b {
+  @apply font-bold;
+}
+
+.blog-content em,
+.blog-content i {
+  @apply italic;
+}
+
+.blog-content blockquote {
+  @apply border-l-4 border-gray-300 pl-4 italic my-4 text-gray-700;
+  display: block;
+}
+
+.blog-content code {
+  @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+}
+
+.blog-content pre {
+  @apply bg-gray-100 p-4 rounded mb-4 overflow-x-auto;
+  display: block;
+}
+
+.blog-content img {
+  @apply max-w-full h-auto rounded-lg my-4;
+  display: block;
+}
+
+.blog-content table {
+  @apply w-full border-collapse mb-4;
+  display: table;
+}
+
+.blog-content th,
+.blog-content td {
+  @apply border border-gray-300 px-4 py-2;
+}
+
+.blog-content th {
+  @apply bg-gray-100 font-semibold;
+}
+
+.blog-content hr {
+  @apply my-6 border-gray-300;
+  display: block;
+}

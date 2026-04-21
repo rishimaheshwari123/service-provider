@@ -150,12 +150,7 @@ const SingleBlog = () => {
               <Clock className="w-4 h-4 mr-2" />
               {calculateReadingTime(blog.desc)}
             </span>
-            {blog.slug && (
-              <span className="flex items-center">
-                <Globe className="w-4 h-4 mr-2" />
-                Slug: {blog.slug}
-              </span>
-            )}
+           
             <Button
               variant="outline"
               size="sm"
@@ -255,7 +250,7 @@ const SingleBlog = () => {
 
             {/* Open Graph Information */}
             {(blog.ogTitle || blog.ogDescription) && (
-              <div className="bg-blue-50 rounded-lg p-6 mb-8">
+              <div className="bg-blue-50 rounded-lg p-6 ">
                 <h3 className="text-lg font-semibold text-black mb-4 flex items-center">
                   {/* <Share2 className="w-5 h-5 mr-2" />
                   Social Media Information */}
@@ -278,25 +273,21 @@ const SingleBlog = () => {
             )}
 
             {/* Main Content - Full Width for Long Content */}
-            <div className="mb-8">
+            <div className="">
               {/* <h2 className="text-2xl font-bold text-black mb-6 border-b-2 border-gray-200 pb-3">Content</h2> */}
               <div 
-                className="text-black leading-relaxed text-base sm:text-lg"
+                className="text-black leading-relaxed text-base sm:text-lg blog-content"
                 style={{
                   lineHeight: '1.8',
                   wordSpacing: '0.05em',
                   letterSpacing: '0.01em',
-                  textAlign: 'justify',
                   hyphens: 'auto',
                   wordBreak: 'break-word',
-                  overflowWrap: 'break-word'
+                  overflowWrap: 'break-word',
+                  whiteSpace: 'pre-wrap'
                 }}
                 dangerouslySetInnerHTML={{ 
                   __html: blog.desc
-                    .replace(/\n\n/g, '</p><p class="mb-4">')
-                    .replace(/\n/g, '<br/>')
-                    .replace(/^/, '<p class="mb-4">')
-                    .replace(/$/, '</p>')
                 }}
               />
             </div>
