@@ -176,7 +176,7 @@ const SingleBlog = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
             {/* Main Image */}
             <div className="w-full">
-              <h3 className="text-lg font-semibold text-black mb-3">Featured Image</h3>
+              {/* <h3 className="text-lg font-semibold text-black mb-3">Featured Image</h3> */}
               <div className="w-full h-64 lg:h-80 overflow-hidden rounded-lg border shadow-sm">
                 <img
                   src={blog.image || "/placeholder.svg?height=400&width=600"}
@@ -189,7 +189,7 @@ const SingleBlog = () => {
             {/* OG Image */}
             {blog.ogImage && (
               <div className="w-full">
-                <h3 className="text-lg font-semibold text-black mb-3">Social Media Image</h3>
+                {/* <h3 className="text-lg font-semibold text-black mb-3">Social Media Image</h3> */}
                 <div className="w-full h-64 lg:h-80 overflow-hidden rounded-lg border shadow-sm">
                   <img
                     src={blog.ogImage}
@@ -207,25 +207,25 @@ const SingleBlog = () => {
             {(blog.metaTitle || blog.keywords || blog.canonicalUrl) && (
               <div className="bg-gray-50 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-semibold text-black mb-4 flex items-center">
-                  <Tag className="w-5 h-5 mr-2" />
-                  SEO Information
+                  {/* <Tag className="w-5 h-5 mr-2" />
+                  SEO Information */}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {blog.metaTitle && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">Meta Title:</label>
+                      {/* <label className="text-sm font-medium text-gray-700 block mb-1">Meta Title:</label> */}
                       <p className="text-black">{blog.metaTitle}</p>
                     </div>
                   )}
                   {blog.metaDescription && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">Meta Description:</label>
+                      {/* <label className="text-sm font-medium text-gray-700 block mb-1">Meta Description:</label> */}
                       <p className="text-black">{blog.metaDescription}</p>
                     </div>
                   )}
                   {blog.keywords && (
                     <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-gray-700 block mb-2">Keywords:</label>
+                      {/* <label className="text-sm font-medium text-gray-700 block mb-2">Keywords:</label> */}
                       <div className="flex flex-wrap gap-2">
                         {blog.keywords.split(',').map((keyword, index) => (
                           <Badge key={index} variant="secondary" className="text-xs bg-blue-100 text-blue-800">
@@ -238,7 +238,7 @@ const SingleBlog = () => {
                   )}
                   {blog.canonicalUrl && (
                     <div className="md:col-span-2">
-                      <label className="text-sm font-medium text-gray-700 block mb-1">Canonical URL:</label>
+                      {/* <label className="text-sm font-medium text-gray-700 block mb-1">Canonical URL:</label> */}
                       <a 
                         href={blog.canonicalUrl} 
                         target="_blank" 
@@ -257,19 +257,19 @@ const SingleBlog = () => {
             {(blog.ogTitle || blog.ogDescription) && (
               <div className="bg-blue-50 rounded-lg p-6 mb-8">
                 <h3 className="text-lg font-semibold text-black mb-4 flex items-center">
-                  <Share2 className="w-5 h-5 mr-2" />
-                  Social Media Information
+                  {/* <Share2 className="w-5 h-5 mr-2" />
+                  Social Media Information */}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {blog.ogTitle && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">Social Media Title:</label>
+                      {/* <label className="text-sm font-medium text-gray-700 block mb-1">Social Media Title:</label> */}
                       <p className="text-black">{blog.ogTitle}</p>
                     </div>
                   )}
                   {blog.ogDescription && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700 block mb-1">Social Media Description:</label>
+                      {/* <label className="text-sm font-medium text-gray-700 block mb-1">Social Media Description:</label> */}
                       <p className="text-black">{blog.ogDescription}</p>
                     </div>
                   )}
@@ -279,7 +279,7 @@ const SingleBlog = () => {
 
             {/* Main Content - Full Width for Long Content */}
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-black mb-6 border-b-2 border-gray-200 pb-3">Content</h2>
+              {/* <h2 className="text-2xl font-bold text-black mb-6 border-b-2 border-gray-200 pb-3">Content</h2> */}
               <div 
                 className="text-black leading-relaxed text-base sm:text-lg"
                 style={{
@@ -304,8 +304,8 @@ const SingleBlog = () => {
             {/* Blog Statistics */}
             <div className="bg-amber-50 rounded-lg p-6 mb-8">
               <h3 className="text-lg font-semibold text-black mb-4 flex items-center">
-                <Eye className="w-5 h-5 mr-2" />
-                Blog Statistics
+                {/* <Eye className="w-5 h-5 mr-2" />
+                Blog Statistics */}
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-white rounded-lg">
