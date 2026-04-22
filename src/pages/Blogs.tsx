@@ -149,16 +149,30 @@ const Blogs = () => {
 
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <section className="py-12 gradient-gold text-black">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Latest Updates</h1>
-              <p className="text-xl">
-                Stay updated with the latest service provider insights, industry updates, and market trends
-              </p>
-            </div>
-          </div>
-        </section>
+        <section className="py-16 text-gray-900">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    
+    <h1 className="text-4xl md:text-5xl font-extrabold mb-6 tracking-tight">
+      Latest <span className="text-yellow-600">Updates</span>
+    </h1>
+
+    <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-6">
+      Stay updated with the latest <span className="font-semibold text-yellow-600">service provider insights</span>, 
+      industry updates, and market trends.
+    </p>
+
+    {/* Keywords */}
+    <div className="flex flex-wrap justify-center gap-3 mt-4">
+      <span className="border border-gray-200 px-4 py-2 rounded-full text-sm font-medium shadow-sm hover:shadow transition">
+        Best service provider in Sagar
+      </span>
+      <span className="border border-gray-200 px-4 py-2 rounded-full text-sm font-medium shadow-sm hover:shadow transition">
+        Online service provider near me
+      </span>
+    </div>
+
+  </div>
+</section>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Search and Filters */}
