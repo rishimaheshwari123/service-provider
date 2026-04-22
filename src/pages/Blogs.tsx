@@ -152,10 +152,9 @@ const Blogs = () => {
         <section className="py-12 gradient-gold text-black">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">Our Blog</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">Latest Updates</h1>
               <p className="text-xl">
-                Stay updated with the latest real estate insights and market
-                trends
+                Stay updated with the latest service provider insights, industry updates, and market trends
               </p>
             </div>
           </div>
@@ -324,13 +323,7 @@ const Blogs = () => {
           )}
 
           {/* Load More */}
-          {filteredAndSortedBlogs.length > 0 && (
-            <div className="text-center mt-12">
-              <Button size="lg" variant="outline">
-                Load More Blogs
-              </Button>
-            </div>
-          )}
+         
         </div>
       </div>
       <Footer />
