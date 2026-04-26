@@ -15,6 +15,7 @@ import {
   Clock,
   ListOrdered,
   ClipboardList,
+  Megaphone,
 } from "lucide-react";
 import { User, PlusSquare, ListChecks } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -139,6 +140,13 @@ const VendorSidebar = () => {
       icon: ClipboardList, // inquiries/messages
       label: "Tasks",
       color: "text-pink-600",
+      permission: null,
+    },
+    {
+      to: "/vendor/ads",
+      icon: Megaphone,
+      label: "My Ads",
+      color: "text-blue-600",
       permission: null,
     },
     {

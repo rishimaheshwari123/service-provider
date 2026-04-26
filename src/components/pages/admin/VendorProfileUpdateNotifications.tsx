@@ -73,6 +73,15 @@ interface UpdateRequest {
   updatedAt: string;
 }
 
+const getErrorMessage = (error: unknown, fallbackMessage: string) => {
+  if (error && typeof error === "object") {
+    const responseData = (error as { response?: { data?: { error?: string; message?: string } } }).response?.data;
+    const directMessage = (error as { message?: string }).message;
+    return responseData?.error || responseData?.message || directMessage || fallbackMessage;
+  }
+  return fallbackMessage;
+};
+
 const VendorProfileUpdateNotifications = () => {
   const [requests, setRequests] = useState<UpdateRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,11 +143,15 @@ const VendorProfileUpdateNotifications = () => {
       } else {
         throw new Error(response?.message || "Failed to approve request");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error approving request:", error);
+      const backendMessage = getErrorMessage(
+        error,
+        "Failed to approve profile update request"
+      );
       toast({
         title: "Error",
-        description: "Failed to approve profile update request",
+        description: backendMessage,
         variant: "destructive",
       });
     } finally {
@@ -170,11 +183,15 @@ const VendorProfileUpdateNotifications = () => {
       } else {
         throw new Error(response?.message || "Failed to reject request");
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error rejecting request:", error);
+      const backendMessage = getErrorMessage(
+        error,
+        "Failed to reject profile update request"
+      );
       toast({
         title: "Error",
-        description: "Failed to reject profile update request",
+        description: backendMessage,
         variant: "destructive",
       });
     } finally {

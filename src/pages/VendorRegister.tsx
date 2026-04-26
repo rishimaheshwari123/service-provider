@@ -639,7 +639,7 @@ const VendorRegister = () => {
                   
 
                     <div className="space-y-2">
-                      <Label>Category (Auto Filled) <span className="text-red-500">*</span></Label>
+                      <Label>Sub Category (Auto Filled) <span className="text-red-500">*</span></Label>
                       <Input 
                         placeholder="Auto-filled based on category" 
                         value={selectedAutoFilled}

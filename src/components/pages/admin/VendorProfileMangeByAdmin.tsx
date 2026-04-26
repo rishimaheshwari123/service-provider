@@ -578,7 +578,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Category (Auto Filled)</Label>
+                        <Label>Sub Category (Auto Filled)</Label>
                         <Input 
                           placeholder="Auto-filled based on category" 
                           value={selectedAutoFilled}

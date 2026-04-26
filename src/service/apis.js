@@ -1,8 +1,8 @@
 
 
-export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
+// export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
 // export const BASE_URL = "https://service-provider-6ufz.onrender.com/api/v1"
-// export const BASE_URL = "http://localhost:8000/api/v1"
+export const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -133,8 +133,14 @@ export const audit = {
 }
 
 export const ads = {
-  CREATE_AD_API: BASE_URL + "/ads/create",
+  CREATE_ADMIN_AD_API: BASE_URL + "/ads/admin/create",
+  CREATE_VENDOR_AD_API: BASE_URL + "/ads/vendor/create",
   GET_ALL_ADS_API: BASE_URL + "/ads/getAll",
+  GET_MANAGE_ADS_API: BASE_URL + "/ads/manage",
+  GET_VENDOR_ADS_API: BASE_URL + "/ads/vendor",
+  APPROVE_VENDOR_AD_API: BASE_URL + "/ads/approve",
+  REJECT_VENDOR_AD_API: BASE_URL + "/ads/reject",
+  TOGGLE_AD_STATUS_API: BASE_URL + "/ads/toggle-status",
   DELETE_AD_API: BASE_URL + "/ads/delete",
   UPDATE_AD_API: BASE_URL + "/ads/update",
 }
