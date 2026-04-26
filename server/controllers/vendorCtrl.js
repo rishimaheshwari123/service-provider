@@ -5,6 +5,59 @@ const jwt = require("jsonwebtoken");
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const { generateOTP, sendSMSOTP, sendWhatsAppOTP, sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
 
+const normalizePhone = (value) => (value || "").toString().trim();
+const buildUniquePhones = (...values) => [...new Set(values.map(normalizePhone).filter(Boolean))];
+const phoneFieldLabelMap = {
+  phone: "Phone",
+  whatsappNumber: "WhatsApp",
+  alternatePhone: "Alternate phone",
+};
+
+const findVendorByAnyNumber = async (numbers, excludeVendorId = null) => {
+  const uniqueNumbers = buildUniquePhones(...numbers);
+  if (!uniqueNumbers.length) return null;
+
+  const query = {
+    $or: [
+      { phone: { $in: uniqueNumbers } },
+      { whatsappNumber: { $in: uniqueNumbers } },
+      { alternatePhone: { $in: uniqueNumbers } },
+    ],
+  };
+
+  if (excludeVendorId) {
+    query._id = { $ne: excludeVendorId };
+  }
+
+  return vendorModel.findOne(query).select("_id phone whatsappNumber alternatePhone isPhoneVerified name email");
+};
+
+const getConflictingInputFields = (inputNumbers, existingVendor) => {
+  if (!existingVendor) return [];
+  const existingNumbers = buildUniquePhones(
+    existingVendor.phone,
+    existingVendor.whatsappNumber,
+    existingVendor.alternatePhone
+  );
+
+  const conflicts = [];
+  if (inputNumbers.phone && existingNumbers.includes(inputNumbers.phone)) conflicts.push("phone");
+  if (inputNumbers.whatsappNumber && existingNumbers.includes(inputNumbers.whatsappNumber)) conflicts.push("whatsappNumber");
+  if (inputNumbers.alternatePhone && existingNumbers.includes(inputNumbers.alternatePhone)) conflicts.push("alternatePhone");
+  return [...new Set(conflicts)];
+};
+
+const buildDuplicateNumberMessage = (conflictFields) => {
+  if (!conflictFields?.length) {
+    return "This number is already registered with another vendor.";
+  }
+  if (conflictFields.length === 1) {
+    return `${phoneFieldLabelMap[conflictFields[0]]} number is already registered with another vendor.`;
+  }
+  const labels = conflictFields.map((field) => phoneFieldLabelMap[field]);
+  return `${labels.join(", ")} numbers are already registered with another vendor.`;
+};
+
 // Helper function to convert text to PascalCase
 const toPascalCase = (text) => {
   if (!text) return text;
@@ -81,13 +134,15 @@ const vendorRegisterCtrl = async (req, res) => {
     console.log('- Phone:', phone);
     console.log('- WhatsApp:', whatsappNumber);
     
-    const existingUser = await vendorModel.findOne({
-      $or: [
-        { phone: phone },
-        { whatsappNumber: phone },
-        ...(whatsappNumber && whatsappNumber !== '' && whatsappNumber !== phone ? [{ whatsappNumber: whatsappNumber }] : [])
-      ]
-    });
+    const inputNumbers = {
+      phone: normalizePhone(phone),
+      whatsappNumber: normalizePhone(whatsappNumber),
+      alternatePhone: normalizePhone(alternatePhone),
+    };
+
+    const existingUser = await findVendorByAnyNumber(
+      [inputNumbers.phone, inputNumbers.whatsappNumber, inputNumbers.alternatePhone]
+    );
     
     console.log('🔍 Existing user found:', !!existingUser);
     if (existingUser) {
@@ -102,9 +157,12 @@ const vendorRegisterCtrl = async (req, res) => {
     
     // Only block if vendor is FULLY registered (has name, email, etc.) and verified
     if (existingUser && existingUser.isPhoneVerified && existingUser.name && existingUser.email) {
+      const conflictFields = getConflictingInputFields(inputNumbers, existingUser);
       return res.status(400).json({
         success: false,
-        message: "Vendor already exists. Please sign in to continue.",
+        message: buildDuplicateNumberMessage(conflictFields),
+        errorType: "DUPLICATE_VENDOR_NUMBER",
+        duplicateFields: conflictFields,
       });
     }
 
@@ -419,7 +477,14 @@ const vendorLoginCtrl = async (req, res) => {
       });
     }
 
-    const user = await vendorModel.findOne({ phone });
+    const loginNumber = normalizePhone(phone);
+    const user = await vendorModel.findOne({
+      $or: [
+        { phone: loginNumber },
+        { whatsappNumber: loginNumber },
+        { alternatePhone: loginNumber },
+      ],
+    });
 
     if (!user) {
       return res.status(401).json({
@@ -786,6 +851,42 @@ updateVendorProfileCtrl = async (req, res) => {
         console.log("⚠️ Invalid categoryId format:", updateData.categoryId);
         delete updateData.categoryId;
       }
+    }
+
+    // Duplicate number validation for profile updates
+    const currentVendor = await vendorModel.findById(id).select("phone whatsappNumber alternatePhone");
+    if (!currentVendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    const nextNumbers = {
+      phone: updateData.phone !== undefined ? normalizePhone(updateData.phone) : normalizePhone(currentVendor.phone),
+      whatsappNumber:
+        updateData.whatsappNumber !== undefined
+          ? normalizePhone(updateData.whatsappNumber)
+          : normalizePhone(currentVendor.whatsappNumber),
+      alternatePhone:
+        updateData.alternatePhone !== undefined
+          ? normalizePhone(updateData.alternatePhone)
+          : normalizePhone(currentVendor.alternatePhone),
+    };
+
+    const conflictingVendor = await findVendorByAnyNumber(
+      [nextNumbers.phone, nextNumbers.whatsappNumber, nextNumbers.alternatePhone],
+      id
+    );
+
+    if (conflictingVendor) {
+      const conflictFields = getConflictingInputFields(nextNumbers, conflictingVendor);
+      return res.status(400).json({
+        success: false,
+        message: buildDuplicateNumberMessage(conflictFields),
+        errorType: "DUPLICATE_VENDOR_NUMBER",
+        duplicateFields: conflictFields,
+      });
     }
 
     // Upload files if provided - handle all 5 documents plus profile photo

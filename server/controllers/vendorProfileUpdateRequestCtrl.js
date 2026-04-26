@@ -1,6 +1,85 @@
 const VendorProfileUpdateRequest = require("../models/vendorProfileUpdateRequestModel");
 const vendorModel = require("../models/vendorModel");
 
+const numberFields = new Set(["selectedPrice", "numberOfStaff"]);
+const normalizePhone = (value) => (value || "").toString().trim();
+const buildUniquePhones = (...values) => [...new Set(values.map(normalizePhone).filter(Boolean))];
+const phoneFieldLabelMap = {
+  phone: "Phone",
+  whatsappNumber: "WhatsApp",
+  alternatePhone: "Alternate phone",
+};
+
+const findVendorByAnyNumber = async (numbers, excludeVendorId = null) => {
+  const uniqueNumbers = buildUniquePhones(...numbers);
+  if (!uniqueNumbers.length) return null;
+
+  const query = {
+    $or: [
+      { phone: { $in: uniqueNumbers } },
+      { whatsappNumber: { $in: uniqueNumbers } },
+      { alternatePhone: { $in: uniqueNumbers } },
+    ],
+  };
+
+  if (excludeVendorId) {
+    query._id = { $ne: excludeVendorId };
+  }
+
+  return vendorModel.findOne(query).select("_id phone whatsappNumber alternatePhone");
+};
+
+const getConflictingInputFields = (inputNumbers, existingVendor) => {
+  if (!existingVendor) return [];
+  const existingNumbers = buildUniquePhones(
+    existingVendor.phone,
+    existingVendor.whatsappNumber,
+    existingVendor.alternatePhone
+  );
+
+  const conflicts = [];
+  if (inputNumbers.phone && existingNumbers.includes(inputNumbers.phone)) conflicts.push("phone");
+  if (inputNumbers.whatsappNumber && existingNumbers.includes(inputNumbers.whatsappNumber)) conflicts.push("whatsappNumber");
+  if (inputNumbers.alternatePhone && existingNumbers.includes(inputNumbers.alternatePhone)) conflicts.push("alternatePhone");
+  return [...new Set(conflicts)];
+};
+
+const buildDuplicateNumberMessage = (conflictFields) => {
+  if (!conflictFields?.length) {
+    return "This number is already registered with another vendor.";
+  }
+  if (conflictFields.length === 1) {
+    return `${phoneFieldLabelMap[conflictFields[0]]} number is already registered with another vendor.`;
+  }
+  const labels = conflictFields.map((field) => phoneFieldLabelMap[field]);
+  return `${labels.join(", ")} numbers are already registered with another vendor.`;
+};
+
+const sanitizeRequestedValue = (key, value) => {
+  if (value === undefined || value === null) return undefined;
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.toLowerCase() === "undefined" || trimmed.toLowerCase() === "null") {
+      return undefined;
+    }
+
+    if (numberFields.has(key)) {
+      const parsedNumber = Number(trimmed);
+      return Number.isFinite(parsedNumber) ? parsedNumber : undefined;
+    }
+
+    return value;
+  }
+
+  if (numberFields.has(key) && typeof value !== "number") {
+    const parsedNumber = Number(value);
+    return Number.isFinite(parsedNumber) ? parsedNumber : undefined;
+  }
+
+  return value;
+};
+
 // Helper function to get changed fields
 const getChangedFields = (original, updated) => {
   const changes = [];
@@ -116,6 +195,34 @@ exports.createProfileUpdateRequest = async (req, res) => {
 
     console.log("📋 Original vendor category:", vendor.category);
     console.log("📋 Update data category:", updateData.category);
+
+    // Duplicate number validation for profile edit request
+    const nextNumbers = {
+      phone: updateData.phone !== undefined ? normalizePhone(updateData.phone) : normalizePhone(vendor.phone),
+      whatsappNumber:
+        updateData.whatsappNumber !== undefined
+          ? normalizePhone(updateData.whatsappNumber)
+          : normalizePhone(vendor.whatsappNumber),
+      alternatePhone:
+        updateData.alternatePhone !== undefined
+          ? normalizePhone(updateData.alternatePhone)
+          : normalizePhone(vendor.alternatePhone),
+    };
+
+    const conflictingVendor = await findVendorByAnyNumber(
+      [nextNumbers.phone, nextNumbers.whatsappNumber, nextNumbers.alternatePhone],
+      id
+    );
+
+    if (conflictingVendor) {
+      const conflictFields = getConflictingInputFields(nextNumbers, conflictingVendor);
+      return res.status(400).json({
+        success: false,
+        message: buildDuplicateNumberMessage(conflictFields),
+        errorType: "DUPLICATE_VENDOR_NUMBER",
+        duplicateFields: conflictFields,
+      });
+    }
 
     // Transform nested objects (same as updateVendorProfileCtrl)
     if (updateData['experience[fields]'] || updateData['experience[totalYears]']) {
@@ -331,7 +438,10 @@ exports.approveUpdateRequest = async (req, res) => {
     // Update simple fields
     Object.keys(requestedChanges).forEach((key) => {
       if (key !== 'bankDetail' && key !== 'experience') {
-        vendor[key] = requestedChanges[key];
+        const sanitizedValue = sanitizeRequestedValue(key, requestedChanges[key]);
+        if (sanitizedValue !== undefined) {
+          vendor[key] = sanitizedValue;
+        }
       }
     });
 

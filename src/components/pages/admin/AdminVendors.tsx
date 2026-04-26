@@ -1358,7 +1358,7 @@ const VendorManagement = () => {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Category (Auto Filled) <span className="text-red-500">*</span></Label>
+                        <Label>Sub Category (Auto Filled) <span className="text-red-500">*</span></Label>
                         <Input
                           placeholder="Auto-filled based on category"
                           value={selectedAutoFilled}
@@ -2468,7 +2468,7 @@ const VendorManagement = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Category:</span>
-                      <span>{selectedVendor.subCategory || "Not Added"}</span>
+                      <span>{selectedVendor?.category?.name || selectedVendor?.subCategory|| "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" />

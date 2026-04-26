@@ -1,111 +1,375 @@
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
-const adsModel = require("../models/adsModel")
+const adsModel = require("../models/adsModel");
 
-const createAddCtrl = async (req, res) => {
-    try {
-        const { url } = req.body;
-        const image = req.files.image;
+let legacyAdsMigrated = false;
 
-        if (!url || !image) {
-            return res.status(400).json({
-                success: false,
-                message: "Please provide all fields"
-            })
-        }
+const migrateLegacyAdsAsAdmin = async () => {
+  if (legacyAdsMigrated) return;
 
-        const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
-
-        const ad = await adsModel.create({
-            image: thumbnailImage.secure_url,
-            url,
-        })
-        return res.status(201).json({
-            success: true,
-            message: "Ads created successfully!",
-            ad
-        })
-
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Error in createing ads api!"
-        })
+  await adsModel.updateMany(
+    {
+      $or: [
+        { createdByType: { $exists: false } },
+        { approvalStatus: { $exists: false } },
+        { isActive: { $exists: false } },
+      ],
+    },
+    {
+      $set: {
+        createdByType: "admin",
+        approvalStatus: "approved",
+        isActive: true,
+      },
+      $setOnInsert: {
+        adminId: null,
+      },
     }
-}
+  );
 
+  legacyAdsMigrated = true;
+};
+
+const createAdminAdCtrl = async (req, res) => {
+  try {
+    const { url, adminId } = req.body;
+    const image = req.files?.image;
+
+    if (!url || !image) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide url and image",
+      });
+    }
+
+    const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+
+    const ad = await adsModel.create({
+      image: thumbnailImage.secure_url,
+      url,
+      createdByType: "admin",
+      adminId: adminId || null,
+      approvalStatus: "approved",
+      isActive: true,
+      approvedBy: adminId || null,
+      approvedAt: new Date(),
+      rejectionReason: "",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Admin ad created and activated successfully!",
+      ad,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error creating admin ad",
+      error: error.message,
+    });
+  }
+};
+
+const createVendorAdCtrl = async (req, res) => {
+  try {
+    const { url, vendorId } = req.body;
+    const image = req.files?.image;
+
+    if (!url || !image || !vendorId) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide url, image and vendorId",
+      });
+    }
+
+    const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+
+    const ad = await adsModel.create({
+      image: thumbnailImage.secure_url,
+      url,
+      createdByType: "vendor",
+      vendorId,
+      approvalStatus: "pending",
+      isActive: false,
+      approvedBy: null,
+      approvedAt: null,
+      rejectionReason: "",
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Vendor ad submitted for admin approval",
+      ad,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error creating vendor ad",
+      error: error.message,
+    });
+  }
+};
+
+// Public ads endpoint: only approved + active ads
 const getAllAds = async (req, res) => {
-    try {
-        const ads = await adsModel.find({});
-        return res.status(200).json({
-            success: true,
-            ads
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Error in getting ads api!"
-        })
+  try {
+    await migrateLegacyAdsAsAdmin();
+    const ads = await adsModel
+      .find({ approvalStatus: "approved", isActive: true })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      ads,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching active ads",
+      error: error.message,
+    });
+  }
+};
+
+// Admin management endpoint
+const getManageAds = async (req, res) => {
+  try {
+    await migrateLegacyAdsAsAdmin();
+    const { createdByType, approvalStatus } = req.query;
+    const filter = {};
+
+    if (createdByType && ["admin", "vendor"].includes(createdByType)) {
+      filter.createdByType = createdByType;
     }
-}
+
+    if (approvalStatus && ["pending", "approved", "rejected"].includes(approvalStatus)) {
+      filter.approvalStatus = approvalStatus;
+    }
+
+    const ads = await adsModel
+      .find(filter)
+      .populate("vendorId", "name phone company email")
+      .populate("approvedBy", "name email")
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      ads,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching ads for management",
+      error: error.message,
+    });
+  }
+};
+
+// Vendor endpoint: get own ads
+const getVendorAds = async (req, res) => {
+  try {
+    await migrateLegacyAdsAsAdmin();
+    const { vendorId } = req.params;
+
+    if (!vendorId) {
+      return res.status(400).json({
+        success: false,
+        message: "vendorId is required",
+      });
+    }
+
+    const ads = await adsModel
+      .find({ vendorId, createdByType: "vendor" })
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({
+      success: true,
+      ads,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching vendor ads",
+      error: error.message,
+    });
+  }
+};
+
+const approveVendorAdCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminId } = req.body;
+
+    const ad = await adsModel.findById(id);
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Ad not found",
+      });
+    }
+
+    if (ad.createdByType !== "vendor") {
+      return res.status(400).json({
+        success: false,
+        message: "Only vendor ads can be approved/rejected",
+      });
+    }
+
+    ad.approvalStatus = "approved";
+    ad.isActive = true;
+    ad.approvedBy = adminId || null;
+    ad.approvedAt = new Date();
+    ad.rejectionReason = "";
+    await ad.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor ad approved and activated successfully!",
+      ad,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error approving vendor ad",
+      error: error.message,
+    });
+  }
+};
+
+const rejectVendorAdCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { adminId, reason } = req.body;
+
+    const ad = await adsModel.findById(id);
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Ad not found",
+      });
+    }
+
+    if (ad.createdByType !== "vendor") {
+      return res.status(400).json({
+        success: false,
+        message: "Only vendor ads can be approved/rejected",
+      });
+    }
+
+    ad.approvalStatus = "rejected";
+    ad.isActive = false;
+    ad.approvedBy = adminId || null;
+    ad.approvedAt = new Date();
+    ad.rejectionReason = reason || "Rejected by admin";
+    await ad.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor ad rejected",
+      ad,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error rejecting vendor ad",
+      error: error.message,
+    });
+  }
+};
+
+const toggleAdStatusCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isActive } = req.body;
+
+    const ad = await adsModel.findById(id);
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Ad not found",
+      });
+    }
+
+    ad.isActive = Boolean(isActive);
+    await ad.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Ad ${ad.isActive ? "activated" : "deactivated"} successfully`,
+      ad,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error toggling ad status",
+      error: error.message,
+    });
+  }
+};
 
 const deleteAddCtrl = async (req, res) => {
-    try {
-        const { id } = req.params;
-        await adsModel.findByIdAndDelete(id);
-        return res.status(200).json({
-            success: true,
-            message: "Ad delete successfully!"
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Error in deleting ads api!"
-        })
-    }
-}
+  try {
+    const { id } = req.params;
+    await adsModel.findByIdAndDelete(id);
+    return res.status(200).json({
+      success: true,
+      message: "Ad deleted successfully!",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting ad",
+      error: error.message,
+    });
+  }
+};
 
 const updateAddCtrl = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { url } = req.body;
-        const image = req.files?.image;
+  try {
+    const { id } = req.params;
+    const { url } = req.body;
+    const image = req.files?.image;
 
-        const ad = await adsModel.findById(id);
-        if (!ad) {
-            return res.status(404).json({
-                success: false,
-                message: "Ad not found"
-            })
-        }
-
-        const updateData = {};
-        
-        if (url) {
-            updateData.url = url;
-        }
-
-        if (image) {
-            const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
-            updateData.image = thumbnailImage.secure_url;
-        }
-
-        const updatedAd = await adsModel.findByIdAndUpdate(
-            id,
-            updateData,
-            { new: true }
-        );
-
-        return res.status(200).json({
-            success: true,
-            message: "Ad updated successfully!",
-            ad: updatedAd
-        })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Error in updating ads api!"
-        })
+    const ad = await adsModel.findById(id);
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Ad not found",
+      });
     }
-}
 
-module.exports = { createAddCtrl, getAllAds, deleteAddCtrl, updateAddCtrl }
+    const updateData = {};
+    if (url) updateData.url = url;
+
+    if (image) {
+      const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+      updateData.image = thumbnailImage.secure_url;
+    }
+
+    const updatedAd = await adsModel.findByIdAndUpdate(id, updateData, { new: true });
+
+    return res.status(200).json({
+      success: true,
+      message: "Ad updated successfully!",
+      ad: updatedAd,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Error updating ad",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  createAdminAdCtrl,
+  createVendorAdCtrl,
+  getAllAds,
+  getManageAds,
+  getVendorAds,
+  approveVendorAdCtrl,
+  rejectVendorAdCtrl,
+  toggleAdStatusCtrl,
+  deleteAddCtrl,
+  updateAddCtrl,
+};

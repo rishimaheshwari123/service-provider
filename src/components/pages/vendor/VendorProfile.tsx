@@ -325,7 +325,14 @@ const VendorProfile = () => {
           key !== "document5"
         ) {
           if (value !== undefined && value !== null) {
-            form.append(key, value as string);
+            const stringValue = String(value).trim();
+            if (
+              stringValue &&
+              stringValue.toLowerCase() !== "undefined" &&
+              stringValue.toLowerCase() !== "null"
+            ) {
+              form.append(key, value as string);
+            }
           }
         }
       });
@@ -392,10 +399,18 @@ const VendorProfile = () => {
           description: "Your profile changes have been submitted for admin approval",
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      const backendMessage =
+        error &&
+        typeof error === "object" &&
+        "response" in error &&
+        (error as { response?: { data?: { message?: string; error?: string } } }).response?.data
+          ? (error as { response?: { data?: { message?: string; error?: string } } }).response?.data?.message ||
+            (error as { response?: { data?: { message?: string; error?: string } } }).response?.data?.error
+          : null;
       toast({
         title: "Error",
-        description: "Failed to submit profile changes",
+        description: backendMessage || "Failed to submit profile changes",
         variant: "destructive",
       });
     } finally {
@@ -620,7 +635,7 @@ const VendorProfile = () => {
                         </Select>
                       </div>
                       <div className="space-y-2">
-                        <Label>Category (Auto Filled)</Label>
+                        <Label>Sub Category (Auto Filled)</Label>
                         <Input 
                           placeholder="Auto-filled based on category" 
                           value={selectedAutoFilled}

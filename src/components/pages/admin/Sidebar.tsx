@@ -1,24 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Home,
   BarChart3,
-  Users,
-  Plus,
+  User,
+  UserRoundCog,
+  UsersRound,
   FileText,
   LogOut,
-  Building2,
+  LifeBuoy,
   MessageSquare,
-  Shield,
   Briefcase,
   ListChecks,
   ListOrdered,
-  Settings,
+  Wrench,
   Search,
+  Megaphone,
+  Tags,
+  TicketPercent,
+  FileSearch,
+  RadioTower,
 } from "lucide-react";
-import { UserCog, FilePlus2, Files } from "lucide-react";
+import { FilePlus2, Files } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUser } from "@/redux/authSlice";
 import { toast } from "react-toastify";
@@ -41,14 +47,24 @@ const Sidebar = () => {
   const dispatch = useDispatch();
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useSelector((state: RootState) => state.auth.user);
   const { pendingRequestsCount } = useVendorNotifications();
+  const [openSections, setOpenSections] = useState({
+    main: true,
+    users: true,
+    services: true,
+    content: false,
+    system: false,
+  });
 
   // Function to handle logout
   const handleLogout = async () => {
     try {
       await apiConnector("POST", LOGOUT_API);
-    } catch (e) {}
+    } catch (e) {
+      console.error("Logout API failed:", e);
+    }
     dispatch(setToken(null));
     dispatch(setUser(null));
     navigate("/");
@@ -72,9 +88,32 @@ const Sidebar = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {};
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const sectionByPath = {
+      main: ["/", "/admin/dashboard"],
+      users: ["/admin/users", "/admin/vendors", "/admin/crm", "/admin/get-support"],
+      services: ["/admin/services", "/admin/service-update-requests", "/admin/bookings", "/admin/categories", "/admin/coupons"],
+      content: ["/admin/add-blog", "/admin/get-blog", "/admin/add-job", "/admin/get-jobs", "/admin/ads"],
+      system: ["/admin/logs", "/admin/communication-logs", "/admin/search-logs"],
+    };
+
+    const matchedSection = Object.entries(sectionByPath).find(([, paths]) =>
+      paths.some((path) => currentPath === path || currentPath.startsWith(`${path}/`))
+    )?.[0];
+
+    if (matchedSection) {
+      setOpenSections((prev) => ({
+        ...prev,
+        [matchedSection]: true,
+      }));
+    }
+  }, [location.pathname]);
 
   const allMenuItems = [
     {
@@ -82,140 +121,201 @@ const Sidebar = () => {
       icon: Home,
       label: "Back To Home",
       color: "text-blue-600",
-      permission: null,
+      section: "main",
     },
     {
       to: "/admin/dashboard",
       icon: BarChart3,
       label: "Dashboard",
       color: "text-green-600",
-      permission: null,
+      section: "main",
     },
     {
       to: "/admin/services",
-      icon: Settings,
+      icon: Wrench,
       label: "Manage Services",
       color: "text-blue-600",
-      permission: null,
+      section: "services",
     },
     {
       to: "/admin/service-update-requests",
       icon: FileText,
       label: "Service Update Requests",
       color: "text-orange-600",
-      permission: null,
+      section: "services",
     },
     {
       to: "/admin/vendors",
-      icon: UserCog, // vendors = manage users type
+      icon: UserRoundCog,
       label: "Manage Partners",
       color: "text-orange-600",
-      permission: null,
+      section: "users",
     },
     {
       to: "/admin/add-blog",
       icon: FilePlus2, // adding blog = plus file
       label: "Add Blog",
       color: "text-purple-600",
-      permission: null,
+      section: "content",
     },
     {
       to: "/admin/get-blog",
       icon: Files, // multiple blogs listing
       label: "Get Blog",
       color: "text-pink-600",
-      permission: null,
+      section: "content",
     },
     {
       to: "/admin/users",
-      icon: Users, // all users list
+      icon: User,
       label: "All Users",
       color: "text-teal-600",
-      permission: null,
+      section: "users",
     },
     {
       to: "/admin/get-support",
-      icon: Users, // all users list
+      icon: LifeBuoy,
       label: "Customer Support",
       color: "text-teal-600",
-      permission: null,
+      section: "users",
     },
     {
       to: "/admin/add-job",
       icon: Briefcase, // or any other suitable icon (import it from lucide-react)
       label: "Add Job",
       color: "text-orange-600",
-      permission: null,
+      section: "content",
     },
     {
       to: "/admin/get-jobs",
       icon: ListChecks, // another good option, or you can use FileText
       label: "All Jobs",
       color: "text-blue-600",
-      permission: null,
+      section: "content",
     },
     {
       to: "/admin/ads",
-      icon: ListChecks, // another good option, or you can use FileText
+      icon: Megaphone,
       label: "Promote Your Service",
       color: "text-blue-600",
-      permission: null,
+      section: "content",
     },
     {
       to: "/admin/bookings",
       icon: ListOrdered, // another good option, or you can use FileText
       label: "Bookings",
       color: "text-blue-600",
-      permission: null,
+      section: "services",
     },
     {
       to: "/admin/crm",
       icon: FaPeopleArrows, // another good option, or you can use FileText
       label: "Manage Employee",
       color: "text-blue-600",
-      permission: null,
+      section: "users",
     },
     {
       to: "/admin/categories",
-      icon: Files,
+      icon: Tags,
       label: "Manage Categories",
       color: "text-indigo-600",
-      permission: null,
+      section: "services",
     },
     {
       to: "/admin/logs",
-      icon: Files,
+      icon: FileSearch,
       label: "Audit Logs",
       color: "text-indigo-600",
-      permission: null,
+      section: "system",
     },
     {
       to: "/admin/communication-logs",
-      icon: MessageSquare,
+      icon: RadioTower,
       label: "Communication Logs",
       color: "text-green-600",
-      permission: null,
+      section: "system",
     },
     {
       to: "/admin/search-logs",
       icon: Search,
       label: "Search Logs",
       color: "text-purple-600",
-      permission: null,
+      section: "system",
     },
     {
       to: "/admin/coupons",
-      icon: Files,
+      icon: TicketPercent,
       label: "Coupon Management",
       color: "text-yellow-600",
-      permission: null,
+      section: "services",
     },
   ];
-
-  // Filter menu items based on user permissions
-  const menuItems = allMenuItems.filter(
-    (item) => item.permission === null || item.permission
-  );
+  const sections = [
+    { id: "main", label: "Main" },
+    { id: "users", label: "Users" },
+    { id: "services", label: "Services" },
+    { id: "content", label: "Content" },
+    { id: "system", label: "System" },
+  ] as const;
+  const toggleSection = (sectionId: keyof typeof openSections) => {
+    setOpenSections((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
+  const renderMenuItem = (item) => {
+    const Icon = item.icon;
+    const isVendorsPage = item.to === "/admin/vendors";
+    const showNotificationBadge = isVendorsPage && pendingRequestsCount > 0;
+    return (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        className={({ isActive }) =>
+          `flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
+            isActive
+              ? "bg-blue-50 border-r-4 border-blue-600 text-blue-700"
+              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+          }`
+        }
+      >
+        {({ isActive }) => (
+          <>
+            <div className="relative">
+              <Icon
+                className={`h-5 w-5 flex-shrink-0 ${
+                  isActive ? "text-blue-600" : item.color
+                } group-hover:scale-110 transition-transform`}
+              />
+              {showNotificationBadge && (
+                <Badge
+                  variant="destructive"
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs font-bold animate-pulse"
+                >
+                  {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
+                </Badge>
+              )}
+            </div>
+            <span
+              className={`font-medium ${
+                isCollapsed ? "hidden" : "block"
+              } transition-all duration-200 flex-1`}
+            >
+              {item.label}
+            </span>
+            {showNotificationBadge && !isCollapsed && (
+              <Badge
+                variant="destructive"
+                className="ml-auto h-5 px-2 text-xs font-bold animate-pulse"
+              >
+                {pendingRequestsCount}
+              </Badge>
+            )}
+          </>
+        )}
+      </NavLink>
+    );
+  };
 
   return (
     <div
@@ -253,60 +353,38 @@ const Sidebar = () => {
 
       {/* Navigation - Added overflow-y-auto and h-full for vertical scrolling */}
       <nav className="p-4 space-y-2 overflow-y-auto h-full">
-        {menuItems.map((item) => {
-          const Icon = item.icon;
-          const isVendorsPage = item.to === "/admin/vendors";
-          const showNotificationBadge = isVendorsPage && pendingRequestsCount > 0;
-          
-          return (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group relative ${
-                  isActive
-                    ? "bg-blue-50 border-r-4 border-blue-600 text-blue-700"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <div className="relative">
-                    <Icon
-                      className={`h-5 w-5 flex-shrink-0 ${
-                        isActive ? "text-blue-600" : item.color
-                      } group-hover:scale-110 transition-transform`}
-                    />
-                    {showNotificationBadge && (
-                      <Badge 
-                        variant="destructive" 
-                        className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs font-bold animate-pulse"
-                      >
-                        {pendingRequestsCount > 99 ? "99+" : pendingRequestsCount}
-                      </Badge>
-                    )}
+        {isCollapsed ? (
+          <div className="space-y-2">
+            {allMenuItems.map((item) => renderMenuItem(item))}
+          </div>
+        ) : (
+          sections.map((section) => {
+            const sectionItems = allMenuItems.filter((item) => item.section === section.id);
+            if (!sectionItems.length) return null;
+
+            return (
+              <div key={section.id} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => toggleSection(section.id)}
+                  className="w-full flex items-center justify-between px-2 py-1.5 text-xs font-semibold uppercase tracking-wide text-gray-500 hover:text-gray-700"
+                >
+                  <span>{section.label}</span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      openSections[section.id] ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+                {openSections[section.id] && (
+                  <div className="space-y-1">
+                    {sectionItems.map((item) => renderMenuItem(item))}
                   </div>
-                  <span
-                    className={`font-medium ${
-                      isCollapsed ? "hidden" : "block"
-                    } transition-all duration-200 flex-1`}
-                  >
-                    {item.label}
-                  </span>
-                  {showNotificationBadge && !isCollapsed && (
-                    <Badge 
-                      variant="destructive" 
-                      className="ml-auto h-5 px-2 text-xs font-bold animate-pulse"
-                    >
-                      {pendingRequestsCount}
-                    </Badge>
-                  )}
-                </>
-              )}
-            </NavLink>
-          );
-        })}
+                )}
+              </div>
+            );
+          })
+        )}
       </nav>
 
       <Separator className="mx-4" />
