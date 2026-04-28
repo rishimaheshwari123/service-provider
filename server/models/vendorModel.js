@@ -201,6 +201,37 @@ const vendorSchema = new mongoose.Schema(
         resetPasswordOTPExpiry: {
             type: Date,
         },
+
+        // Reward Settings
+        acceptsRewardPoints: {
+            type: Boolean,
+            default: false,
+        },
+        discountType: {
+            type: String,
+            enum: ["percentage", "flat"],
+            default: "flat",
+        },
+        discountPercentage: {
+            type: Number,
+            min: 0,
+            max: 100,
+            default: 0,
+        },
+        maxDiscountAmount: {
+            type: Number,
+            min: 0,
+            default: 0,
+        },
+        minOrderValue: {
+            type: Number,
+            min: 0,
+            default: 0,
+        },
+        rewardSettingsActive: {
+            type: Boolean,
+            default: false,
+        },
     },
 
     { timestamps: true }

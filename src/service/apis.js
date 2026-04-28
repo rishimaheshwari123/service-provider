@@ -41,6 +41,7 @@ export const vendor = {
   RESET_PASSWORD_API: BASE_URL + "/vendor/reset-password",
   ADMIN_RESET_PASSWORD_API: BASE_URL + "/vendor/admin-reset-password",
   UPLOAD_PROFILE_IMAGE_API: BASE_URL + "/vendor/upload-profile-image",
+  UPDATE_REWARD_SETTINGS_API: BASE_URL + "/vendor/update-reward-settings",
 }
 
 export const property = {
@@ -181,4 +182,25 @@ export const vendorProfileUpdateRequest = {
   GET_REQUEST_BY_VENDOR_API: BASE_URL + "/vendor-profile-update-request/vendor",
   APPROVE_REQUEST_API: BASE_URL + "/vendor-profile-update-request/approve",
   REJECT_REQUEST_API: BASE_URL + "/vendor-profile-update-request/reject",
+}
+
+export const reward = {
+  // Admin APIs
+  GET_REWARD_SETTINGS_API: BASE_URL + "/reward/admin/settings",
+  UPDATE_REWARD_SETTINGS_API: BASE_URL + "/reward/admin/settings",
+  GET_REWARD_APPLICATIONS_API: BASE_URL + "/reward/admin/applications",
+  GET_VENDOR_HISTORY_API: BASE_URL + "/reward/admin/vendor-history",
+  GET_REWARD_STATISTICS_API: BASE_URL + "/reward/admin/statistics",
+  
+  // User APIs
+  GET_USER_POINTS_API: BASE_URL + "/reward/user/points",
+  GET_USER_HISTORY_API: BASE_URL + "/reward/user/history",
+  GENERATE_REDEEM_CODE_API: BASE_URL + "/reward/user/generate-code",
+  GET_USER_REDEEM_CODES_API: BASE_URL + "/reward/user/redeem-codes",
+  
+  // Vendor APIs
+  VERIFY_REDEEM_CODE_API: BASE_URL + "/reward/vendor/verify-code",
+  APPLY_REDEEM_CODE_API: BASE_URL + "/reward/vendor/apply-code",
+  GET_VENDOR_APPLIED_CODES_API: BASE_URL + "/reward/vendor/applied-codes",
+  CHECK_VENDOR_SETTINGS_API: BASE_URL + "/reward/vendor/settings",
 }

@@ -24,6 +24,7 @@ import {
   FaSortAmountDown,
   FaChevronLeft,
   FaChevronRight,
+  FaGift,
 } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -31,6 +32,7 @@ import axios from "axios";
 import { BASE_URL } from "@/service/apis";
 import { setUser } from "@/redux/authSlice";
 import { toast } from "sonner";
+import UserRewardPoints from "./UserRewardPoints";
 // API response के स्ट्रक्चर के लिए Types
 interface Inquiry {
   _id: string;
@@ -113,7 +115,7 @@ const UserProfile = () => {
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"bookings" | "inquiries">("bookings");
+  const [activeTab, setActiveTab] = useState<"bookings" | "inquiries" | "rewards">("bookings");
   
   // Edit Profile States
   const [isEditMode, setIsEditMode] = useState(false);
@@ -485,6 +487,17 @@ const UserProfile = () => {
                 <FaQuestionCircle className="inline mr-2" />
                 My Inquiries ({profileData.inquiries.length})
               </button>
+              <button
+                onClick={() => setActiveTab("rewards")}
+                className={`flex-1 py-4 px-6 text-center font-semibold transition-all ${
+                  activeTab === "rewards"
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-50 text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                <FaGift className="inline mr-2" />
+                My Rewards
+              </button>
             </div>
 
             <div className="p-6">
@@ -811,6 +824,13 @@ const UserProfile = () => {
                     )}
                   </>
                   )}
+                </div>
+              )}
+
+              {/* Rewards Tab */}
+              {activeTab === "rewards" && (
+                <div>
+                  <UserRewardPoints />
                 </div>
               )}
             </div>

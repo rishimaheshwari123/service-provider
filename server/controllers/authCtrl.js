@@ -15,6 +15,7 @@ const registerCtrl = async (req, res) => {
       phone,
       type = "user",
       role = "user",
+      referralCode,
       isVendor,
       isBlog,
       isUser,
@@ -46,6 +47,19 @@ const registerCtrl = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Handle referral code if provided
+    let referrerId = null;
+    if (referralCode) {
+      const referrer = await authModel.findOne({ referralCode: referralCode.toUpperCase() });
+      if (referrer) {
+        referrerId = referrer._id;
+      }
+    }
+
+    // Generate unique referral code for new user
+    const { generateReferralCode } = require("../utils/rewardHelper");
+    const newUserReferralCode = await generateReferralCode();
+
     const user = await authModel.create({
       name,
       email,
@@ -53,6 +67,9 @@ const registerCtrl = async (req, res) => {
       type,
       phone,
       role,
+      referralCode: newUserReferralCode,
+      referredBy: referrerId,
+      referredByCode: referralCode ? referralCode.toUpperCase() : null,
       isVendor: isVendor || false,
       isLogs: isLogs || false,
       isBlog: isBlog || false,
@@ -66,6 +83,17 @@ const registerCtrl = async (req, res) => {
       isCoupen: isCoupen || false,
       isManageService: isManageService || false,
     });
+
+    // Process referral rewards if user was referred
+    if (referrerId) {
+      const { processReferralReward } = require("../utils/rewardHelper");
+      try {
+        await processReferralReward(referrerId, user._id);
+      } catch (error) {
+        console.error("Error processing referral reward:", error);
+        // Don't fail registration if reward processing fails
+      }
+    }
 
     const token = jwt.sign(
       { email: user.email, id: user._id, role: user.role },
@@ -544,6 +572,58 @@ const resetPasswordCtrl = async (req, res) => {
   }
 };
 
+// Generate Referral Code for Existing Users
+const generateReferralCodeCtrl = async (req, res) => {
+  try {
+    // Get userId from request body or from token (if middleware is used)
+    const userId = req.body.userId;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    const user = await authModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if user already has a referral code
+    if (user.referralCode) {
+      return res.status(200).json({
+        success: true,
+        message: "User already has a referral code",
+        referralCode: user.referralCode,
+      });
+    }
+
+    // Generate unique referral code
+    const { generateReferralCode } = require("../utils/rewardHelper");
+    const referralCode = await generateReferralCode(userId);
+
+    user.referralCode = referralCode;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Referral code generated successfully",
+      referralCode: referralCode,
+    });
+  } catch (error) {
+    console.error("Generate referral code error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to generate referral code",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerCtrl,
   loginCtrl,
@@ -555,5 +635,6 @@ module.exports = {
   changePasswordCtrl,
   forgotPasswordCtrl,
   verifyResetOTPCtrl,
-  resetPasswordCtrl
+  resetPasswordCtrl,
+  generateReferralCodeCtrl,
 };

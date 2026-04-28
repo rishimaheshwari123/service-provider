@@ -1,5 +1,5 @@
 const express = require("express")
-const { vendorLoginCtrl, vendorRegisterCtrl, getAllVendorCtrl, updateVendorStatusCtrl, getVendorByIDCtrl, updateVendorProfileCtrl, updateVendorPercentageCtrl, updateWorkingHours, requestProfileUpdateCtrl, deleteVendorCtrl, sendVendorOTP, verifyVendorOTP, vendorForgotPasswordCtrl, vendorVerifyResetOTPCtrl, vendorResetPasswordCtrl, adminResetVendorPasswordCtrl, updateVendorProfileImageCtrl } = require("../controllers/vendorCtrl")
+const { vendorLoginCtrl, vendorRegisterCtrl, getAllVendorCtrl, updateVendorStatusCtrl, getVendorByIDCtrl, updateVendorProfileCtrl, updateVendorPercentageCtrl, updateWorkingHours, requestProfileUpdateCtrl, deleteVendorCtrl, sendVendorOTP, verifyVendorOTP, vendorForgotPasswordCtrl, vendorVerifyResetOTPCtrl, vendorResetPasswordCtrl, adminResetVendorPasswordCtrl, updateVendorProfileImageCtrl, updateVendorRewardSettingsCtrl } = require("../controllers/vendorCtrl")
 const router = express.Router()
 
 
@@ -20,9 +20,6 @@ router.put("/working-hours/:id", updateWorkingHours);
 router.post("/request-update/:id", requestProfileUpdateCtrl);
 router.delete("/delete/:id", deleteVendorCtrl);
 router.put("/upload-profile-image/:id", updateVendorProfileImageCtrl);
-
-
+router.put("/update-reward-settings/:id", updateVendorRewardSettingsCtrl);
 
 module.exports = router
-
-router.put("/upload-profile-image/:id", updateVendorProfileImageCtrl)

@@ -99,6 +99,20 @@ const authSchema = new mongoose.Schema(
         resetPasswordOTPExpiry: {
             type: Date,
         },
+
+        // Referral Fields
+        referralCode: {
+            type: String,
+            unique: true,
+            sparse: true,
+        },
+        referredBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "auth",
+        },
+        referredByCode: {
+            type: String,
+        },
     },
     { timestamps: true }
 );

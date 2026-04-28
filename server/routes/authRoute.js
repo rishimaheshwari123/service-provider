@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl } = require("../controllers/authCtrl")
+const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl, generateReferralCodeCtrl } = require("../controllers/authCtrl")
 const router = express.Router()
 
 
@@ -8,6 +8,7 @@ router.post("/register", registerCtrl)
 router.post("/forgot-password", forgotPasswordCtrl)
 router.post("/verify-reset-otp", verifyResetOTPCtrl)
 router.post("/reset-password", resetPasswordCtrl)
+router.post("/generate-referral-code", generateReferralCodeCtrl)
 router.get("/getAll", getAllUsers)
 router.put("/update/:id", editPermissionCtrl)
 router.delete("/delete/:id", deleteAuthCtrl)

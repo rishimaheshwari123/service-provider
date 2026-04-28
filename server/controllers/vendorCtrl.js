@@ -1619,6 +1619,46 @@ const updateVendorProfileImageCtrl = async (req, res) => {
   }
 };
 
+// Update Vendor Reward Settings
+const updateVendorRewardSettingsCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { acceptsRewardPoints, discountType, discountPercentage, maxDiscountAmount, minOrderValue, isActive } = req.body;
+
+    // Check if vendor exists
+    const vendor = await vendorModel.findById(id);
+    if (!vendor) {
+      return res.status(404).json({
+        success: false,
+        message: "Vendor not found",
+      });
+    }
+
+    // Update reward settings
+    vendor.acceptsRewardPoints = acceptsRewardPoints !== undefined ? acceptsRewardPoints : vendor.acceptsRewardPoints;
+    vendor.discountType = discountType || vendor.discountType;
+    vendor.discountPercentage = discountPercentage !== undefined ? discountPercentage : vendor.discountPercentage;
+    vendor.maxDiscountAmount = maxDiscountAmount !== undefined ? maxDiscountAmount : vendor.maxDiscountAmount;
+    vendor.minOrderValue = minOrderValue !== undefined ? minOrderValue : vendor.minOrderValue;
+    vendor.rewardSettingsActive = isActive !== undefined ? isActive : vendor.rewardSettingsActive;
+
+    await vendor.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Vendor reward settings updated successfully",
+      vendor,
+    });
+  } catch (error) {
+    console.error("Error updating vendor reward settings:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update vendor reward settings",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   vendorRegisterCtrl,
   vendorLoginCtrl,
@@ -1636,5 +1676,6 @@ module.exports = {
   vendorVerifyResetOTPCtrl,
   vendorResetPasswordCtrl,
   adminResetVendorPasswordCtrl,
-  updateVendorProfileImageCtrl
+  updateVendorProfileImageCtrl,
+  updateVendorRewardSettingsCtrl,
 };
