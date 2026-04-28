@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { signUp } from "@/service/operations/auth";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Gift } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -28,6 +28,7 @@ const signupSchema = z
       ),
     password: z.string().min(6, "Password must be at least 6 characters"),
     confirmPassword: z.string(),
+    referralCode: z.string().optional(),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -63,6 +64,7 @@ const Signup = () => {
         email: data.email,
         phone: data.phone || "",
         password: data.password,
+        referralCode: data.referralCode || "",
       };
       const success = await signUp(formData, navigate, dispatch);
       if (success) {
@@ -178,6 +180,29 @@ const Signup = () => {
                 {errors.confirmPassword.message}
               </p>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="referralCode" className="flex items-center gap-2">
+              <Gift className="w-4 h-4 text-purple-600" />
+              Referral Code <span className="text-muted-foreground text-xs">(Optional)</span>
+            </Label>
+            <Input
+              id="referralCode"
+              type="text"
+              placeholder="Enter referral code (if you have one)"
+              {...register("referralCode")}
+              className={errors.referralCode ? "border-destructive" : ""}
+              maxLength={8}
+              style={{ textTransform: 'uppercase' }}
+            />
+            {errors.referralCode && (
+              <p className="text-sm text-destructive">{errors.referralCode.message}</p>
+            )}
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Gift className="w-3 h-3" />
+              Have a referral code? Enter it to earn bonus reward points!
+            </p>
           </div>
 
           <div className="flex items-start gap-2">

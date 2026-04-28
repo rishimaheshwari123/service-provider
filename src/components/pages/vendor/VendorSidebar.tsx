@@ -16,6 +16,7 @@ import {
   ListOrdered,
   ClipboardList,
   Megaphone,
+  Gift,
 } from "lucide-react";
 import { User, PlusSquare, ListChecks } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -147,6 +148,13 @@ const VendorSidebar = () => {
       icon: Megaphone,
       label: "My Ads",
       color: "text-blue-600",
+      permission: null,
+    },
+    {
+      to: "/vendor/apply-reward-code",
+      icon: Gift,
+      label: "Apply Reward Code",
+      color: "text-purple-600",
       permission: null,
     },
     {

@@ -23,6 +23,9 @@ import {
   TicketPercent,
   FileSearch,
   RadioTower,
+  Gift,
+  Award,
+  Settings,
 } from "lucide-react";
 import { FilePlus2, Files } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
@@ -100,6 +103,7 @@ const Sidebar = () => {
       users: ["/admin/users", "/admin/vendors", "/admin/crm", "/admin/get-support"],
       services: ["/admin/services", "/admin/service-update-requests", "/admin/bookings", "/admin/categories", "/admin/coupons"],
       content: ["/admin/add-blog", "/admin/get-blog", "/admin/add-job", "/admin/get-jobs", "/admin/ads"],
+      rewards: ["/admin/reward-settings", "/admin/reward-applications", "/admin/vendor-reward-settings"],
       system: ["/admin/logs", "/admin/communication-logs", "/admin/search-logs"],
     };
 
@@ -249,12 +253,28 @@ const Sidebar = () => {
       color: "text-yellow-600",
       section: "services",
     },
+    {
+      to: "/admin/reward-settings",
+      icon: Settings,
+      label: "Reward Settings",
+      color: "text-purple-600",
+      section: "rewards",
+    },
+    {
+      to: "/admin/reward-applications",
+      icon: Gift,
+      label: "Reward Applications",
+      color: "text-pink-600",
+      section: "rewards",
+    },
+    
   ];
   const sections = [
     { id: "main", label: "Main" },
     { id: "users", label: "Users" },
     { id: "services", label: "Services" },
     { id: "content", label: "Content" },
+    { id: "rewards", label: "Rewards" },
     { id: "system", label: "System" },
   ] as const;
   const toggleSection = (sectionId: keyof typeof openSections) => {

@@ -55,6 +55,10 @@ import AdminAuditLogs from "./components/pages/admin/AdminAuditLogs";
 import CommunicationLogs from "./components/pages/admin/CommunicationLogs";
 import SearchLogs from "./components/pages/admin/SearchLogs";
 import CouponManagement from "./components/pages/admin/CouponManagement";
+import RewardSettings from "./components/pages/admin/RewardSettings";
+import RewardApplications from "./components/pages/admin/RewardApplications";
+import UserRewardPoints from "./pages/UserRewardPoints";
+import VendorApplyRedeemCode from "./components/pages/vendor/VendorApplyRedeemCode";
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminServices from "./components/pages/admin/AdminServices";
@@ -96,6 +100,7 @@ const App = () => {
             <Route path="/blogs" element={<Blogs />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/user/profile" element={<UserProfile />} />
+            <Route path="/user/rewards" element={<UserRewardPoints />} />
             <Route path="/customer-support" element={<CustomerSupport />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/careers/:id" element={<JobDetail />} />
@@ -143,6 +148,8 @@ const App = () => {
                 <Route path="communication-logs" element={<CommunicationLogs />} />
                 <Route path="search-logs" element={<SearchLogs />} />
                 <Route path="coupons" element={<CouponManagement />} />
+                <Route path="reward-settings" element={<RewardSettings />} />
+                <Route path="reward-applications" element={<RewardApplications />} />
                 <Route path="add-service/:id" element={<VendorAddService />} />
               </Route>
             )}
@@ -163,6 +170,7 @@ const App = () => {
                 <Route path="bookings" element={<VendorBookings />} />
                 <Route path="tasks" element={<Task />} />
                 <Route path="ads" element={<CreateAdd />} />
+                <Route path="apply-reward-code" element={<VendorApplyRedeemCode />} />
                 <Route path="upload-service-image" element={<VendoreServiceImagesUpload/>} />
                 <Route path="logs" element={<AuditLogsPage />} />
                 <Route
