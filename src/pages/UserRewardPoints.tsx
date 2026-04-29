@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { BASE_URL } from "@/service/apis";
 
 const UserRewardPoints = () => {
   const { token, user } = useSelector((state: any) => state.auth);
@@ -127,7 +128,7 @@ const UserRewardPoints = () => {
     try {
       setLoading(true);
       // Call backend API to generate referral code for existing user
-      const response = await fetch(`${import.meta.env.VITE_APP_BASE_URL || 'http://localhost:8000'}/api/v1/auth/generate-referral-code`, {
+      const response = await fetch(`${BASE_URL}/auth/generate-referral-code`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
