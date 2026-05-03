@@ -35,6 +35,9 @@ router.get("/user/redeem-codes", verifyToken, rewardCtrl.getUserRedeemCodes);
 // App download reward (public endpoint - called by mobile app)
 router.post("/user/download-reward", rewardCtrl.appDownloadReward);
 
+//Get reward setting for user app
+router.get("/user/settings", verifyToken, rewardCtrl.getRewardSettings);
+
 // ==================== VENDOR ROUTES ====================
 
 // Verify redeem code (without applying)
