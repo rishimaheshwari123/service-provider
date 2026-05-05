@@ -30,7 +30,7 @@ const registerCtrl = async (req, res) => {
       isManageService,
     } = req.body;
 
-    if (!name || !email || !phone || !password || !type || !role) {
+    if (!name || !phone || !password || !type || !role) {
       return res.status(403).json({
         success: false,
         message: "All required fields must be filled",
