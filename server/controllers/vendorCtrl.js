@@ -1623,7 +1623,7 @@ const updateVendorProfileImageCtrl = async (req, res) => {
 const updateVendorRewardSettingsCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const { acceptsRewardPoints, discountType, discountPercentage, maxDiscountAmount, minOrderValue, isActive } = req.body;
+    const { acceptsRewardPoints, discountType, discountPercentage, maxDiscountAmount, minOrderValue, isActive, notes } = req.body;
 
     // Check if vendor exists
     const vendor = await vendorModel.findById(id);
@@ -1641,6 +1641,7 @@ const updateVendorRewardSettingsCtrl = async (req, res) => {
     vendor.maxDiscountAmount = maxDiscountAmount !== undefined ? maxDiscountAmount : vendor.maxDiscountAmount;
     vendor.minOrderValue = minOrderValue !== undefined ? minOrderValue : vendor.minOrderValue;
     vendor.rewardSettingsActive = isActive !== undefined ? isActive : vendor.rewardSettingsActive;
+    vendor.rewardSettingsNotes = notes !== undefined ? notes : vendor.rewardSettingsNotes;
 
     await vendor.save();
 

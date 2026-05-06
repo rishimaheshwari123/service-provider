@@ -232,6 +232,10 @@ const vendorSchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        rewardSettingsNotes: {
+            type: String,
+            default: "",
+        },
     },
 
     { timestamps: true }

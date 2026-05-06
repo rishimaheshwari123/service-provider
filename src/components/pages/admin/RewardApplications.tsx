@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
@@ -45,6 +46,7 @@ const RewardApplications = () => {
     maxDiscountAmount: 0,
     minOrderValue: 0,
     isActive: true,
+    notes: "",
   });
 
   useEffect(() => {
@@ -106,6 +108,7 @@ const RewardApplications = () => {
       maxDiscountAmount: vendor.maxDiscountAmount || 0,
       minOrderValue: vendor.minOrderValue || 0,
       isActive: vendor.rewardSettingsActive !== undefined ? vendor.rewardSettingsActive : true,
+      notes: vendor.rewardSettingsNotes || "",
     });
     setIsDialogOpen(true);
   };
@@ -532,6 +535,23 @@ const RewardApplications = () => {
                 id="isActive"
                 checked={formData.isActive}
                 onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+              />
+            </div>
+
+            {/* Notes */}
+            <div>
+              <Label htmlFor="notes" className="text-base font-medium">
+                Notes (Optional)
+              </Label>
+              <p className="text-sm text-gray-500 mb-2">
+                Add any additional notes or instructions for this vendor's reward settings
+              </p>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Enter notes here..."
+                className="min-h-[100px] resize-y"
               />
             </div>
 
