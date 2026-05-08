@@ -388,17 +388,17 @@ exports.getUserRedeemCodes = async (req, res) => {
 // App Download Reward (Called by mobile app)
 exports.appDownloadReward = async (req, res) => {
     try {
-        const { email } = req.body;
+        const { phone } = req.body;
 
-        if (!email) {
+        if (!phone) {
             return res.status(400).json({
                 success: false,
-                message: "Email is required",
+                message: "Phone number is required",
             });
         }
 
-        // Find user by email
-        const user = await Auth.findOne({ email, role: "user" });
+        // Find user by phone
+        const user = await Auth.findOne({ phone, role: "user" });
         if (!user) {
             return res.status(404).json({
                 success: false,
