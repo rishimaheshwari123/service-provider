@@ -174,6 +174,14 @@ const vendorSchema = new mongoose.Schema(
         document4: { type: String, },
         document5: { type: String, },
 
+        // Portfolio Images
+        portfolioImages: [
+            {
+                public_id: String,
+                url: String,
+            },
+        ],
+
         // OTP Verification Fields
         otp: {
             type: String,

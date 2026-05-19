@@ -1,5 +1,8 @@
 const AuditLogs = require("../models/auditLogs");
 const Property = require("../models/propertyModel");
+const RewardSettings = require("../models/rewardSettingsModel");
+const RewardPoints = require("../models/rewardPointsModel");
+const RewardHistory = require("../models/rewardHistoryModel");
 
 const createAuditCtrl = async (req, res) => {
     try {
@@ -17,6 +20,56 @@ const createAuditCtrl = async (req, res) => {
             propertyId: id,
             type
         });
+
+        // Award phone call reward points if type is "phone"
+        if (type === "phone" || type ==="show_number") {
+            try {
+                const rewardSettings = await RewardSettings.findOne();
+                
+                if (rewardSettings && rewardSettings.isActive && rewardSettings.phoneCallPoints > 0) {
+                    console.log(`📞 Processing phone call reward for user ${userId}`);
+                    
+                    // Get property details for reward history
+                    const property = await Property.findById(id).select('title');
+                    
+                    // Get or create reward points record
+                    let userRewardPoints = await RewardPoints.findOne({ userId });
+                    
+                    if (!userRewardPoints) {
+                        userRewardPoints = await RewardPoints.create({
+                            userId,
+                            totalPoints: 0,
+                            availablePoints: 0,
+                        });
+                    }
+                    
+                    // Add phone call points
+                    const pointsToAdd = rewardSettings.phoneCallPoints;
+                    userRewardPoints.totalPoints += pointsToAdd;
+                    userRewardPoints.availablePoints += pointsToAdd;
+                    await userRewardPoints.save();
+                    
+                    // Create reward history entry
+                    await RewardHistory.create({
+                        userId,
+                        type: "credit",
+                        source: "phone_call",
+                        points: pointsToAdd,
+                        description: `Phone call reward for service: ${property?.title || 'Service'}`,
+                        referenceId: auditLog._id,
+                        referenceModel: "AuditLogs",
+                        balanceAfter: userRewardPoints.availablePoints,
+                    });
+                    
+                    console.log(`✅ Awarded ${pointsToAdd} phone call reward points to user ${userId}`);
+                } else {
+                    console.log('ℹ️ Phone call rewards not active or not configured');
+                }
+            } catch (rewardError) {
+                console.error('❌ Failed to process phone call reward:', rewardError);
+                // Don't fail the audit log if reward fails
+            }
+        }
 
         res.status(201).json({
             success: true,

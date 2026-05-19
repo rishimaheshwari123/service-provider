@@ -244,13 +244,18 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
       type: "service", // Default type
       category: categoryId, // Category ObjectId
       description: vendor.description || category.autoFilled || `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
-      images: category.image ? [{ url: category.image }] : [], // Category image
+      images: vendor.portfolioImages && vendor.portfolioImages.length > 0 
+        ? vendor.portfolioImages // Use vendor's portfolio images if available
+        : category.image ? [{ url: category.image }] : [], // Fallback to category image
       vendor: vendorId, // Vendor ID
       status: "active"
     };
 
     const newProperty = await Property.create(propertyData);
     console.log("Property created automatically:", newProperty._id);
+    console.log("Images used:", vendor.portfolioImages && vendor.portfolioImages.length > 0 
+      ? `Vendor portfolio images (${vendor.portfolioImages.length} images)` 
+      : "Category image (fallback)");
     return newProperty;
   } catch (error) {
     console.error("Error creating property automatically:", error);

@@ -20,6 +20,10 @@ exports.getRewardSettings = async (req, res) => {
                 referralDiscountType: "flat",
                 downloadPoints: 0,
                 downloadDiscountType: "flat",
+                bookingPoints: 0,
+                bookingDiscountType: "flat",
+                phoneCallPoints: 0,
+                phoneCallDiscountType: "flat",
             });
         }
 
@@ -40,7 +44,17 @@ exports.getRewardSettings = async (req, res) => {
 // Update Reward Settings
 exports.updateRewardSettings = async (req, res) => {
     try {
-        const { referralPoints, referralDiscountType, downloadPoints, downloadDiscountType, isActive } = req.body;
+        const { 
+            referralPoints, 
+            referralDiscountType, 
+            downloadPoints, 
+            downloadDiscountType, 
+            bookingPoints, 
+            bookingDiscountType, 
+            phoneCallPoints, 
+            phoneCallDiscountType, 
+            isActive 
+        } = req.body;
         const adminId = req.user.id;
 
         let settings = await RewardSettings.findOne();
@@ -51,6 +65,10 @@ exports.updateRewardSettings = async (req, res) => {
                 referralDiscountType,
                 downloadPoints,
                 downloadDiscountType,
+                bookingPoints,
+                bookingDiscountType,
+                phoneCallPoints,
+                phoneCallDiscountType,
                 isActive,
                 updatedBy: adminId,
             });
@@ -59,6 +77,10 @@ exports.updateRewardSettings = async (req, res) => {
             settings.referralDiscountType = referralDiscountType || settings.referralDiscountType;
             settings.downloadPoints = downloadPoints !== undefined ? downloadPoints : settings.downloadPoints;
             settings.downloadDiscountType = downloadDiscountType || settings.downloadDiscountType;
+            settings.bookingPoints = bookingPoints !== undefined ? bookingPoints : settings.bookingPoints;
+            settings.bookingDiscountType = bookingDiscountType || settings.bookingDiscountType;
+            settings.phoneCallPoints = phoneCallPoints !== undefined ? phoneCallPoints : settings.phoneCallPoints;
+            settings.phoneCallDiscountType = phoneCallDiscountType || settings.phoneCallDiscountType;
             settings.isActive = isActive !== undefined ? isActive : settings.isActive;
             settings.updatedBy = adminId;
 
