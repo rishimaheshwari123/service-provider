@@ -1,6 +1,10 @@
 const Booking = require("../models/BookingModel");
 const Property = require("../models/propertyModel");
 const AuditLogs = require("../models/auditLogs");
+const RewardSettings = require("../models/rewardSettingsModel");
+const RewardPoints = require("../models/rewardPointsModel");
+const RewardHistory = require("../models/rewardHistoryModel");
+const Auth = require("../models/authModel");
 
 exports.createBookingCtrl = async (req, res) => {
     try {
@@ -56,6 +60,51 @@ exports.createBookingCtrl = async (req, res) => {
             console.log('Booking audit log created successfully');
         } catch (auditError) {
             console.error('Failed to create booking audit log:', auditError);
+        }
+
+        // Award booking reward points to user
+        try {
+            const rewardSettings = await RewardSettings.findOne();
+            
+            if (rewardSettings && rewardSettings.isActive && rewardSettings.bookingPoints > 0) {
+                console.log(`🎁 Processing booking reward for user ${user}`);
+                
+                // Get or create reward points record
+                let userRewardPoints = await RewardPoints.findOne({ userId: user });
+                
+                if (!userRewardPoints) {
+                    userRewardPoints = await RewardPoints.create({
+                        userId: user,
+                        totalPoints: 0,
+                        availablePoints: 0,
+                    });
+                }
+                
+                // Add booking points
+                const pointsToAdd = rewardSettings.bookingPoints;
+                userRewardPoints.totalPoints += pointsToAdd;
+                userRewardPoints.availablePoints += pointsToAdd;
+                await userRewardPoints.save();
+                
+                // Create reward history entry
+                await RewardHistory.create({
+                    userId: user,
+                    type: "credit",
+                    source: "booking",
+                    points: pointsToAdd,
+                    description: `Booking reward for service: ${serviceDetails?.title || 'Service'}`,
+                    referenceId: booking._id,
+                    referenceModel: "Booking",
+                    balanceAfter: userRewardPoints.availablePoints,
+                });
+                
+                console.log(`✅ Awarded ${pointsToAdd} booking reward points to user ${user}`);
+            } else {
+                console.log('ℹ️ Booking rewards not active or not configured');
+            }
+        } catch (rewardError) {
+            console.error('❌ Failed to process booking reward:', rewardError);
+            // Don't fail the booking if reward fails
         }
 
         res.status(201).json({

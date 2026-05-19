@@ -153,11 +153,22 @@ const vendorRegisterCtrl = async (req, res) => {
       console.log('- WhatsApp verified:', existingUser.isWhatsappVerified);
       console.log('- Has name:', !!existingUser.name);
       console.log('- Has email:', !!existingUser.email);
+      console.log('- Has password:', !!existingUser.password);
     }
     
-    // Only block if vendor is FULLY registered (has name, email, etc.) and verified
-    if (existingUser && existingUser.isPhoneVerified && existingUser.name && existingUser.email) {
+    // Check if this is a FULLY registered vendor (not just OTP verified)
+    // A fully registered vendor has: verified phone + name + password
+    const isFullyRegistered = existingUser && 
+                              existingUser.isPhoneVerified && 
+                              existingUser.name && 
+                              existingUser.password;
+    
+    console.log('🔍 Is fully registered:', isFullyRegistered);
+    
+    // Only block if vendor is FULLY registered
+    if (isFullyRegistered) {
       const conflictFields = getConflictingInputFields(inputNumbers, existingUser);
+      console.log('❌ Blocking registration - vendor already fully registered');
       return res.status(400).json({
         success: false,
         message: buildDuplicateNumberMessage(conflictFields),
@@ -298,6 +309,22 @@ const vendorRegisterCtrl = async (req, res) => {
         await Promise.all(uploadPromises);
       } else {
         console.log("📁 No files to upload");
+      }
+      
+      // Handle portfolio images from frontend (already uploaded, just URLs)
+      if (req.body.portfolioImages) {
+        try {
+          const portfolioImagesData = typeof req.body.portfolioImages === 'string' 
+            ? JSON.parse(req.body.portfolioImages) 
+            : req.body.portfolioImages;
+          
+          if (Array.isArray(portfolioImagesData) && portfolioImagesData.length > 0) {
+            fileUpdates.portfolioImages = portfolioImagesData;
+            console.log(`✅ ${portfolioImagesData.length} portfolio images received from frontend`);
+          }
+        } catch (error) {
+          console.error("❌ Error parsing portfolio images:", error);
+        }
       }
       
     } catch (uploadError) {
@@ -850,6 +877,25 @@ updateVendorProfileCtrl = async (req, res) => {
       } else {
         console.log("⚠️ Invalid categoryId format:", updateData.categoryId);
         delete updateData.categoryId;
+      }
+    }
+
+    // Handle portfolio images - parse if string
+    if (updateData.portfolioImages) {
+      try {
+        if (typeof updateData.portfolioImages === 'string') {
+          updateData.portfolioImages = JSON.parse(updateData.portfolioImages);
+          console.log("✅ Parsed portfolio images from string:", updateData.portfolioImages.length);
+        }
+        
+        // Validate it's an array
+        if (!Array.isArray(updateData.portfolioImages)) {
+          console.log("⚠️ Portfolio images is not an array, removing");
+          delete updateData.portfolioImages;
+        }
+      } catch (error) {
+        console.error("❌ Error parsing portfolio images:", error);
+        delete updateData.portfolioImages;
       }
     }
 

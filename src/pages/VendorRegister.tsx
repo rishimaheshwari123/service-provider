@@ -14,6 +14,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { signUp } from "../service/operations/vendor";
 import { getAllCategoriesAPI } from "../service/operations/category";
 import { sendOTP, verifyOTP } from "../service/operations/otp";
+import { imageUpload } from "../service/operations/image";
 import { ChevronLeft, ChevronRight, Check, Upload, X } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -95,7 +96,8 @@ const STEPS = [
   { id: 4, title: "Bank", icon: "🏦" },
   { id: 5, title: "Experience", icon: "⭐" },
   { id: 6, title: "Documents", icon: "📄" },
-  { id: 7, title: "Submit", icon: "✅" },
+  { id: 7, title: "Portfolio", icon: "🖼️" },
+  { id: 8, title: "Submit", icon: "✅" },
 ];
 
 const VendorRegister = () => {
@@ -127,6 +129,8 @@ const VendorRegister = () => {
     document5: null,
   });
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [portfolioImages, setPortfolioImages] = useState<Array<{ public_id: string; url: string }>>([]);
+  const [portfolioUploading, setPortfolioUploading] = useState(false);
 
   // Simple OTP states
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
@@ -220,7 +224,8 @@ const VendorRegister = () => {
       4: [],
       5: ["workingDays"],
       6: [],
-      7: ["password", "confirmPassword"],
+      7: [],
+      8: ["password", "confirmPassword"],
     };
     
     // Add WhatsApp validation for step 2 if user has WhatsApp
@@ -339,7 +344,7 @@ const VendorRegister = () => {
 
   const nextStep = async () => {
     const isValid = await validateStep(currentStep);
-    if (isValid && currentStep < 7) {
+    if (isValid && currentStep < 8) {
       setCurrentStep(currentStep + 1);
       window.scrollTo(0, 0);
     }
@@ -359,6 +364,45 @@ const VendorRegister = () => {
       console.log("📋 Updated documents state:", Object.keys(updated).filter(key => updated[key]));
       return updated;
     });
+  };
+
+  const handlePortfolioImagesChange = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    const newImages = Array.from(files);
+    const totalImages = portfolioImages.length + newImages.length;
+    
+    if (totalImages > 10) {
+      toast.error("You can upload maximum 10 portfolio images");
+      return;
+    }
+    
+    setPortfolioUploading(true);
+    try {
+      // Upload images to server and get URLs
+      const uploadedImages = await imageUpload(newImages);
+      
+      if (uploadedImages && uploadedImages.length > 0) {
+        const formattedImages = uploadedImages.map((img: any) => ({
+          public_id: img.asset_id || img.public_id,
+          url: img.url
+        }));
+        
+        setPortfolioImages(prev => [...prev, ...formattedImages]);
+        toast.success(`${uploadedImages.length} image(s) uploaded successfully!`);
+        console.log(`🖼️ Portfolio images uploaded: ${uploadedImages.length}, Total: ${portfolioImages.length + uploadedImages.length}`);
+      }
+    } catch (error) {
+      console.error("Portfolio upload error:", error);
+      toast.error("Failed to upload portfolio images");
+    } finally {
+      setPortfolioUploading(false);
+    }
+  };
+
+  const removePortfolioImage = (publicId: string) => {
+    setPortfolioImages(prev => prev.filter(img => img.public_id !== publicId));
+    console.log(`🗑️ Portfolio image removed: ${publicId}`);
   };
 
   const onSubmit = async (data: VendorFormData) => {
@@ -431,6 +475,13 @@ const VendorRegister = () => {
     // Add profile photo if selected
     if (profilePhoto) {
       formData.append("profilePhoto", profilePhoto);
+    }
+    
+    // Add portfolio images URLs (already uploaded to server)
+    if (portfolioImages.length > 0) {
+      console.log(`🖼️ Adding ${portfolioImages.length} portfolio image URLs to FormData`);
+      formData.append("portfolioImages", JSON.stringify(portfolioImages));
+      console.log("Portfolio images data:", portfolioImages);
     }
     
     // Add documents if selected (with detailed logging)
@@ -527,7 +578,7 @@ const VendorRegister = () => {
     }
   };
 
-  const progress = (currentStep / 7) * 100;
+  const progress = (currentStep / 8) * 100;
 
   return (
    <div>
@@ -1277,6 +1328,86 @@ const VendorRegister = () => {
               {/* Step 7: Declaration & Submit */}
               {currentStep === 7 && (
                 <div className="space-y-4">
+                  <p className="text-sm text-gray-500 bg-purple-50 p-3 rounded-lg border border-purple-200">
+                    🖼️ Upload your work portfolio images (optional but recommended). You can upload up to 10 images showcasing your previous work.
+                  </p>
+                  
+                  {/* Portfolio Images Upload */}
+                  <div className="space-y-3">
+                    <Label className="text-purple-800 font-semibold">
+                      Portfolio Images (Max 10)
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        ({portfolioImages.length}/10 uploaded)
+                      </span>
+                    </Label>
+                    
+                    {/* Upload Button */}
+                    {portfolioImages.length < 10 && (
+                      <label className={`cursor-pointer ${portfolioUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors bg-white">
+                          <div className="flex flex-col items-center gap-2 text-purple-600">
+                            <Upload size={32} />
+                            <span className="font-medium">
+                              {portfolioUploading ? "Uploading..." : "Click to upload portfolio images"}
+                            </span>
+                            <span className="text-sm text-gray-500">
+                              Select multiple images (JPG, PNG, JPEG)
+                            </span>
+                          </div>
+                        </div>
+                        <input
+                          type="file"
+                          className="hidden"
+                          accept="image/*"
+                          multiple
+                          disabled={portfolioUploading}
+                          onChange={(e) => handlePortfolioImagesChange(e.target.files)}
+                        />
+                      </label>
+                    )}
+                    
+                    {/* Portfolio Images Preview Grid */}
+                    {portfolioImages.length > 0 && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                        {portfolioImages.map((image, index) => (
+                          <div key={image.public_id} className="relative group">
+                            <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
+                              <img
+                                src={image.url}
+                                alt={`Portfolio ${index + 1}`}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={() => removePortfolioImage(image.public_id)}
+                            >
+                              <X size={14} />
+                            </Button>
+                            <div className="absolute bottom-1 left-1 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                              {index + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {portfolioImages.length === 0 && (
+                      <div className="text-center py-8 text-gray-400">
+                        <p className="text-sm">No portfolio images uploaded yet</p>
+                        <p className="text-xs mt-1">Upload images to showcase your work</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Step 8: Declaration & Submit */}
+              {currentStep === 8 && (
+                <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Password <span className="text-red-500">*</span></Label>
@@ -1348,7 +1479,7 @@ const VendorRegister = () => {
                     <ChevronLeft size={18} /> Previous
                   </Button>
 
-                  {currentStep < 7 ? (
+                  {currentStep < 8 ? (
                     <Button
                       type="button"
                       onClick={nextStep}
@@ -1367,7 +1498,7 @@ const VendorRegister = () => {
                   )}
                 </div>
 
-                {currentStep === 7 && (
+                {currentStep === 8 && (
                   <p className="text-sm text-red-600 font-medium bg-blue-50 px-4 py-2 rounded-md text-center border border-blue-200">
                     <span className="font-semibold">Note:</span> Payment is required to complete registration
                   </p>

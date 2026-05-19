@@ -26,6 +26,30 @@ const rewardSettingsSchema = new mongoose.Schema(
             default: "flat",
         },
 
+        // Booking Reward Settings
+        bookingPoints: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        bookingDiscountType: {
+            type: String,
+            enum: ["percentage", "flat"],
+            default: "flat",
+        },
+
+        // Phone Call Reward Settings
+        phoneCallPoints: {
+            type: Number,
+            default: 0,
+            min: 0,
+        },
+        phoneCallDiscountType: {
+            type: String,
+            enum: ["percentage", "flat"],
+            default: "flat",
+        },
+
         // Global Settings
         isActive: {
             type: Boolean,

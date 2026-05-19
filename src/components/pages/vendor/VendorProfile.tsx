@@ -610,6 +610,7 @@ const VendorProfile = () => {
                       <div className="space-y-2">
                         <Label>Category (Service)</Label>
                         <Select 
+                        disabled
                           value={selectedCategory}
                           onValueChange={(val) => {
                             setSelectedCategory(val);
@@ -637,6 +638,7 @@ const VendorProfile = () => {
                       <div className="space-y-2">
                         <Label>Sub Category (Auto Filled)</Label>
                         <Input 
+                        disabled
                           placeholder="Auto-filled based on category" 
                           value={selectedAutoFilled}
                           onChange={(e) => {

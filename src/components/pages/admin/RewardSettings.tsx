@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getRewardSettings, updateRewardSettings } from "@/service/operations/rewardAPI";
-import { Gift, Percent, DollarSign, Save } from "lucide-react";
+import { Gift, Percent, DollarSign, Save, Calendar, Phone } from "lucide-react";
 
 const RewardSettings = () => {
   const { token } = useSelector((state: any) => state.auth);
@@ -17,6 +17,10 @@ const RewardSettings = () => {
     referralDiscountType: "flat",
     downloadPoints: 0,
     downloadDiscountType: "flat",
+    bookingPoints: 0,
+    bookingDiscountType: "flat",
+    phoneCallPoints: 0,
+    phoneCallDiscountType: "flat",
     isActive: true,
   });
 
@@ -157,6 +161,78 @@ const RewardSettings = () => {
             <div className="bg-green-50 p-3 rounded-lg">
               <p className="text-sm text-green-800">
                 <strong>Note:</strong> Download rewards can only be claimed once per user.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Booking Rewards */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-orange-600" />
+              Booking Rewards
+            </CardTitle>
+            <CardDescription>
+              Points awarded when a user makes a service booking
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="bookingPoints">Booking Points (₹)</Label>
+              <Input
+                id="bookingPoints"
+                type="number"
+                min="0"
+                value={settings.bookingPoints}
+                onChange={(e) =>
+                  setSettings({ ...settings, bookingPoints: parseInt(e.target.value) || 0 })
+                }
+                placeholder="Enter points amount"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Amount in rupees that will be credited to user on each booking
+              </p>
+            </div>
+            <div className="bg-orange-50 p-3 rounded-lg">
+              <p className="text-sm text-orange-800">
+                <strong>Example:</strong> If set to ₹{settings.bookingPoints}, user will receive ₹{settings.bookingPoints} reward points for each service booking.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Phone Call Rewards */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Phone className="w-5 h-5 text-purple-600" />
+              Phone Call Rewards
+            </CardTitle>
+            <CardDescription>
+              Points awarded when a user clicks the call button to contact a vendor
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="phoneCallPoints">Phone Call Points (₹)</Label>
+              <Input
+                id="phoneCallPoints"
+                type="number"
+                min="0"
+                value={settings.phoneCallPoints}
+                onChange={(e) =>
+                  setSettings({ ...settings, phoneCallPoints: parseInt(e.target.value) || 0 })
+                }
+                placeholder="Enter points amount"
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Amount in rupees that will be credited to user when they call a vendor
+              </p>
+            </div>
+            <div className="bg-purple-50 p-3 rounded-lg">
+              <p className="text-sm text-purple-800">
+                <strong>Example:</strong> If set to ₹{settings.phoneCallPoints}, user will receive ₹{settings.phoneCallPoints} reward points each time they click call button.
               </p>
             </div>
           </CardContent>

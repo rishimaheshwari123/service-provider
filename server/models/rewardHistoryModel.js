@@ -21,7 +21,7 @@ const rewardHistorySchema = new mongoose.Schema(
 
         source: {
             type: String,
-            enum: ["referral", "download", "redemption"],
+            enum: ["referral", "download", "redemption", "booking", "phone_call"],
             required: true,
         },
 
