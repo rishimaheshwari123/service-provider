@@ -397,14 +397,14 @@ const PurchaseCategories = () => {
           {/* Payment Buttons */}
           <div className="flex flex-col gap-4 mt-2">
             {/* Cash Payment */}
-            <Button
+            {/* <Button
               variant="outline"
               onClick={() => handlePurchase("cash")}
               disabled={loading}
               className="w-full py-3 text-gray-700 border-gray-300 hover:bg-gray-100"
             >
               Cash (Admin Approval)
-            </Button>
+            </Button> */}
 
             {/* Online / Prepaid Payment */}
             <Button

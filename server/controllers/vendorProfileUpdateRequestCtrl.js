@@ -85,10 +85,6 @@ const getChangedFields = (original, updated) => {
   const changes = [];
   const fieldsToCompare = Object.keys(updated);
 
-  console.log("\n🔍 ===== COMPARING FIELDS =====");
-  console.log("📋 Original data keys:", Object.keys(original));
-  console.log("📋 Updated data keys:", fieldsToCompare);
-
   fieldsToCompare.forEach((field) => {
     // Skip internal fields
     if (["_id", "__v", "createdAt", "updatedAt", "password", "token"].includes(field)) {
@@ -98,25 +94,13 @@ const getChangedFields = (original, updated) => {
     const originalValue = original[field];
     const updatedValue = updated[field];
 
-    console.log(`\n🔍 Checking field: ${field}`);
-    console.log(`  Original type: ${typeof originalValue}, value:`, originalValue);
-    console.log(`  Updated type: ${typeof updatedValue}, value:`, updatedValue);
-
     // Handle category field specially - compare IDs
     if (field === "category" || field === "categoryId") {
       const originalId = typeof originalValue === "object" ? originalValue?._id?.toString() : originalValue?.toString();
       const updatedId = typeof updatedValue === "object" ? updatedValue?._id?.toString() : updatedValue?.toString();
       
-      console.log(`  📌 Category comparison:`);
-      console.log(`    Original ID: ${originalId}`);
-      console.log(`    Updated ID: ${updatedId}`);
-      console.log(`    Match: ${originalId === updatedId}`);
-      
       if (originalId !== updatedId) {
-        console.log(`  ✅ CHANGED: ${field}`);
         changes.push(field);
-      } else {
-        console.log(`  ⏭️  SKIPPED: ${field} (no change)`);
       }
       return;
     }
@@ -127,48 +111,24 @@ const getChangedFields = (original, updated) => {
       const originalStr = JSON.stringify(originalValue || {});
       const updatedStr = JSON.stringify(updatedValue);
       
-      console.log(`  📦 Object comparison:`);
-      console.log(`    Original JSON: ${originalStr.substring(0, 100)}...`);
-      console.log(`    Updated JSON: ${updatedStr.substring(0, 100)}...`);
-      console.log(`    Match: ${originalStr === updatedStr}`);
-      
       if (originalStr !== updatedStr) {
-        console.log(`  ✅ CHANGED: ${field}`);
         changes.push(field);
-      } else {
-        console.log(`  ⏭️  SKIPPED: ${field} (no change)`);
       }
     } else if (Array.isArray(updatedValue)) {
       // For arrays, compare stringified versions
       const originalStr = JSON.stringify(originalValue || []);
       const updatedStr = JSON.stringify(updatedValue);
       
-      console.log(`  📚 Array comparison:`);
-      console.log(`    Match: ${originalStr === updatedStr}`);
-      
       if (originalStr !== updatedStr) {
-        console.log(`  ✅ CHANGED: ${field}`);
         changes.push(field);
-      } else {
-        console.log(`  ⏭️  SKIPPED: ${field} (no change)`);
       }
     } else {
       // For simple values, direct comparison
-      console.log(`  🔤 Simple comparison:`);
-      console.log(`    Match: ${originalValue === updatedValue}`);
-      
       if (originalValue !== updatedValue) {
-        console.log(`  ✅ CHANGED: ${field}`);
         changes.push(field);
-      } else {
-        console.log(`  ⏭️  SKIPPED: ${field} (no change)`);
       }
     }
   });
-
-  console.log("\n✅ ===== FINAL CHANGED FIELDS =====");
-  console.log(changes);
-  console.log("================================\n");
 
   return changes;
 };
@@ -180,10 +140,6 @@ exports.createProfileUpdateRequest = async (req, res) => {
     const updateData = { ...req.body };
     const files = req.files;
 
-    console.log("📋 Profile update request received for vendor:", id);
-    console.log("📄 Files received:", files ? Object.keys(files) : "No files");
-    console.log("📝 Form data keys:", Object.keys(updateData));
-
     // Get current vendor data (with populated category)
     const vendor = await vendorModel.findById(id).populate('category', 'name');
     if (!vendor) {
@@ -192,9 +148,6 @@ exports.createProfileUpdateRequest = async (req, res) => {
         message: "Vendor not found",
       });
     }
-
-    console.log("📋 Original vendor category:", vendor.category);
-    console.log("📋 Update data category:", updateData.category);
 
     // Duplicate number validation for profile edit request
     const nextNumbers = {
@@ -256,30 +209,14 @@ exports.createProfileUpdateRequest = async (req, res) => {
 
     // Normalize category field for comparison
     // If category in updateData is same as vendor's category ID, don't include it
-    console.log("\n🔍 ===== CATEGORY NORMALIZATION =====");
-    console.log("📋 updateData.category:", updateData.category);
-    console.log("📋 vendor.category:", vendor.category);
-    
     if (updateData.category) {
       const vendorCategoryId = vendor.category?._id?.toString() || vendor.category?.toString();
       const updateCategoryId = updateData.category.toString();
       
-      console.log("🔍 Comparing categories:");
-      console.log("  Vendor category ID:", vendorCategoryId);
-      console.log("  Update category ID:", updateCategoryId);
-      console.log("  Are they equal?", vendorCategoryId === updateCategoryId);
-      
       if (vendorCategoryId === updateCategoryId) {
-        console.log("✅ Category unchanged, removing from update data");
         delete updateData.category;
-      } else {
-        console.log("⚠️  Category HAS CHANGED - keeping in update data");
       }
-    } else {
-      console.log("ℹ️  No category in updateData");
     }
-    console.log("📋 updateData after normalization:", Object.keys(updateData));
-    console.log("================================\n");
 
     // Get changed fields
     const changedFields = getChangedFields(vendor.toObject(), updateData);
@@ -291,7 +228,26 @@ exports.createProfileUpdateRequest = async (req, res) => {
       });
     }
 
-    console.log("✅ Changed fields:", changedFields);
+    // Clean up empty strings and portfolio images from updateData before saving
+    const cleanedUpdateData = {};
+    const cleanedChangedFields = [];
+    
+    Object.keys(updateData).forEach((key) => {
+      // Skip portfolioImages completely - not needed in profile updates
+      if (key === 'portfolioImages') {
+        return;
+      }
+      
+      const value = updateData[key];
+      // Skip empty strings and undefined values
+      if (value !== '' && value !== undefined && value !== null) {
+        cleanedUpdateData[key] = value;
+        // Only include in changedFields if it's actually being kept
+        if (changedFields.includes(key)) {
+          cleanedChangedFields.push(key);
+        }
+      }
+    });
 
     // Check if there's already a pending request
     const existingRequest = await VendorProfileUpdateRequest.findOne({
@@ -301,16 +257,14 @@ exports.createProfileUpdateRequest = async (req, res) => {
 
     if (existingRequest) {
       // Update existing request
-      existingRequest.requestedChanges = updateData;
-      existingRequest.changedFields = changedFields;
+      existingRequest.requestedChanges = cleanedUpdateData;
+      existingRequest.changedFields = cleanedChangedFields;
       await existingRequest.save();
 
       // Update vendor status
       await vendorModel.findByIdAndUpdate(id, {
         updateProfileRequest: "requested",
       });
-
-      console.log("✅ Updated existing profile update request");
 
       return res.status(200).json({
         success: true,
@@ -322,9 +276,9 @@ exports.createProfileUpdateRequest = async (req, res) => {
     // Create new request
     const updateRequest = await VendorProfileUpdateRequest.create({
       vendorId: id,
-      requestedChanges: updateData,
+      requestedChanges: cleanedUpdateData,
       originalData: vendor.toObject(),
-      changedFields,
+      changedFields: cleanedChangedFields,
       status: "pending",
     });
 
@@ -332,8 +286,6 @@ exports.createProfileUpdateRequest = async (req, res) => {
     await vendorModel.findByIdAndUpdate(id, {
       updateProfileRequest: "requested",
     });
-
-    console.log("✅ Created new profile update request");
 
     return res.status(201).json({
       success: true,
@@ -403,8 +355,6 @@ exports.approveUpdateRequest = async (req, res) => {
     const { requestId } = req.params;
     const { adminId } = req.body;
 
-    console.log("📋 Approving update request:", requestId);
-
     const updateRequest = await VendorProfileUpdateRequest.findById(requestId);
     if (!updateRequest) {
       return res.status(404).json({
@@ -420,9 +370,6 @@ exports.approveUpdateRequest = async (req, res) => {
       });
     }
 
-    console.log("📝 Requested changes:", updateRequest.requestedChanges);
-    console.log("🔄 Changed fields:", updateRequest.changedFields);
-
     // Get the vendor
     const vendor = await vendorModel.findById(updateRequest.vendorId);
     if (!vendor) {
@@ -435,38 +382,57 @@ exports.approveUpdateRequest = async (req, res) => {
     // Apply each changed field individually
     const requestedChanges = updateRequest.requestedChanges;
     
-    // Update simple fields
+    // Build update object - only include fields we want to update
+    const updateObject = {
+      updateProfileRequest: "approved"
+    };
+    
+    // Fields that should not be updated as simple fields (handled separately)
+    const fieldsToSkip = ['bankDetail', 'experience'];
+    
+    // Process simple fields
     Object.keys(requestedChanges).forEach((key) => {
-      if (key !== 'bankDetail' && key !== 'experience') {
-        const sanitizedValue = sanitizeRequestedValue(key, requestedChanges[key]);
+      if (!fieldsToSkip.includes(key)) {
+        const value = requestedChanges[key];
+        
+        // Skip empty strings for any field
+        if (typeof value === 'string' && value.trim() === '') {
+          return;
+        }
+        
+        // Skip undefined, null, or empty array values
+        if (value === undefined || value === null) {
+          return;
+        }
+        
+        const sanitizedValue = sanitizeRequestedValue(key, value);
         if (sanitizedValue !== undefined) {
-          vendor[key] = sanitizedValue;
+          updateObject[key] = sanitizedValue;
         }
       }
     });
 
-    // Update nested objects properly
-    if (requestedChanges.bankDetail) {
-      vendor.bankDetail = {
+    // Handle nested objects
+    if (requestedChanges.bankDetail && typeof requestedChanges.bankDetail === 'object' && !Array.isArray(requestedChanges.bankDetail)) {
+      updateObject.bankDetail = {
         ...vendor.bankDetail,
         ...requestedChanges.bankDetail,
       };
     }
 
-    if (requestedChanges.experience) {
-      vendor.experience = {
+    if (requestedChanges.experience && typeof requestedChanges.experience === 'object' && !Array.isArray(requestedChanges.experience)) {
+      updateObject.experience = {
         ...vendor.experience,
         ...requestedChanges.experience,
       };
     }
 
-    // Set approval status
-    vendor.updateProfileRequest = "approved";
-
-    // Save the vendor with all changes
-    await vendor.save();
-
-    console.log("✅ Vendor profile updated successfully");
+    // Use findByIdAndUpdate to only update specified fields (avoids portfolioImages validation)
+    const updatedVendor = await vendorModel.findByIdAndUpdate(
+      updateRequest.vendorId,
+      updateObject,
+      { new: true, runValidators: false } // Skip validators to avoid portfolioImages issue
+    );
 
     // Update request status
     updateRequest.status = "approved";
@@ -474,12 +440,10 @@ exports.approveUpdateRequest = async (req, res) => {
     updateRequest.reviewedAt = new Date();
     await updateRequest.save();
 
-    console.log("✅ Update request marked as approved");
-
     return res.status(200).json({
       success: true,
       message: "Profile update request approved successfully",
-      vendor: vendor,
+      vendor: updatedVendor,
     });
   } catch (error) {
     console.error("❌ Error approving update request:", error);

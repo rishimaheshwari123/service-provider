@@ -97,30 +97,6 @@ const vendorRegisterCtrl = async (req, res) => {
     } = req.body;
     
     const files = req.files;
-    
-    // Debug: Log received files with more details
-    console.log("📁 Files received:", files ? Object.keys(files) : "No files");
-    if (files) {
-      Object.keys(files).forEach(key => {
-        const file = files[key];
-        console.log(`📄 ${key}:`, {
-          name: file.name,
-          size: file.size,
-          mimetype: file.mimetype
-        });
-      });
-    }
-    
-    // Debug: Log all form data
-    console.log("📋 Form data received:");
-    Object.keys(req.body).forEach(key => {
-      const value = req.body[key];
-      if (Array.isArray(value)) {
-        console.log(`${key}: [Array with ${value.length} items] ${JSON.stringify(value)}`);
-      } else {
-        console.log(`${key}: ${value}`);
-      }
-    });
 
     if (!name  || !password || !phone) {
       return res.status(403).send({
@@ -129,11 +105,6 @@ const vendorRegisterCtrl = async (req, res) => {
       });
     }
 
-    // Check if vendor exists and is phone verified
-    console.log('🔍 Looking for existing vendor with:');
-    console.log('- Phone:', phone);
-    console.log('- WhatsApp:', whatsappNumber);
-    
     const inputNumbers = {
       phone: normalizePhone(phone),
       whatsappNumber: normalizePhone(whatsappNumber),
@@ -144,18 +115,6 @@ const vendorRegisterCtrl = async (req, res) => {
       [inputNumbers.phone, inputNumbers.whatsappNumber, inputNumbers.alternatePhone]
     );
     
-    console.log('🔍 Existing user found:', !!existingUser);
-    if (existingUser) {
-      console.log('- User ID:', existingUser._id);
-      console.log('- User phone:', existingUser.phone);
-      console.log('- User whatsapp:', existingUser.whatsappNumber);
-      console.log('- Phone verified:', existingUser.isPhoneVerified);
-      console.log('- WhatsApp verified:', existingUser.isWhatsappVerified);
-      console.log('- Has name:', !!existingUser.name);
-      console.log('- Has email:', !!existingUser.email);
-      console.log('- Has password:', !!existingUser.password);
-    }
-    
     // Check if this is a FULLY registered vendor (not just OTP verified)
     // A fully registered vendor has: verified phone + name + password
     const isFullyRegistered = existingUser && 
@@ -163,12 +122,9 @@ const vendorRegisterCtrl = async (req, res) => {
                               existingUser.name && 
                               existingUser.password;
     
-    console.log('🔍 Is fully registered:', isFullyRegistered);
-    
     // Only block if vendor is FULLY registered
     if (isFullyRegistered) {
       const conflictFields = getConflictingInputFields(inputNumbers, existingUser);
-      console.log('❌ Blocking registration - vendor already fully registered');
       return res.status(400).json({
         success: false,
         message: buildDuplicateNumberMessage(conflictFields),
@@ -181,61 +137,33 @@ const vendorRegisterCtrl = async (req, res) => {
     // Check if the numbers being used in registration are verified
     let isVerified = false;
     
-    console.log('🔍 Checking verification status:');
-    console.log('- Phone from request:', phone);
-    console.log('- WhatsApp from request:', whatsappNumber);
-    console.log('- WhatsApp is empty/undefined:', !whatsappNumber || whatsappNumber === '');
-    
     if (existingUser) {
-      console.log('- Existing user found');
-      console.log('- Existing user phone:', existingUser.phone);
-      console.log('- Existing user whatsapp:', existingUser.whatsappNumber);
-      console.log('- Phone verified:', existingUser.isPhoneVerified);
-      console.log('- WhatsApp verified:', existingUser.isWhatsappVerified);
-      
       // If WhatsApp number is empty, null, undefined, or same as phone - user is not using WhatsApp
       if (!whatsappNumber || whatsappNumber === '' || whatsappNumber === phone) {
-        console.log('🔄 User not using WhatsApp, checking phone verification');
         // User is not using WhatsApp, check phone verification
         if (existingUser.phone === phone && existingUser.isPhoneVerified) {
           isVerified = true;
-          console.log('✅ Phone number verified for registration:', phone);
         }
       } else {
-        console.log('🔄 User using WhatsApp, checking WhatsApp verification');
         // User is using WhatsApp, check WhatsApp verification
         if (existingUser.whatsappNumber === whatsappNumber && existingUser.isWhatsappVerified) {
           isVerified = true;
-          console.log('✅ WhatsApp number verified for registration:', whatsappNumber);
         }
       }
       
       // Additional fallback: if phone matches and is verified, allow registration regardless
       if (!isVerified && existingUser.phone === phone && existingUser.isPhoneVerified) {
         isVerified = true;
-        console.log('✅ Phone verification fallback successful:', phone);
       }
-    } else {
-      console.log('❌ No existing user found with provided numbers');
     }
     
     if (!isVerified) {
-      console.log('❌ Verification failed for registration:');
-      console.log('- Phone:', phone);
-      console.log('- WhatsApp Number:', whatsappNumber);
-      console.log('- Existing User Phone:', existingUser?.phone);
-      console.log('- Existing User WhatsApp:', existingUser?.whatsappNumber);
-      console.log('- Phone Verified:', existingUser?.isPhoneVerified);
-      console.log('- WhatsApp Verified:', existingUser?.isWhatsappVerified);
-      
       return res.status(400).json({
         success: false,
         message: "Phone number not verified. Please verify your phone number with OTP first.",
         requiresOTP: true
       });
     }
-    
-    console.log('✅ Verification successful, proceeding with registration');
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
@@ -245,15 +173,12 @@ const vendorRegisterCtrl = async (req, res) => {
     
     try {
       if (files?.profilePhoto) {
-        console.log("📸 Uploading profile photo...");
         uploadPromises.push(
           uploadImageToCloudinary(files.profilePhoto, "profilePhoto")
             .then(result => {
               fileUpdates.profilePhoto = result.secure_url;
-              console.log("✅ Profile photo uploaded:", result.secure_url);
             })
             .catch(error => {
-              console.error("❌ Profile photo upload failed:", error);
               throw new Error(`Profile photo upload failed: ${error.message}`);
             })
         );
@@ -263,14 +188,10 @@ const vendorRegisterCtrl = async (req, res) => {
       for (let i = 1; i <= 5; i++) {
         const docKey = `document${i}`;
         if (files?.[docKey]) {
-          console.log(`📄 Preparing to upload ${docKey}...`);
-          
           // Add retry logic for document uploads
           const uploadWithRetry = async (file, folder, retries = 2) => {
             for (let attempt = 1; attempt <= retries + 1; attempt++) {
               try {
-                console.log(`📤 ${docKey} upload attempt ${attempt}/${retries + 1}`);
-                
                 // Add small delay to avoid overwhelming S3
                 if (attempt > 1) {
                   await new Promise(resolve => setTimeout(resolve, 500));
@@ -279,7 +200,6 @@ const vendorRegisterCtrl = async (req, res) => {
                 const result = await uploadImageToCloudinary(file, folder);
                 return result;
               } catch (error) {
-                console.error(`❌ ${docKey} upload attempt ${attempt} failed:`, error.message);
                 if (attempt === retries + 1) {
                   throw error; // Final attempt failed
                 }
@@ -293,10 +213,8 @@ const vendorRegisterCtrl = async (req, res) => {
             uploadWithRetry(files[docKey], "vendorDocuments")
               .then(result => {
                 fileUpdates[docKey] = result.secure_url;
-                console.log(`✅ ${docKey} uploaded:`, result.secure_url);
               })
               .catch(error => {
-                console.error(`❌ ${docKey} upload failed after retries:`, error);
                 throw new Error(`${docKey} upload failed: ${error.message}`);
               })
           );
@@ -305,10 +223,7 @@ const vendorRegisterCtrl = async (req, res) => {
       
       // Wait for all uploads to complete
       if (uploadPromises.length > 0) {
-        console.log(`📤 Starting ${uploadPromises.length} file uploads...`);
         await Promise.all(uploadPromises);
-      } else {
-        console.log("📁 No files to upload");
       }
       
       // Handle portfolio images from frontend (already uploaded, just URLs)
@@ -320,16 +235,13 @@ const vendorRegisterCtrl = async (req, res) => {
           
           if (Array.isArray(portfolioImagesData) && portfolioImagesData.length > 0) {
             fileUpdates.portfolioImages = portfolioImagesData;
-            console.log(`✅ ${portfolioImagesData.length} portfolio images received from frontend`);
           }
         } catch (error) {
-          console.error("❌ Error parsing portfolio images:", error);
+          // Silently ignore portfolio images parsing errors
         }
       }
       
     } catch (uploadError) {
-      console.error("❌ File upload error:", uploadError);
-      
       // Provide detailed error information
       const errorDetails = {
         message: uploadError.message,
