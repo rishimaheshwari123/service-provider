@@ -139,13 +139,21 @@ const VendorProfile = () => {
   });
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
   const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
-  const [documents, setDocuments] = useState<{ [key: string]: File | null }>({
-    document1: null,
-    document2: null,
-    document3: null,
-    document4: null,
-    document5: null,
+  const [selectedDocumentType, setSelectedDocumentType] = useState<"aadhaar" | "pan" | "gst" | "tradeLicense" | "">("");
+  const [businessDocuments, setBusinessDocuments] = useState<{
+    aadhaarFront: File | null;
+    aadhaarBack: File | null;
+    panCard: File | null;
+    gstCertificate: File | null;
+    tradeLicenseDoc: File | null;
+  }>({
+    aadhaarFront: null,
+    aadhaarBack: null,
+    panCard: null,
+    gstCertificate: null,
+    tradeLicenseDoc: null,
   });
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
@@ -248,8 +256,8 @@ const VendorProfile = () => {
     }));
   };
 
-  const handleFileChange = (docKey: string, file: File | null) => {
-    setDocuments(prev => ({ ...prev, [docKey]: file }));
+  const handleBusinessDocumentChange = (docKey: keyof typeof businessDocuments, file: File | null) => {
+    setBusinessDocuments(prev => ({ ...prev, [docKey]: file }));
   };
 
   const handleProfileImageUpload = async (file: File) => {
@@ -309,21 +317,11 @@ const VendorProfile = () => {
       console.log("  Selected category ID:", selectedCategory);
       console.log("  FormData category:", formData.category);
 
-      // Add basic text fields (exclude workingHours and other special fields)
+      // Add basic text fields (skip special fields that will be added separately)
+      const fieldsToSkip = ['bankDetail', 'experience', 'workingHours', 'categoryId', 'category', 'profilePhoto', 'document1', 'document2', 'document3', 'document4', 'document5', 'paymentMethod', 'upiId', 'numberOfStaff'];
+      
       Object.entries(formData).forEach(([key, value]) => {
-        if (
-          key !== "bankDetail" &&
-          key !== "experience" &&
-          key !== "workingHours" && // Exclude workingHours from general update
-          key !== "categoryId" && // Exclude categoryId (redundant with category)
-          key !== "category" && // Handle category separately
-          key !== "profilePhoto" &&
-          key !== "document1" &&
-          key !== "document2" &&
-          key !== "document3" &&
-          key !== "document4" &&
-          key !== "document5"
-        ) {
+        if (!fieldsToSkip.includes(key)) {
           if (value !== undefined && value !== null) {
             const stringValue = String(value).trim();
             if (
@@ -345,8 +343,23 @@ const VendorProfile = () => {
         console.log("⏭️  Category unchanged, not adding to form");
       }
 
+      // Add payment method
+      if (formData.paymentMethod) {
+        form.append("paymentMethod", formData.paymentMethod);
+      }
+
+      // Add UPI ID if payment method is UPI
+      if (formData.paymentMethod === "upi" && formData.upiId) {
+        form.append("upiId", formData.upiId);
+      }
+
+      // Add numberOfStaff
+      if (formData.numberOfStaff !== undefined) {
+        form.append("numberOfStaff", formData.numberOfStaff.toString());
+      }
+
       // Add nested objects
-      if (formData.bankDetail) {
+      if (formData.bankDetail && formData.paymentMethod === "bank") {
         Object.entries(formData.bankDetail).forEach(([key, value]) => {
           if (value) form.append(`bankDetail[${key}]`, value);
         });
@@ -367,24 +380,33 @@ const VendorProfile = () => {
         }
       }
 
-      // Add files only if new files selected
-      if (documents.profilePhoto instanceof File) {
-        form.append("profilePhoto", documents.profilePhoto);
+      // Add profile photo if new file selected
+      if (profilePhoto instanceof File) {
+        form.append("profilePhoto", profilePhoto);
       }
-      if (documents.document1 instanceof File) {
-        form.append("document1", documents.document1);
-      }
-      if (documents.document2 instanceof File) {
-        form.append("document2", documents.document2);
-      }
-      if (documents.document3 instanceof File) {
-        form.append("document3", documents.document3);
-      }
-      if (documents.document4 instanceof File) {
-        form.append("document4", documents.document4);
-      }
-      if (documents.document5 instanceof File) {
-        form.append("document5", documents.document5);
+
+      // Add business documents in backend format (document1, document2, etc.)
+      form.append("selectedDocumentType", selectedDocumentType);
+      
+      if (selectedDocumentType === "aadhaar") {
+        if (businessDocuments.aadhaarFront instanceof File) {
+          form.append("document1", businessDocuments.aadhaarFront);
+        }
+        if (businessDocuments.aadhaarBack instanceof File) {
+          form.append("document2", businessDocuments.aadhaarBack);
+        }
+      } else if (selectedDocumentType === "pan") {
+        if (businessDocuments.panCard instanceof File) {
+          form.append("document1", businessDocuments.panCard);
+        }
+      } else if (selectedDocumentType === "gst") {
+        if (businessDocuments.gstCertificate instanceof File) {
+          form.append("document1", businessDocuments.gstCertificate);
+        }
+      } else if (selectedDocumentType === "tradeLicense") {
+        if (businessDocuments.tradeLicenseDoc instanceof File) {
+          form.append("document1", businessDocuments.tradeLicenseDoc);
+        }
       }
 
       // Use new API to create profile update request
@@ -439,12 +461,14 @@ const VendorProfile = () => {
     }
     
     // Reset documents
-    setDocuments({
-      document1: null,
-      document2: null,
-      document3: null,
-      document4: null,
-      document5: null,
+    setSelectedDocumentType("");
+    setProfilePhoto(null);
+    setBusinessDocuments({
+      aadhaarFront: null,
+      aadhaarBack: null,
+      panCard: null,
+      gstCertificate: null,
+      tradeLicenseDoc: null,
     });
   };
 
@@ -772,50 +796,316 @@ const VendorProfile = () => {
                       >
                         {["Proprietorship", "Partnership", "LLP", "Private Limited", "Other"].map((type) => (
                           <div key={type} className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50">
-                            <RadioGroupItem value={type} id={type} />
-                            <Label htmlFor={type} className="cursor-pointer">{type}</Label>
+                            <RadioGroupItem value={type} id={`vendor-${type}`} />
+                            <Label htmlFor={`vendor-${type}`} className="cursor-pointer">{type}</Label>
                           </div>
                         ))}
                       </RadioGroup>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Aadhaar Number</Label>
-                        <Input 
-                          value={formData.adhar || ""} 
-                          onChange={(e) => handleInputChange("adhar", e.target.value)}
-                          placeholder="12-digit Aadhaar number" 
-                        />
+                    {/* Document Upload Section */}
+                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-4">
+                      <div className="flex items-start gap-2">
+                        <div className="text-blue-600 mt-1">📄</div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-blue-900 mb-1">Business Document Upload</h4>
+                          <p className="text-sm text-blue-700">
+                            Select document type and upload files. Leave empty to keep existing documents.
+                          </p>
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label>PAN Number</Label>
-                        <Input 
-                          value={formData.pan || ""} 
-                          onChange={(e) => handleInputChange("pan", e.target.value)}
-                          placeholder="ABCDE1234F" 
-                          className="uppercase" 
-                        />
-                      </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Document Type Selection */}
                       <div className="space-y-2">
-                        <Label>GST Number (if applicable)</Label>
-                        <Input 
-                          value={formData.gstNumber || ""} 
-                          onChange={(e) => handleInputChange("gstNumber", e.target.value)}
-                          placeholder="Enter GST number" 
-                        />
+                        <Label>Select Document Type (Optional)</Label>
+                        <Select 
+                          value={selectedDocumentType}
+                          onValueChange={(val: any) => setSelectedDocumentType(val)}
+                        >
+                          <SelectTrigger className="bg-white">
+                            <SelectValue placeholder="Choose document to upload" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="aadhaar">Aadhaar Card (Front & Back)</SelectItem>
+                            <SelectItem value="pan">PAN Card</SelectItem>
+                            <SelectItem value="gst">GST Certificate</SelectItem>
+                            <SelectItem value="tradeLicense">Trade License</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      <div className="space-y-2">
-                        <Label>Trade License / Shop Act Registration No.</Label>
-                        <Input 
-                          value={formData.tradeLicense || ""} 
-                          onChange={(e) => handleInputChange("tradeLicense", e.target.value)}
-                          placeholder="Enter license number (if applicable)" 
-                        />
-                      </div>
+
+                      {/* Conditional File Upload based on Document Type */}
+                      {selectedDocumentType === "aadhaar" && (
+                        <div className="space-y-3">
+                          <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                            📸 Upload both front and back images of Aadhaar card
+                          </p>
+                          
+                          {/* Aadhaar Number Input */}
+                          <div className="space-y-2">
+                            <Label>Aadhaar Number</Label>
+                            <Input 
+                              value={formData.adhar || ""} 
+                              onChange={(e) => handleInputChange("adhar", e.target.value)}
+                              placeholder="12-digit Aadhaar number" 
+                            />
+                          </div>
+                          
+                          {/* Aadhaar Front */}
+                          <div className="space-y-2">
+                            <Label>Aadhaar Card - Front Side</Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.aadhaarFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
+                                  {businessDocuments.aadhaarFront ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.aadhaarFront.name}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload Aadhaar Front</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) => handleBusinessDocumentChange('aadhaarFront', e.target.files?.[0] || null)}
+                                />
+                              </label>
+                              {businessDocuments.aadhaarFront && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleBusinessDocumentChange('aadhaarFront', null)}
+                                >
+                                  <X size={16} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Aadhaar Back */}
+                          <div className="space-y-2">
+                            <Label>Aadhaar Card - Back Side</Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.aadhaarBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
+                                  {businessDocuments.aadhaarBack ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.aadhaarBack.name}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload Aadhaar Back</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) => handleBusinessDocumentChange('aadhaarBack', e.target.files?.[0] || null)}
+                                />
+                              </label>
+                              {businessDocuments.aadhaarBack && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() => handleBusinessDocumentChange('aadhaarBack', null)}
+                                >
+                                  <X size={16} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDocumentType === "pan" && (
+                        <div className="space-y-2">
+                          {/* PAN Number Input */}
+                          <div className="space-y-2">
+                            <Label>PAN Number</Label>
+                            <Input 
+                              value={formData.pan || ""} 
+                              onChange={(e) => handleInputChange("pan", e.target.value)}
+                              placeholder="ABCDE1234F" 
+                              className="uppercase" 
+                            />
+                          </div>
+                          
+                          {/* PAN Card Upload */}
+                          <Label>PAN Card</Label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex-1 cursor-pointer">
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                !businessDocuments.panCard ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                              }`}>
+                                {businessDocuments.panCard ? (
+                                  <div className="flex items-center justify-center gap-2 text-green-600">
+                                    <Check size={20} />
+                                    <span className="truncate max-w-[200px]">
+                                      {businessDocuments.panCard.name}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                                    <Upload size={20} />
+                                    <span>Upload PAN Card</span>
+                                  </div>
+                                )}
+                              </div>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*,.pdf"
+                                onChange={(e) => handleBusinessDocumentChange('panCard', e.target.files?.[0] || null)}
+                              />
+                            </label>
+                            {businessDocuments.panCard && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleBusinessDocumentChange('panCard', null)}
+                              >
+                                <X size={16} />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDocumentType === "gst" && (
+                        <div className="space-y-2">
+                          {/* GST Number Input */}
+                          <div className="space-y-2">
+                            <Label>GST Number</Label>
+                            <Input 
+                              value={formData.gstNumber || ""} 
+                              onChange={(e) => handleInputChange("gstNumber", e.target.value)}
+                              placeholder="Enter GST number" 
+                            />
+                          </div>
+                          
+                          {/* GST Certificate Upload */}
+                          <Label>GST Certificate</Label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex-1 cursor-pointer">
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                !businessDocuments.gstCertificate ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                              }`}>
+                                {businessDocuments.gstCertificate ? (
+                                  <div className="flex items-center justify-center gap-2 text-green-600">
+                                    <Check size={20} />
+                                    <span className="truncate max-w-[200px]">
+                                      {businessDocuments.gstCertificate.name}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                                    <Upload size={20} />
+                                    <span>Upload GST Certificate</span>
+                                  </div>
+                                )}
+                              </div>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*,.pdf"
+                                onChange={(e) => handleBusinessDocumentChange('gstCertificate', e.target.files?.[0] || null)}
+                              />
+                            </label>
+                            {businessDocuments.gstCertificate && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleBusinessDocumentChange('gstCertificate', null)}
+                              >
+                                <X size={16} />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDocumentType === "tradeLicense" && (
+                        <div className="space-y-2">
+                          {/* Trade License Number Input */}
+                          <div className="space-y-2">
+                            <Label>Trade License / Shop Act Registration No.</Label>
+                            <Input 
+                              value={formData.tradeLicense || ""} 
+                              onChange={(e) => handleInputChange("tradeLicense", e.target.value)}
+                              placeholder="Enter license number" 
+                            />
+                          </div>
+                          
+                          {/* Trade License Upload */}
+                          <Label>Trade License</Label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex-1 cursor-pointer">
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                !businessDocuments.tradeLicenseDoc ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                              }`}>
+                                {businessDocuments.tradeLicenseDoc ? (
+                                  <div className="flex items-center justify-center gap-2 text-green-600">
+                                    <Check size={20} />
+                                    <span className="truncate max-w-[200px]">
+                                      {businessDocuments.tradeLicenseDoc.name}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                                    <Upload size={20} />
+                                    <span>Upload Trade License</span>
+                                  </div>
+                                )}
+                              </div>
+                              <input
+                                type="file"
+                                className="hidden"
+                                accept="image/*,.pdf"
+                                onChange={(e) => handleBusinessDocumentChange('tradeLicenseDoc', e.target.files?.[0] || null)}
+                              />
+                            </label>
+                            {businessDocuments.tradeLicenseDoc && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleBusinessDocumentChange('tradeLicenseDoc', null)}
+                              >
+                                <X size={16} />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {!selectedDocumentType && (
+                        <div className="text-center py-6 text-gray-400">
+                          <p className="text-sm">Select a document type to upload new documents</p>
+                          <p className="text-xs mt-1">Leave empty to keep existing documents</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1058,31 +1348,52 @@ const VendorProfile = () => {
                 {currentStep === 6 && (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                      📄 Upload or update documents (Aadhaar, PAN, GST Certificate, Address Proof, Business Registration, etc.)
+                      📸 Upload or update profile photo. Business documents can be updated in Step 3.
                     </p>
                     
-                    {/* Profile Photo */}
-                    <div className="space-y-2">
-                      <Label>Profile Photo</Label>
+                    {/* Profile Photo Section */}
+                    <div className="space-y-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                      <Label className="text-yellow-800 font-semibold">Profile Photo</Label>
                       <div className="flex items-center gap-3">
                         <label className="flex-1 cursor-pointer">
-                          <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-yellow-500 transition-colors">
-                            {documents.profilePhoto ? (
-                              <div className="flex items-center justify-center gap-2 text-green-600">
-                                <Check size={20} />
-                                <span className="truncate max-w-[200px]">
-                                  {documents.profilePhoto?.name}
-                                </span>
+                          <div className="border-2 border-dashed border-yellow-300 rounded-lg p-6 text-center hover:border-yellow-500 transition-colors bg-white">
+                            {profilePhoto ? (
+                              <div className="flex flex-col items-center gap-3">
+                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-yellow-400">
+                                  <img
+                                    src={URL.createObjectURL(profilePhoto)}
+                                    alt="Profile Preview"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2 text-green-600">
+                                  <Check size={20} />
+                                  <span className="truncate max-w-[200px] font-medium">
+                                    {profilePhoto.name}
+                                  </span>
+                                </div>
                               </div>
-                            ) : vendor.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
-                              <div className="flex items-center justify-center gap-2 text-blue-600">
-                                <FileText size={20} />
-                                <span>Current photo uploaded</span>
+                            ) : vendor?.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
+                              <div className="flex flex-col items-center gap-3">
+                                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-yellow-400">
+                                  <img
+                                    src={vendor.profilePhoto}
+                                    alt="Current Profile"
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-2 text-blue-600">
+                                  <FileText size={20} />
+                                  <span className="font-medium">Current photo</span>
+                                </div>
                               </div>
                             ) : (
-                              <div className="flex items-center justify-center gap-2 text-gray-500">
-                                <Upload size={20} />
-                                <span>Click to upload profile photo</span>
+                              <div className="flex flex-col items-center gap-2 text-yellow-600">
+                                <div className="w-32 h-32 rounded-full bg-yellow-100 flex items-center justify-center border-4 border-yellow-300">
+                                  <Upload size={40} />
+                                </div>
+                                <span className="font-medium">Click to upload profile photo</span>
+                                <span className="text-sm text-gray-500">JPG, PNG or JPEG (Max 5MB)</span>
                               </div>
                             )}
                           </div>
@@ -1090,67 +1401,44 @@ const VendorProfile = () => {
                             type="file"
                             className="hidden"
                             accept="image/*"
-                            onChange={(e) => handleFileChange("profilePhoto", e.target.files?.[0] || null)}
+                            onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
                           />
                         </label>
-                        {documents.profilePhoto && (
+                        {profilePhoto && (
                           <Button
                             type="button"
                             variant="outline"
                             size="icon"
-                            onClick={() => handleFileChange("profilePhoto", null)}
+                            onClick={() => setProfilePhoto(null)}
+                            className="self-start"
                           >
                             <X size={16} />
                           </Button>
                         )}
                       </div>
+                      <p className="text-xs text-gray-600 text-center mt-2">
+                        💡 A professional photo helps build trust with customers
+                      </p>
                     </div>
 
-                    {[1, 2, 3, 4, 5].map((num) => (
-                      <div key={num} className="space-y-2">
-                        <Label>Document {num}</Label>
-                        <div className="flex items-center gap-3">
-                          <label className="flex-1 cursor-pointer">
-                            <div className="border-2 border-dashed rounded-lg p-4 text-center hover:border-yellow-500 transition-colors">
-                              {documents[`document${num}`] ? (
-                                <div className="flex items-center justify-center gap-2 text-green-600">
-                                  <Check size={20} />
-                                  <span className="truncate max-w-[200px]">
-                                    {documents[`document${num}`]?.name}
-                                  </span>
-                                </div>
-                              ) : vendor[`document${num}` as keyof VendorData] && typeof vendor[`document${num}` as keyof VendorData] === 'string' ? (
-                                <div className="flex items-center justify-center gap-2 text-blue-600">
-                                  <FileText size={20} />
-                                  <span>Current document {num} uploaded</span>
-                                </div>
-                              ) : (
-                                <div className="flex items-center justify-center gap-2 text-gray-500">
-                                  <Upload size={20} />
-                                  <span>Click to upload document {num}</span>
-                                </div>
-                              )}
-                            </div>
-                            <input
-                              type="file"
-                              className="hidden"
-                              accept="image/*,.pdf"
-                              onChange={(e) => handleFileChange(`document${num}`, e.target.files?.[0] || null)}
-                            />
-                          </label>
-                          {documents[`document${num}`] && (
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="icon"
-                              onClick={() => handleFileChange(`document${num}`, null)}
-                            >
-                              <X size={16} />
-                            </Button>
-                          )}
+                    {/* Info about business documents */}
+                    <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
+                      <div className="flex items-start">
+                        <div className="flex-shrink-0">
+                          <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <div className="ml-3">
+                          <p className="text-sm text-green-700 font-medium">
+                            Business Documents
+                          </p>
+                          <p className="text-sm text-green-600 mt-1">
+                            To update business documents (Aadhaar, PAN, GST, Trade License), go back to Step 3 - Business section.
+                          </p>
                         </div>
                       </div>
-                    ))}
+                    </div>
                   </div>
                 )}
 
