@@ -125,6 +125,14 @@ const vendorSchema = new mongoose.Schema(
         pan: {
             type: String,
         },
+        voterId: {
+            type: String,
+            trim: true,
+        },
+        drivingLicence: {
+            type: String,
+            trim: true,
+        },
         token: {
             type: String,
         },

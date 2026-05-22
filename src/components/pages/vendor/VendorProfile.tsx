@@ -1803,6 +1803,22 @@ const VendorProfile = () => {
                       </p>
                     </div>
                   </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Voter ID</Label>
+                      <p className="mt-1 text-gray-900 flex items-center gap-2">
+                        <IdCard className="w-4 h-4 text-gray-400" />
+                        {vendor.voterId || "-"}
+                      </p>
+                    </div>
+                    <div>
+                      <Label>Driving Licence</Label>
+                      <p className="mt-1 text-gray-900 flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-gray-400" />
+                        {vendor.drivingLicence || "-"}
+                      </p>
+                    </div>
+                  </div>
                   <div>
                     <Label>Trade License / Shop Act Registration No.</Label>
                     <p className="mt-1 text-gray-900 flex items-center gap-2">

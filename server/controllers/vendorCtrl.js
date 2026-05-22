@@ -87,7 +87,7 @@ const transformVendorForDisplay = (vendorObj) => {
 const vendorRegisterCtrl = async (req, res) => {
   try {
     const {
-      name, email, password, phone, company, address, adhar, pan, description, status = "pending",pincode,
+      name, email, password, phone, company, address, adhar, pan, voterId, drivingLicence, description, status = "pending",pincode,
       // New fields
       typeOfService, category, subCategory, yearOfEstablishment, serviceLocation,
       alternatePhone, whatsappNumber, businessType, gstNumber, tradeLicense,
@@ -332,6 +332,8 @@ const vendorRegisterCtrl = async (req, res) => {
       address: sanitizeValue(address),
       adhar: sanitizeValue(adhar),
       pan: sanitizeValue(pan),
+      voterId: sanitizeValue(voterId),
+      drivingLicence: sanitizeValue(drivingLicence),
       description: sanitizeValue(description),
       status: sanitizeValue(status),
       typeOfService: sanitizeValue(typeOfService),

@@ -3124,6 +3124,16 @@ const VendorManagement = () => {
                       <span>{selectedVendor.pan || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
+                      <IdCard className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Voter ID:</span>
+                      <span>{selectedVendor.voterId || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-400" />
+                      <span className="font-medium">Driving Licence:</span>
+                      <span>{selectedVendor.drivingLicence || "Not Added"}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">GST Number:</span>
                       <span>{selectedVendor.gstNumber || "Not Added"}</span>
