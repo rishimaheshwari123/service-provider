@@ -92,26 +92,7 @@ const createGeneralContactCtrl = async (req, res) => {
         }
 
         // Create audit log for general contact
-        try {
-            await AuditLogs.create({
-                userId: null,
-                propertyId: null,
-                type: "general_contact",
-                details: {
-                    subject,
-                    message,
-                    inquiryType: "general_contact"
-                },
-                userInfo: {
-                    name,
-                    email,
-                    phone
-                }
-            });
-            console.log('General contact audit log created successfully');
-        } catch (auditError) {
-            console.error('Failed to create audit log:', auditError);
-        }
+        
 
         // Send email notification to admin
         try {
