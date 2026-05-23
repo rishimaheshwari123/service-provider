@@ -1,6 +1,7 @@
 const bcrypt = require("bcryptjs");
 const vendorModel = require("../models/vendorModel");
 const jwt = require("jsonwebtoken");
+const { logAction } = require("../utils/actionLogger");
 
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const { generateOTP, sendSMSOTP, sendWhatsAppOTP, sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
@@ -134,27 +135,21 @@ const vendorRegisterCtrl = async (req, res) => {
     }
 
     // For registration, we need either phone or whatsapp to be verified
-    // Check if the numbers being used in registration are verified
     let isVerified = false;
     
     if (existingUser) {
-      // If WhatsApp number is empty, null, undefined, or same as phone - user is not using WhatsApp
-      if (!whatsappNumber || whatsappNumber === '' || whatsappNumber === phone) {
-        // User is not using WhatsApp, check phone verification
-        if (existingUser.phone === phone && existingUser.isPhoneVerified) {
-          isVerified = true;
-        }
-      } else {
-        // User is using WhatsApp, check WhatsApp verification
-        if (existingUser.whatsappNumber === whatsappNumber && existingUser.isWhatsappVerified) {
-          isVerified = true;
-        }
-      }
-      
-      // Additional fallback: if phone matches and is verified, allow registration regardless
-      if (!isVerified && existingUser.phone === phone && existingUser.isPhoneVerified) {
-        isVerified = true;
-      }
+      const normalizedPhone = normalizePhone(phone);
+      const normalizedWhatsapp = normalizePhone(whatsappNumber);
+
+      const phoneVerified = 
+        normalizePhone(existingUser.phone) === normalizedPhone && 
+        existingUser.isPhoneVerified;
+
+      const whatsappVerified = 
+        normalizePhone(existingUser.whatsappNumber) === normalizedWhatsapp && 
+        existingUser.isWhatsappVerified;
+
+      isVerified = phoneVerified || whatsappVerified;
     }
     
     if (!isVerified) {
@@ -392,6 +387,80 @@ const vendorRegisterCtrl = async (req, res) => {
     // Don't send welcome messages on registration anymore
     // Welcome messages will be sent when vendor purchases their first category
 
+    // Check if this is admin-created vendor or self-registered
+    const isAdminCreated = req.body.isAdmin === "true" || req.body.isAdmin === true;
+    
+    // Build complete registration details object
+    const registrationDetails = {
+      phone: user.phone,
+      email: user.email,
+      company: user.company,
+      address: user.address,
+      adhar: user.adhar,
+      pan: user.pan,
+      voterId: user.voterId,
+      drivingLicence: user.drivingLicence,
+      description: user.description,
+      status: user.status,
+      typeOfService: user.typeOfService,
+      category: user.category,
+      subCategory: user.subCategory,
+      yearOfEstablishment: user.yearOfEstablishment,
+      serviceLocation: user.serviceLocation,
+      alternatePhone: user.alternatePhone,
+      whatsappNumber: user.whatsappNumber,
+      businessType: user.businessType,
+      gstNumber: user.gstNumber,
+      tradeLicense: user.tradeLicense,
+      referralCode: user.referralCode,
+      referralName: user.referralName,
+      numberOfStaff: user.numberOfStaff,
+      paymentMethod: user.paymentMethod,
+      pincode: user.pincode,
+      selectedPriceTier: user.selectedPriceTier,
+      selectedPrice: user.selectedPrice,
+      upiId: user.upiId,
+      bankDetail: user.bankDetail,
+      experience: user.experience,
+      workingDaysTimings: user.workingDaysTimings,
+      portfolioImages: user.portfolioImages,
+      profilePhoto: user.profilePhoto,
+      registrationMethod: isAdminCreated ? 'admin' : 'self'
+    };
+
+    if (isAdminCreated && req.user) {
+      // Admin created the vendor
+      const adminUser = await require("../models/authModel").findById(req.user.id);
+      if (adminUser) {
+        await logAction({
+          performedBy: adminUser._id,
+          performedByModel: 'auth',
+          performedByName: adminUser.name,
+          action: 'create',
+          entityType: 'Vendor',
+          entityId: user._id,
+          entityName: user.name,
+          details: registrationDetails,
+          ipAddress: req.ip,
+          userAgent: req.headers['user-agent']
+        });
+      }
+    } else {
+      // Vendor self-registered
+      await logAction({
+        performedBy: user._id,
+        performedByModel: 'Vendor',
+        performedByName: user.name,
+        action: 'register',
+        entityType: 'Vendor',
+        entityId: user._id,
+        entityName: user.name,
+        details: registrationDetails,
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+    }
+
     return res.status(200).json({
       success: true,
       token,
@@ -451,6 +520,19 @@ const vendorLoginCtrl = async (req, res) => {
       const options = {
         httpOnly: true,
       };
+      await logAction({
+        performedBy: user._id,
+        performedByModel: 'Vendor',
+        performedByName: user.name,
+        action: 'login',
+        entityType: 'Vendor',
+        entityId: user._id,
+        entityName: user.name,
+        details: { phone: user.phone },
+        ipAddress: req.ip,
+        userAgent: req.headers['user-agent']
+      });
+
       res.cookie("token", token, options).status(200).json({
         success: true,
         token,
@@ -523,6 +605,28 @@ const updateVendorStatusCtrl = async (req, res) => {
       { new: true }
     );
 
+    // Log status update action
+    if (req.user) {
+        const adminUser = await require("../models/authModel").findById(req.user.id);
+        if (adminUser) {
+            await logAction({
+                performedBy: adminUser._id,
+                performedByModel: 'auth',
+                performedByName: adminUser.name,
+                action: 'update',
+                entityType: 'Vendor',
+                entityId: updatedVendor._id,
+                entityName: updatedVendor.name,
+                details: { 
+                    newStatus: status,
+                    oldStatus: existingVendor.status
+                },
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+        }
+    }
+
     // Send approval messages if status changed to "approved"
     if (status === "approved" && existingVendor.status !== "approved") {
       console.log('🎉 Vendor approved! Sending approval messages...');
@@ -586,6 +690,27 @@ const updateVendorPercentageCtrl = async (req, res) => {
       { percentage },
       { new: true }
     );
+
+    // Log percentage update action
+    if (req.user) {
+        const adminUser = await require("../models/authModel").findById(req.user.id);
+        if (adminUser) {
+            await logAction({
+                performedBy: adminUser._id,
+                performedByModel: 'auth',
+                performedByName: adminUser.name,
+                action: 'update',
+                entityType: 'Vendor',
+                entityId: updatedVendor._id,
+                entityName: updatedVendor.name,
+                details: { 
+                    percentage: percentage
+                },
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+        }
+    }
 
     if (!updatedVendor) {
       return res.status(404).json({
@@ -908,6 +1033,54 @@ updateVendorProfileCtrl = async (req, res) => {
     console.log("✅ Vendor updated successfully:", updatedVendor._id);
     console.log("📁 Files updated:", Object.keys(fileUpdates));
 
+    // Log profile update action
+    if (req.user) {
+        // Check if it's admin or vendor updating
+        let performedBy, performedByModel, performedByName;
+        
+        try {
+            const adminUser = await require("../models/authModel").findById(req.user.id);
+            if (adminUser) {
+                performedBy = adminUser._id;
+                performedByModel = 'auth';
+                performedByName = adminUser.name;
+            } else {
+                const vendorUser = await vendorModel.findById(req.user.id);
+                if (vendorUser) {
+                    performedBy = vendorUser._id;
+                    performedByModel = 'Vendor';
+                    performedByName = vendorUser.name;
+                }
+            }
+        } catch (e) {
+            // Ignore, just don't log if we can't find user
+        }
+
+        if (performedBy) {
+            const changedFields = Object.keys(updateData).filter(key => 
+                JSON.stringify(updateData[key]) !== JSON.stringify(updatedVendor[key]) || 
+                (typeof updatedVendor[key] === 'object' && updateData[key])
+            );
+            
+            await logAction({
+                performedBy: performedBy,
+                performedByModel: performedByModel,
+                performedByName: performedByName,
+                action: 'update',
+                entityType: 'Vendor',
+                entityId: updatedVendor._id,
+                entityName: updatedVendor.name,
+                details: { 
+                    changedFields: changedFields,
+                    updatedFields: Object.keys(updateData),
+                    filesUpdated: Object.keys(fileUpdates)
+                },
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+        }
+    }
+
     // Transform vendor data to PascalCase for display
     const vendorObj = updatedVendor.toObject();
     const transformedVendor = transformVendorForDisplay(vendorObj);
@@ -961,6 +1134,29 @@ const updateWorkingHours = async (req, res) => {
     }
 
     await vendor.save();
+
+    // Log working hours update
+    try {
+        const vendorUser = await vendorModel.findById(id);
+        if (vendorUser) {
+            await logAction({
+                performedBy: vendorUser._id,
+                performedByModel: 'Vendor',
+                performedByName: vendorUser.name,
+                action: 'update',
+                entityType: 'Vendor',
+                entityId: vendorUser._id,
+                entityName: vendorUser.name,
+                details: { 
+                    updatedDays: Object.keys(workingHours)
+                },
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+        }
+    } catch (e) {
+        // Ignore if logging fails
+    }
 
     res.status(200).json({
       success: true,
@@ -1025,6 +1221,28 @@ const deleteVendorCtrl = async (req, res) => {
         success: false,
         message: "Vendor not found",
       });
+    }
+
+    // Log delete action before deleting
+    if (req.user) {
+        const adminUser = await require("../models/authModel").findById(req.user.id);
+        if (adminUser) {
+            await logAction({
+                performedBy: adminUser._id,
+                performedByModel: 'auth',
+                performedByName: adminUser.name,
+                action: 'delete',
+                entityType: 'Vendor',
+                entityId: vendor._id,
+                entityName: vendor.name,
+                details: { 
+                    phone: vendor.phone,
+                    company: vendor.company
+                },
+                ipAddress: req.ip,
+                userAgent: req.headers['user-agent']
+            });
+        }
     }
 
     // Delete all properties/services associated with this vendor
