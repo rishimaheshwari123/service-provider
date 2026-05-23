@@ -97,7 +97,7 @@ const STEPS = [
   { id: 4, title: "Bank", icon: "🏦" },
   { id: 5, title: "Experience", icon: "⭐" },
   { id: 6, title: "Documents", icon: "📄" },
-  { id: 7, title: "Portfolio", icon: "🖼️" },
+  { id: 7, title: "Work Images", icon: "🖼️" },
   { id: 8, title: "Submit", icon: "✅" },
 ];
 
@@ -405,7 +405,7 @@ const VendorRegister = () => {
     const totalImages = portfolioImages.length + newImages.length;
     
     if (totalImages > 10) {
-      toast.error("You can upload maximum 10 portfolio images");
+      toast.error("You can upload maximum 10 business/service images");
       return;
     }
     
@@ -426,7 +426,7 @@ const VendorRegister = () => {
       }
     } catch (error) {
       console.error("Portfolio upload error:", error);
-      toast.error("Failed to upload portfolio images");
+      toast.error("Failed to upload business/service images");
     } finally {
       setPortfolioUploading(false);
     }
@@ -1623,13 +1623,13 @@ const VendorRegister = () => {
               {currentStep === 7 && (
                 <div className="space-y-4">
                   <p className="text-sm text-gray-500 bg-purple-50 p-3 rounded-lg border border-purple-200">
-                    🖼️ Upload your work portfolio images (optional but recommended). You can upload up to 10 images showcasing your previous work.
+                    🖼️ Upload your business/service images (optional but recommended). You can upload up to 10 images showcasing your previous work.
                   </p>
                   
-                  {/* Portfolio Images Upload */}
+                  {/* Business/Service Images Upload */}
                   <div className="space-y-3">
                     <Label className="text-purple-800 font-semibold">
-                      Portfolio Images (Max 10)
+                      Business/Service Images (Max 10)
                       <span className="text-sm font-normal text-gray-500 ml-2">
                         ({portfolioImages.length}/10 uploaded)
                       </span>
@@ -1642,7 +1642,7 @@ const VendorRegister = () => {
                           <div className="flex flex-col items-center gap-2 text-purple-600">
                             <Upload size={32} />
                             <span className="font-medium">
-                              {portfolioUploading ? "Uploading..." : "Click to upload portfolio images"}
+                              {portfolioUploading ? "Uploading..." : "Click to upload business/service images"}
                             </span>
                             <span className="text-sm text-gray-500">
                               Select multiple images (JPG, PNG, JPEG)
@@ -1660,7 +1660,7 @@ const VendorRegister = () => {
                       </label>
                     )}
                     
-                    {/* Portfolio Images Preview Grid */}
+                    {/* Business/Service Images Preview Grid */}
                     {portfolioImages.length > 0 && (
                       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                         {portfolioImages.map((image, index) => (
@@ -1668,7 +1668,7 @@ const VendorRegister = () => {
                             <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
                               <img
                                 src={image.url}
-                                alt={`Portfolio ${index + 1}`}
+                                alt={`Work Image ${index + 1}`}
                                 className="w-full h-full object-cover"
                               />
                             </div>
@@ -1691,7 +1691,7 @@ const VendorRegister = () => {
                     
                     {portfolioImages.length === 0 && (
                       <div className="text-center py-8 text-gray-400">
-                        <p className="text-sm">No portfolio images uploaded yet</p>
+                        <p className="text-sm">No images uploaded yet</p>
                         <p className="text-xs mt-1">Upload images to showcase your work</p>
                       </div>
                     )}

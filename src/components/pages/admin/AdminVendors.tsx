@@ -92,7 +92,7 @@ const STEPS = [
   { id: 4, title: "Bank", icon: "🏦" },
   { id: 5, title: "Experience", icon: "⭐" },
   { id: 6, title: "Documents", icon: "📄" },
-  { id: 7, title: "Portfolio", icon: "🖼️" },
+  { id: 7, title: "Work Images", icon: "🖼️" },
   { id: 8, title: "Submit", icon: "✅" },
 ];
 
@@ -392,7 +392,7 @@ const VendorManagement = () => {
     if (totalImages > 10) {
       toast({
         title: "Error",
-        description: "You can upload maximum 10 portfolio images",
+        description: "You can upload maximum 10 business/service images",
         variant: "destructive",
       });
       return;
@@ -418,7 +418,7 @@ const VendorManagement = () => {
       console.error("Portfolio upload error:", error);
       toast({
         title: "Error",
-        description: "Failed to upload portfolio images",
+        description: "Failed to upload business/service images",
         variant: "destructive",
       });
     } finally {
@@ -1363,12 +1363,21 @@ const VendorManagement = () => {
     XLSX.writeFile(workbook, filename);
   };
   const filteredVendors = vendors.filter((vendor) => {
+    // Extract category name properly - handle both object and string
+    const vendorCategoryName = typeof vendor.category === 'object' && vendor.category !== null
+      ? vendor.category.name
+      : vendor.category;
+    
     const matchesSearch =
       vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vendor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.company?.toLowerCase().includes(searchTerm.toLowerCase());
+      vendor.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vendorCategoryName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      vendor.subCategory?.toLowerCase().includes(searchTerm.toLowerCase());
+    
     const matchesStatus =
       statusFilter === "all" || vendor.status === statusFilter;
+    
     return matchesSearch && matchesStatus;
   });
 
@@ -2439,13 +2448,13 @@ const VendorManagement = () => {
                 {currentStep === 7 && (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 bg-purple-50 p-3 rounded-lg border border-purple-200">
-                      🖼️ Upload vendor's work portfolio images (optional but recommended). You can upload up to 10 images showcasing their previous work.
+                      🖼️ Upload vendor's business/service images (optional but recommended). You can upload up to 10 images showcasing their previous work.
                     </p>
                     
-                    {/* Portfolio Images Upload */}
+                    {/* Business/Service Images Upload */}
                     <div className="space-y-3">
                       <Label className="text-purple-800 font-semibold">
-                        Portfolio Images (Max 10)
+                        Business/Service Images (Max 10)
                         <span className="text-sm font-normal text-gray-500 ml-2">
                           ({portfolioImages.length}/10 uploaded)
                         </span>
@@ -2458,7 +2467,7 @@ const VendorManagement = () => {
                             <div className="flex flex-col items-center gap-2 text-purple-600">
                               <Upload size={32} />
                               <span className="font-medium">
-                                {portfolioUploading ? "Uploading..." : "Click to upload portfolio images"}
+                                {portfolioUploading ? "Uploading..." : "Click to upload business/service images"}
                               </span>
                               <span className="text-sm text-gray-500">
                                 Select multiple images (JPG, PNG, JPEG)
@@ -2476,7 +2485,7 @@ const VendorManagement = () => {
                         </label>
                       )}
                       
-                      {/* Portfolio Images Preview Grid */}
+                      {/* Business/Service Images Preview Grid */}
                       {portfolioImages.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                           {portfolioImages.map((image, index) => (
@@ -2484,7 +2493,7 @@ const VendorManagement = () => {
                               <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
                                 <img
                                   src={image.url}
-                                  alt={`Portfolio ${index + 1}`}
+                                  alt={`Work Image ${index + 1}`}
                                   className="w-full h-full object-cover"
                                 />
                               </div>
@@ -2507,7 +2516,7 @@ const VendorManagement = () => {
                       
                       {portfolioImages.length === 0 && (
                         <div className="text-center py-8 text-gray-400">
-                          <p className="text-sm">No portfolio images uploaded yet</p>
+                          <p className="text-sm">No images uploaded yet</p>
                           <p className="text-xs mt-1">Upload images to showcase vendor's work</p>
                         </div>
                       )}
@@ -2665,7 +2674,7 @@ const VendorManagement = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search partners..."
+                  placeholder="Search partners by name, email, company, or category..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
