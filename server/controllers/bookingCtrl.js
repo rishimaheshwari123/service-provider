@@ -124,22 +124,133 @@ exports.createBookingCtrl = async (req, res) => {
 // ✅ Get All Bookings
 exports.getAllBookingsCtrl = async (req, res) => {
     try {
-        const bookings = await Booking.find()
-            .populate({
-                path: "service", // Property model
-                populate: { path: "vendor", model: "Vendor" }, // optional if vendor inside property
-            })
-            .populate({
-                path: "user",
-                model: "auth",
-                select: "name email phone"
-            }); // full user details
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit) || 10;
+        const status = req.query.status;
+        const search = req.query.search;
 
-        res.status(200).json({
-            success: true,
-            total: bookings.length,
-            bookings,
-        });
+        let filterConditions = {};
+
+        // Status filter
+        if (status && status !== "all") {
+            filterConditions.status = status;
+        }
+
+        // Search filter across Populated Fields
+        if (search) {
+            const mongoose = require("mongoose");
+            const isValidObjectId = mongoose.Types.ObjectId.isValid(search);
+            const Vendor = require("../models/vendorModel");
+
+            // Find users matching search term
+            let userSearchQuery = {
+                $or: [
+                    { name: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                    { phone: { $regex: search, $options: "i" } }
+                ]
+            };
+            if (isValidObjectId) {
+                userSearchQuery.$or.push({ _id: search });
+            }
+            const matchingUsers = await Auth.find(userSearchQuery).select("_id");
+            const userIds = matchingUsers.map(u => u._id);
+
+            // Find vendors matching search term
+            let vendorSearchQuery = {
+                $or: [
+                    { name: { $regex: search, $options: "i" } },
+                    { email: { $regex: search, $options: "i" } },
+                    { phone: { $regex: search, $options: "i" } },
+                    { company: { $regex: search, $options: "i" } }
+                ]
+            };
+            if (isValidObjectId) {
+                vendorSearchQuery.$or.push({ _id: search });
+            }
+            const matchingVendors = await Vendor.find(vendorSearchQuery).select("_id");
+            const vendorIds = matchingVendors.map(v => v._id);
+
+            // Find categories matching search term
+            const Category = require("../models/categoryModel");
+            const matchingCategories = await Category.find({
+                name: { $regex: search, $options: "i" }
+            }).select("_id");
+            const categoryIds = matchingCategories.map(c => c._id);
+
+            // Find properties matching search term or matching vendors/categories
+            let propertySearchQuery = {
+                $or: [
+                    { title: { $regex: search, $options: "i" } },
+                    { location: { $regex: search, $options: "i" } },
+                    { vendor: { $in: vendorIds } },
+                    { category: { $in: categoryIds } }
+                ]
+            };
+            if (isValidObjectId) {
+                propertySearchQuery.$or.push({ _id: search });
+                propertySearchQuery.$or.push({ vendor: search });
+                propertySearchQuery.$or.push({ category: search });
+            }
+            const matchingProperties = await Property.find(propertySearchQuery).select("_id");
+            const propertyIds = matchingProperties.map(p => p._id);
+
+            filterConditions.$or = [
+                { user: { $in: userIds } },
+                { service: { $in: propertyIds } },
+                { notes: { $regex: search, $options: "i" } },
+                { "address.addressLine1": { $regex: search, $options: "i" } },
+                { "address.city": { $regex: search, $options: "i" } },
+                { "payment.transactionId": { $regex: search, $options: "i" } }
+            ];
+
+            if (isValidObjectId) {
+                filterConditions.$or.push({ _id: search });
+            }
+        }
+
+        if (page) {
+            const skip = (page - 1) * limit;
+            const total = await Booking.countDocuments(filterConditions);
+            const bookings = await Booking.find(filterConditions)
+                .skip(skip)
+                .limit(limit)
+                .populate({
+                    path: "service", // Property model
+                    populate: { path: "vendor", model: "Vendor" }, // optional if vendor inside property
+                })
+                .populate({
+                    path: "user",
+                    model: "auth",
+                    select: "name email phone"
+                }); // full user details
+
+            res.status(200).json({
+                success: true,
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                bookings,
+            });
+        } else {
+            const bookings = await Booking.find(filterConditions)
+                .populate({
+                    path: "service", // Property model
+                    populate: { path: "vendor", model: "Vendor" }, // optional if vendor inside property
+                })
+                .populate({
+                    path: "user",
+                    model: "auth",
+                    select: "name email phone"
+                }); // full user details
+
+            res.status(200).json({
+                success: true,
+                total: bookings.length,
+                bookings,
+            });
+        }
     } catch (error) {
         res.status(500).json({
             success: false,

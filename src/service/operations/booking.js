@@ -27,19 +27,32 @@ export const createBookingAPI = async (formDataToSend) => {
 };
 
 // ✅ Get All Bookings (Admin or All Users)
-export const getAllBookingAPI = async () => {
+export const getAllBookingAPI = async (page, limit, search, status) => {
   try {
-    const response = await apiConnector("GET", GET_ALL_BOOKINGS);
+    let url = GET_ALL_BOOKINGS;
+    const params = [];
+    if (page) params.push(`page=${page}`);
+    if (limit) params.push(`limit=${limit}`);
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+    if (status) params.push(`status=${status}`);
+
+    if (params.length > 0) {
+      url += `?${params.join("&")}`;
+    }
+    const response = await apiConnector("GET", url);
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
     }
 
+    if (page) {
+      return response?.data;
+    }
     return response?.data?.bookings || [];
   } catch (error) {
     console.error("GET ALL BOOKINGS API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to get bookings!");
-    return [];
+    return page ? { bookings: [], total: 0, totalPages: 0 } : [];
   }
 };
 
