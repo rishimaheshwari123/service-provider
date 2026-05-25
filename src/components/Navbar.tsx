@@ -160,7 +160,7 @@ const Navbar = () => {
                 {/* Visual Underline Effect */}
                 <span className="absolute left-0 bottom-0 h-0.5 w-0 bg-primary group-hover:w-full transition-all duration-300"></span>
                 {link.hot && (
-                  <span className="bg-red-500 text-white px-1.5 py-0.5 rounded-full text-xs font-bold ml-1 absolute -top-1 right-[-25px]">
+                  <span className="bg-red-500 text-white px-1.5 py-0.1 rounded-full text-[9px] font-bold ml-1 absolute -top-2 right-[-22px]">
                     {t("common.new")}
                   </span>
                 )}
