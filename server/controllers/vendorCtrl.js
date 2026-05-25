@@ -469,7 +469,8 @@ const vendorLoginCtrl = async (req, res) => {
 
 const getAllVendorCtrl = async (req, res) => {
   try {
-    const vendors = await vendorModel.find().populate('category', 'name').sort({ name: 1 }); // Sort alphabetically by name (A-Z) and populate category
+    // Only fetch vendors that have a valid name property (non-empty, non-null, and exists)
+    const vendors = await vendorModel.find({ name: { $exists: true, $ne: "", $ne: null } }).populate('category', 'name').sort({ name: 1 }); // Sort alphabetically by name (A-Z) and populate category
     
     // Transform vendor data to PascalCase for display
     const transformedVendors = vendors.map(vendor => {

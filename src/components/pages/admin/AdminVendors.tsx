@@ -189,13 +189,13 @@ const VendorManagement = () => {
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [portfolioImages, setPortfolioImages] = useState<Array<{ public_id: string; url: string }>>([]);
   const [portfolioUploading, setPortfolioUploading] = useState(false);
-  
+
   // OTP Verification States
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
-  
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -210,7 +210,7 @@ const VendorManagement = () => {
     subCategory: "",
     yearOfEstablishment: "",
     name: "",
-    
+
     // Step 2: Contact Details
     address: "",
     pincode: "",
@@ -219,14 +219,14 @@ const VendorManagement = () => {
     alternatePhone: "",
     whatsappNumber: "",
     email: "",
-    
+
     // Step 3: Business & Legal
     businessType: "Proprietorship",
     gstNumber: "",
     pan: "",
     adhar: "",
     tradeLicense: "",
-    
+
     // Step 4: Bank Details or UPI
     paymentMethod: "bank",
     bankName: "",
@@ -234,19 +234,19 @@ const VendorManagement = () => {
     accountNumber: "",
     ifscCode: "",
     upiId: "",
-    
+
     // Step 5: Experience
     totalYears: "",
     numberOfStaff: "",
     servicesOffered: "",
     workingDays: "",
-    
+
     // Step 7: Password
     password: "",
     confirmPassword: "",
     referralCode: "",
     referralName: "",
-    
+
     status: "approved",
   });
 
@@ -255,7 +255,6 @@ const VendorManagement = () => {
     try {
       setLoading(true);
       const response = await getAllVendorAPI();
-      console.log("Vendors response:", response);
 
       if (response && Array.isArray(response)) {
         setVendors(response);
@@ -265,16 +264,16 @@ const VendorManagement = () => {
           initialPercentages[vendor._id] = vendor.percentage || "";
         });
         setPercentages(initialPercentages);
-        
+
         toast({
           title: "Success",
           description: `Loaded ${response.length} vendors successfully`,
         });
-        
+
         // Load payment status in background (non-blocking)
         setLoading(false); // Show vendors immediately
         checkPendingPayments(response); // Load payment status in background
-        
+
       } else {
         setVendors([]);
         toast({
@@ -300,7 +299,7 @@ const VendorManagement = () => {
   const checkPendingPayments = async (vendorsList) => {
     console.log("🔍 Checking pending payments for", vendorsList.length, "vendors");
     setPaymentStatusLoading(true);
-    
+
     try {
       // Make all API calls in parallel instead of sequential
       const results = await Promise.allSettled(
@@ -310,7 +309,7 @@ const VendorManagement = () => {
               getVendorPendingCategoryPurchasesAPI(vendor._id),
               getPurchasedCategoriesAPI(vendor._id)
             ]);
-            
+
             return {
               vendorId: vendor._id,
               vendorName: vendor.name,
@@ -332,24 +331,24 @@ const VendorManagement = () => {
           }
         })
       );
-      
+
       const pendingMap = {};
       const purchasedMap = {};
-      
+
       results.forEach((result) => {
         if (result.status === 'fulfilled') {
           const data = result.value;
           pendingMap[data.vendorId] = data.hasPending;
           purchasedMap[data.vendorId] = data.hasPurchased;
-          
+
           console.log(`✅ ${data.vendorName}: Pending=${data.pendingCount}, Paid=${data.purchasedCount}`);
         }
       });
-      
+
       console.log("✅ Payment check completed for all vendors");
       setVendorPendingPayments(pendingMap);
       setVendorPurchasedCategories(purchasedMap);
-      
+
     } catch (error) {
       console.error("❌ Error checking payments:", error);
       setVendorPendingPayments({});
@@ -371,7 +370,7 @@ const VendorManagement = () => {
       setCategories(data || []);
     };
     fetchCategories();
-    
+
     // Initialize working days value
     const selectedDays = Object.entries(workingDays)
       .filter(([, v]) => v)
@@ -385,10 +384,10 @@ const VendorManagement = () => {
 
   const handlePortfolioImagesChange = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
-    
+
     const newImages = Array.from(files);
     const totalImages = portfolioImages.length + newImages.length;
-    
+
     if (totalImages > 10) {
       toast({
         title: "Error",
@@ -397,17 +396,17 @@ const VendorManagement = () => {
       });
       return;
     }
-    
+
     setPortfolioUploading(true);
     try {
       const uploadedImages = await imageUpload(newImages);
-      
+
       if (uploadedImages && uploadedImages.length > 0) {
         const formattedImages = uploadedImages.map((img: any) => ({
           public_id: img.asset_id || img.public_id,
           url: img.url
         }));
-        
+
         setPortfolioImages(prev => [...prev, ...formattedImages]);
         toast({
           title: "Success",
@@ -443,7 +442,7 @@ const VendorManagement = () => {
       }
       if (hasWhatsApp && !formData.whatsappNumber) {
         toast({
-          title: "Error", 
+          title: "Error",
           description: "Please enter your WhatsApp number",
           variant: "destructive",
         });
@@ -459,7 +458,7 @@ const VendorManagement = () => {
         return;
       }
     }
-    
+
     // Validate Step 3 - Business documents
     if (currentStep === 3) {
       if (!selectedDocumentType) {
@@ -470,7 +469,7 @@ const VendorManagement = () => {
         });
         return;
       }
-      
+
       if (selectedDocumentType === "aadhaar") {
         if (!businessDocuments.aadhaarFront || !businessDocuments.aadhaarBack) {
           toast({
@@ -509,7 +508,7 @@ const VendorManagement = () => {
         }
       }
     }
-    
+
     if (currentStep < 8) {
       setCurrentStep(currentStep + 1);
     }
@@ -525,15 +524,15 @@ const VendorManagement = () => {
   const handleSendOTP = async () => {
     const phoneNumber = formData.phone;
     const whatsappNumber = formData.whatsappNumber;
-    
+
     // Determine which number to verify based on WhatsApp selection
     let numberToVerify;
     let preferredMethod;
-    
+
     if (hasWhatsApp) {
       numberToVerify = whatsappNumber;
       preferredMethod = 'whatsapp';
-      
+
       if (!whatsappNumber || whatsappNumber.length !== 10) {
         toast({
           title: "Error",
@@ -545,7 +544,7 @@ const VendorManagement = () => {
     } else {
       numberToVerify = phoneNumber;
       preferredMethod = 'sms';
-      
+
       if (!phoneNumber || phoneNumber.length !== 10) {
         toast({
           title: "Error",
@@ -557,30 +556,30 @@ const VendorManagement = () => {
     }
 
     setOtpLoading(true);
-    
+
     const otpData = {
       phone: numberToVerify,
       preferredMethod: preferredMethod,
       forceResend: true
     };
-    
+
     if (hasWhatsApp && whatsappNumber) {
       otpData.whatsappNumber = whatsappNumber;
     }
-    
+
     const result = await sendOTP(otpData);
     setOtpLoading(false);
-    
+
     if (result.success) {
       setOtpSent(true);
       setIsPhoneVerified(false);
       // Clear the OTP input when resending
       setOtp('');
-      
+
       toast({
         title: "Success",
-        description: hasWhatsApp 
-          ? `OTP sent to WhatsApp number ${whatsappNumber}` 
+        description: hasWhatsApp
+          ? `OTP sent to WhatsApp number ${whatsappNumber}`
           : `OTP sent to phone number ${phoneNumber}`,
       });
     }
@@ -589,9 +588,9 @@ const VendorManagement = () => {
   const handleVerifyOTP = async () => {
     const phoneNumber = formData.phone;
     const whatsappNumber = formData.whatsappNumber;
-    
+
     const numberToVerify = hasWhatsApp ? whatsappNumber : phoneNumber;
-    
+
     if (!otp || otp.length !== 6) {
       toast({
         title: "Error",
@@ -602,19 +601,19 @@ const VendorManagement = () => {
     }
 
     setOtpLoading(true);
-    
+
     const result = await verifyOTP({
       phone: numberToVerify,
       otp: otp
     });
-    
+
     setOtpLoading(false);
-    
+
     if (result.success) {
       setIsPhoneVerified(true);
       setOtpSent(false);
       setOtp('');
-      
+
       toast({
         title: "Success",
         description: "Phone number verified successfully!",
@@ -714,13 +713,13 @@ const VendorManagement = () => {
 
   const handleServiceStatusToggle = async (serviceId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    
+
     try {
       const result = await updatePropertyStatusAPI(serviceId, newStatus);
       if (result) {
         // Update local state
-        setVendorProperties(vendorProperties.map(service => 
-          service._id === serviceId 
+        setVendorProperties(vendorProperties.map(service =>
+          service._id === serviceId
             ? { ...service, status: newStatus }
             : service
         ));
@@ -800,22 +799,22 @@ const VendorManagement = () => {
   const handleDeleteVendor = async (vendorId) => {
     try {
       setSubmitting(true);
-      
+
       // Delete the vendor (this will also delete all their services on the backend)
       await deleteVendorAPI(vendorId);
-      
+
       // Remove vendor from local state
       setVendors(vendors.filter(v => v._id !== vendorId));
-      
+
       // Close the delete dialog
       setDeleteDialog({ open: false, vendor: null });
-      
+
       // If this was the selected vendor, clear the selection
       if (selectedVendor?._id === vendorId) {
         setSelectedVendor(null);
         setVendorProperties([]);
       }
-      
+
       toast({
         title: "Success",
         description: "Partner and all their services have been deleted successfully",
@@ -864,7 +863,7 @@ const VendorManagement = () => {
 
     try {
       setSubmitting(true);
-      
+
       const response = await fetch(vendor.ADMIN_RESET_PASSWORD_API, {
         method: "POST",
         headers: {
@@ -958,7 +957,7 @@ const VendorManagement = () => {
       });
       return;
     }
-    
+
     if (hasWhatsApp && !formData.whatsappNumber) {
       toast({
         title: "Error",
@@ -990,36 +989,36 @@ const VendorManagement = () => {
 
     try {
       setSubmitting(true);
-      
+
       // Include category and subCategory in vendor registration data
       const { category, subCategory, ...vendorData } = formData;
-      
+
       // Create FormData for file uploads
       const submitFormData = new FormData();
-      
+
       // Add basic form fields (skip fields that will be added separately)
       const fieldsToSkip = ['accountNumber', 'ifscCode', 'accountHolderName', 'bankName', 'totalYears', 'servicesOffered', 'paymentMethod', 'upiId', 'numberOfStaff'];
-      
+
       Object.entries(vendorData).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== "" && !fieldsToSkip.includes(key)) {
           submitFormData.append(key, value.toString());
         }
       });
-      
+
       // Add category and subCategory
       if (category) submitFormData.append("category", category);
       if (subCategory) submitFormData.append("subCategory", subCategory);
-      
+
       // Add isAdmin flag
       submitFormData.append("isAdmin", "true");
-      
+
       // Add numberOfStaff
       const staffCount = vendorData.numberOfStaff ? parseInt(vendorData.numberOfStaff).toString() : "0";
       submitFormData.append("numberOfStaff", staffCount);
-      
+
       // Payment details - Bank or UPI
       submitFormData.append("paymentMethod", vendorData.paymentMethod);
-      
+
       if (vendorData.paymentMethod === "bank") {
         if (vendorData.accountNumber) submitFormData.append("bankDetail[accountNumber]", vendorData.accountNumber);
         if (vendorData.ifscCode) submitFormData.append("bankDetail[IFSC]", vendorData.ifscCode);
@@ -1028,29 +1027,29 @@ const VendorManagement = () => {
       } else if (vendorData.paymentMethod === "upi") {
         if (vendorData.upiId) submitFormData.append("upiId", vendorData.upiId);
       }
-      
+
       // Experience
       if (vendorData.totalYears) {
         submitFormData.append("experience[totalYears]", parseInt(vendorData.totalYears).toString());
       } else {
         submitFormData.append("experience[totalYears]", "0");
       }
-      
+
       if (vendorData.servicesOffered) {
         const services = vendorData.servicesOffered.split(",").map(s => s.trim());
         services.forEach(service => {
           submitFormData.append("experience[fields]", service);
         });
       }
-      
+
       // Add profile photo if selected
       if (profilePhoto) {
         submitFormData.append("profilePhoto", profilePhoto);
       }
-      
+
       // Add business documents in the format backend expects (document1, document2, etc.)
       submitFormData.append("selectedDocumentType", selectedDocumentType);
-      
+
       if (selectedDocumentType === "aadhaar") {
         if (businessDocuments.aadhaarFront) {
           submitFormData.append("document1", businessDocuments.aadhaarFront);
@@ -1076,12 +1075,12 @@ const VendorManagement = () => {
           console.log("📄 Adding document1 (Trade License):", businessDocuments.tradeLicenseDoc.name);
         }
       }
-      
+
       // Add portfolio images URLs (already uploaded to server)
       if (portfolioImages.length > 0) {
         submitFormData.append("portfolioImages", JSON.stringify(portfolioImages));
       }
-      
+
       const response = await signUp(submitFormData);
 
       if (response?.success) {
@@ -1095,7 +1094,7 @@ const VendorManagement = () => {
             vendorPhone: formData.phone,
             isAdmin: "true", // Flag for admin registration
           });
-          
+
           console.log("🔗 Admin navigating to category purchase with params:", {
             vendorId: response.user._id,
             categoryId: selectedCategory,
@@ -1104,10 +1103,10 @@ const VendorManagement = () => {
             vendorPhone: formData.phone,
             isAdmin: true,
           });
-          
+
           // Close the dialog first
           setIsAddDialogOpen(false);
-          
+
           // Navigate to category purchase page
           navigate(`/category-purchase?${params.toString()}`);
         } else {
@@ -1116,7 +1115,7 @@ const VendorManagement = () => {
             title: "Success",
             description: "Vendor registered successfully",
           });
-          
+
           // Reset form and close dialog
           setIsAddDialogOpen(false);
           await fetchVendors();
@@ -1157,7 +1156,7 @@ const VendorManagement = () => {
           referralName: "",
           status: "approved",
         });
-        
+
         setCurrentStep(1);
         setAccepted(false);
         setSelectedCategory("");
@@ -1271,7 +1270,7 @@ const VendorManagement = () => {
       "Category": vendor.category?.name || vendor.category || "",
       "Sub Category": vendor.subCategory || "",
       "Year of Establishment": vendor.yearOfEstablishment || "",
-      
+
       // Step 2: Contact Details
       "Address": vendor.address || "",
       "Service Location": vendor.serviceLocation || "",
@@ -1279,30 +1278,30 @@ const VendorManagement = () => {
       "Alternate Phone": vendor.alternatePhone || "",
       "WhatsApp Number": vendor.whatsappNumber || "",
       "Email": vendor.email || "",
-      
+
       // Step 3: Business & Legal
       "Business Type": vendor.businessType || "",
       "Aadhaar Number": vendor.adhar || "",
       "PAN Number": vendor.pan || "",
       "GST Number": vendor.gstNumber || "",
       "Trade License": vendor.tradeLicense || "",
-      
+
       // Step 4: Bank Details
       "Bank Name": vendor.bankDetail?.branch || "",
       "Account Holder Name": vendor.bankDetail?.accountHolderName || "",
       "Account Number": vendor.bankDetail?.accountNumber || "",
       "IFSC Code": vendor.bankDetail?.IFSC || "",
-      
+
       // Step 5: Experience & Staff
       "Years of Experience": vendor.experience?.totalYears || "",
       "Number of Staff": vendor.numberOfStaff || "",
       "Services Offered": (vendor.experience?.fields || []).join(", ") || "",
       "Working Days & Timings": vendor.workingDaysTimings || "",
-      
+
       // Step 7: Additional Info (excluding password)
       "Referral Code": vendor.referralCode || "",
       "Referral Name": vendor.referralName || "",
-      
+
       // System Info
       "Status": vendor.status || "",
       "Commission %": vendor.percentage || "",
@@ -1349,7 +1348,7 @@ const VendorManagement = () => {
       { wch: 15 }, // Registration Date
       { wch: 15 }, // Last Updated
     ];
-    
+
     worksheet['!cols'] = columnWidths;
 
     // Add worksheet to workbook
@@ -1367,17 +1366,17 @@ const VendorManagement = () => {
     const vendorCategoryName = typeof vendor.category === 'object' && vendor.category !== null
       ? vendor.category.name
       : vendor.category;
-    
+
     const matchesSearch =
       vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vendor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vendor.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vendorCategoryName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       vendor.subCategory?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus =
       statusFilter === "all" || vendor.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
@@ -1461,19 +1460,17 @@ const VendorManagement = () => {
                   {STEPS.map((step) => (
                     <div
                       key={step.id}
-                      className={`flex flex-col items-center min-w-[60px] cursor-pointer ${
-                        currentStep >= step.id ? "text-blue-600" : "text-gray-400"
-                      }`}
+                      className={`flex flex-col items-center min-w-[60px] cursor-pointer ${currentStep >= step.id ? "text-blue-600" : "text-gray-400"
+                        }`}
                       onClick={() => step.id < currentStep && setCurrentStep(step.id)}
                     >
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm mb-1 ${
-                          currentStep > step.id
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm mb-1 ${currentStep > step.id
                             ? "bg-green-500 text-white"
                             : currentStep === step.id
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200"
-                        }`}
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-200"
+                          }`}
                       >
                         {currentStep > step.id ? <Check size={16} /> : step.icon}
                       </div>
@@ -1629,7 +1626,7 @@ const VendorManagement = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Primary Contact Number <span className="text-red-500">*</span> 
+                        <Label>Primary Contact Number <span className="text-red-500">*</span>
                           {hasWhatsApp === false && isPhoneVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
                         </Label>
                         <div className="flex gap-2">
@@ -1734,7 +1731,7 @@ const VendorManagement = () => {
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
                         <div className="text-center">
                           <p className="text-blue-800 font-medium">
-                            OTP sent to your {hasWhatsApp ? 'WhatsApp' : 'phone'}: 
+                            OTP sent to your {hasWhatsApp ? 'WhatsApp' : 'phone'}:
                             <span className="font-bold"> {hasWhatsApp ? formData.whatsappNumber : formData.phone}</span>
                           </p>
                           <p className="text-blue-600 text-sm">Enter the 6-digit code below</p>
@@ -1868,7 +1865,7 @@ const VendorManagement = () => {
                       {/* Document Type Selection */}
                       <div className="space-y-2">
                         <Label>Select Document Type <span className="text-red-500">*</span></Label>
-                        <Select 
+                        <Select
                           value={selectedDocumentType}
                           onValueChange={(val: any) => setSelectedDocumentType(val)}
                         >
@@ -1890,7 +1887,7 @@ const VendorManagement = () => {
                           <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
                             📸 Please upload both front and back images of Aadhaar card
                           </p>
-                          
+
                           {/* Aadhaar Number Input */}
                           <div className="space-y-2">
                             <Label>Aadhaar Number</Label>
@@ -1901,15 +1898,14 @@ const VendorManagement = () => {
                               onChange={handleFormChange}
                             />
                           </div>
-                          
+
                           {/* Aadhaar Front */}
                           <div className="space-y-2">
                             <Label>Aadhaar Card - Front Side <span className="text-red-500">*</span></Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.aadhaarFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.aadhaarFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -1949,9 +1945,8 @@ const VendorManagement = () => {
                             <Label>Aadhaar Card - Back Side <span className="text-red-500">*</span></Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.aadhaarBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.aadhaarBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -2001,14 +1996,13 @@ const VendorManagement = () => {
                               className="uppercase"
                             />
                           </div>
-                          
+
                           {/* PAN Card Upload */}
                           <Label>PAN Card <span className="text-red-500">*</span></Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.panCard ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.panCard ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
                                 {businessDocuments.panCard ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -2056,14 +2050,13 @@ const VendorManagement = () => {
                               onChange={handleFormChange}
                             />
                           </div>
-                          
+
                           {/* GST Certificate Upload */}
                           <Label>GST Certificate <span className="text-red-500">*</span></Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.gstCertificate ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.gstCertificate ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
                                 {businessDocuments.gstCertificate ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -2111,14 +2104,13 @@ const VendorManagement = () => {
                               onChange={handleFormChange}
                             />
                           </div>
-                          
+
                           {/* Trade License Upload */}
                           <Label>Trade License <span className="text-red-500">*</span></Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.tradeLicenseDoc ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.tradeLicenseDoc ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
                                 {businessDocuments.tradeLicenseDoc ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -2169,7 +2161,7 @@ const VendorManagement = () => {
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
                       💡 Payment details are optional but recommended for faster payment processing.
                     </p>
-                    
+
                     {/* Payment Method Selection */}
                     <div className="space-y-3">
                       <Label>Select Payment Method</Label>
@@ -2313,11 +2305,10 @@ const VendorManagement = () => {
                         ].map((day) => (
                           <label
                             key={day.key}
-                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                              workingDays[day.key as keyof typeof workingDays]
+                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${workingDays[day.key as keyof typeof workingDays]
                                 ? "bg-blue-100 border-blue-500 text-blue-700"
                                 : "bg-gray-50 border-gray-200 text-gray-500"
-                            }`}
+                              }`}
                           >
                             <input
                               type="checkbox"
@@ -2364,7 +2355,7 @@ const VendorManagement = () => {
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
                       📸 Upload vendor's profile photo (optional but recommended). This will be displayed on their vendor profile.
                     </p>
-                    
+
                     {/* Profile Photo Section */}
                     <div className="space-y-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                       <Label className="text-yellow-800 font-semibold">Profile Photo (Recommended)</Label>
@@ -2434,9 +2425,9 @@ const VendorManagement = () => {
                             ✓ Business Document Uploaded
                           </p>
                           <p className="text-sm text-green-600 mt-1">
-                            You have already uploaded {selectedDocumentType === "aadhaar" ? "Aadhaar Card" : 
-                              selectedDocumentType === "pan" ? "PAN Card" : 
-                              selectedDocumentType === "gst" ? "GST Certificate" : "Trade License"} in the Business step.
+                            You have already uploaded {selectedDocumentType === "aadhaar" ? "Aadhaar Card" :
+                              selectedDocumentType === "pan" ? "PAN Card" :
+                                selectedDocumentType === "gst" ? "GST Certificate" : "Trade License"} in the Business step.
                           </p>
                         </div>
                       </div>
@@ -2450,7 +2441,7 @@ const VendorManagement = () => {
                     <p className="text-sm text-gray-500 bg-purple-50 p-3 rounded-lg border border-purple-200">
                       🖼️ Upload vendor's business/service images (optional but recommended). You can upload up to 10 images showcasing their previous work.
                     </p>
-                    
+
                     {/* Business/Service Images Upload */}
                     <div className="space-y-3">
                       <Label className="text-purple-800 font-semibold">
@@ -2459,7 +2450,7 @@ const VendorManagement = () => {
                           ({portfolioImages.length}/10 uploaded)
                         </span>
                       </Label>
-                      
+
                       {/* Upload Button */}
                       {portfolioImages.length < 10 && (
                         <label className={`cursor-pointer ${portfolioUploading ? 'opacity-50 pointer-events-none' : ''}`}>
@@ -2484,7 +2475,7 @@ const VendorManagement = () => {
                           />
                         </label>
                       )}
-                      
+
                       {/* Business/Service Images Preview Grid */}
                       {portfolioImages.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -2513,7 +2504,7 @@ const VendorManagement = () => {
                           ))}
                         </div>
                       )}
-                      
+
                       {portfolioImages.length === 0 && (
                         <div className="text-center py-8 text-gray-400">
                           <p className="text-sm">No images uploaded yet</p>
@@ -2616,9 +2607,9 @@ const VendorManagement = () => {
                       Previous
                     </Button>
                   )}
-                  
+
                   <div className="flex-1" />
-                  
+
                   {currentStep < 8 ? (
                     <Button
                       type="button"
@@ -2647,7 +2638,7 @@ const VendorManagement = () => {
                       )}
                     </Button>
                   )}
-                  
+
                   <Button
                     type="button"
                     variant="outline"
@@ -3039,7 +3030,7 @@ const VendorManagement = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Category:</span>
-                      <span>{selectedVendor?.category?.name || selectedVendor?.subCategory|| "Not Added"}</span>
+                      <span>{selectedVendor?.category?.name || selectedVendor?.subCategory || "Not Added"}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" />
@@ -3175,7 +3166,7 @@ const VendorManagement = () => {
                       <span className="font-medium">Payment Method:</span>
                       <span className="capitalize">{selectedVendor.paymentMethod || "Bank"}</span>
                     </div>
-                    
+
                     {/* Bank Details */}
                     {(!selectedVendor.paymentMethod || selectedVendor.paymentMethod === "bank") && (
                       <>
@@ -3201,7 +3192,7 @@ const VendorManagement = () => {
                         </div>
                       </>
                     )}
-                    
+
                     {/* UPI Details */}
                     {selectedVendor.paymentMethod === "upi" && (
                       <div className="flex items-center gap-2">
@@ -3354,14 +3345,13 @@ const VendorManagement = () => {
                                 <MapPin className="w-4 h-4 text-gray-400" />
                                 <span>{property.location}</span>
                               </div>
-                              
+
                               <div className="flex items-center gap-2">
-                                <Badge 
-                                  className={`${
-                                    property.status === 'active' 
-                                      ? 'bg-green-100 text-green-800' 
+                                <Badge
+                                  className={`${property.status === 'active'
+                                      ? 'bg-green-100 text-green-800'
                                       : 'bg-red-100 text-red-800'
-                                  }`}
+                                    }`}
                                 >
                                   {property.status === 'active' ? 'Active' : 'Inactive'}
                                 </Badge>
@@ -3680,12 +3670,12 @@ const VendorManagement = () => {
               Delete Service
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the service "{serviceToDelete?.title}"? 
+              Are you sure you want to delete the service "{serviceToDelete?.title}"?
               This action cannot be undone and will permanently remove the service from the system.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
+            <AlertDialogCancel
               disabled={deletingServiceId !== null}
               onClick={() => {
                 setDeleteServiceModalOpen(false);
@@ -3727,7 +3717,7 @@ const VendorManagement = () => {
               Delete Partner
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the partner "{deleteDialog.vendor?.name}"? 
+              Are you sure you want to delete the partner "{deleteDialog.vendor?.name}"?
               <br />
               <strong className="text-red-600">
                 This action cannot be undone and will permanently delete the partner and ALL their services from the system.
@@ -3735,7 +3725,7 @@ const VendorManagement = () => {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel 
+            <AlertDialogCancel
               disabled={submitting}
               onClick={() => setDeleteDialog({ open: false, vendor: null })}
             >
@@ -3763,8 +3753,8 @@ const VendorManagement = () => {
       </AlertDialog>
 
       {/* Reset Password Dialog */}
-      <Dialog 
-        open={resetPasswordDialog.open} 
+      <Dialog
+        open={resetPasswordDialog.open}
         onOpenChange={(open) => {
           setResetPasswordDialog({ open, vendor: resetPasswordDialog.vendor });
           if (!open) {
@@ -3782,7 +3772,7 @@ const VendorManagement = () => {
               Reset password for vendor: {resetPasswordDialog.vendor?.name}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="newPassword">New Password</Label>
@@ -3794,7 +3784,7 @@ const VendorManagement = () => {
                 onChange={(e) => setResetPasswordData({ ...resetPasswordData, newPassword: e.target.value })}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
               <Input
