@@ -203,12 +203,16 @@ const updateBlogCtrl = async (req, res) => {
 
 const getAllBlogsCtrl = async (req, res) => {
   try {
-    const { page = 1, limit = 100, category, published, search } = req.query;
+    const hasPagination = req.query.page !== undefined || req.query.limit !== undefined;
+    const { page = 1, limit, category, published, search, sortBy = 'newest' } = req.query;
+    
+    const parsedPage = Math.max(1, parseInt(page));
+    const parsedLimit = limit ? Math.max(1, parseInt(limit)) : (hasPagination ? 9 : 1000);
     
     // Build query
     const query = {};
     
-    if (category && category !== 'all-types') {
+    if (category && category !== 'all' && category !== 'all-categories' && category !== 'all-types') {
       query.category = category;
     }
     
@@ -224,10 +228,18 @@ const getAllBlogsCtrl = async (req, res) => {
       ];
     }
 
+    // Determine sorting
+    let sortQuery = { createdAt: -1 };
+    if (sortBy === 'oldest') {
+      sortQuery = { createdAt: 1 };
+    } else if (sortBy === 'title') {
+      sortQuery = { title: 1 };
+    }
+
     const blogs = await blogModel.find(query)
-      .sort({ createdAt: -1 })
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
+      .sort(sortQuery)
+      .limit(parsedLimit)
+      .skip((parsedPage - 1) * parsedLimit)
       .select('title slug desc category image metaTitle metaDescription published createdAt type');
     
     const total = await blogModel.countDocuments(query);
@@ -239,7 +251,7 @@ const getAllBlogsCtrl = async (req, res) => {
         totalBlogs: 0,
         blogs: [],
         pagination: {
-          current: parseInt(page),
+          current: parsedPage,
           pages: 0,
           total: 0
         }
@@ -248,11 +260,11 @@ const getAllBlogsCtrl = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      totalBlogs: blogs.length,
+      totalBlogs: total, // Make totalBlogs mean the database-wide total of matches, not page size
       blogs,
       pagination: {
-        current: parseInt(page),
-        pages: Math.ceil(total / limit),
+        current: parsedPage,
+        pages: Math.ceil(total / parsedLimit),
         total
       }
     });

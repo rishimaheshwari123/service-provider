@@ -1407,19 +1407,19 @@ const VendorManagement = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="textsm md:text-3xl font-bold text-gray-900 flex items-center gap-2">
             <Building2 className="w-8 h-8 text-blue-600" />
             Partner Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 text-sm mt-1">
             Manage partner applications and approvals
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
           <button
             onClick={handleDownloadExcel}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <FileText className="w-4 h-4" />
             Download Excel
@@ -1428,7 +1428,7 @@ const VendorManagement = () => {
             variant="outline"
             onClick={fetchVendors}
             disabled={loading}
-            className="flex items-center gap-2"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Refresh
@@ -1436,7 +1436,7 @@ const VendorManagement = () => {
 
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg">
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg w-full sm:w-auto flex items-center justify-center">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Partner
               </Button>
@@ -1466,10 +1466,10 @@ const VendorManagement = () => {
                     >
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm mb-1 ${currentStep > step.id
-                            ? "bg-green-500 text-white"
-                            : currentStep === step.id
-                              ? "bg-blue-500 text-white"
-                              : "bg-gray-200"
+                          ? "bg-green-500 text-white"
+                          : currentStep === step.id
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-200"
                           }`}
                       >
                         {currentStep > step.id ? <Check size={16} /> : step.icon}
@@ -2306,8 +2306,8 @@ const VendorManagement = () => {
                           <label
                             key={day.key}
                             className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${workingDays[day.key as keyof typeof workingDays]
-                                ? "bg-blue-100 border-blue-500 text-blue-700"
-                                : "bg-gray-50 border-gray-200 text-gray-500"
+                              ? "bg-blue-100 border-blue-500 text-blue-700"
+                              : "bg-gray-50 border-gray-200 text-gray-500"
                               }`}
                           >
                             <input
@@ -3349,8 +3349,8 @@ const VendorManagement = () => {
                               <div className="flex items-center gap-2">
                                 <Badge
                                   className={`${property.status === 'active'
-                                      ? 'bg-green-100 text-green-800'
-                                      : 'bg-red-100 text-red-800'
+                                    ? 'bg-green-100 text-green-800'
+                                    : 'bg-red-100 text-red-800'
                                     }`}
                                 >
                                   {property.status === 'active' ? 'Active' : 'Inactive'}
