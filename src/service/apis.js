@@ -28,6 +28,7 @@ export const vendor = {
   SEND_OTP_API: BASE_URL + "/vendor/send-otp",
   VERIFY_OTP_API: BASE_URL + "/vendor/verify-otp",
   GET_ALL_VENDOR: BASE_URL + "/vendor/getAll",
+  GET_ALL_VENDOR_PAGINATED: BASE_URL + "/vendor/getAllPaginated",
   GET_VENDOR: BASE_URL + "/vendor/get",
   UPDATE_VENDOR: BASE_URL + "/vendor/update",
   UPDATE_VENDOR_PROFILE: BASE_URL + "/vendor/update-profile",

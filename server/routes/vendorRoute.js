@@ -1,5 +1,5 @@
 const express = require("express")
-const { vendorLoginCtrl, vendorRegisterCtrl, getAllVendorCtrl, updateVendorStatusCtrl, getVendorByIDCtrl, updateVendorProfileCtrl, updateVendorPercentageCtrl, updateWorkingHours, requestProfileUpdateCtrl, deleteVendorCtrl, sendVendorOTP, verifyVendorOTP, vendorForgotPasswordCtrl, vendorVerifyResetOTPCtrl, vendorResetPasswordCtrl, adminResetVendorPasswordCtrl, updateVendorProfileImageCtrl, updateVendorRewardSettingsCtrl } = require("../controllers/vendorCtrl")
+const { vendorLoginCtrl, vendorRegisterCtrl, getAllVendorCtrl, getAllVendorPaginatedCtrl, updateVendorStatusCtrl, getVendorByIDCtrl, updateVendorProfileCtrl, updateVendorPercentageCtrl, updateWorkingHours, requestProfileUpdateCtrl, deleteVendorCtrl, sendVendorOTP, verifyVendorOTP, vendorForgotPasswordCtrl, vendorVerifyResetOTPCtrl, vendorResetPasswordCtrl, adminResetVendorPasswordCtrl, updateVendorProfileImageCtrl, updateVendorRewardSettingsCtrl } = require("../controllers/vendorCtrl")
 const router = express.Router()
 
 
@@ -12,6 +12,7 @@ router.post("/verify-reset-otp", vendorVerifyResetOTPCtrl)
 router.post("/reset-password", vendorResetPasswordCtrl)
 router.post("/admin-reset-password", adminResetVendorPasswordCtrl)
 router.get("/getAll", getAllVendorCtrl)
+router.get("/getAllPaginated", getAllVendorPaginatedCtrl)
 router.get("/get/:id", getVendorByIDCtrl)
 router.put("/update/:id", updateVendorStatusCtrl)
 router.put("/update-profile/:id", updateVendorProfileCtrl)
