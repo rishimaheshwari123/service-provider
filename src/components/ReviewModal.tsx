@@ -27,6 +27,15 @@ const ReviewModal = ({ isOpen, onClose, serviceId, serviceName, onReviewAdded }:
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
+  const handleCancel = () => {
+    setRating(0);
+    setHoveredRating(0);
+    setReviewText("");
+    setUserName("");
+    setUserEmail("");
+    onClose();
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -106,7 +115,7 @@ const ReviewModal = ({ isOpen, onClose, serviceId, serviceName, onReviewAdded }:
         <div className="flex items-center justify-between p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">Add Review</h2>
           <button
-            onClick={onClose}
+            onClick={handleCancel}
             className="text-gray-400 hover:text-gray-600 transition-colors"
           >
             <X className="w-6 h-6" />
@@ -198,7 +207,7 @@ const ReviewModal = ({ isOpen, onClose, serviceId, serviceName, onReviewAdded }:
             <Button
               type="button"
               variant="outline"
-              onClick={onClose}
+              onClick={handleCancel}
               className="flex-1"
               disabled={isSubmitting}
             >
