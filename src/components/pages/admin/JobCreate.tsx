@@ -167,7 +167,7 @@ export default function JobCreate() {
   return (
     <div className="container mx-auto py-8 px-4 max-w-4xl">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Create New Job Posting</h1>
+        <h1 className="text-xl md:text-3xl font-bold">Create New Job Posting</h1>
         <p className="text-muted-foreground mt-2">
           Fill in the details to create a new job posting
         </p>
@@ -331,7 +331,7 @@ export default function JobCreate() {
                 onKeyPress={(e) =>
                   e.key === "Enter" &&
                   (e.preventDefault(),
-                  addArrayItem("responsibilities", newResponsibility))
+                    addArrayItem("responsibilities", newResponsibility))
                 }
               />
               <Button
@@ -382,7 +382,7 @@ export default function JobCreate() {
                 onKeyPress={(e) =>
                   e.key === "Enter" &&
                   (e.preventDefault(),
-                  addArrayItem("requirements", newRequirement))
+                    addArrayItem("requirements", newRequirement))
                 }
               />
               <Button
@@ -461,18 +461,29 @@ export default function JobCreate() {
         </Card>
 
         {/* Submit Button */}
-        <div className="flex gap-4 justify-end">
-          <Button type="button" variant="outline">
+        <div className="flex flex-col sm:flex-row gap-3 sm:justify-end w-full">
+
+          {/* Preview Button */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full sm:w-auto h-11 px-6 flex items-center justify-center rounded-lg"
+          >
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
+
+          {/* Submit Button */}
           <Button
             type="submit"
             disabled={!isFormValid() || isSubmitting}
-            className="min-w-[120px]"
+            className="w-full sm:w-auto h-11 px-6 min-w-[140px] bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center"
           >
             {isSubmitting ? (
-              "Creating..."
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin"></div>
+                Creating...
+              </div>
             ) : (
               <>
                 <Save className="h-4 w-4 mr-2" />

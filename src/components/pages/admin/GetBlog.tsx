@@ -22,7 +22,7 @@ const GetBlog = () => {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [categorySearchText, setCategorySearchText] = useState("");
-  
+
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -71,7 +71,7 @@ const GetBlog = () => {
       if (searchTerm) params.search = searchTerm;
       if (filterCategory !== "all") params.category = filterCategory;
       if (filterStatus !== "all") params.published = filterStatus === "published";
-      
+
       const response = await getAllBlogsAPI(params);
       if (response && response.success) {
         setBlogs(response.blogs || []);
@@ -119,9 +119,9 @@ const GetBlog = () => {
   };
 
   const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = { 
-      year: "numeric", 
-      month: "short", 
+    const options: Intl.DateTimeFormatOptions = {
+      year: "numeric",
+      month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit"
@@ -152,24 +152,44 @@ const GetBlog = () => {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+
+            {/* Left Content */}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Blog Management</h1>
-              <p className="mt-2 text-gray-600">Manage all your blog posts in one place</p>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                Blog Management
+              </h1>
+
+              <p className="mt-2 text-sm sm:text-base text-gray-600">
+                Manage all your blog posts in one place
+              </p>
             </div>
-            <div className="mt-4 sm:mt-0">
-              <div className="flex items-center space-x-4">
-                <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                  <span className="text-blue-600 font-semibold">{stats.total}</span>
-                  <span className="text-blue-500 ml-1">Total Blogs</span>
-                </div>
-                <div className="bg-green-50 px-4 py-2 rounded-lg">
-                  <span className="text-green-600 font-semibold">
-                    {stats.published}
-                  </span>
-                  <span className="text-green-500 ml-1">Published</span>
-                </div>
+
+            {/* Right Stats */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+
+              {/* Total Blogs */}
+              <div className="flex items-center justify-between sm:justify-center gap-2 bg-blue-50 px-4 py-3 rounded-xl border border-blue-100 min-w-[170px]">
+                <span className="text-sm text-blue-500 font-medium">
+                  Total Blogs
+                </span>
+
+                <span className="text-lg font-bold text-blue-600">
+                  {stats.total}
+                </span>
+              </div>
+
+              {/* Published */}
+              <div className="flex items-center justify-between sm:justify-center gap-2 bg-green-50 px-4 py-3 rounded-xl border border-green-100 min-w-[170px]">
+                <span className="text-sm text-green-500 font-medium">
+                  Published
+                </span>
+
+                <span className="text-lg font-bold text-green-600">
+                  {stats.published}
+                </span>
               </div>
             </div>
           </div>
@@ -228,20 +248,20 @@ const GetBlog = () => {
                   </div>
                   <SelectItem value="all">All Categories</SelectItem>
                   {uniqueCategories
-                    .filter(category => 
+                    .filter(category =>
                       category?.toLowerCase().includes(categorySearchText.toLowerCase())
                     )
                     .map(category => (
                       <SelectItem key={category} value={category}>{category}</SelectItem>
                     ))
                   }
-                  {uniqueCategories.filter(category => 
+                  {uniqueCategories.filter(category =>
                     category?.toLowerCase().includes(categorySearchText.toLowerCase())
                   ).length === 0 && (
-                    <div className="px-3 py-2 text-sm text-gray-500 text-center">
-                      No category found
-                    </div>
-                  )}
+                      <div className="px-3 py-2 text-sm text-gray-500 text-center">
+                        No category found
+                      </div>
+                    )}
                 </SelectContent>
               </Select>
             </div>
@@ -303,7 +323,7 @@ const GetBlog = () => {
                         <FaImage className="text-gray-400 text-4xl" />
                       </div>
                     )}
-                    
+
                     {/* Status Badge */}
                     <div className="absolute top-3 left-3">
                       {blogItem.published ? (
@@ -348,7 +368,7 @@ const GetBlog = () => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-2 line-clamp-2">
                       {blogItem.title}
                     </h3>
-                    
+
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                       {truncateText(blogItem.desc, 120)}
                     </p>
@@ -377,7 +397,7 @@ const GetBlog = () => {
                           <FaEdit className="mr-1" />
                           Edit
                         </button>
-                        
+
                         {blogItem.slug && (
                           <button
                             onClick={() => window.open(`/blog/${blogItem.slug}`, '_blank')}
@@ -388,7 +408,7 @@ const GetBlog = () => {
                           </button>
                         )}
                       </div>
-                      
+
                       <button
                         onClick={() => handleDelete(blogItem._id)}
                         className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
@@ -406,8 +426,8 @@ const GetBlog = () => {
                   <div className="text-gray-400 text-6xl mb-4">📝</div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No blogs found</h3>
                   <p className="text-gray-500">
-                    {searchTerm || filterCategory !== "all" || filterStatus !== "all" 
-                      ? "Try adjusting your search criteria" 
+                    {searchTerm || filterCategory !== "all" || filterStatus !== "all"
+                      ? "Try adjusting your search criteria"
                       : "Create your first blog post to get started"}
                   </p>
                 </div>
@@ -428,15 +448,14 @@ const GetBlog = () => {
               <button
                 onClick={() => handlePageChange(page - 1)}
                 disabled={page === 1}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
-                  page === 1
+                className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${page === 1
                     ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 active:bg-gray-100"
-                }`}
+                  }`}
               >
                 Previous
               </button>
-              
+
               {/* Pagination Numbers */}
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
                 if (
@@ -448,11 +467,10 @@ const GetBlog = () => {
                     <button
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
-                      className={`w-9 h-9 rounded-md text-sm font-semibold border transition-all ${
-                        page === pageNum
+                      className={`w-9 h-9 rounded-md text-sm font-semibold border transition-all ${page === pageNum
                           ? "bg-blue-600 border-blue-600 text-white shadow-sm"
                           : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                      }`}
+                        }`}
                     >
                       {pageNum}
                     </button>
@@ -473,11 +491,10 @@ const GetBlog = () => {
               <button
                 onClick={() => handlePageChange(page + 1)}
                 disabled={page === totalPages}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
-                  page === totalPages
+                className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${page === totalPages
                     ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
                     : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 active:bg-gray-100"
-                }`}
+                  }`}
               >
                 Next
               </button>
