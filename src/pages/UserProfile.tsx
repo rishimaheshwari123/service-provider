@@ -115,13 +115,15 @@ const UserProfile = () => {
   const [profileData, setProfileData] = useState<UserProfileData | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"bookings" | "inquiries" | "rewards">("bookings");
-  
+  const [activeTab, setActiveTab] = useState<
+    "bookings" | "inquiries" | "rewards"
+  >("bookings");
+
   // Edit Profile States
   const [isEditMode, setIsEditMode] = useState(false);
   const [editName, setEditName] = useState("");
   const [editEmail, setEditEmail] = useState("");
-  
+
   // Change Password States
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordData, setPasswordData] = useState({
@@ -129,11 +131,15 @@ const UserProfile = () => {
     newPassword: "",
     confirmPassword: "",
   });
-  
+
   // Sorting States
-  const [bookingSortOrder, setBookingSortOrder] = useState<"asc" | "desc">("desc");
-  const [inquirySortOrder, setInquirySortOrder] = useState<"asc" | "desc">("desc");
-  
+  const [bookingSortOrder, setBookingSortOrder] = useState<"asc" | "desc">(
+    "desc",
+  );
+  const [inquirySortOrder, setInquirySortOrder] = useState<"asc" | "desc">(
+    "desc",
+  );
+
   // Pagination States
   const [bookingPage, setBookingPage] = useState(1);
   const [inquiryPage, setInquiryPage] = useState(1);
@@ -157,15 +163,19 @@ const UserProfile = () => {
     try {
       const response = await axios.put(
         `${BASE_URL}/auth/update/${authUser?._id}`,
-        { name: editName, email: editEmail }
+        { name: editName, email: editEmail },
       );
-      
+
       if (response.data.success) {
         toast.success("Profile updated successfully!");
-        setProfileData((prev) => prev ? {
-          ...prev,
-          user: { ...prev.user, name: editName, email: editEmail }
-        } : null);
+        setProfileData((prev) =>
+          prev
+            ? {
+                ...prev,
+                user: { ...prev.user, name: editName, email: editEmail },
+              }
+            : null,
+        );
         dispatch(setUser({ ...authUser, name: editName, email: editEmail }));
         setIsEditMode(false);
       }
@@ -179,7 +189,7 @@ const UserProfile = () => {
       toast.error("New passwords don't match!");
       return;
     }
-    
+
     if (passwordData.newPassword.length < 6) {
       toast.error("Password must be at least 6 characters!");
       return;
@@ -191,13 +201,17 @@ const UserProfile = () => {
         {
           currentPassword: passwordData.currentPassword,
           newPassword: passwordData.newPassword,
-        }
+        },
       );
-      
+
       if (response.data.success) {
         toast.success("Password changed successfully!");
         setShowPasswordModal(false);
-        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
       }
     } catch (error: any) {
       toast.error(error.response?.data?.message || "Failed to change password");
@@ -207,11 +221,24 @@ const UserProfile = () => {
   const fetchBookings = async () => {
     try {
       const response = await axios.get<BookingsResponse>(
-        `${BASE_URL}/booking/getAll`
+        `${BASE_URL}/booking/getAll`,
       );
       if (response.data.success && authUser?._id) {
+        // Filter bookings to show only those made by the current logged-in user
         const userBookings = response.data.bookings.filter(
-          (booking: Booking) => booking.service && typeof booking.service === "object"
+          (booking: Booking) => {
+            // Check if booking belongs to current user and has valid service data
+            const belongsToUser =
+              (typeof booking.user === "string"
+                ? booking.user === authUser._id
+                : booking.user?._id === authUser._id) ||
+              booking.user === authUser._id;
+
+            const hasValidService =
+              booking.service && typeof booking.service === "object";
+
+            return belongsToUser && hasValidService;
+          },
         );
         setBookings(userBookings);
       }
@@ -262,6 +289,28 @@ const UserProfile = () => {
       month: "long",
       day: "numeric",
     });
+  };
+
+  const formatTime12Hour = (timeString: string) => {
+    if (!timeString) return "";
+
+    // Handle ISO date string format (e.g., "2026-02-03T11:39:00.000Z")
+    if (timeString.includes("T")) {
+      const date = new Date(timeString);
+      return date.toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        hour12: true,
+      });
+    }
+
+    // Handle HH:MM format (e.g., "15:00")
+    const [hours, minutes] = timeString.split(":").map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return timeString;
+
+    const hour12 = hours % 12 || 12;
+    const ampm = hours >= 12 ? "PM" : "AM";
+    return `${hour12}:${String(minutes).padStart(2, "0")} ${ampm}`;
   };
 
   const getStatusColor = (status: string) => {
@@ -325,16 +374,18 @@ const UserProfile = () => {
   // Pagination Functions
   const paginatedBookings = sortedBookings.slice(
     (bookingPage - 1) * itemsPerPage,
-    bookingPage * itemsPerPage
+    bookingPage * itemsPerPage,
   );
 
   const paginatedInquiries = sortedInquiries.slice(
     (inquiryPage - 1) * itemsPerPage,
-    inquiryPage * itemsPerPage
+    inquiryPage * itemsPerPage,
   );
 
   const totalBookingPages = Math.ceil(bookings.length / itemsPerPage);
-  const totalInquiryPages = Math.ceil((profileData?.inquiries.length || 0) / itemsPerPage);
+  const totalInquiryPages = Math.ceil(
+    (profileData?.inquiries.length || 0) / itemsPerPage,
+  );
 
   return (
     <>
@@ -346,7 +397,9 @@ const UserProfile = () => {
             <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
               My Profile
             </h1>
-            <p className="text-gray-600">Manage your account and view your activity</p>
+            <p className="text-gray-600">
+              Manage your account and view your activity
+            </p>
           </div>
 
           {/* User Basic Details Card */}
@@ -369,10 +422,12 @@ const UserProfile = () => {
                       {profileData.user.name}
                     </h2>
                   )}
-                  <p className="text-gray-500 capitalize mt-1">{profileData.user.role}</p>
+                  <p className="text-gray-500 capitalize mt-1">
+                    {profileData.user.role}
+                  </p>
                 </div>
               </div>
-              
+
               <div className="flex gap-2 flex-wrap">
                 {isEditMode ? (
                   <>
@@ -426,7 +481,9 @@ const UserProfile = () => {
                         className="font-semibold border-b-2 border-indigo-500 focus:outline-none px-2 py-1 w-full"
                       />
                     ) : (
-                      <p className="font-semibold break-all">{profileData.user.email}</p>
+                      <p className="font-semibold break-all">
+                        {profileData.user.email}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -444,14 +501,20 @@ const UserProfile = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600">Total Bookings</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Total Bookings
+                    </span>
                     <FaShoppingCart className="text-indigo-500 text-xl" />
                   </div>
-                  <p className="text-3xl font-bold text-indigo-600">{bookings.length}</p>
+                  <p className="text-3xl font-bold text-indigo-600">
+                    {bookings.length}
+                  </p>
                 </div>
                 <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-600">Total Inquiries</span>
+                    <span className="text-sm font-medium text-gray-600">
+                      Total Inquiries
+                    </span>
                     <FaQuestionCircle className="text-purple-500 text-xl" />
                   </div>
                   <p className="text-3xl font-bold text-purple-600">
@@ -511,7 +574,8 @@ const UserProfile = () => {
                         You haven't made any bookings yet.
                       </p>
                       <p className="text-gray-400 mt-2">
-                        Start exploring our services and book your first service!
+                        Start exploring our services and book your first
+                        service!
                       </p>
                     </div>
                   ) : (
@@ -519,176 +583,186 @@ const UserProfile = () => {
                       {/* Sort Controls */}
                       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                         <p className="text-gray-600 font-medium">
-                          Showing {paginatedBookings.length} of {bookings.length} bookings
+                          Showing {paginatedBookings.length} of{" "}
+                          {bookings.length} bookings
                         </p>
                         <button
-                          onClick={() => setBookingSortOrder(bookingSortOrder === "desc" ? "asc" : "desc")}
+                          onClick={() =>
+                            setBookingSortOrder(
+                              bookingSortOrder === "desc" ? "asc" : "desc",
+                            )
+                          }
                           className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200 transition-colors"
                         >
                           <FaSortAmountDown />
-                          Sort by Date ({bookingSortOrder === "desc" ? "Newest First" : "Oldest First"})
+                          Sort by Date (
+                          {bookingSortOrder === "desc"
+                            ? "Newest First"
+                            : "Oldest First"}
+                          )
                         </button>
                       </div>
 
                       <div className="space-y-6">
                         {paginatedBookings.map((booking) => (
-                        <div
-                          key={booking._id}
-                          className="bg-gradient-to-r from-white to-gray-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200"
-                        >
-                          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4">
-                            <div className="flex-1">
-                              <h3 className="text-xl font-bold text-gray-800 mb-2">
-                                {booking.service.title}
-                              </h3>
-                              <div className="flex flex-wrap gap-3 text-sm">
-                                <span
-                                  className={`px-3 py-1 rounded-full font-semibold border ${getStatusColor(
-                                    booking.status
-                                  )}`}
-                                >
-                                  {getStatusIcon(booking.status)}
-                                  {booking.status.toUpperCase()}
-                                </span>
-                                <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-semibold border border-blue-300">
-                                  <FaMoneyBillWave className="inline mr-1" />
-                                  {getPaymentTypeLabel(booking.payment.paymentType)}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-2xl font-bold text-indigo-600">
-                                ₹{booking.service.price}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Payment: {booking.payment.paymentStatus}
-                              </p>
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4 pt-4 border-t border-gray-200">
-                            <div className="flex items-center text-gray-700">
-                              <FaCalendarAlt className="text-indigo-500 mr-2" />
-                              <div>
-                                <p className="text-xs text-gray-500">Booking Date</p>
-                                <p className="font-semibold">
-                                  {formatDateOnly(booking.date)}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center text-gray-700">
-                              <FaClock className="text-indigo-500 mr-2" />
-                              <div>
-                                <p className="text-xs text-gray-500">Time</p>
-                                <p className="font-semibold">{booking.time}</p>
-                              </div>
-                            </div>
-                            <div className="flex items-center text-gray-700">
-                              <FaMapMarkerAlt className="text-indigo-500 mr-2" />
-                              <div>
-                                <p className="text-xs text-gray-500">Service Location</p>
-                                <p className="font-semibold">{booking.service.location}</p>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Service Address */}
-                          {booking.address ? (
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                              <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
-                                <FaMapMarkerAlt className="text-indigo-500 mr-2" />
-                                Service Address:
-                              </p>
-                              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
-                                <div className="text-sm text-gray-700 space-y-1">
-                                  <p className="font-medium">{booking.address.addressLine1}</p>
-                                  {booking.address.city && (
-                                    <p>
-                                      {booking.address.city}
-                                      {booking.address.state && `, ${booking.address.state}`}
-                                      {booking.address.zipCode && ` - ${booking.address.zipCode}`}
-                                    </p>
-                                  )}
-                                  {booking.address.country && (
-                                    <p className="font-medium text-indigo-700">{booking.address.country}</p>
-                                  )}
-                                  {booking.address.coordinates?.latitude && booking.address.coordinates?.longitude && (
-                                    <p className="text-xs text-indigo-600 mt-2 font-mono bg-white px-2 py-1 rounded">
-                                      GPS: {booking.address.coordinates.latitude.toFixed(6)}, {booking.address.coordinates.longitude.toFixed(6)}
-                                    </p>
-                                  )}
+                          <div
+                            key={booking._id}
+                            className="bg-gradient-to-r from-white to-gray-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-200"
+                          >
+                            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4 gap-4">
+                              <div className="flex-1">
+                                <h3 className="text-xl font-bold text-gray-800 mb-2">
+                                  {booking.service.title}
+                                </h3>
+                                <div className="flex flex-wrap gap-3 text-sm">
+                                  <span
+                                    className={`px-3 py-1 rounded-full font-semibold border ${getStatusColor(
+                                      booking.status,
+                                    )}`}
+                                  >
+                                    {getStatusIcon(booking.status)}
+                                    {booking.status.toUpperCase()}
+                                  </span>
+                                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-semibold border border-blue-300">
+                                    <FaMoneyBillWave className="inline mr-1" />
+                                    {getPaymentTypeLabel(
+                                      booking.payment.paymentType,
+                                    )}
+                                  </span>
                                 </div>
                               </div>
                             </div>
-                          ) : (
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                              <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                                <FaMapMarkerAlt className="text-gray-400 mr-2" />
-                                Service Address:
-                              </p>
-                              <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                                <p className="text-sm text-gray-500 italic">
-                                  Address not provided (older booking)
-                                </p>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex items-center text-gray-700">
+                                <FaCalendarAlt className="text-indigo-500 mr-2" />
+                                <div>
+                                  <p className="text-xs text-gray-500">
+                                    Booking Date
+                                  </p>
+                                  <p className="font-semibold">
+                                    {formatDateOnly(booking.date)}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="flex items-center text-gray-700">
+                                <FaClock className="text-indigo-500 mr-2" />
+                                <div>
+                                  <p className="text-xs text-gray-500">Time</p>
+                                  <p className="font-semibold">
+                                    {formatTime12Hour(booking.time)}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                          )}
 
-                          {booking.notes && (
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                              <p className="text-sm text-gray-600 mb-1 font-semibold">
-                                Notes:
-                              </p>
-                              <p className="text-gray-700 bg-gray-100 p-3 rounded-lg">
-                                {booking.notes}
-                              </p>
+                            {/* Service Address */}
+                            {booking.address ? (
+                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                <p className="text-sm font-semibold text-gray-900 mb-3 flex items-center">
+                                  <FaMapMarkerAlt className="text-indigo-500 mr-2" />
+                                  Service Address:
+                                </p>
+                                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                                  <div className="text-sm text-gray-700 space-y-1">
+                                    <p className="font-medium">
+                                      {booking.address.addressLine1}
+                                    </p>
+                                    {booking.address.city && (
+                                      <p>
+                                        {booking.address.city}
+                                        {booking.address.state &&
+                                          `, ${booking.address.state}`}
+                                        {booking.address.zipCode &&
+                                          ` - ${booking.address.zipCode}`}
+                                      </p>
+                                    )}
+                                    {booking.address.country && (
+                                      <p className="font-medium text-indigo-700">
+                                        {booking.address.country}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                <p className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                                  <FaMapMarkerAlt className="text-gray-400 mr-2" />
+                                  Service Address:
+                                </p>
+                                <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                                  <p className="text-sm text-gray-500 italic">
+                                    Address not provided (older booking)
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {booking.notes && (
+                              <div className="mt-4 pt-4 border-t border-gray-200">
+                                <p className="text-sm text-gray-600 mb-1 font-semibold">
+                                  Notes:
+                                </p>
+                                <p className="text-gray-700 bg-gray-100 p-3 rounded-lg">
+                                  {booking.notes}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
+                              Booked on: {formatDate(booking.createdAt)}
                             </div>
-                          )}
-
-                          <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
-                            Booked on: {formatDate(booking.createdAt)}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Pagination */}
-                    {totalBookingPages > 1 && (
-                      <div className="flex justify-center items-center gap-2 mt-8 flex-wrap">
-                        <button
-                          onClick={() => setBookingPage(Math.max(1, bookingPage - 1))}
-                          disabled={bookingPage === 1}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <FaChevronLeft />
-                        </button>
-                        
-                        <div className="flex gap-2 flex-wrap">
-                          {Array.from({ length: totalBookingPages }, (_, i) => i + 1).map((page) => (
-                            <button
-                              key={page}
-                              onClick={() => setBookingPage(page)}
-                              className={`px-4 py-2 rounded-lg transition-colors ${
-                                bookingPage === page
-                                  ? "bg-indigo-600 text-white"
-                                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                        </div>
-
-                        <button
-                          onClick={() => setBookingPage(Math.min(totalBookingPages, bookingPage + 1))}
-                          disabled={bookingPage === totalBookingPages}
-                          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <FaChevronRight />
-                        </button>
+                        ))}
                       </div>
-                    )}
-                  </>
+
+                      {/* Pagination */}
+                      {totalBookingPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-8 flex-wrap">
+                          <button
+                            onClick={() =>
+                              setBookingPage(Math.max(1, bookingPage - 1))
+                            }
+                            disabled={bookingPage === 1}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <FaChevronLeft />
+                          </button>
+
+                          <div className="flex gap-2 flex-wrap">
+                            {Array.from(
+                              { length: totalBookingPages },
+                              (_, i) => i + 1,
+                            ).map((page) => (
+                              <button
+                                key={page}
+                                onClick={() => setBookingPage(page)}
+                                className={`px-4 py-2 rounded-lg transition-colors ${
+                                  bookingPage === page
+                                    ? "bg-indigo-600 text-white"
+                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            ))}
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              setBookingPage(
+                                Math.min(totalBookingPages, bookingPage + 1),
+                              )
+                            }
+                            disabled={bookingPage === totalBookingPages}
+                            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <FaChevronRight />
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -711,118 +785,136 @@ const UserProfile = () => {
                       {/* Sort Controls */}
                       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
                         <p className="text-gray-600 font-medium">
-                          Showing {paginatedInquiries.length} of {profileData.inquiries.length} inquiries
+                          Showing {paginatedInquiries.length} of{" "}
+                          {profileData.inquiries.length} inquiries
                         </p>
                         <button
-                          onClick={() => setInquirySortOrder(inquirySortOrder === "desc" ? "asc" : "desc")}
+                          onClick={() =>
+                            setInquirySortOrder(
+                              inquirySortOrder === "desc" ? "asc" : "desc",
+                            )
+                          }
                           className="flex items-center gap-2 px-4 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
                         >
                           <FaSortAmountDown />
-                          Sort by Date ({inquirySortOrder === "desc" ? "Newest First" : "Oldest First"})
+                          Sort by Date (
+                          {inquirySortOrder === "desc"
+                            ? "Newest First"
+                            : "Oldest First"}
+                          )
                         </button>
                       </div>
 
                       <div className="space-y-6">
                         {paginatedInquiries.map((inquiry) => (
-                        <div
-                          key={inquiry._id}
-                          className="bg-gradient-to-r from-white to-purple-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-purple-200"
-                        >
-                          <div className="flex flex-col lg:flex-row justify-between items-start mb-4 gap-4">
-                            <h3 className="text-xl font-bold text-purple-700 flex items-center">
-                              <FaTag className="mr-2" />
-                              {inquiry.property.title}
-                            </h3>
-                            <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full">
-                              {formatDate(inquiry.createdAt)}
-                            </span>
-                          </div>
+                          <div
+                            key={inquiry._id}
+                            className="bg-gradient-to-r from-white to-purple-50 p-6 rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-purple-200"
+                          >
+                            <div className="flex flex-col lg:flex-row justify-between items-start mb-4 gap-4">
+                              <h3 className="text-xl font-bold text-purple-700 flex items-center">
+                                <FaTag className="mr-2" />
+                                {inquiry.property.title}
+                              </h3>
+                              <span className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full">
+                                {formatDate(inquiry.createdAt)}
+                              </span>
+                            </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                            <div className="space-y-3">
-                              <p className="font-semibold text-gray-900 mb-2">
-                                Service Details:
-                              </p>
-                              <div className="flex items-center text-gray-700">
-                                <FaMapMarkerAlt className="text-purple-500 mr-2" />
-                                <span>{inquiry.property.location}</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+                              <div className="space-y-3">
+                                <p className="font-semibold text-gray-900 mb-2">
+                                  Service Details:
+                                </p>
+                                <div className="flex items-center text-gray-700">
+                                  <FaMapMarkerAlt className="text-purple-500 mr-2" />
+                                  <span>{inquiry.property.location}</span>
+                                </div>
+                                <div className="flex items-center text-gray-700">
+                                  <FaMoneyBillWave className="text-purple-500 mr-2" />
+                                  <span className="font-semibold">
+                                    ₹{inquiry.property.price}
+                                  </span>
+                                </div>
                               </div>
-                              <div className="flex items-center text-gray-700">
-                                <FaMoneyBillWave className="text-purple-500 mr-2" />
-                                <span className="font-semibold">
-                                  ₹{inquiry.property.price}
-                                </span>
+
+                              <div className="space-y-3 md:border-l md:pl-6">
+                                <p className="font-semibold text-gray-900 mb-2">
+                                  Vendor Contact:
+                                </p>
+                                <div className="flex items-center text-gray-700">
+                                  <FaUserCircle className="text-purple-500 mr-2" />
+                                  <span>
+                                    {inquiry.vendor.company} (
+                                    {inquiry.property.vendor.name})
+                                  </span>
+                                </div>
+                                <div className="flex items-center text-gray-700">
+                                  <FaPhone className="text-purple-500 mr-2" />
+                                  <span>{inquiry.phone}</span>
+                                </div>
                               </div>
                             </div>
 
-                            <div className="space-y-3 md:border-l md:pl-6">
-                              <p className="font-semibold text-gray-900 mb-2">
-                                Vendor Contact:
+                            <div className="mt-4 pt-4 border-t border-purple-200">
+                              <p className="font-semibold text-gray-900 flex items-center mb-2">
+                                <FaFileAlt className="mr-2 text-purple-500" />
+                                Your Message:
                               </p>
-                              <div className="flex items-center text-gray-700">
-                                <FaUserCircle className="text-purple-500 mr-2" />
-                                <span>
-                                  {inquiry.vendor.company} (
-                                  {inquiry.property.vendor.name})
-                                </span>
-                              </div>
-                              <div className="flex items-center text-gray-700">
-                                <FaPhone className="text-purple-500 mr-2" />
-                                <span>{inquiry.phone}</span>
-                              </div>
+                              <p className="p-4 bg-white rounded-lg text-gray-700 border border-purple-100">
+                                {inquiry.message}
+                              </p>
                             </div>
                           </div>
-
-                          <div className="mt-4 pt-4 border-t border-purple-200">
-                            <p className="font-semibold text-gray-900 flex items-center mb-2">
-                              <FaFileAlt className="mr-2 text-purple-500" />
-                              Your Message:
-                            </p>
-                            <p className="p-4 bg-white rounded-lg text-gray-700 border border-purple-100">
-                              {inquiry.message}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Pagination */}
-                    {totalInquiryPages > 1 && (
-                      <div className="flex justify-center items-center gap-2 mt-8 flex-wrap">
-                        <button
-                          onClick={() => setInquiryPage(Math.max(1, inquiryPage - 1))}
-                          disabled={inquiryPage === 1}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <FaChevronLeft />
-                        </button>
-                        
-                        <div className="flex gap-2 flex-wrap">
-                          {Array.from({ length: totalInquiryPages }, (_, i) => i + 1).map((page) => (
-                            <button
-                              key={page}
-                              onClick={() => setInquiryPage(page)}
-                              className={`px-4 py-2 rounded-lg transition-colors ${
-                                inquiryPage === page
-                                  ? "bg-purple-600 text-white"
-                                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                              }`}
-                            >
-                              {page}
-                            </button>
-                          ))}
-                        </div>
-
-                        <button
-                          onClick={() => setInquiryPage(Math.min(totalInquiryPages, inquiryPage + 1))}
-                          disabled={inquiryPage === totalInquiryPages}
-                          className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <FaChevronRight />
-                        </button>
+                        ))}
                       </div>
-                    )}
-                  </>
+
+                      {/* Pagination */}
+                      {totalInquiryPages > 1 && (
+                        <div className="flex justify-center items-center gap-2 mt-8 flex-wrap">
+                          <button
+                            onClick={() =>
+                              setInquiryPage(Math.max(1, inquiryPage - 1))
+                            }
+                            disabled={inquiryPage === 1}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <FaChevronLeft />
+                          </button>
+
+                          <div className="flex gap-2 flex-wrap">
+                            {Array.from(
+                              { length: totalInquiryPages },
+                              (_, i) => i + 1,
+                            ).map((page) => (
+                              <button
+                                key={page}
+                                onClick={() => setInquiryPage(page)}
+                                className={`px-4 py-2 rounded-lg transition-colors ${
+                                  inquiryPage === page
+                                    ? "bg-purple-600 text-white"
+                                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                                }`}
+                              >
+                                {page}
+                              </button>
+                            ))}
+                          </div>
+
+                          <button
+                            onClick={() =>
+                              setInquiryPage(
+                                Math.min(totalInquiryPages, inquiryPage + 1),
+                              )
+                            }
+                            disabled={inquiryPage === totalInquiryPages}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <FaChevronRight />
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               )}
@@ -851,7 +943,11 @@ const UserProfile = () => {
               <button
                 onClick={() => {
                   setShowPasswordModal(false);
-                  setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                  setPasswordData({
+                    currentPassword: "",
+                    newPassword: "",
+                    confirmPassword: "",
+                  });
                 }}
                 className="text-gray-500 hover:text-gray-700 text-2xl"
               >
@@ -868,7 +964,10 @@ const UserProfile = () => {
                   type="password"
                   value={passwordData.currentPassword}
                   onChange={(e) =>
-                    setPasswordData({ ...passwordData, currentPassword: e.target.value })
+                    setPasswordData({
+                      ...passwordData,
+                      currentPassword: e.target.value,
+                    })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Enter current password"
@@ -883,7 +982,10 @@ const UserProfile = () => {
                   type="password"
                   value={passwordData.newPassword}
                   onChange={(e) =>
-                    setPasswordData({ ...passwordData, newPassword: e.target.value })
+                    setPasswordData({
+                      ...passwordData,
+                      newPassword: e.target.value,
+                    })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Enter new password"
@@ -898,7 +1000,10 @@ const UserProfile = () => {
                   type="password"
                   value={passwordData.confirmPassword}
                   onChange={(e) =>
-                    setPasswordData({ ...passwordData, confirmPassword: e.target.value })
+                    setPasswordData({
+                      ...passwordData,
+                      confirmPassword: e.target.value,
+                    })
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   placeholder="Confirm new password"
@@ -915,7 +1020,11 @@ const UserProfile = () => {
                 <button
                   onClick={() => {
                     setShowPasswordModal(false);
-                    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                    setPasswordData({
+                      currentPassword: "",
+                      newPassword: "",
+                      confirmPassword: "",
+                    });
                   }}
                   className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition-colors font-semibold"
                 >

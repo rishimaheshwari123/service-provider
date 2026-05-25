@@ -129,7 +129,7 @@ const VendorBookings: React.FC = () => {
    */
   const handleStatusChange = async (
     bookingId: string,
-    newStatus: ExtendedBooking["status"]
+    newStatus: ExtendedBooking["status"],
   ) => {
     try {
       const response = await updateBookingStatusAPI(bookingId, newStatus);
@@ -159,7 +159,7 @@ const VendorBookings: React.FC = () => {
               };
             }
             return b;
-          })
+          }),
         );
       } else {
         toast.error("Failed to update booking status.");
@@ -246,7 +246,9 @@ const VendorBookings: React.FC = () => {
                   </p>
                   {booking.user?.phone && (
                     <p>
-                      <span className="font-semibold text-gray-900">Phone:</span>{" "}
+                      <span className="font-semibold text-gray-900">
+                        Phone:
+                      </span>{" "}
                       <a
                         href={`tel:${booking.user.phone}`}
                         className="text-blue-500 hover:underline"
@@ -263,7 +265,7 @@ const VendorBookings: React.FC = () => {
                     <span className="font-semibold text-gray-900">Time:</span>{" "}
                     {formatTime12Hour(booking.time)}
                   </p>
-                  
+
                   {/* Service Address */}
                   {booking.address ? (
                     <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
@@ -276,16 +278,15 @@ const VendorBookings: React.FC = () => {
                         {booking.address.city && (
                           <p>
                             {booking.address.city}
-                            {booking.address.state && `, ${booking.address.state}`}
-                            {booking.address.zipCode && ` - ${booking.address.zipCode}`}
+                            {booking.address.state &&
+                              `, ${booking.address.state}`}
+                            {booking.address.zipCode &&
+                              ` - ${booking.address.zipCode}`}
                           </p>
                         )}
                         {booking.address.country && (
-                          <p className="font-medium">{booking.address.country}</p>
-                        )}
-                        {booking.address.coordinates?.latitude && booking.address.coordinates?.longitude && (
-                          <p className="text-xs text-blue-600 mt-2 font-mono">
-                            📍 {booking.address.coordinates.latitude.toFixed(6)}, {booking.address.coordinates.longitude.toFixed(6)}
+                          <p className="font-medium">
+                            {booking.address.country}
                           </p>
                         )}
                       </div>
@@ -301,7 +302,7 @@ const VendorBookings: React.FC = () => {
                       </p>
                     </div>
                   )}
-                  
+
                   <p className="mt-2">
                     <span className="font-semibold text-gray-900">Notes:</span>{" "}
                     <span className="italic">{booking.notes || "N/A"}</span>
@@ -320,7 +321,7 @@ const VendorBookings: React.FC = () => {
                     onChange={(e) =>
                       handleStatusChange(
                         booking._id,
-                        e.target.value as ExtendedBooking["status"]
+                        e.target.value as ExtendedBooking["status"],
                       )
                     }
                     className={`border border-indigo-300 bg-white rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 ease-in-out ${
@@ -351,8 +352,8 @@ const VendorBookings: React.FC = () => {
                         booking.payment.paymentStatus === "success"
                           ? "bg-green-600"
                           : booking.payment.paymentStatus === "pending"
-                          ? "bg-yellow-500"
-                          : "bg-red-600"
+                            ? "bg-yellow-500"
+                            : "bg-red-600"
                       }`}
                     >
                       {`${booking.payment.paymentStatus} (${
