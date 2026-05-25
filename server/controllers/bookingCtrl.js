@@ -67,7 +67,6 @@ exports.createBookingCtrl = async (req, res) => {
             const rewardSettings = await RewardSettings.findOne();
 
             if (rewardSettings && rewardSettings.isActive && rewardSettings.bookingPoints > 0) {
-                console.log(`🎁 Processing booking reward for user ${user}`);
 
                 // Get or create reward points record
                 let userRewardPoints = await RewardPoints.findOne({ userId: user });
@@ -98,7 +97,6 @@ exports.createBookingCtrl = async (req, res) => {
                     balanceAfter: userRewardPoints.availablePoints,
                 });
 
-                console.log(`✅ Awarded ${pointsToAdd} booking reward points to user ${user}`);
             } else {
                 console.log('ℹ️ Booking rewards not active or not configured');
             }
