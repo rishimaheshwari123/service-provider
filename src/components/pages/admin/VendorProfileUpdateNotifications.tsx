@@ -238,13 +238,13 @@ const VendorProfileUpdateNotifications = () => {
     <>
       <Card className="border-orange-200 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-orange-50 to-yellow-50 border-b border-orange-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-orange-600" />
-                Profile Update Requests
+              <CardTitle className="flex items-center gap-2 flex-wrap">
+                <Bell className="w-5 h-5 text-orange-600 shrink-0" />
+                <span>Profile Update Requests</span>
                 {requests.length > 0 && (
-                  <Badge variant="destructive" className="ml-2 animate-pulse">
+                  <Badge variant="destructive" className="animate-pulse">
                     {requests.length} Pending
                   </Badge>
                 )}
@@ -258,7 +258,7 @@ const VendorProfileUpdateNotifications = () => {
               size="sm"
               onClick={fetchPendingUpdateRequests}
               disabled={loading}
-              className="flex items-center gap-2"
+              className="flex items-center justify-center gap-2 w-full sm:w-auto"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
               Refresh
