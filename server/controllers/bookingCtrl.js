@@ -131,6 +131,16 @@ exports.getAllBookingsCtrl = async (req, res) => {
 
         let filterConditions = {};
 
+        // Only fetch bookings for services belonging to existing active vendors (name exists, non-empty, and non-null)
+        const Vendor = require("../models/vendorModel");
+        const activeVendors = await Vendor.find({ name: { $exists: true, $ne: "", $ne: null } }).select("_id");
+        const activeVendorIds = activeVendors.map(v => v._id);
+
+        const activeProperties = await Property.find({ vendor: { $in: activeVendorIds } }).select("_id");
+        const activePropertyIds = activeProperties.map(p => p._id);
+
+        filterConditions.service = { $in: activePropertyIds };
+
         // Status filter
         if (status && status !== "all") {
             filterConditions.status = status;
