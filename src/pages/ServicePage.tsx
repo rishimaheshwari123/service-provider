@@ -81,7 +81,11 @@ const ServicesPage = () => {
     const maxPrice = Number(params.get("maxPrice")) || MAX_PRICE_LIMIT;
 
     const newFilters = {
-      search: params.get("search") || params.get("title") || params.get("location") || "",
+      search:
+        params.get("search") ||
+        params.get("title") ||
+        params.get("location") ||
+        "",
       price: [minPrice, maxPrice],
       category: params.get("category") || "all",
       autoFilled: params.get("autoFilled") || "",
@@ -92,22 +96,30 @@ const ServicesPage = () => {
     // If there are URL parameters, trigger search automatically
     if (location.search) {
       // Set a flag to trigger search after data is loaded
-      setFilters(prev => ({ ...prev, ...newFilters, shouldAutoSearch: true }));
+      setFilters((prev) => ({
+        ...prev,
+        ...newFilters,
+        shouldAutoSearch: true,
+      }));
     }
   }, [location.search]);
 
   // Close category dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+      if (
+        categoryDropdownRef.current &&
+        !categoryDropdownRef.current.contains(event.target as Node)
+      ) {
         setCategorySearchOpen(false);
         setCategorySearchTerm("");
       }
     };
 
     if (categorySearchOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [categorySearchOpen]);
 
@@ -121,7 +133,7 @@ const ServicesPage = () => {
         // First fetch categories and reviews
         const [categoriesData, reviewsData] = await Promise.all([
           getAllCategoriesAPI(),
-          getAllReatingAPI()
+          getAllReatingAPI(),
         ]);
 
         setCategories(categoriesData || []);
@@ -138,42 +150,46 @@ const ServicesPage = () => {
     initializeData();
   }, []); // Remove dependencies to prevent re-runs
 
-  const fetchServices = useCallback(async (params: { page?: number; search?: string; category?: string } = {}) => {
-    try {
-      setLoading(true);
-      const filterParams: any = {
-        page: params.page || 1,
-        limit: PAGE_SIZE,
-      };
-      if (params.category && params.category !== 'all') {
-        filterParams.category = params.category;
-      }
-      if (params.search && params.search.trim()) {
-        filterParams.search = params.search.trim();
-      }
-      const result = await getAllPropertyAPI(filterParams);
+  const fetchServices = useCallback(
+    async (
+      params: { page?: number; search?: string; category?: string } = {},
+    ) => {
+      try {
+        setLoading(true);
+        const filterParams: any = {
+          page: params.page || 1,
+          limit: PAGE_SIZE,
+        };
+        if (params.category && params.category !== "all") {
+          filterParams.category = params.category;
+        }
+        if (params.search && params.search.trim()) {
+          filterParams.search = params.search.trim();
+        }
+        const result = await getAllPropertyAPI(filterParams);
 
-      if (result && result.pagination) {
-        setServices(result.properties || []);
-        setFilteredServices(result.properties || []);
-        setTotalPages(result.pagination.totalPages);
-        setTotalCount(result.pagination.total);
-        setCurrentPage(result.pagination.page);
-      } else {
-        const allServices = Array.isArray(result) ? result : [];
-        setServices(allServices);
-        setFilteredServices(allServices);
-        setTotalPages(1);
-        setTotalCount(allServices.length);
+        if (result && result.pagination) {
+          setServices(result.properties || []);
+          setFilteredServices(result.properties || []);
+          setTotalPages(result.pagination.totalPages);
+          setTotalCount(result.pagination.total);
+          setCurrentPage(result.pagination.page);
+        } else {
+          const allServices = Array.isArray(result) ? result : [];
+          setServices(allServices);
+          setFilteredServices(allServices);
+          setTotalPages(1);
+          setTotalCount(allServices.length);
+        }
+      } catch (error) {
+        console.error("Error fetching services:", error);
+        toast.error("Failed to fetch services");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error("Error fetching services:", error);
-      toast.error("Failed to fetch services");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
+    },
+    [],
+  );
 
   // Apply filters only on initial load or when services/categories change
   useEffect(() => {
@@ -184,10 +200,10 @@ const ServicesPage = () => {
         fetchServices({
           page: 1,
           search: filters.search || undefined,
-          category: filters.category !== 'all' ? filters.category : undefined,
+          category: filters.category !== "all" ? filters.category : undefined,
         });
         // Reset the flag
-        setFilters(prev => ({ ...prev, shouldAutoSearch: false }));
+        setFilters((prev) => ({ ...prev, shouldAutoSearch: false }));
       }
     }
   }, [categories, dataInitialized, filters.shouldAutoSearch]);
@@ -196,7 +212,7 @@ const ServicesPage = () => {
 
   const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
-    setFilters(prevFilters => ({ ...prevFilters, [name]: value }));
+    setFilters((prevFilters) => ({ ...prevFilters, [name]: value }));
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -205,7 +221,7 @@ const ServicesPage = () => {
       await fetchServices({
         page: 1,
         search: filters.search?.trim() || undefined,
-        category: filters.category !== 'all' ? filters.category : undefined,
+        category: filters.category !== "all" ? filters.category : undefined,
       });
 
       // Log the search
@@ -213,7 +229,10 @@ const ServicesPage = () => {
       if (searchTerm) {
         logSearch({
           searchQuery: searchTerm,
-          category: filters.category === "all" ? "All Categories" : getCategoryNameById(filters.category),
+          category:
+            filters.category === "all"
+              ? "All Categories"
+              : getCategoryNameById(filters.category),
           location: "Unknown",
           page: "Services",
           resultsCount: totalCount,
@@ -225,34 +244,37 @@ const ServicesPage = () => {
     }
   }, [filters, fetchServices, totalCount]);
 
-  const handlePageChange = useCallback(async (page: number) => {
-    setCurrentPage(page);
-    await fetchServices({
-      page,
-      search: filters.search?.trim() || undefined,
-      category: filters.category !== 'all' ? filters.category : undefined,
-    });
-    // Scroll to top of results
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [filters, fetchServices]);
+  const handlePageChange = useCallback(
+    async (page: number) => {
+      setCurrentPage(page);
+      await fetchServices({
+        page,
+        search: filters.search?.trim() || undefined,
+        category: filters.category !== "all" ? filters.category : undefined,
+      });
+      // Scroll to top of results
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [filters, fetchServices],
+  );
 
   // Helper function to get category name from ID
   const getCategoryNameById = (categoryId: string) => {
     if (categoryId === "all") return "All Categories";
-    const category = categories?.find(cat => cat._id === categoryId);
+    const category = categories?.find((cat) => cat._id === categoryId);
     return category?.name || categoryId;
   };
 
   // Filter categories based on search term
   const filteredCategories = useMemo(() => {
     if (!categorySearchTerm.trim()) return categories;
-    return categories.filter(cat =>
-      cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
+    return categories.filter((cat) =>
+      cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase()),
     );
   }, [categories, categorySearchTerm]);
 
   const handleCategoryChange = useCallback((value) => {
-    setFilters(prevFilters => ({ ...prevFilters, category: value }));
+    setFilters((prevFilters) => ({ ...prevFilters, category: value }));
     setCategorySearchOpen(false);
     setCategorySearchTerm("");
     setSelectedCategoryIndex(-1);
@@ -261,54 +283,68 @@ const ServicesPage = () => {
   }, []);
 
   // Handle keyboard navigation in category dropdown
-  const handleCategoryKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (!categorySearchOpen) return;
+  const handleCategoryKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (!categorySearchOpen) return;
 
-    const allOptions = ["all", ...filteredCategories.map(cat => cat._id)];
+      const allOptions = ["all", ...filteredCategories.map((cat) => cat._id)];
 
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setSelectedCategoryIndex(prev =>
-          prev < allOptions.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setSelectedCategoryIndex(prev =>
-          prev > 0 ? prev - 1 : allOptions.length - 1
-        );
-        break;
-      case "Enter":
-        e.preventDefault();
-        if (selectedCategoryIndex >= 0) {
-          handleCategoryChange(allOptions[selectedCategoryIndex]);
-        }
-        break;
-      case "Escape":
-        setCategorySearchOpen(false);
-        setCategorySearchTerm("");
-        setSelectedCategoryIndex(-1);
-        break;
-    }
-  }, [categorySearchOpen, filteredCategories, selectedCategoryIndex, handleCategoryChange]);
+      switch (e.key) {
+        case "ArrowDown":
+          e.preventDefault();
+          setSelectedCategoryIndex((prev) =>
+            prev < allOptions.length - 1 ? prev + 1 : 0,
+          );
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          setSelectedCategoryIndex((prev) =>
+            prev > 0 ? prev - 1 : allOptions.length - 1,
+          );
+          break;
+        case "Enter":
+          e.preventDefault();
+          if (selectedCategoryIndex >= 0) {
+            handleCategoryChange(allOptions[selectedCategoryIndex]);
+          }
+          break;
+        case "Escape":
+          setCategorySearchOpen(false);
+          setCategorySearchTerm("");
+          setSelectedCategoryIndex(-1);
+          break;
+      }
+    },
+    [
+      categorySearchOpen,
+      filteredCategories,
+      selectedCategoryIndex,
+      handleCategoryChange,
+    ],
+  );
 
-  const handleHireNow = useCallback((id) => {
-    navigate(`/service/${id}`);
-  }, [navigate]);
+  const handleHireNow = useCallback(
+    (id) => {
+      navigate(`/service/${id}`);
+    },
+    [navigate],
+  );
 
-  const handleAddReview = useCallback((serviceId: string, serviceName: string) => {
-    if (!token) {
-      toast.error("Please login to add a review.");
-      navigate("/login");
-      return;
-    }
-    setReviewModal({
-      isOpen: true,
-      serviceId,
-      serviceName,
-    });
-  }, [token, navigate]);
+  const handleAddReview = useCallback(
+    (serviceId: string, serviceName: string) => {
+      if (!token) {
+        toast.error("Please login to add a review.");
+        navigate("/login");
+        return;
+      }
+      setReviewModal({
+        isOpen: true,
+        serviceId,
+        serviceName,
+      });
+    },
+    [token, navigate],
+  );
 
   const handleCloseReviewModal = useCallback(() => {
     setReviewModal({
@@ -329,48 +365,66 @@ const ServicesPage = () => {
     }
   }, []);
 
-  const getAverageRating = useCallback((serviceId: string) => {
-    // First try to get reviews from the populated review field
-    const service = services.find((s: any) => s._id === serviceId);
-    if (service?.review && Array.isArray(service.review) && service.review.length > 0) {
-      const total = service.review.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
-      return Number((total / service.review.length).toFixed(1));
-    }
-
-    // Fallback: get reviews from separate API call
-    const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
-    if (serviceReviews.length === 0) {
-      return 0;
-    }
-    const total = serviceReviews.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
-    return Number((total / serviceReviews.length).toFixed(1));
-  }, [services, allReviews]);
-
-  const getReviewCount = useCallback((serviceId: string) => {
-    // First try to get count from the populated review field
-    const service = services.find((s: any) => s._id === serviceId);
-    if (service?.review && Array.isArray(service.review)) {
-      if (service.review.length > 0) {
-        return service.review.length;
+  const getAverageRating = useCallback(
+    (serviceId: string) => {
+      // First try to get reviews from the populated review field
+      const service = services.find((s: any) => s._id === serviceId);
+      if (
+        service?.review &&
+        Array.isArray(service.review) &&
+        service.review.length > 0
+      ) {
+        const total = service.review.reduce(
+          (acc: number, r: any) => acc + (r.rating || 0),
+          0,
+        );
+        return Number((total / service.review.length).toFixed(1));
       }
-    }
 
-    // Fallback: get count from separate API call
-    const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
-    const count = serviceReviews.length;
+      // Fallback: get reviews from separate API call
+      const serviceReviews = allReviews.filter(
+        (review: any) => review.property === serviceId,
+      );
+      if (serviceReviews.length === 0) {
+        return 0;
+      }
+      const total = serviceReviews.reduce(
+        (acc: number, r: any) => acc + (r.rating || 0),
+        0,
+      );
+      return Number((total / serviceReviews.length).toFixed(1));
+    },
+    [services, allReviews],
+  );
 
-    // Log only when reviews are found
-    if (count > 0) {
-      console.log(`Service ${serviceId} has ${count} reviews`);
-    }
+  const getReviewCount = useCallback(
+    (serviceId: string) => {
+      // First try to get count from the populated review field
+      const service = services.find((s: any) => s._id === serviceId);
+      if (service?.review && Array.isArray(service.review)) {
+        if (service.review.length > 0) {
+          return service.review.length;
+        }
+      }
 
-    return count;
-  }, [services, allReviews]);
+      // Fallback: get count from separate API call
+      const serviceReviews = allReviews.filter(
+        (review: any) => review.property === serviceId,
+      );
+      const count = serviceReviews.length;
+
+      // Log only when reviews are found
+      if (count > 0) {
+        console.log(`Service ${serviceId} has ${count} reviews`);
+      }
+
+      return count;
+    },
+    [services, allReviews],
+  );
   const toPascalCase = (text) => {
     if (!text) return "";
-    return text
-      .toLowerCase()
-      .replace(/\b\w/g, char => char.toUpperCase());
+    return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
   };
 
   const getRatingColor = useCallback((rating: number) => {
@@ -404,9 +458,12 @@ const ServicesPage = () => {
   return (
     <>
       <Navbar />
-      <section className="bg-gray-100 min-h-screen">
-        {/* Header */}
-        <div className="bg-white border-b sticky top-16 z-40">
+      <section className="">
+        {/* Header - Sticky Filter & Search */}
+        <div
+          className="bg-white border-b sticky z-40 shadow-sm"
+          style={{ top: "80px" }}
+        >
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex flex-col lg:flex-row lg:items-center gap-3">
               {/* Search Input */}
@@ -418,7 +475,9 @@ const ServicesPage = () => {
                     name="search"
                     value={filters.search}
                     onChange={handleInputChange}
-                    placeholder={toPascalCase("Search By Vendor Name, Service, Location, City, Pincode...")}
+                    placeholder={toPascalCase(
+                      "Search By Vendor Name, Service, Location, City, Pincode...",
+                    )}
                     className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") {
@@ -445,7 +504,10 @@ const ServicesPage = () => {
               {/* Category Searchable Dropdown, Find Button & Filter Button */}
               <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                 {/* Custom Searchable Category Dropdown */}
-                <div className="relative w-full lg:min-w-[280px]" ref={categoryDropdownRef}>
+                <div
+                  className="relative w-full lg:min-w-[280px]"
+                  ref={categoryDropdownRef}
+                >
                   <button
                     onClick={() => {
                       setCategorySearchOpen(!categorySearchOpen);
@@ -457,11 +519,13 @@ const ServicesPage = () => {
                     <span className="truncate">
                       {toPascalCase(getCategoryNameById(filters.category))}
                     </span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${categorySearchOpen ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${categorySearchOpen ? "rotate-180" : ""}`}
+                    />
                   </button>
 
                   {categorySearchOpen && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
+                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-40 max-h-96 overflow-hidden">
                       {/* Search Input */}
                       <div className="p-4 border-b border-gray-200">
                         <div className="relative">
@@ -486,11 +550,18 @@ const ServicesPage = () => {
                         {/* All Categories Option */}
                         <button
                           onClick={() => handleCategoryChange("all")}
-                          className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${filters.category === "all" ? "bg-blue-50 text-blue-600" : ""
-                            } ${selectedCategoryIndex === 0 ? "bg-gray-100" : ""}`}
+                          className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
+                            filters.category === "all"
+                              ? "bg-blue-50 text-blue-600"
+                              : ""
+                          } ${selectedCategoryIndex === 0 ? "bg-gray-100" : ""}`}
                         >
-                          <span>{toPascalCase(t("pages.home.allCategories"))}</span>
-                          {filters.category === "all" && <CheckCircle className="w-5 h-5" />}
+                          <span>
+                            {toPascalCase(t("pages.home.allCategories"))}
+                          </span>
+                          {filters.category === "all" && (
+                            <CheckCircle className="w-5 h-5" />
+                          )}
                         </button>
 
                         {/* Filtered Categories */}
@@ -499,11 +570,18 @@ const ServicesPage = () => {
                             <button
                               key={cat._id}
                               onClick={() => handleCategoryChange(cat._id)}
-                              className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${filters.category === cat._id ? "bg-blue-50 text-blue-600" : ""
-                                } ${selectedCategoryIndex === index + 1 ? "bg-gray-100" : ""}`}
+                              className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
+                                filters.category === cat._id
+                                  ? "bg-blue-50 text-blue-600"
+                                  : ""
+                              } ${selectedCategoryIndex === index + 1 ? "bg-gray-100" : ""}`}
                             >
-                              <span className="truncate">{toPascalCase(cat.name)}</span>
-                              {filters.category === cat._id && <CheckCircle className="w-5 h-5" />}
+                              <span className="truncate">
+                                {toPascalCase(cat.name)}
+                              </span>
+                              {filters.category === cat._id && (
+                                <CheckCircle className="w-5 h-5" />
+                              )}
                             </button>
                           ))
                         ) : (
@@ -531,10 +609,14 @@ const ServicesPage = () => {
                   >
                     <Filter className="w-4 h-4" />
                     <span>{toPascalCase(t("common.filter"))}</span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
+                    />
                   </button>
 
-                  {(filters.search || filters.category !== "all" || filters.autoFilled) && (
+                  {(filters.search ||
+                    filters.category !== "all" ||
+                    filters.autoFilled) && (
                     <button
                       onClick={clearFilters}
                       className="flex-none flex items-center justify-center gap-1 px-3 py-2.5 text-red-650 hover:bg-red-50 rounded-lg transition-colors bg-white border border-red-200"
@@ -551,11 +633,18 @@ const ServicesPage = () => {
             {showFilters && (
               <div className="mt-3 pt-3 border-t flex flex-wrap gap-4 items-center">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">{toPascalCase("Price")}:</span>
+                  <span className="text-sm text-gray-600">
+                    {toPascalCase("Price")}:
+                  </span>
                   <input
                     type="number"
                     value={filters.price[0]}
-                    onChange={(e) => setFilters({ ...filters, price: [Number(e.target.value), filters.price[1]] })}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        price: [Number(e.target.value), filters.price[1]],
+                      })
+                    }
                     className="w-24 px-2 py-1 border rounded text-sm"
                     placeholder={toPascalCase("Min")}
                   />
@@ -563,7 +652,12 @@ const ServicesPage = () => {
                   <input
                     type="number"
                     value={filters.price[1]}
-                    onChange={(e) => setFilters({ ...filters, price: [filters.price[0], Number(e.target.value)] })}
+                    onChange={(e) =>
+                      setFilters({
+                        ...filters,
+                        price: [filters.price[0], Number(e.target.value)],
+                      })
+                    }
                     className="w-24 px-2 py-1 border rounded text-sm"
                     placeholder={toPascalCase("Max")}
                   />
@@ -581,7 +675,8 @@ const ServicesPage = () => {
                 toPascalCase("Searching...")
               ) : (
                 <>
-                  {toPascalCase("Showing")} {filteredServices.length} {toPascalCase("Of")} {totalCount} {toPascalCase("Services")}
+                  {toPascalCase("Showing")} {filteredServices.length}{" "}
+                  {toPascalCase("Of")} {totalCount} {toPascalCase("Services")}
                   {totalPages > 1 && (
                     <span className="text-gray-400 ml-1">
                       (Page {currentPage} of {totalPages})
@@ -594,12 +689,18 @@ const ServicesPage = () => {
                   )}
                   {filters.category !== "all" && (
                     <span className="ml-2 text-blue-600 font-medium">
-                      {toPascalCase("In")} {toPascalCase(getCategoryNameById(filters.category))}
+                      {toPascalCase("In")}{" "}
+                      {toPascalCase(getCategoryNameById(filters.category))}
                     </span>
                   )}
                   {filters.autoFilled && (
                     <span className="ml-2 text-green-600 font-medium">
-                      ({filters.autoFilled.split(',').map(item => toPascalCase(item.trim())).join(' & ')} {toPascalCase("Services")})
+                      (
+                      {filters.autoFilled
+                        .split(",")
+                        .map((item) => toPascalCase(item.trim()))
+                        .join(" & ")}{" "}
+                      {toPascalCase("Services")})
                     </span>
                   )}
                 </>
@@ -632,7 +733,8 @@ const ServicesPage = () => {
                   Service Coming Soon in Your Area 🚀
                 </h3>
                 <p className="text-gray-600 mb-6 text-lg">
-                  This service is not available at the moment — but we're expanding fast!
+                  This service is not available at the moment — but we're
+                  expanding fast!
                 </p>
 
                 {/* Service Provider CTA */}
@@ -640,8 +742,10 @@ const ServicesPage = () => {
                   <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
                     <span className="text-2xl">👨‍🔧</span>
                     <span className="text-left">
-                      <strong>Are you a service provider?</strong><br />
-                      Register now on our app and start receiving customer leads.
+                      <strong>Are you a service provider?</strong>
+                      <br />
+                      Register now on our app and start receiving customer
+                      leads.
                     </span>
                   </p>
                   <button
@@ -657,8 +761,10 @@ const ServicesPage = () => {
                   <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
                     <span className="text-2xl">📩</span>
                     <span className="text-left">
-                      <strong>Want this service in your area?</strong><br />
-                      Leave your contact details, and we'll notify you when it's live.
+                      <strong>Want this service in your area?</strong>
+                      <br />
+                      Leave your contact details, and we'll notify you when it's
+                      live.
                     </span>
                   </p>
                   <button
@@ -679,14 +785,16 @@ const ServicesPage = () => {
                   क्षमा करें! यह सेवा फिलहाल आपके क्षेत्र में उपलब्ध नहीं है।
                 </p>
                 <p className="text-gray-600 mb-6">
-                  हम लगातार नए सेवा प्रदाताओं को जोड़ रहे हैं और जल्द ही यह सेवा आपके क्षेत्र में उपलब्ध होगी।
+                  हम लगातार नए सेवा प्रदाताओं को जोड़ रहे हैं और जल्द ही यह सेवा
+                  आपके क्षेत्र में उपलब्ध होगी।
                 </p>
 
                 {/* Service Provider CTA - Hindi */}
                 <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
                   <p className="text-gray-700 mb-4">
-                    <span className="text-2xl">👉</span>{" "}
-                    यदि आप किसी भी प्रकार की सेवा प्रदान करते हैं, तो कृपया हमारे ऐप पर रजिस्टर करें और अपने व्यवसाय को बढ़ाएं।
+                    <span className="text-2xl">👉</span> यदि आप किसी भी प्रकार
+                    की सेवा प्रदान करते हैं, तो कृपया हमारे ऐप पर रजिस्टर करें
+                    और अपने व्यवसाय को बढ़ाएं।
                   </p>
                   <button
                     onClick={() => navigate("/vendor/register")}
@@ -700,28 +808,38 @@ const ServicesPage = () => {
               {/* Search Suggestions (if search was used) */}
               {filters.search && (
                 <div className="mt-8 pt-8 border-t border-gray-200">
-                  <p className="text-sm text-gray-600 mb-3">{toPascalCase("Suggestions")}:</p>
+                  <p className="text-sm text-gray-600 mb-3">
+                    {toPascalCase("Suggestions")}:
+                  </p>
                   <div className="flex flex-wrap justify-center gap-2">
                     <button
-                      onClick={() => setFilters({ ...filters, search: "plumber" })}
+                      onClick={() =>
+                        setFilters({ ...filters, search: "plumber" })
+                      }
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
                       {toPascalCase("Plumber")}
                     </button>
                     <button
-                      onClick={() => setFilters({ ...filters, search: "electrician" })}
+                      onClick={() =>
+                        setFilters({ ...filters, search: "electrician" })
+                      }
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
                       {toPascalCase("Electrician")}
                     </button>
                     <button
-                      onClick={() => setFilters({ ...filters, search: "cleaning" })}
+                      onClick={() =>
+                        setFilters({ ...filters, search: "cleaning" })
+                      }
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
                       {toPascalCase("Cleaning")}
                     </button>
                     <button
-                      onClick={() => setFilters({ ...filters, search: "repair" })}
+                      onClick={() =>
+                        setFilters({ ...filters, search: "repair" })
+                      }
                       className="px-3 py-1 bg-blue-100 text-blue-600 rounded-full text-sm hover:bg-blue-200"
                     >
                       {toPascalCase("Repair")}
@@ -745,7 +863,10 @@ const ServicesPage = () => {
                       {/* Image */}
                       <div className="md:w-72 h-48 md:h-[50vh] relative flex-shrink-0">
                         <img
-                          src={service.images?.[0]?.url || "https://via.placeholder.com/300x200?text=No+Image"}
+                          src={
+                            service.images?.[0]?.url ||
+                            "https://via.placeholder.com/300x200?text=No+Image"
+                          }
                           alt={service.title}
                           className="w-full h-full object-cover"
                         />
@@ -765,7 +886,9 @@ const ServicesPage = () => {
                               <div className="flex items-start gap-2 mb-3">
                                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
                                   <span className="text-blue-600 font-semibold text-sm">
-                                    {service.vendor.name?.charAt(0)?.toUpperCase() || 'V'}
+                                    {service.vendor.name
+                                      ?.charAt(0)
+                                      ?.toUpperCase() || "V"}
                                   </span>
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -773,35 +896,41 @@ const ServicesPage = () => {
                                     <p className="text-sm font-bold text-gray-600 truncate">
                                       {filters.search
                                         ? highlightSearchTerm(
-                                          toPascalCase(service.vendor.company),
-                                          filters.search
-                                        )
+                                            toPascalCase(
+                                              service.vendor.company,
+                                            ),
+                                            filters.search,
+                                          )
                                         : toPascalCase(service.vendor.company)}
                                     </p>
-
                                   )}
                                   <p className="text-[12px] text-gray-900 truncate">
                                     {filters.search
                                       ? highlightSearchTerm(
-                                        toPascalCase(service.vendor.name || "Vendor Name"),
-                                        filters.search
-                                      )
-                                      : toPascalCase(service.vendor.name || "Vendor Name")}
+                                          toPascalCase(
+                                            service.vendor.name ||
+                                              "Vendor Name",
+                                          ),
+                                          filters.search,
+                                        )
+                                      : toPascalCase(
+                                          service.vendor.name || "Vendor Name",
+                                        )}
                                   </p>
-
 
                                   {service.vendor.address && (
                                     <p className="text-xs text-gray-500 line-clamp-1 mt-1">
                                       <MapPin className="w-3 h-3 inline mr-1" />
                                       {filters.search
                                         ? highlightSearchTerm(
-                                          toPascalCase(service.vendor.address),
-                                          filters.search
-                                        )
+                                            toPascalCase(
+                                              service.vendor.address,
+                                            ),
+                                            filters.search,
+                                          )
                                         : toPascalCase(service.vendor.address)}
                                     </p>
                                   )}
-
                                 </div>
                                 {service.verified && (
                                   <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0" />
@@ -817,23 +946,28 @@ const ServicesPage = () => {
                               >
                                 {filters.search
                                   ? highlightSearchTerm(
-                                    toPascalCase(service.title),
-                                    filters.search
-                                  )
+                                      toPascalCase(service.title),
+                                      filters.search,
+                                    )
                                   : toPascalCase(service.title)}
                               </h3>
                             </div>
-
 
                             {/* Rating */}
                             <div className="flex items-center gap-3 mb-3">
                               {avgRating > 0 ? (
                                 <>
-                                  <span className={`${getRatingColor(avgRating)} text-white text-sm font-bold px-2 py-0.5 rounded flex items-center gap-1`}>
-                                    {avgRating} <Star className="w-3 h-3 fill-white" />
+                                  <span
+                                    className={`${getRatingColor(avgRating)} text-white text-sm font-bold px-2 py-0.5 rounded flex items-center gap-1`}
+                                  >
+                                    {avgRating}{" "}
+                                    <Star className="w-3 h-3 fill-white" />
                                   </span>
                                   <span className="text-gray-600 text-sm">
-                                    {reviewCount} {reviewCount === 1 ? toPascalCase("Review") : toPascalCase("Reviews")}
+                                    {reviewCount}{" "}
+                                    {reviewCount === 1
+                                      ? toPascalCase("Review")
+                                      : toPascalCase("Reviews")}
                                   </span>
                                 </>
                               ) : (
@@ -844,14 +978,17 @@ const ServicesPage = () => {
                               )}
                               {service.category && (
                                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                  {toPascalCase(service.category?.name || service.category)}
+                                  {toPascalCase(
+                                    service.category?.name || service.category,
+                                  )}
                                 </span>
                               )}
                             </div>
 
                             {/* Description */}
                             <p className="text-gray-600 text-sm mb-3">
-                              {toPascalCase(service.description) || "Professional Service Provider Offering Quality Services."}
+                              {toPascalCase(service.description) ||
+                                "Professional Service Provider Offering Quality Services."}
                             </p>
 
                             {/* Location & Timing */}
@@ -864,19 +1001,23 @@ const ServicesPage = () => {
                                       highlightSearchTerm(toPascalCase(service.location), filters.search) :
                                       toPascalCase(service.location)
                                     } */}
-                                    {toPascalCase(service?.vendor?.serviceLocation)}
+                                    {toPascalCase(
+                                      service?.vendor?.serviceLocation,
+                                    )}
                                   </span>
                                 </div>
                               )}
-
                             </div>
                             <div className="bg-white rounded-lg mt- shadow-sm mt-2">
                               <h2 className="text-lg font-bold text-gray-900  flex items-center gap-2">
-                                <Calendar className="w-5 h-5 text-blue-600" /> {toPascalCase("Working Hours")}
+                                <Calendar className="w-5 h-5 text-blue-600" />{" "}
+                                {toPascalCase("Working Hours")}
                               </h2>
                               <div className="bg-gray-50 rounded-lg  px-2">
                                 <p className="text-gray-700 font-medium">
-                                  {toPascalCase(service.vendor?.workingDaysTimings) || "Monday - Saturday: 9:00 AM - 6:00 PM"}
+                                  {toPascalCase(
+                                    service.vendor?.workingDaysTimings,
+                                  ) || "Monday - Saturday: 9:00 AM - 6:00 PM"}
                                 </p>
                               </div>
                             </div>
@@ -885,7 +1026,6 @@ const ServicesPage = () => {
                           {/* Price & Actions */}
                           {/* ================= DESKTOP / MD VIEW ================= */}
                           <div className="hidden md:flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-2 pt-3 md:pt-0 border-t md:border-t-0 md:border-l md:pl-5">
-
                             <div className="text-right">
                               <p className="text-xl font-bold text-gray-900">
                                 {toPascalCase("Contact For Price")}
@@ -893,7 +1033,6 @@ const ServicesPage = () => {
                             </div>
 
                             <div className="flex gap-2">
-
                               <button
                                 onClick={() => handleHireNow(service._id)}
                                 className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
@@ -915,7 +1054,6 @@ const ServicesPage = () => {
 
                           {/* ================= MOBILE VIEW ================= */}
                           <div className="flex md:hidden flex-col gap-3 pt-3 border-t w-full">
-
                             {/* Price */}
                             <div className="w-full">
                               <p className="text-lg font-bold text-gray-900 text-center">
@@ -970,7 +1108,10 @@ const ServicesPage = () => {
                 {(() => {
                   const pages: number[] = [];
                   const maxVisible = 5;
-                  let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                  let start = Math.max(
+                    1,
+                    currentPage - Math.floor(maxVisible / 2),
+                  );
                   let end = Math.min(totalPages, start + maxVisible - 1);
                   if (end - start + 1 < maxVisible) {
                     start = Math.max(1, end - maxVisible + 1);
@@ -981,10 +1122,11 @@ const ServicesPage = () => {
                       key={p}
                       onClick={() => handlePageChange(p)}
                       disabled={loading}
-                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${p === currentPage
-                        ? "bg-blue-600 text-white"
-                        : "border border-gray-300 hover:bg-gray-50"
-                        }`}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                        p === currentPage
+                          ? "bg-blue-600 text-white"
+                          : "border border-gray-300 hover:bg-gray-50"
+                      }`}
                     >
                       {p}
                     </button>
