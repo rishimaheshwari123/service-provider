@@ -26,12 +26,15 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReviewModal from "@/components/ReviewModal";
 import ReviewsList from "@/components/ReviewsList";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
 const MAX_PRICE_LIMIT = 50000;
 const MIN_PRICE_LIMIT = 0;
 
 const ServicesPage = () => {
   const { t } = useTranslation();
+  const { token } = useSelector((state: RootState) => state.auth);
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +62,7 @@ const ServicesPage = () => {
     autoFilled: "", // Add autoFilled filter
     shouldAutoSearch: false, // Flag for auto-search from URL params
   });
-  
+
   // Category dropdown search state
   const [categorySearchOpen, setCategorySearchOpen] = useState(false);
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
@@ -85,7 +88,7 @@ const ServicesPage = () => {
       shouldAutoSearch: false,
     };
     setFilters(newFilters);
-    
+
     // If there are URL parameters, trigger search automatically
     if (location.search) {
       // Set a flag to trigger search after data is loaded
@@ -111,19 +114,19 @@ const ServicesPage = () => {
   useEffect(() => {
     const initializeData = async () => {
       if (dataInitialized) return; // Prevent multiple initializations
-      
+
       try {
         setDataInitialized(true);
-        
+
         // First fetch categories and reviews
         const [categoriesData, reviewsData] = await Promise.all([
           getAllCategoriesAPI(),
           getAllReatingAPI()
         ]);
-        
+
         setCategories(categoriesData || []);
         setAllReviews(reviewsData || []);
-        
+
         // Then fetch services only once
         await fetchServices();
       } catch (error) {
@@ -131,7 +134,7 @@ const ServicesPage = () => {
         setDataInitialized(false); // Reset on error
       }
     };
-    
+
     initializeData();
   }, []); // Remove dependencies to prevent re-runs
 
@@ -204,7 +207,7 @@ const ServicesPage = () => {
         search: filters.search?.trim() || undefined,
         category: filters.category !== 'all' ? filters.category : undefined,
       });
-      
+
       // Log the search
       const searchTerm = filters.search?.trim();
       if (searchTerm) {
@@ -243,7 +246,7 @@ const ServicesPage = () => {
   // Filter categories based on search term
   const filteredCategories = useMemo(() => {
     if (!categorySearchTerm.trim()) return categories;
-    return categories.filter(cat => 
+    return categories.filter(cat =>
       cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
     );
   }, [categories, categorySearchTerm]);
@@ -253,26 +256,26 @@ const ServicesPage = () => {
     setCategorySearchOpen(false);
     setCategorySearchTerm("");
     setSelectedCategoryIndex(-1);
-    
+
     // Don't fetch services immediately - wait for user to click "Find Services"
   }, []);
 
   // Handle keyboard navigation in category dropdown
   const handleCategoryKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (!categorySearchOpen) return;
-    
+
     const allOptions = ["all", ...filteredCategories.map(cat => cat._id)];
-    
+
     switch (e.key) {
       case "ArrowDown":
         e.preventDefault();
-        setSelectedCategoryIndex(prev => 
+        setSelectedCategoryIndex(prev =>
           prev < allOptions.length - 1 ? prev + 1 : 0
         );
         break;
       case "ArrowUp":
         e.preventDefault();
-        setSelectedCategoryIndex(prev => 
+        setSelectedCategoryIndex(prev =>
           prev > 0 ? prev - 1 : allOptions.length - 1
         );
         break;
@@ -295,12 +298,17 @@ const ServicesPage = () => {
   }, [navigate]);
 
   const handleAddReview = useCallback((serviceId: string, serviceName: string) => {
+    if (!token) {
+      toast.error("Please login to add a review.");
+      navigate("/login");
+      return;
+    }
     setReviewModal({
       isOpen: true,
       serviceId,
       serviceName,
     });
-  }, []);
+  }, [token, navigate]);
 
   const handleCloseReviewModal = useCallback(() => {
     setReviewModal({
@@ -328,7 +336,7 @@ const ServicesPage = () => {
       const total = service.review.reduce((acc: number, r: any) => acc + (r.rating || 0), 0);
       return Number((total / service.review.length).toFixed(1));
     }
-    
+
     // Fallback: get reviews from separate API call
     const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
     if (serviceReviews.length === 0) {
@@ -346,24 +354,24 @@ const ServicesPage = () => {
         return service.review.length;
       }
     }
-    
+
     // Fallback: get count from separate API call
     const serviceReviews = allReviews.filter((review: any) => review.property === serviceId);
     const count = serviceReviews.length;
-    
+
     // Log only when reviews are found
     if (count > 0) {
       console.log(`Service ${serviceId} has ${count} reviews`);
     }
-    
+
     return count;
   }, [services, allReviews]);
-const toPascalCase = (text) => {
-  if (!text) return "";
-  return text
-    .toLowerCase()
-    .replace(/\b\w/g, char => char.toUpperCase());
-};
+  const toPascalCase = (text) => {
+    if (!text) return "";
+    return text
+      .toLowerCase()
+      .replace(/\b\w/g, char => char.toUpperCase());
+  };
 
   const getRatingColor = useCallback((rating: number) => {
     if (rating >= 4) return "bg-green-500";
@@ -384,7 +392,7 @@ const toPascalCase = (text) => {
       };
       setFilters(clearedFilters);
       setCurrentPage(1);
-      
+
       // Fetch all services fresh from backend
       await fetchServices({ page: 1 });
     } catch (error) {
@@ -400,9 +408,9 @@ const toPascalCase = (text) => {
         {/* Header */}
         <div className="bg-white border-b sticky top-16 z-40">
           <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex flex-col md:flex-row md:items-center gap-3">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-3">
               {/* Search Input */}
-              <div className="flex-1 max-w-2xl">
+              <div className="flex-1 w-full lg:max-w-2xl">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
@@ -435,9 +443,9 @@ const toPascalCase = (text) => {
               </div>
 
               {/* Category Searchable Dropdown, Find Button & Filter Button */}
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
                 {/* Custom Searchable Category Dropdown */}
-                <div className="relative min-w-[300px]" ref={categoryDropdownRef}>
+                <div className="relative w-full lg:min-w-[280px]" ref={categoryDropdownRef}>
                   <button
                     onClick={() => {
                       setCategorySearchOpen(!categorySearchOpen);
@@ -451,7 +459,7 @@ const toPascalCase = (text) => {
                     </span>
                     <ChevronDown className={`w-4 h-4 transition-transform ${categorySearchOpen ? "rotate-180" : ""}`} />
                   </button>
-                  
+
                   {categorySearchOpen && (
                     <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50 max-h-96 overflow-hidden">
                       {/* Search Input */}
@@ -472,29 +480,27 @@ const toPascalCase = (text) => {
                           />
                         </div>
                       </div>
-                      
+
                       {/* Category Options */}
                       <div className="max-h-72 overflow-y-auto">
                         {/* All Categories Option */}
                         <button
                           onClick={() => handleCategoryChange("all")}
-                          className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
-                            filters.category === "all" ? "bg-blue-50 text-blue-600" : ""
-                          } ${selectedCategoryIndex === 0 ? "bg-gray-100" : ""}`}
+                          className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${filters.category === "all" ? "bg-blue-50 text-blue-600" : ""
+                            } ${selectedCategoryIndex === 0 ? "bg-gray-100" : ""}`}
                         >
                           <span>{toPascalCase(t("pages.home.allCategories"))}</span>
                           {filters.category === "all" && <CheckCircle className="w-5 h-5" />}
                         </button>
-                        
+
                         {/* Filtered Categories */}
                         {filteredCategories.length > 0 ? (
                           filteredCategories.map((cat, index) => (
                             <button
                               key={cat._id}
                               onClick={() => handleCategoryChange(cat._id)}
-                              className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
-                                filters.category === cat._id ? "bg-blue-50 text-blue-600" : ""
-                              } ${selectedCategoryIndex === index + 1 ? "bg-gray-100" : ""}`}
+                              className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${filters.category === cat._id ? "bg-blue-50 text-blue-600" : ""
+                                } ${selectedCategoryIndex === index + 1 ? "bg-gray-100" : ""}`}
                             >
                               <span className="truncate">{toPascalCase(cat.name)}</span>
                               {filters.category === cat._id && <CheckCircle className="w-5 h-5" />}
@@ -509,33 +515,35 @@ const toPascalCase = (text) => {
                     </div>
                   )}
                 </div>
-                
-                <button
-                  onClick={handleSearch}
-                  className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 whitespace-nowrap"
-                >
-                  <Search className="w-4 h-4" />
-                  <span className="hidden sm:inline">{toPascalCase("Find Services")}</span>
-                  <span className="sm:hidden">{toPascalCase("Find")}</span>
-                </button>
-                
-                <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Filter className="w-4 h-4" />
-                  <span className="hidden sm:inline">{toPascalCase(t("common.filter"))}</span>
-                  <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
-                </button>
-                {(filters.search || filters.category !== "all" || filters.autoFilled) && (
+
+                <div className="flex items-center gap-2 w-full sm:w-auto">
                   <button
-                    onClick={clearFilters}
-                    className="flex items-center gap-1 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    onClick={handleSearch}
+                    className="flex-1 sm:flex-none justify-center px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
                   >
-                    <X className="w-4 h-4" />
-                    <span className="hidden sm:inline">{toPascalCase("Clear")}</span>
+                    <Search className="w-4 h-4" />
+                    <span>{toPascalCase("Find Services")}</span>
                   </button>
-                )}
+
+                  <button
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-white"
+                  >
+                    <Filter className="w-4 h-4" />
+                    <span>{toPascalCase(t("common.filter"))}</span>
+                    <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {(filters.search || filters.category !== "all" || filters.autoFilled) && (
+                    <button
+                      onClick={clearFilters}
+                      className="flex-none flex items-center justify-center gap-1 px-3 py-2.5 text-red-650 hover:bg-red-50 rounded-lg transition-colors bg-white border border-red-200"
+                    >
+                      <X className="w-4 h-4" />
+                      <span>{toPascalCase("Clear")}</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -617,7 +625,7 @@ const toPascalCase = (text) => {
               <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Search className="w-12 h-12 text-blue-600" />
               </div>
-              
+
               {/* English Section */}
               <div className="mb-8 pb-8 border-b border-gray-200">
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">
@@ -626,7 +634,7 @@ const toPascalCase = (text) => {
                 <p className="text-gray-600 mb-6 text-lg">
                   This service is not available at the moment — but we're expanding fast!
                 </p>
-                
+
                 {/* Service Provider CTA */}
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
                   <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
@@ -643,7 +651,7 @@ const toPascalCase = (text) => {
                     Register Now
                   </button>
                 </div>
-                
+
                 {/* Customer Interest */}
                 <div className="bg-green-50 border border-green-200 rounded-xl p-6">
                   <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
@@ -661,7 +669,7 @@ const toPascalCase = (text) => {
                   </button>
                 </div>
               </div>
-              
+
               {/* Hindi Section */}
               <div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-3">
@@ -673,7 +681,7 @@ const toPascalCase = (text) => {
                 <p className="text-gray-600 mb-6">
                   हम लगातार नए सेवा प्रदाताओं को जोड़ रहे हैं और जल्द ही यह सेवा आपके क्षेत्र में उपलब्ध होगी।
                 </p>
-                
+
                 {/* Service Provider CTA - Hindi */}
                 <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
                   <p className="text-gray-700 mb-4">
@@ -688,7 +696,7 @@ const toPascalCase = (text) => {
                   </button>
                 </div>
               </div>
-              
+
               {/* Search Suggestions (if search was used) */}
               {filters.search && (
                 <div className="mt-8 pt-8 border-t border-gray-200">
@@ -763,36 +771,36 @@ const toPascalCase = (text) => {
                                 <div className="flex-1 min-w-0">
                                   {service.vendor.company && (
                                     <p className="text-sm font-bold text-gray-600 truncate">
-  {filters.search
-    ? highlightSearchTerm(
-        toPascalCase(service.vendor.company),
-        filters.search
-      )
-    : toPascalCase(service.vendor.company)}
-</p>
+                                      {filters.search
+                                        ? highlightSearchTerm(
+                                          toPascalCase(service.vendor.company),
+                                          filters.search
+                                        )
+                                        : toPascalCase(service.vendor.company)}
+                                    </p>
 
                                   )}
-                                 <p className="text-[12px] text-gray-900 truncate">
-  {filters.search
-    ? highlightSearchTerm(
-        toPascalCase(service.vendor.name || "Vendor Name"),
-        filters.search
-      )
-    : toPascalCase(service.vendor.name || "Vendor Name")}
-</p>
+                                  <p className="text-[12px] text-gray-900 truncate">
+                                    {filters.search
+                                      ? highlightSearchTerm(
+                                        toPascalCase(service.vendor.name || "Vendor Name"),
+                                        filters.search
+                                      )
+                                      : toPascalCase(service.vendor.name || "Vendor Name")}
+                                  </p>
 
-                                  
-                                {service.vendor.address && (
-  <p className="text-xs text-gray-500 line-clamp-1 mt-1">
-    <MapPin className="w-3 h-3 inline mr-1" />
-    {filters.search
-      ? highlightSearchTerm(
-          toPascalCase(service.vendor.address),
-          filters.search
-        )
-      : toPascalCase(service.vendor.address)}
-  </p>
-)}
+
+                                  {service.vendor.address && (
+                                    <p className="text-xs text-gray-500 line-clamp-1 mt-1">
+                                      <MapPin className="w-3 h-3 inline mr-1" />
+                                      {filters.search
+                                        ? highlightSearchTerm(
+                                          toPascalCase(service.vendor.address),
+                                          filters.search
+                                        )
+                                        : toPascalCase(service.vendor.address)}
+                                    </p>
+                                  )}
 
                                 </div>
                                 {service.verified && (
@@ -803,18 +811,18 @@ const toPascalCase = (text) => {
 
                             {/* Service Title - Now below vendor */}
                             <div className="mb-2">
-  <h3
-    onClick={() => handleHireNow(service._id)}
-    className="text-base md:text-lg font-semibold text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
-  >
-    {filters.search
-      ? highlightSearchTerm(
-          toPascalCase(service.title),
-          filters.search
-        )
-      : toPascalCase(service.title)}
-  </h3>
-</div>
+                              <h3
+                                onClick={() => handleHireNow(service._id)}
+                                className="text-base md:text-lg font-semibold text-gray-700 hover:text-blue-600 cursor-pointer transition-colors"
+                              >
+                                {filters.search
+                                  ? highlightSearchTerm(
+                                    toPascalCase(service.title),
+                                    filters.search
+                                  )
+                                  : toPascalCase(service.title)}
+                              </h3>
+                            </div>
 
 
                             {/* Rating */}
@@ -860,48 +868,79 @@ const toPascalCase = (text) => {
                                   </span>
                                 </div>
                               )}
-                             
+
                             </div>
                             <div className="bg-white rounded-lg mt- shadow-sm mt-2">
-                <h2 className="text-lg font-bold text-gray-900  flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-blue-600" /> {toPascalCase("Working Hours")}
-                </h2>
-                <div className="bg-gray-50 rounded-lg  px-2">
-                  <p className="text-gray-700 font-medium">
-                    {toPascalCase(service.vendor?.workingDaysTimings) || "Monday - Saturday: 9:00 AM - 6:00 PM"}
-                  </p>
-                </div>
-              </div>
+                              <h2 className="text-lg font-bold text-gray-900  flex items-center gap-2">
+                                <Calendar className="w-5 h-5 text-blue-600" /> {toPascalCase("Working Hours")}
+                              </h2>
+                              <div className="bg-gray-50 rounded-lg  px-2">
+                                <p className="text-gray-700 font-medium">
+                                  {toPascalCase(service.vendor?.workingDaysTimings) || "Monday - Saturday: 9:00 AM - 6:00 PM"}
+                                </p>
+                              </div>
+                            </div>
                           </div>
 
                           {/* Price & Actions */}
-                          <div className="flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-2 pt-3 md:pt-0 border-t md:border-t-0 md:border-l md:pl-5">
-                            {/* {service.price && service.price !== "NA" && service.price !== "N/A" && (
-                              <div className="text-right">
-                                <p className="text-xs text-gray-500">{t("pages.home.startsFrom")}</p>
-                                <p className="text-xl font-bold text-gray-900">₹{isNaN(Number(service.price)) ? service.price : Number(service.price).toLocaleString()}</p>
-                              </div>
-                            )} */}
-                           <div className="text-right">
-                                                                <p className="text-xl font-bold text-gray-900">{toPascalCase("Contact For Price")}</p>
+                          {/* ================= DESKTOP / MD VIEW ================= */}
+                          <div className="hidden md:flex flex-row md:flex-col items-center md:items-end gap-3 md:gap-2 pt-3 md:pt-0 border-t md:border-t-0 md:border-l md:pl-5">
 
-                                {/* <p className="text-xs text-gray-500">Price</p> */}
-                              </div>
+                            <div className="text-right">
+                              <p className="text-xl font-bold text-gray-900">
+                                {toPascalCase("Contact For Price")}
+                              </p>
+                            </div>
+
                             <div className="flex gap-2">
+
                               <button
                                 onClick={() => handleHireNow(service._id)}
                                 className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                               >
                                 {t("common.viewDetails")}
                               </button>
+
                               <button
-                                onClick={() => handleAddReview(service._id, service.title)}
+                                onClick={() =>
+                                  handleAddReview(service._id, service.title)
+                                }
                                 className="px-4 py-2.5 border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors flex items-center gap-2"
                               >
                                 <MessageSquare className="w-4 h-4" />
                                 {toPascalCase("Add Review")}
                               </button>
                             </div>
+                          </div>
+
+                          {/* ================= MOBILE VIEW ================= */}
+                          <div className="flex md:hidden flex-col gap-3 pt-3 border-t w-full">
+
+                            {/* Price */}
+                            <div className="w-full">
+                              <p className="text-lg font-bold text-gray-900 text-center">
+                                {toPascalCase("Contact For Price")}
+                              </p>
+                            </div>
+
+                            {/* View Details Button */}
+                            <button
+                              onClick={() => handleHireNow(service._id)}
+                              className="w-full px-5 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                            >
+                              {t("common.viewDetails")}
+                            </button>
+
+                            {/* Add Review Button */}
+                            <button
+                              onClick={() =>
+                                handleAddReview(service._id, service.title)
+                              }
+                              className="w-full px-5 py-3 border-2 border-green-500 text-green-600 rounded-lg hover:bg-green-50 transition-colors flex items-center justify-center gap-2"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                              {toPascalCase("Add Review")}
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -942,11 +981,10 @@ const toPascalCase = (text) => {
                       key={p}
                       onClick={() => handlePageChange(p)}
                       disabled={loading}
-                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
-                        p === currentPage
-                          ? "bg-blue-600 text-white"
-                          : "border border-gray-300 hover:bg-gray-50"
-                      }`}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${p === currentPage
+                        ? "bg-blue-600 text-white"
+                        : "border border-gray-300 hover:bg-gray-50"
+                        }`}
                     >
                       {p}
                     </button>
@@ -965,7 +1003,7 @@ const toPascalCase = (text) => {
           )}
         </div>
       </section>
-      
+
       {/* Review Modal */}
       <ReviewModal
         isOpen={reviewModal.isOpen}
@@ -974,7 +1012,7 @@ const toPascalCase = (text) => {
         serviceName={toPascalCase(reviewModal.serviceName)}
         onReviewAdded={handleReviewAdded}
       />
-      
+
       <Footer />
     </>
   );
