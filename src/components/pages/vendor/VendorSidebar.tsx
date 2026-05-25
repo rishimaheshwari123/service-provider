@@ -33,7 +33,7 @@ const { LOGOUT_API } = endpoints;
 
 const VendorSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(
-    localStorage.getItem("sidebarCollapsed") === "true"
+    localStorage.getItem("sidebarCollapsed") === "true",
   );
   const dispatch = useDispatch();
   const sidebarRef = useRef(null);
@@ -136,13 +136,13 @@ const VendorSidebar = () => {
       color: "text-pink-600",
       permission: null,
     },
-    {
-      to: "/vendor/tasks",
-      icon: ClipboardList, // inquiries/messages
-      label: "Tasks",
-      color: "text-pink-600",
-      permission: null,
-    },
+    // {
+    //   to: "/vendor/tasks",
+    //   icon: ClipboardList, // inquiries/messages
+    //   label: "Tasks",
+    //   color: "text-pink-600",
+    //   permission: null,
+    // },
     {
       to: "/vendor/ads",
       icon: Megaphone,
@@ -164,17 +164,17 @@ const VendorSidebar = () => {
       color: "text-indigo-600",
       permission: null,
     },
-    {
-      to: "/vendor/logs",
-      icon: Building2,
-      label: "Logs",
-      color: "text-indigo-600",
-      permission: null,
-    },
+    // {
+    //   to: "/vendor/logs",
+    //   icon: Building2,
+    //   label: "Logs",
+    //   color: "text-indigo-600",
+    //   permission: null,
+    // },
   ];
   // Filter menu items based on user permissions
   const menuItems = allMenuItems.filter(
-    (item) => item.permission === null || item.permission
+    (item) => item.permission === null || item.permission,
   );
 
   return (

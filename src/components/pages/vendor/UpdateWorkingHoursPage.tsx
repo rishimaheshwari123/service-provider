@@ -26,9 +26,10 @@ const days = [
 const UpdateWorkingHoursPage = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const [workingHours, setWorkingHours] = useState<Record<string, WorkingHour>>(
-    {} as Record<string, WorkingHour>
+    {} as Record<string, WorkingHour>,
   );
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const fetchWorkingHours = async () => {
     if (!user?._id) return;
@@ -53,7 +54,7 @@ const UpdateWorkingHoursPage = () => {
   const handleChange = (
     day: string,
     field: "start" | "end" | "available",
-    value: string | boolean
+    value: string | boolean,
   ) => {
     setWorkingHours((prev) => ({
       ...prev,
@@ -63,75 +64,138 @@ const UpdateWorkingHoursPage = () => {
 
   const handleSubmit = async () => {
     if (!user?._id) return;
-    const dataToSend = { workingHours };
-    await updateVendorWorkingHoursAPI(user._id, dataToSend);
+    setSaving(true);
+    try {
+      const dataToSend = { workingHours };
+      await updateVendorWorkingHoursAPI(user._id, dataToSend);
+    } catch (error) {
+      toast.error("Failed to update working hours");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading)
-    return <div className="text-center mt-20 text-gray-500">Loading...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-500 text-sm">Loading working hours...</p>
+        </div>
+      </div>
+    );
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800 text-center">
-        Update Working Hours
-      </h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {days.map((day) => {
-          const isAvailable = workingHours[day]?.available;
-          return (
-            <div
-              key={day}
-              className={`p-4 rounded-lg shadow-md transition-all duration-200 ${
-                isAvailable ? "bg-white" : "bg-gray-100 opacity-70"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-medium capitalize text-gray-700">
-                  {day}
-                </span>
-                <label className="flex items-center gap-2 text-gray-600">
-                  <input
-                    type="checkbox"
-                    checked={isAvailable || false}
-                    onChange={(e) =>
-                      handleChange(day, "available", e.target.checked)
-                    }
-                    className="w-5 h-5 accent-blue-600"
-                  />
-                  Available
-                </label>
+    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Working Hours
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            Set your availability for each day of the week
+          </p>
+        </div>
+
+        {/* Days List */}
+        <div className="flex flex-col gap-3">
+          {days.map((day) => {
+            const isAvailable = workingHours[day]?.available ?? false;
+
+            return (
+              <div
+                key={day}
+                className={`rounded-xl border transition-all duration-200 overflow-hidden ${
+                  isAvailable
+                    ? "bg-white border-blue-100 shadow-sm"
+                    : "bg-gray-100 border-gray-200"
+                }`}
+              >
+                {/* Day Row */}
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span
+                    className={`font-semibold capitalize text-base ${
+                      isAvailable ? "text-gray-800" : "text-gray-400"
+                    }`}
+                  >
+                    {day}
+                  </span>
+
+                  {/* Toggle Switch */}
+                  <label className="relative inline-flex items-center cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isAvailable}
+                      onChange={(e) =>
+                        handleChange(day, "available", e.target.checked)
+                      }
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-sm after:transition-all peer-checked:after:translate-x-5" />
+                    <span
+                      className={`ml-2 text-sm font-medium ${
+                        isAvailable ? "text-blue-600" : "text-gray-400"
+                      }`}
+                    >
+                      {isAvailable ? "Open" : "Closed"}
+                    </span>
+                  </label>
+                </div>
+
+                {/* Time Inputs — shown inline on mobile when available */}
+                {isAvailable && (
+                  <div className="px-4 pb-4 grid grid-cols-2 gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        Start
+                      </label>
+                      <input
+                        type="time"
+                        value={workingHours[day]?.start || ""}
+                        onChange={(e) =>
+                          handleChange(day, "start", e.target.value)
+                        }
+                        className="w-full border border-gray-200 bg-gray-50 px-3 py-2 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        End
+                      </label>
+                      <input
+                        type="time"
+                        value={workingHours[day]?.end || ""}
+                        onChange={(e) =>
+                          handleChange(day, "end", e.target.value)
+                        }
+                        className="w-full border border-gray-200 bg-gray-50 px-3 py-2 rounded-lg text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-              <div className="flex gap-3">
-                <input
-                  type="time"
-                  value={isAvailable ? workingHours[day]?.start || "" : ""}
-                  onChange={(e) => handleChange(day, "start", e.target.value)}
-                  disabled={!isAvailable}
-                  className={`flex-1 border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${
-                    isAvailable ? "bg-white" : "bg-gray-200 cursor-not-allowed"
-                  }`}
-                />
-                <input
-                  type="time"
-                  value={isAvailable ? workingHours[day]?.end || "" : ""}
-                  onChange={(e) => handleChange(day, "end", e.target.value)}
-                  disabled={!isAvailable}
-                  className={`flex-1 border px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 transition ${
-                    isAvailable ? "bg-white" : "bg-gray-200 cursor-not-allowed"
-                  }`}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="text-center mt-6">
-        <button
-          onClick={handleSubmit}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition-all duration-200"
-        >
-          Update Working Hours
-        </button>
+            );
+          })}
+        </div>
+
+        {/* Save Button — sticky on mobile */}
+        <div className="mt-6 pb-6 sticky bottom-4 sm:static sm:pb-0">
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="w-full sm:w-auto sm:px-10 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold px-6 py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 text-base"
+          >
+            {saving ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              "Save Working Hours"
+            )}
+          </button>
+        </div>
       </div>
     </div>
   );

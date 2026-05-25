@@ -9,7 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import {
   User,
@@ -62,7 +68,7 @@ interface VendorData {
   pan: string;
   percentage?: string;
   updateProfileRequest?: string;
-  
+
   // Additional fields from registration
   typeOfService?: string;
   category?: string;
@@ -79,7 +85,7 @@ interface VendorData {
   workingDaysTimings?: string;
   referralCode?: string;
   referralName?: string;
-  
+
   bankDetail?: {
     accountNumber?: string;
     IFSC?: string;
@@ -139,7 +145,9 @@ const VendorProfile = () => {
   });
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
   const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
-  const [selectedDocumentType, setSelectedDocumentType] = useState<"aadhaar" | "pan" | "gst" | "tradeLicense" | "">("");
+  const [selectedDocumentType, setSelectedDocumentType] = useState<
+    "aadhaar" | "pan" | "gst" | "tradeLicense" | ""
+  >("");
   const [businessDocuments, setBusinessDocuments] = useState<{
     aadhaarFront: File | null;
     aadhaarBack: File | null;
@@ -179,14 +187,15 @@ const VendorProfile = () => {
       console.log("📋 Fetched vendor data:", data);
       console.log("📋 Category data:", data.category);
       console.log("📋 Category type:", typeof data.category);
-      
+
       setVendor(data);
       setFormData(data);
-      
+
       // Initialize category selection
       if (data.category) {
         // If category is an object, extract the ID
-        const categoryId = typeof data.category === 'object' ? data.category._id : data.category;
+        const categoryId =
+          typeof data.category === "object" ? data.category._id : data.category;
         setSelectedCategory(categoryId);
         console.log("✅ Selected category ID:", categoryId);
       } else {
@@ -195,7 +204,7 @@ const VendorProfile = () => {
       if (data.subCategory) {
         setSelectedAutoFilled(data.subCategory);
       }
-      
+
       // Initialize working days if available
       if (data.workingDaysTimings) {
         const workingDaysStr = data.workingDaysTimings;
@@ -217,7 +226,7 @@ const VendorProfile = () => {
           setWorkingDays(newWorkingDays);
         }
       }
-      
+
       // Initialize WhatsApp selection
       if (data.whatsappNumber) {
         setHasWhatsApp(true);
@@ -237,7 +246,7 @@ const VendorProfile = () => {
 
   const getCategoryName = (categoryId: string) => {
     if (!categoryId || !categories.length) return "-";
-    const category = categories.find(cat => cat._id === categoryId);
+    const category = categories.find((cat) => cat._id === categoryId);
     return category?.name || categoryId;
   };
 
@@ -256,20 +265,25 @@ const VendorProfile = () => {
     }));
   };
 
-  const handleBusinessDocumentChange = (docKey: keyof typeof businessDocuments, file: File | null) => {
-    setBusinessDocuments(prev => ({ ...prev, [docKey]: file }));
+  const handleBusinessDocumentChange = (
+    docKey: keyof typeof businessDocuments,
+    file: File | null,
+  ) => {
+    setBusinessDocuments((prev) => ({ ...prev, [docKey]: file }));
   };
 
   const handleProfileImageUpload = async (file: File) => {
     if (!user?._id) return;
-    
+
     try {
       setUploadingProfileImage(true);
       const response = await uploadVendorProfileImageAPI(user._id, file);
-      
+
       if (response.success) {
         // Update vendor state with new profile photo
-        setVendor(prev => prev ? { ...prev, profilePhoto: response.profilePhoto } : null);
+        setVendor((prev) =>
+          prev ? { ...prev, profilePhoto: response.profilePhoto } : null,
+        );
         toast({
           title: "Success",
           description: "Profile photo updated successfully",
@@ -308,18 +322,34 @@ const VendorProfile = () => {
       const form = new FormData();
 
       // Get original category ID for comparison
-      const originalCategoryId = typeof vendor?.category === 'object' 
-        ? vendor?.category?._id 
-        : vendor?.category;
-      
+      const originalCategoryId =
+        typeof vendor?.category === "object"
+          ? vendor?.category?._id
+          : vendor?.category;
+
       console.log("🔍 Category comparison in handleSave:");
       console.log("  Original category ID:", originalCategoryId);
       console.log("  Selected category ID:", selectedCategory);
       console.log("  FormData category:", formData.category);
 
       // Add basic text fields (skip special fields that will be added separately)
-      const fieldsToSkip = ['bankDetail', 'experience', 'workingHours', 'categoryId', 'category', 'profilePhoto', 'document1', 'document2', 'document3', 'document4', 'document5', 'paymentMethod', 'upiId', 'numberOfStaff'];
-      
+      const fieldsToSkip = [
+        "bankDetail",
+        "experience",
+        "workingHours",
+        "categoryId",
+        "category",
+        "profilePhoto",
+        "document1",
+        "document2",
+        "document3",
+        "document4",
+        "document5",
+        "paymentMethod",
+        "upiId",
+        "numberOfStaff",
+      ];
+
       Object.entries(formData).forEach(([key, value]) => {
         if (!fieldsToSkip.includes(key)) {
           if (value !== undefined && value !== null) {
@@ -369,13 +399,13 @@ const VendorProfile = () => {
         if (formData.experience.fields?.length) {
           form.append(
             "experience[fields]",
-            formData.experience.fields.join(",")
+            formData.experience.fields.join(","),
           );
         }
         if (formData.experience.totalYears) {
           form.append(
             "experience[totalYears]",
-            formData.experience.totalYears.toString()
+            formData.experience.totalYears.toString(),
           );
         }
       }
@@ -387,7 +417,7 @@ const VendorProfile = () => {
 
       // Add business documents in backend format (document1, document2, etc.)
       form.append("selectedDocumentType", selectedDocumentType);
-      
+
       if (selectedDocumentType === "aadhaar") {
         if (businessDocuments.aadhaarFront instanceof File) {
           form.append("document1", businessDocuments.aadhaarFront);
@@ -418,7 +448,8 @@ const VendorProfile = () => {
         setCurrentStep(1); // Reset to first step
         toast({
           title: "Success",
-          description: "Your profile changes have been submitted for admin approval",
+          description:
+            "Your profile changes have been submitted for admin approval",
         });
       }
     } catch (error: unknown) {
@@ -426,9 +457,21 @@ const VendorProfile = () => {
         error &&
         typeof error === "object" &&
         "response" in error &&
-        (error as { response?: { data?: { message?: string; error?: string } } }).response?.data
-          ? (error as { response?: { data?: { message?: string; error?: string } } }).response?.data?.message ||
-            (error as { response?: { data?: { message?: string; error?: string } } }).response?.data?.error
+        (
+          error as {
+            response?: { data?: { message?: string; error?: string } };
+          }
+        ).response?.data
+          ? (
+              error as {
+                response?: { data?: { message?: string; error?: string } };
+              }
+            ).response?.data?.message ||
+            (
+              error as {
+                response?: { data?: { message?: string; error?: string } };
+              }
+            ).response?.data?.error
           : null;
       toast({
         title: "Error",
@@ -444,22 +487,24 @@ const VendorProfile = () => {
     setFormData(vendor || {});
     setIsEditing(false);
     setCurrentStep(1); // Reset to first step
-    
+
     // Reset category selections
     if (vendor?.category) {
-      setSelectedCategory(vendor.categoryId || vendor.category?._id || vendor.category);
+      setSelectedCategory(
+        vendor.categoryId || vendor.category?._id || vendor.category,
+      );
     }
     if (vendor?.subCategory) {
       setSelectedAutoFilled(vendor.subCategory);
     }
-    
+
     // Reset WhatsApp selection
     if (vendor?.whatsappNumber) {
       setHasWhatsApp(true);
     } else {
       setHasWhatsApp(false);
     }
-    
+
     // Reset documents
     setSelectedDocumentType("");
     setProfilePhoto(null);
@@ -513,42 +558,47 @@ const VendorProfile = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-0  lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+            <div className="text-center md:text-left">
+              <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
                 Partner Profile
               </h1>
-              <p className="text-gray-600 mt-1">
+
+              <p className="text-sm md:text-base text-gray-600 mt-1">
                 Manage your profile information
               </p>
             </div>
-            <div className="flex gap-2 items-center">
+
+            <div className="w-full md:w-auto">
               {!isEditing ? (
                 <Button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2"
+                  className="w-full md:w-auto flex items-center justify-center gap-2"
                 >
                   <Edit className="w-4 h-4" />
                   Edit Profile
                 </Button>
               ) : (
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 w-full">
                   <Button
                     onClick={handleSave}
                     disabled={updating}
-                    className="flex items-center gap-2"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2"
                   >
                     <Save className="w-4 h-4" />
-                    {updating ? "Submitting for Approval..." : "Submit for Approval"}
+                    {updating
+                      ? "Submitting for Approval..."
+                      : "Submit for Approval"}
                   </Button>
+
                   <Button
                     variant="outline"
                     onClick={handleCancel}
                     disabled={updating}
-                    className="flex items-center gap-2"
+                    className="w-full sm:w-auto flex items-center justify-center gap-2"
                   >
                     <X className="w-4 h-4" />
                     Cancel
@@ -570,7 +620,9 @@ const VendorProfile = () => {
                   <div
                     key={step.id}
                     className={`flex flex-col items-center min-w-[80px] cursor-pointer ${
-                      currentStep >= step.id ? "text-yellow-600" : "text-gray-400"
+                      currentStep >= step.id
+                        ? "text-yellow-600"
+                        : "text-gray-400"
                     }`}
                     onClick={() => setCurrentStep(step.id)}
                   >
@@ -579,13 +631,15 @@ const VendorProfile = () => {
                         currentStep > step.id
                           ? "bg-green-500 text-white"
                           : currentStep === step.id
-                          ? "bg-yellow-500 text-white"
-                          : "bg-gray-200"
+                            ? "bg-yellow-500 text-white"
+                            : "bg-gray-200"
                       }`}
                     >
                       {currentStep > step.id ? <Check size={20} /> : step.icon}
                     </div>
-                    <span className="text-xs font-medium hidden sm:block">{step.title}</span>
+                    <span className="text-xs font-medium hidden sm:block">
+                      {step.title}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -604,45 +658,56 @@ const VendorProfile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Service Provider / Business Name</Label>
-                        <Input 
-                          value={formData.company || ""} 
-                          onChange={(e) => handleInputChange("company", e.target.value)}
-                          placeholder="Enter business name" 
+                        <Input
+                          value={formData.company || ""}
+                          onChange={(e) =>
+                            handleInputChange("company", e.target.value)
+                          }
+                          placeholder="Enter business name"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Type of Service</Label>
-                        <Input 
-                          value={formData.typeOfService || ""} 
-                          onChange={(e) => handleInputChange("typeOfService", e.target.value)}
-                          placeholder="e.g., Plumbing, Electrical" 
+                        <Input
+                          value={formData.typeOfService || ""}
+                          onChange={(e) =>
+                            handleInputChange("typeOfService", e.target.value)
+                          }
+                          placeholder="e.g., Plumbing, Electrical"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <Label>Service Description</Label>
-                      <Textarea 
-                        value={formData.description || ""} 
-                        onChange={(e) => handleInputChange("description", e.target.value)}
-                        placeholder="Describe your services in detail" 
-                        rows={3} 
+                      <Textarea
+                        value={formData.description || ""}
+                        onChange={(e) =>
+                          handleInputChange("description", e.target.value)
+                        }
+                        placeholder="Describe your services in detail"
+                        rows={3}
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Category (Service)</Label>
-                        <Select 
-                        disabled
+                        <Select
+                          disabled
                           value={selectedCategory}
                           onValueChange={(val) => {
                             setSelectedCategory(val);
                             handleInputChange("category", val);
-                            const selectedCat = categories.find(c => c._id === val);
+                            const selectedCat = categories.find(
+                              (c) => c._id === val,
+                            );
                             if (selectedCat?.autoFilled) {
                               setSelectedAutoFilled(selectedCat.autoFilled);
-                              handleInputChange("subCategory", selectedCat.autoFilled);
+                              handleInputChange(
+                                "subCategory",
+                                selectedCat.autoFilled,
+                              );
                             } else {
                               setSelectedAutoFilled("");
                               handleInputChange("subCategory", "");
@@ -654,16 +719,18 @@ const VendorProfile = () => {
                           </SelectTrigger>
                           <SelectContent>
                             {categories.map((cat) => (
-                              <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
+                              <SelectItem key={cat._id} value={cat._id}>
+                                {cat.name}
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </div>
                       <div className="space-y-2">
                         <Label>Sub Category (Auto Filled)</Label>
-                        <Input 
-                        disabled
-                          placeholder="Auto-filled based on category" 
+                        <Input
+                          disabled
+                          placeholder="Auto-filled based on category"
                           value={selectedAutoFilled}
                           onChange={(e) => {
                             setSelectedAutoFilled(e.target.value);
@@ -677,18 +744,25 @@ const VendorProfile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Year of Establishment</Label>
-                        <Input 
-                          value={formData.yearOfEstablishment || ""} 
-                          onChange={(e) => handleInputChange("yearOfEstablishment", e.target.value)}
-                          placeholder="e.g., 2020" 
+                        <Input
+                          value={formData.yearOfEstablishment || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "yearOfEstablishment",
+                              e.target.value,
+                            )
+                          }
+                          placeholder="e.g., 2020"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Owner / Authorized Person Name</Label>
-                        <Input 
-                          value={formData.name || ""} 
-                          onChange={(e) => handleInputChange("name", e.target.value)}
-                          placeholder="Enter owner name" 
+                        <Input
+                          value={formData.name || ""}
+                          onChange={(e) =>
+                            handleInputChange("name", e.target.value)
+                          }
+                          placeholder="Enter owner name"
                         />
                       </div>
                     </div>
@@ -700,11 +774,13 @@ const VendorProfile = () => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Registered Office / Home Address</Label>
-                      <Textarea 
-                        value={formData.address || ""} 
-                        onChange={(e) => handleInputChange("address", e.target.value)}
-                        placeholder="Enter complete address" 
-                        rows={2} 
+                      <Textarea
+                        value={formData.address || ""}
+                        onChange={(e) =>
+                          handleInputChange("address", e.target.value)
+                        }
+                        placeholder="Enter complete address"
+                        rows={2}
                       />
                     </div>
 
@@ -712,7 +788,9 @@ const VendorProfile = () => {
                       <Label>Service Location / Area Covered</Label>
                       <LocationAutocomplete
                         value={formData.serviceLocation || ""}
-                        onChange={(value) => handleInputChange("serviceLocation", value)}
+                        onChange={(value) =>
+                          handleInputChange("serviceLocation", value)
+                        }
                         placeholder="Search location (e.g., Sagar, Bhopal, All MP)"
                       />
                     </div>
@@ -720,27 +798,40 @@ const VendorProfile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Primary Contact Number</Label>
-                        <Input 
-                          value={formData.phone || ""} 
-                          onChange={(e) => handleInputChange("phone", e.target.value)}
-                          placeholder="10-digit number" 
+                        <Input
+                          value={formData.phone || ""}
+                          onChange={(e) =>
+                            handleInputChange("phone", e.target.value)
+                          }
+                          placeholder="10-digit number"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Alternate Contact Number</Label>
-                        <Input 
-                          value={formData.alternatePhone || ""} 
-                          onChange={(e) => handleInputChange("alternatePhone", e.target.value)}
-                          placeholder="10-digit number (optional)" 
+                        <Input
+                          value={formData.alternatePhone || ""}
+                          onChange={(e) =>
+                            handleInputChange("alternatePhone", e.target.value)
+                          }
+                          placeholder="10-digit number (optional)"
                         />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Do you have WhatsApp? <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Do you have WhatsApp?{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <RadioGroup
-                          value={hasWhatsApp === null ? "" : hasWhatsApp ? "yes" : "no"}
+                          value={
+                            hasWhatsApp === null
+                              ? ""
+                              : hasWhatsApp
+                                ? "yes"
+                                : "no"
+                          }
                           onValueChange={(val) => {
                             const hasWA = val === "yes";
                             setHasWhatsApp(hasWA);
@@ -752,21 +843,39 @@ const VendorProfile = () => {
                         >
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="yes" id="whatsapp-yes" />
-                            <Label htmlFor="whatsapp-yes" className="cursor-pointer">Yes</Label>
+                            <Label
+                              htmlFor="whatsapp-yes"
+                              className="cursor-pointer"
+                            >
+                              Yes
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="no" id="whatsapp-no" />
-                            <Label htmlFor="whatsapp-no" className="cursor-pointer">No</Label>
+                            <Label
+                              htmlFor="whatsapp-no"
+                              className="cursor-pointer"
+                            >
+                              No
+                            </Label>
                           </div>
                         </RadioGroup>
                       </div>
                       {hasWhatsApp && (
                         <div className="space-y-2">
-                          <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
-                          <Input 
-                            value={formData.whatsappNumber || ""} 
-                            onChange={(e) => handleInputChange("whatsappNumber", e.target.value)}
-                            placeholder="10-digit WhatsApp number" 
+                          <Label>
+                            WhatsApp Number{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            value={formData.whatsappNumber || ""}
+                            onChange={(e) =>
+                              handleInputChange(
+                                "whatsappNumber",
+                                e.target.value,
+                              )
+                            }
+                            placeholder="10-digit WhatsApp number"
                           />
                         </div>
                       )}
@@ -774,11 +883,13 @@ const VendorProfile = () => {
 
                     <div className="space-y-2">
                       <Label>Email ID</Label>
-                      <Input 
-                        value={formData.email || ""} 
-                        onChange={(e) => handleInputChange("email", e.target.value)}
-                        type="email" 
-                        placeholder="email@example.com (optional)" 
+                      <Input
+                        value={formData.email || ""}
+                        onChange={(e) =>
+                          handleInputChange("email", e.target.value)
+                        }
+                        type="email"
+                        placeholder="email@example.com (optional)"
                       />
                     </div>
                   </div>
@@ -791,13 +902,32 @@ const VendorProfile = () => {
                       <Label>Business Type</Label>
                       <RadioGroup
                         value={formData.businessType || "Proprietorship"}
-                        onValueChange={(val) => handleInputChange("businessType", val)}
+                        onValueChange={(val) =>
+                          handleInputChange("businessType", val)
+                        }
                         className="grid grid-cols-2 md:grid-cols-3 gap-3"
                       >
-                        {["Proprietorship", "Partnership", "LLP", "Private Limited", "Other"].map((type) => (
-                          <div key={type} className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50">
-                            <RadioGroupItem value={type} id={`vendor-${type}`} />
-                            <Label htmlFor={`vendor-${type}`} className="cursor-pointer">{type}</Label>
+                        {[
+                          "Proprietorship",
+                          "Partnership",
+                          "LLP",
+                          "Private Limited",
+                          "Other",
+                        ].map((type) => (
+                          <div
+                            key={type}
+                            className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50"
+                          >
+                            <RadioGroupItem
+                              value={type}
+                              id={`vendor-${type}`}
+                            />
+                            <Label
+                              htmlFor={`vendor-${type}`}
+                              className="cursor-pointer"
+                            >
+                              {type}
+                            </Label>
                           </div>
                         ))}
                       </RadioGroup>
@@ -808,9 +938,12 @@ const VendorProfile = () => {
                       <div className="flex items-start gap-2">
                         <div className="text-blue-600 mt-1">📄</div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-blue-900 mb-1">Business Document Upload</h4>
+                          <h4 className="font-semibold text-blue-900 mb-1">
+                            Business Document Upload
+                          </h4>
                           <p className="text-sm text-blue-700">
-                            Select document type and upload files. Leave empty to keep existing documents.
+                            Select document type and upload files. Leave empty
+                            to keep existing documents.
                           </p>
                         </div>
                       </div>
@@ -818,18 +951,24 @@ const VendorProfile = () => {
                       {/* Document Type Selection */}
                       <div className="space-y-2">
                         <Label>Select Document Type (Optional)</Label>
-                        <Select 
+                        <Select
                           value={selectedDocumentType}
-                          onValueChange={(val: any) => setSelectedDocumentType(val)}
+                          onValueChange={(val: any) =>
+                            setSelectedDocumentType(val)
+                          }
                         >
                           <SelectTrigger className="bg-white">
                             <SelectValue placeholder="Choose document to upload" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="aadhaar">Aadhaar Card (Front & Back)</SelectItem>
+                            <SelectItem value="aadhaar">
+                              Aadhaar Card (Front & Back)
+                            </SelectItem>
                             <SelectItem value="pan">PAN Card</SelectItem>
                             <SelectItem value="gst">GST Certificate</SelectItem>
-                            <SelectItem value="tradeLicense">Trade License</SelectItem>
+                            <SelectItem value="tradeLicense">
+                              Trade License
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -840,25 +979,31 @@ const VendorProfile = () => {
                           <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
                             📸 Upload both front and back images of Aadhaar card
                           </p>
-                          
+
                           {/* Aadhaar Number Input */}
                           <div className="space-y-2">
                             <Label>Aadhaar Number</Label>
-                            <Input 
-                              value={formData.adhar || ""} 
-                              onChange={(e) => handleInputChange("adhar", e.target.value)}
-                              placeholder="12-digit Aadhaar number" 
+                            <Input
+                              value={formData.adhar || ""}
+                              onChange={(e) =>
+                                handleInputChange("adhar", e.target.value)
+                              }
+                              placeholder="12-digit Aadhaar number"
                             />
                           </div>
-                          
+
                           {/* Aadhaar Front */}
                           <div className="space-y-2">
                             <Label>Aadhaar Card - Front Side</Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.aadhaarFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.aadhaarFront
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.aadhaarFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -877,7 +1022,12 @@ const VendorProfile = () => {
                                   type="file"
                                   className="hidden"
                                   accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('aadhaarFront', e.target.files?.[0] || null)}
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarFront",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
                                 />
                               </label>
                               {businessDocuments.aadhaarFront && (
@@ -885,7 +1035,12 @@ const VendorProfile = () => {
                                   type="button"
                                   variant="outline"
                                   size="icon"
-                                  onClick={() => handleBusinessDocumentChange('aadhaarFront', null)}
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarFront",
+                                      null,
+                                    )
+                                  }
                                 >
                                   <X size={16} />
                                 </Button>
@@ -898,9 +1053,13 @@ const VendorProfile = () => {
                             <Label>Aadhaar Card - Back Side</Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.aadhaarBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.aadhaarBack
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.aadhaarBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -919,7 +1078,12 @@ const VendorProfile = () => {
                                   type="file"
                                   className="hidden"
                                   accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('aadhaarBack', e.target.files?.[0] || null)}
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarBack",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
                                 />
                               </label>
                               {businessDocuments.aadhaarBack && (
@@ -927,7 +1091,12 @@ const VendorProfile = () => {
                                   type="button"
                                   variant="outline"
                                   size="icon"
-                                  onClick={() => handleBusinessDocumentChange('aadhaarBack', null)}
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarBack",
+                                      null,
+                                    )
+                                  }
                                 >
                                   <X size={16} />
                                 </Button>
@@ -942,21 +1111,27 @@ const VendorProfile = () => {
                           {/* PAN Number Input */}
                           <div className="space-y-2">
                             <Label>PAN Number</Label>
-                            <Input 
-                              value={formData.pan || ""} 
-                              onChange={(e) => handleInputChange("pan", e.target.value)}
-                              placeholder="ABCDE1234F" 
-                              className="uppercase" 
+                            <Input
+                              value={formData.pan || ""}
+                              onChange={(e) =>
+                                handleInputChange("pan", e.target.value)
+                              }
+                              placeholder="ABCDE1234F"
+                              className="uppercase"
                             />
                           </div>
-                          
+
                           {/* PAN Card Upload */}
                           <Label>PAN Card</Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.panCard ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.panCard
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                }`}
+                              >
                                 {businessDocuments.panCard ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -975,7 +1150,12 @@ const VendorProfile = () => {
                                 type="file"
                                 className="hidden"
                                 accept="image/*,.pdf"
-                                onChange={(e) => handleBusinessDocumentChange('panCard', e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  handleBusinessDocumentChange(
+                                    "panCard",
+                                    e.target.files?.[0] || null,
+                                  )
+                                }
                               />
                             </label>
                             {businessDocuments.panCard && (
@@ -983,7 +1163,9 @@ const VendorProfile = () => {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleBusinessDocumentChange('panCard', null)}
+                                onClick={() =>
+                                  handleBusinessDocumentChange("panCard", null)
+                                }
                               >
                                 <X size={16} />
                               </Button>
@@ -997,20 +1179,26 @@ const VendorProfile = () => {
                           {/* GST Number Input */}
                           <div className="space-y-2">
                             <Label>GST Number</Label>
-                            <Input 
-                              value={formData.gstNumber || ""} 
-                              onChange={(e) => handleInputChange("gstNumber", e.target.value)}
-                              placeholder="Enter GST number" 
+                            <Input
+                              value={formData.gstNumber || ""}
+                              onChange={(e) =>
+                                handleInputChange("gstNumber", e.target.value)
+                              }
+                              placeholder="Enter GST number"
                             />
                           </div>
-                          
+
                           {/* GST Certificate Upload */}
                           <Label>GST Certificate</Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.gstCertificate ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.gstCertificate
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                }`}
+                              >
                                 {businessDocuments.gstCertificate ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -1029,7 +1217,12 @@ const VendorProfile = () => {
                                 type="file"
                                 className="hidden"
                                 accept="image/*,.pdf"
-                                onChange={(e) => handleBusinessDocumentChange('gstCertificate', e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  handleBusinessDocumentChange(
+                                    "gstCertificate",
+                                    e.target.files?.[0] || null,
+                                  )
+                                }
                               />
                             </label>
                             {businessDocuments.gstCertificate && (
@@ -1037,7 +1230,12 @@ const VendorProfile = () => {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleBusinessDocumentChange('gstCertificate', null)}
+                                onClick={() =>
+                                  handleBusinessDocumentChange(
+                                    "gstCertificate",
+                                    null,
+                                  )
+                                }
                               >
                                 <X size={16} />
                               </Button>
@@ -1050,21 +1248,32 @@ const VendorProfile = () => {
                         <div className="space-y-2">
                           {/* Trade License Number Input */}
                           <div className="space-y-2">
-                            <Label>Trade License / Shop Act Registration No.</Label>
-                            <Input 
-                              value={formData.tradeLicense || ""} 
-                              onChange={(e) => handleInputChange("tradeLicense", e.target.value)}
-                              placeholder="Enter license number" 
+                            <Label>
+                              Trade License / Shop Act Registration No.
+                            </Label>
+                            <Input
+                              value={formData.tradeLicense || ""}
+                              onChange={(e) =>
+                                handleInputChange(
+                                  "tradeLicense",
+                                  e.target.value,
+                                )
+                              }
+                              placeholder="Enter license number"
                             />
                           </div>
-                          
+
                           {/* Trade License Upload */}
                           <Label>Trade License</Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.tradeLicenseDoc ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.tradeLicenseDoc
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                }`}
+                              >
                                 {businessDocuments.tradeLicenseDoc ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -1083,7 +1292,12 @@ const VendorProfile = () => {
                                 type="file"
                                 className="hidden"
                                 accept="image/*,.pdf"
-                                onChange={(e) => handleBusinessDocumentChange('tradeLicenseDoc', e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  handleBusinessDocumentChange(
+                                    "tradeLicenseDoc",
+                                    e.target.files?.[0] || null,
+                                  )
+                                }
                               />
                             </label>
                             {businessDocuments.tradeLicenseDoc && (
@@ -1091,7 +1305,12 @@ const VendorProfile = () => {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleBusinessDocumentChange('tradeLicenseDoc', null)}
+                                onClick={() =>
+                                  handleBusinessDocumentChange(
+                                    "tradeLicenseDoc",
+                                    null,
+                                  )
+                                }
                               >
                                 <X size={16} />
                               </Button>
@@ -1102,8 +1321,12 @@ const VendorProfile = () => {
 
                       {!selectedDocumentType && (
                         <div className="text-center py-6 text-gray-400">
-                          <p className="text-sm">Select a document type to upload new documents</p>
-                          <p className="text-xs mt-1">Leave empty to keep existing documents</p>
+                          <p className="text-sm">
+                            Select a document type to upload new documents
+                          </p>
+                          <p className="text-xs mt-1">
+                            Leave empty to keep existing documents
+                          </p>
                         </div>
                       )}
                     </div>
@@ -1127,17 +1350,30 @@ const VendorProfile = () => {
                         className="flex gap-4"
                       >
                         <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
-                          <RadioGroupItem value="bank" id="vendor-payment-bank" />
-                          <Label htmlFor="vendor-payment-bank" className="cursor-pointer flex-1">
+                          <RadioGroupItem
+                            value="bank"
+                            id="vendor-payment-bank"
+                          />
+                          <Label
+                            htmlFor="vendor-payment-bank"
+                            className="cursor-pointer flex-1"
+                          >
                             <div className="font-semibold">Bank Account</div>
-                            <div className="text-xs text-gray-500">Bank details</div>
+                            <div className="text-xs text-gray-500">
+                              Bank details
+                            </div>
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
                           <RadioGroupItem value="upi" id="vendor-payment-upi" />
-                          <Label htmlFor="vendor-payment-upi" className="cursor-pointer flex-1">
+                          <Label
+                            htmlFor="vendor-payment-upi"
+                            className="cursor-pointer flex-1"
+                          >
                             <div className="font-semibold">UPI ID</div>
-                            <div className="text-xs text-gray-500">UPI payment</div>
+                            <div className="text-xs text-gray-500">
+                              UPI payment
+                            </div>
                           </Label>
                         </div>
                       </RadioGroup>
@@ -1149,8 +1385,8 @@ const VendorProfile = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Bank Name</Label>
-                            <Input 
-                              value={formData.bankDetail?.branch || ""} 
+                            <Input
+                              value={formData.bankDetail?.branch || ""}
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1160,13 +1396,15 @@ const VendorProfile = () => {
                                   },
                                 }))
                               }
-                              placeholder="Enter bank name" 
+                              placeholder="Enter bank name"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label>Account Holder Name</Label>
-                            <Input 
-                              value={formData.bankDetail?.accountHolderName || ""} 
+                            <Input
+                              value={
+                                formData.bankDetail?.accountHolderName || ""
+                              }
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1176,15 +1414,15 @@ const VendorProfile = () => {
                                   },
                                 }))
                               }
-                              placeholder="Name as per bank account" 
+                              placeholder="Name as per bank account"
                             />
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Account Number</Label>
-                            <Input 
-                              value={formData.bankDetail?.accountNumber || ""} 
+                            <Input
+                              value={formData.bankDetail?.accountNumber || ""}
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1194,13 +1432,13 @@ const VendorProfile = () => {
                                   },
                                 }))
                               }
-                              placeholder="Enter account number" 
+                              placeholder="Enter account number"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label>IFSC Code</Label>
-                            <Input 
-                              value={formData.bankDetail?.IFSC || ""} 
+                            <Input
+                              value={formData.bankDetail?.IFSC || ""}
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1210,8 +1448,8 @@ const VendorProfile = () => {
                                   },
                                 }))
                               }
-                              placeholder="Enter IFSC code" 
-                              className="uppercase" 
+                              placeholder="Enter IFSC code"
+                              className="uppercase"
                             />
                           </div>
                         </div>
@@ -1222,13 +1460,16 @@ const VendorProfile = () => {
                     {formData.paymentMethod === "upi" && (
                       <div className="space-y-2">
                         <Label>UPI ID</Label>
-                        <Input 
-                          value={formData.upiId || ""} 
-                          onChange={(e) => handleInputChange("upiId", e.target.value)}
-                          placeholder="Enter UPI ID (e.g., yourname@paytm, 9876543210@ybl)" 
+                        <Input
+                          value={formData.upiId || ""}
+                          onChange={(e) =>
+                            handleInputChange("upiId", e.target.value)
+                          }
+                          placeholder="Enter UPI ID (e.g., yourname@paytm, 9876543210@ybl)"
                         />
                         <p className="text-xs text-gray-500">
-                          💡 Enter UPI ID from any UPI app (PhonePe, Google Pay, Paytm, etc.)
+                          💡 Enter UPI ID from any UPI app (PhonePe, Google Pay,
+                          Paytm, etc.)
                         </p>
                       </div>
                     )}
@@ -1241,8 +1482,8 @@ const VendorProfile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Years of Experience</Label>
-                        <Input 
-                          value={formData.experience?.totalYears || ""} 
+                        <Input
+                          value={formData.experience?.totalYears || ""}
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
@@ -1252,17 +1493,22 @@ const VendorProfile = () => {
                               },
                             }))
                           }
-                          type="number" 
-                          placeholder="e.g., 5" 
+                          type="number"
+                          placeholder="e.g., 5"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Number of Technicians / Staff</Label>
-                        <Input 
-                          value={formData.numberOfStaff || ""} 
-                          onChange={(e) => handleInputChange("numberOfStaff", Number(e.target.value))}
-                          type="number" 
-                          placeholder="e.g., 3" 
+                        <Input
+                          value={formData.numberOfStaff || ""}
+                          onChange={(e) =>
+                            handleInputChange(
+                              "numberOfStaff",
+                              Number(e.target.value),
+                            )
+                          }
+                          type="number"
+                          placeholder="e.g., 3"
                         />
                       </div>
                     </div>
@@ -1276,7 +1522,9 @@ const VendorProfile = () => {
                             ...prev,
                             experience: {
                               ...prev.experience,
-                              fields: e.target.value.split(",").map(f => f.trim()),
+                              fields: e.target.value
+                                .split(",")
+                                .map((f) => f.trim()),
                             },
                           }))
                         }
@@ -1307,19 +1555,34 @@ const VendorProfile = () => {
                           >
                             <input
                               type="checkbox"
-                              checked={workingDays[day.key as keyof typeof workingDays]}
+                              checked={
+                                workingDays[day.key as keyof typeof workingDays]
+                              }
                               onChange={(e) => {
-                                const newDays = { ...workingDays, [day.key]: e.target.checked };
+                                const newDays = {
+                                  ...workingDays,
+                                  [day.key]: e.target.checked,
+                                };
                                 setWorkingDays(newDays);
                                 const selectedDays = Object.entries(newDays)
                                   .filter(([, v]) => v)
-                                  .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
-                                handleInputChange("workingDays", `${selectedDays.join(", ")} | ${workingTime}`);
+                                  .map(
+                                    ([k]) =>
+                                      k.charAt(0).toUpperCase() + k.slice(1, 3),
+                                  );
+                                handleInputChange(
+                                  "workingDays",
+                                  `${selectedDays.join(", ")} | ${workingTime}`,
+                                );
                               }}
                               className="sr-only"
                             />
-                            <span className="text-sm font-medium">{day.label}</span>
-                            {workingDays[day.key as keyof typeof workingDays] && (
+                            <span className="text-sm font-medium">
+                              {day.label}
+                            </span>
+                            {workingDays[
+                              day.key as keyof typeof workingDays
+                            ] && (
                               <Check size={14} className="text-yellow-600" />
                             )}
                           </label>
@@ -1329,16 +1592,22 @@ const VendorProfile = () => {
 
                     <div className="space-y-2">
                       <Label>Working Timings</Label>
-                      <Input 
+                      <Input
                         value={workingTime}
                         onChange={(e) => {
                           setWorkingTime(e.target.value);
                           const selectedDays = Object.entries(workingDays)
                             .filter(([, v]) => v)
-                            .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
-                          handleInputChange("workingDays", `${selectedDays.join(", ")} | ${e.target.value}`);
+                            .map(
+                              ([k]) =>
+                                k.charAt(0).toUpperCase() + k.slice(1, 3),
+                            );
+                          handleInputChange(
+                            "workingDays",
+                            `${selectedDays.join(", ")} | ${e.target.value}`,
+                          );
                         }}
-                        placeholder="e.g., 9 AM - 7 PM" 
+                        placeholder="e.g., 9 AM - 7 PM"
                       />
                     </div>
                   </div>
@@ -1348,12 +1617,15 @@ const VendorProfile = () => {
                 {currentStep === 6 && (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                      📸 Upload or update profile photo. Business documents can be updated in Step 3.
+                      📸 Upload or update profile photo. Business documents can
+                      be updated in Step 3.
                     </p>
-                    
+
                     {/* Profile Photo Section */}
                     <div className="space-y-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                      <Label className="text-yellow-800 font-semibold">Profile Photo</Label>
+                      <Label className="text-yellow-800 font-semibold">
+                        Profile Photo
+                      </Label>
                       <div className="flex items-center gap-3">
                         <label className="flex-1 cursor-pointer">
                           <div className="border-2 border-dashed border-yellow-300 rounded-lg p-6 text-center hover:border-yellow-500 transition-colors bg-white">
@@ -1373,7 +1645,8 @@ const VendorProfile = () => {
                                   </span>
                                 </div>
                               </div>
-                            ) : vendor?.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
+                            ) : vendor?.profilePhoto &&
+                              typeof vendor.profilePhoto === "string" ? (
                               <div className="flex flex-col items-center gap-3">
                                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-yellow-400">
                                   <img
@@ -1384,7 +1657,9 @@ const VendorProfile = () => {
                                 </div>
                                 <div className="flex items-center gap-2 text-blue-600">
                                   <FileText size={20} />
-                                  <span className="font-medium">Current photo</span>
+                                  <span className="font-medium">
+                                    Current photo
+                                  </span>
                                 </div>
                               </div>
                             ) : (
@@ -1392,8 +1667,12 @@ const VendorProfile = () => {
                                 <div className="w-32 h-32 rounded-full bg-yellow-100 flex items-center justify-center border-4 border-yellow-300">
                                   <Upload size={40} />
                                 </div>
-                                <span className="font-medium">Click to upload profile photo</span>
-                                <span className="text-sm text-gray-500">JPG, PNG or JPEG (Max 5MB)</span>
+                                <span className="font-medium">
+                                  Click to upload profile photo
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  JPG, PNG or JPEG (Max 5MB)
+                                </span>
                               </div>
                             )}
                           </div>
@@ -1401,7 +1680,9 @@ const VendorProfile = () => {
                             type="file"
                             className="hidden"
                             accept="image/*"
-                            onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+                            onChange={(e) =>
+                              setProfilePhoto(e.target.files?.[0] || null)
+                            }
                           />
                         </label>
                         {profilePhoto && (
@@ -1425,8 +1706,16 @@ const VendorProfile = () => {
                     <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
                       <div className="flex items-start">
                         <div className="flex-shrink-0">
-                          <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          <svg
+                            className="h-5 w-5 text-green-400"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                         </div>
                         <div className="ml-3">
@@ -1434,7 +1723,9 @@ const VendorProfile = () => {
                             Business Documents
                           </p>
                           <p className="text-sm text-green-600 mt-1">
-                            To update business documents (Aadhaar, PAN, GST, Trade License), go back to Step 3 - Business section.
+                            To update business documents (Aadhaar, PAN, GST,
+                            Trade License), go back to Step 3 - Business
+                            section.
                           </p>
                         </div>
                       </div>
@@ -1448,18 +1739,22 @@ const VendorProfile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Referral Code</Label>
-                        <Input 
-                          value={formData.referralCode || ""} 
-                          onChange={(e) => handleInputChange("referralCode", e.target.value)}
-                          placeholder="Enter referral code if any" 
+                        <Input
+                          value={formData.referralCode || ""}
+                          onChange={(e) =>
+                            handleInputChange("referralCode", e.target.value)
+                          }
+                          placeholder="Enter referral code if any"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Referral Name</Label>
-                        <Input 
-                          value={formData.referralName || ""} 
-                          onChange={(e) => handleInputChange("referralName", e.target.value)}
-                          placeholder="Enter referral name if any" 
+                        <Input
+                          value={formData.referralName || ""}
+                          onChange={(e) =>
+                            handleInputChange("referralName", e.target.value)
+                          }
+                          placeholder="Enter referral name if any"
                         />
                       </div>
                     </div>
@@ -1468,24 +1763,48 @@ const VendorProfile = () => {
                       <Label>Admin Commission (%)</Label>
                       <p className="mt-1 text-gray-900 flex items-center gap-2">
                         <CreditCard className="w-4 h-4 text-gray-400" />
-                        {vendor?.percentage ? `${vendor.percentage}%` : "Not set"}
+                        {vendor?.percentage
+                          ? `${vendor.percentage}%`
+                          : "Not set"}
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                      <h4 className="font-semibold text-gray-800">Profile Summary</h4>
+                      <h4 className="font-semibold text-gray-800">
+                        Profile Summary
+                      </h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                         <div>
-                          <p><strong>Business:</strong> {formData.company}</p>
-                          <p><strong>Owner:</strong> {formData.name}</p>
-                          <p><strong>Phone:</strong> {formData.phone}</p>
-                          <p><strong>Email:</strong> {formData.email || "Not provided"}</p>
+                          <p>
+                            <strong>Business:</strong> {formData.company}
+                          </p>
+                          <p>
+                            <strong>Owner:</strong> {formData.name}
+                          </p>
+                          <p>
+                            <strong>Phone:</strong> {formData.phone}
+                          </p>
+                          <p>
+                            <strong>Email:</strong>{" "}
+                            {formData.email || "Not provided"}
+                          </p>
                         </div>
                         <div>
-                          <p><strong>Business Type:</strong> {formData.businessType}</p>
-                          <p><strong>Experience:</strong> {formData.experience?.totalYears || 0} years</p>
-                          <p><strong>Staff:</strong> {formData.numberOfStaff || 0}</p>
-                          <p><strong>Status:</strong> {vendor.status}</p>
+                          <p>
+                            <strong>Business Type:</strong>{" "}
+                            {formData.businessType}
+                          </p>
+                          <p>
+                            <strong>Experience:</strong>{" "}
+                            {formData.experience?.totalYears || 0} years
+                          </p>
+                          <p>
+                            <strong>Staff:</strong>{" "}
+                            {formData.numberOfStaff || 0}
+                          </p>
+                          <p>
+                            <strong>Status:</strong> {vendor.status}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1518,7 +1837,8 @@ const VendorProfile = () => {
                       disabled={updating}
                       className="flex items-center gap-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
                     >
-                      {updating ? "Saving..." : "Save All Changes"} <Save size={18} />
+                      {updating ? "Saving..." : "Save All Changes"}{" "}
+                      <Save size={18} />
                     </Button>
                   )}
                 </div>
@@ -1535,7 +1855,8 @@ const VendorProfile = () => {
                   <div className="text-center">
                     <div className="relative inline-block">
                       <Avatar className="w-24 h-24 mx-auto mb-4">
-                        {vendor.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
+                        {vendor.profilePhoto &&
+                        typeof vendor.profilePhoto === "string" ? (
                           <AvatarImage
                             src={vendor.profilePhoto}
                             alt={vendor.name}
@@ -1546,7 +1867,7 @@ const VendorProfile = () => {
                           </AvatarFallback>
                         )}
                       </Avatar>
-                      
+
                       {/* Profile Image Upload Button */}
                       <label className="absolute bottom-0 right-0 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full p-2 cursor-pointer shadow-lg transition-colors">
                         <Upload className="w-4 h-4" />
@@ -1563,7 +1884,7 @@ const VendorProfile = () => {
                           disabled={uploadingProfileImage}
                         />
                       </label>
-                      
+
                       {uploadingProfileImage && (
                         <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
                           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
@@ -1575,12 +1896,14 @@ const VendorProfile = () => {
                       {vendor.name}
                     </h2>
                     <p className="text-gray-600">{vendor.company}</p>
-                    
+
                     {/* Alternative Profile Image Upload Button */}
                     <div className="mt-3 mb-3">
                       <label className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg cursor-pointer transition-colors text-sm">
                         <Upload className="w-4 h-4" />
-                        {uploadingProfileImage ? "Uploading..." : "Change Photo"}
+                        {uploadingProfileImage
+                          ? "Uploading..."
+                          : "Change Photo"}
                         <input
                           type="file"
                           className="hidden"
@@ -1595,7 +1918,7 @@ const VendorProfile = () => {
                         />
                       </label>
                     </div>
-                    
+
                     <div className="flex justify-center mt-3">
                       <Badge
                         variant={
@@ -1632,7 +1955,9 @@ const VendorProfile = () => {
                         <Building className="w-4 h-4 text-gray-400" />
                         <div>
                           <p className="text-gray-600">Established</p>
-                          <p className="font-medium">{vendor.yearOfEstablishment}</p>
+                          <p className="font-medium">
+                            {vendor.yearOfEstablishment}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -1850,12 +2175,15 @@ const VendorProfile = () => {
                     <Label>Payment Method</Label>
                     <p className="mt-1 text-gray-900 flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-gray-400" />
-                      <span className="capitalize">{vendor.paymentMethod || "Bank"}</span>
+                      <span className="capitalize">
+                        {vendor.paymentMethod || "Bank"}
+                      </span>
                     </p>
                   </div>
-                  
+
                   {/* Bank Details */}
-                  {(!vendor.paymentMethod || vendor.paymentMethod === "bank") && (
+                  {(!vendor.paymentMethod ||
+                    vendor.paymentMethod === "bank") && (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -1891,7 +2219,7 @@ const VendorProfile = () => {
                       </div>
                     </>
                   )}
-                  
+
                   {/* UPI Details */}
                   {vendor.paymentMethod === "upi" && (
                     <div>
@@ -1959,7 +2287,8 @@ const VendorProfile = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <Label>Profile Photo</Label>
-                      {vendor.profilePhoto && typeof vendor.profilePhoto === 'string' ? (
+                      {vendor.profilePhoto &&
+                      typeof vendor.profilePhoto === "string" ? (
                         <a
                           href={vendor.profilePhoto}
                           target="_blank"
@@ -1974,14 +2303,20 @@ const VendorProfile = () => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[1, 2, 3, 4, 5].map((num) => (
                       <div key={num}>
                         <Label>Document {num}</Label>
-                        {vendor[`document${num}` as keyof VendorData] && typeof vendor[`document${num}` as keyof VendorData] === 'string' ? (
+                        {vendor[`document${num}` as keyof VendorData] &&
+                        typeof vendor[`document${num}` as keyof VendorData] ===
+                          "string" ? (
                           <a
-                            href={vendor[`document${num}` as keyof VendorData] as string}
+                            href={
+                              vendor[
+                                `document${num}` as keyof VendorData
+                              ] as string
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-blue-600 underline mt-1 block flex items-center gap-2"

@@ -5,7 +5,11 @@ import type { RootState } from "@/redux/store";
 import { toast } from "react-toastify";
 import Dropzone from "react-dropzone";
 import { createPropertyAPI } from "@/service/operations/property";
-import { getPurchasedCategoriesAPI, getAllCategoriesAPI, purchaseCategoryAPI } from "@/service/operations/category";
+import {
+  getPurchasedCategoriesAPI,
+  getAllCategoriesAPI,
+  purchaseCategoryAPI,
+} from "@/service/operations/category";
 import { imageUpload } from "@/service/operations/image";
 
 import { Button } from "@/components/ui/button";
@@ -48,7 +52,9 @@ const VendorAddService = () => {
   const [myCategories, setMyCategories] = useState<any[]>([]);
   const [allCategories, setAllCategories] = useState<any[]>([]);
   const [purchaseModalOpen, setPurchaseModalOpen] = useState(false);
-  const [selectedCategoryToPurchase, setSelectedCategoryToPurchase] = useState<any | null>(null);
+  const [selectedCategoryToPurchase, setSelectedCategoryToPurchase] = useState<
+    any | null
+  >(null);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "qr">("cash");
   const [transactionId, setTransactionId] = useState<string>("");
   const [purchaseLoading, setPurchaseLoading] = useState(false);
@@ -69,9 +75,9 @@ const VendorAddService = () => {
       if (!vendorId) return;
 
       const cats = await getPurchasedCategoriesAPI(vendorId);
-      console.log("cats",cats);
+      console.log("cats", cats);
       setMyCategories(cats);
-      
+
       // Load all categories for purchase option
       const allCats = await getAllCategoriesAPI();
       setAllCategories(allCats);
@@ -99,7 +105,7 @@ const VendorAddService = () => {
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
@@ -114,7 +120,7 @@ const VendorAddService = () => {
     // Check if category is selected
     if (!formData.category) {
       toast.error(
-        "Please purchase a service category before adding a service."
+        "Please purchase a service category before adding a service.",
       );
 
       if (user?.role === "vendor") {
@@ -158,7 +164,7 @@ const VendorAddService = () => {
 
   const handlePurchaseCategory = async () => {
     if (!selectedCategoryToPurchase?._id) return;
-    
+
     const vendorId = user?.role === "vendor" ? user._id : id;
     if (!vendorId) return;
 
@@ -176,17 +182,19 @@ const VendorAddService = () => {
         transactionId: paymentMethod === "qr" ? transactionId : "",
         assignedByAdmin: user?.role === "admin", // If admin is purchasing, auto-approve
       });
-      
+
       // toast.success("Category purchased successfully!");
       setPurchaseModalOpen(false);
-      
+
       // Reload categories
       const cats = await getPurchasedCategoriesAPI(vendorId);
       setMyCategories(cats);
-      
+
       // Auto-select the purchased category
-      setFormData(prev => ({ ...prev, category: selectedCategoryToPurchase._id }));
-      
+      setFormData((prev) => ({
+        ...prev,
+        category: selectedCategoryToPurchase._id,
+      }));
     } catch (error) {
       console.error("Error purchasing category:", error);
       toast.error("Failed to purchase category");
@@ -197,16 +205,16 @@ const VendorAddService = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="flex h-16 items-center border-b px-6">
+      {/* <div className="flex h-16 items-center border-b px-6">
         <h1 className="ml-4 text-lg font-semibold">
           {user?.role === "vendor" ? "Vendor Dashboard" : "Admin Panel"}
         </h1>
-      </div>
+      </div> */}
 
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className=" text-sm md:text-3xl font-bold text-gray-900">
               Add New Service
             </h1>
             <Button
@@ -215,7 +223,7 @@ const VendorAddService = () => {
                 navigate(
                   user?.role === "vendor"
                     ? "/vendor/dashboard"
-                    : "/admin/vendors"
+                    : "/admin/vendors",
                 )
               }
             >
@@ -225,7 +233,7 @@ const VendorAddService = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px0 lg:px-8 py-8">
         <Card>
           <CardHeader>
             <CardTitle>Service Details</CardTitle>
@@ -284,7 +292,9 @@ const VendorAddService = () => {
                       <SelectItem value="home">Home Service</SelectItem>
                       <SelectItem value="online">Online Service</SelectItem>
                       <SelectItem value="on-site">On-site Service</SelectItem>
-                      <SelectItem value="on-site-home">On-site & Home Service</SelectItem>
+                      <SelectItem value="on-site-home">
+                        On-site & Home Service
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -292,50 +302,54 @@ const VendorAddService = () => {
 
               {/* Category */}
               <div>
-                <div className="flex justify-between items-center mb-2">
-                  <Label htmlFor="category">Category</Label>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-2">
+                  <Label htmlFor="category" className="text-sm font-medium">
+                    Category
+                  </Label>
+
                   <Button
                     type="button"
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white"
                     onClick={() => {
                       // Show available categories to purchase
-                      openPurchaseModal(); // Open modal without pre-selecting category
+                      openPurchaseModal();
                     }}
                   >
                     + Purchase Category
                   </Button>
                 </div>
                 <Select
-  value={formData.category}
-  onValueChange={(value) =>
-    handleSelectChange("category", value)
-  }
->
-  <SelectTrigger>
-    <SelectValue placeholder="Select category" />
-  </SelectTrigger>
+                  value={formData.category}
+                  onValueChange={(value) =>
+                    handleSelectChange("category", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
 
-  <SelectContent>
-    {/* Default disabled option */}
-    <SelectItem value="default" disabled>
-      Select category
-    </SelectItem>
+                  <SelectContent>
+                    {/* Default disabled option */}
+                    <SelectItem value="default" disabled>
+                      Select category
+                    </SelectItem>
 
-    {myCategories
-      .filter((c) => c.status === "purchased")
-      .map((c) => (
-        <SelectItem key={c._id} value={c.category._id}>
-          {c.category.name}
-        </SelectItem>
-      ))}
-  </SelectContent>
-</Select>
-                
+                    {myCategories
+                      .filter((c) => c.status === "purchased")
+                      .map((c) => (
+                        <SelectItem key={c._id} value={c.category._id}>
+                          {c.category.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+
                 {myCategories.length === 0 ? (
                   <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <p className="text-sm text-yellow-800 mb-2">
-                      No categories purchased yet. Choose from available categories:
+                      No categories purchased yet. Choose from available
+                      categories:
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {allCategories.slice(0, 5).map((cat) => (
@@ -364,7 +378,12 @@ const VendorAddService = () => {
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {allCategories
-                        .filter(cat => !myCategories.some(myCat => myCat._id === cat._id))
+                        .filter(
+                          (cat) =>
+                            !myCategories.some(
+                              (myCat) => myCat._id === cat._id,
+                            ),
+                        )
                         .slice(0, 5)
                         .map((cat) => (
                           <Button
@@ -378,12 +397,25 @@ const VendorAddService = () => {
                             {cat.name} - ₹{cat.price}
                           </Button>
                         ))}
-                      {allCategories.filter(cat => !myCategories.some(myCat => myCat._id === cat._id)).length > 5 && (
+                      {allCategories.filter(
+                        (cat) =>
+                          !myCategories.some((myCat) => myCat._id === cat._id),
+                      ).length > 5 && (
                         <span className="text-xs text-gray-500 self-center">
-                          +{allCategories.filter(cat => !myCategories.some(myCat => myCat._id === cat._id)).length - 5} more...
+                          +
+                          {allCategories.filter(
+                            (cat) =>
+                              !myCategories.some(
+                                (myCat) => myCat._id === cat._id,
+                              ),
+                          ).length - 5}{" "}
+                          more...
                         </span>
                       )}
-                      {allCategories.filter(cat => !myCategories.some(myCat => myCat._id === cat._id)).length === 0 && (
+                      {allCategories.filter(
+                        (cat) =>
+                          !myCategories.some((myCat) => myCat._id === cat._id),
+                      ).length === 0 && (
                         <span className="text-xs text-gray-500">
                           All categories already purchased!
                         </span>
@@ -456,9 +488,7 @@ const VendorAddService = () => {
       <Dialog open={purchaseModalOpen} onOpenChange={setPurchaseModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              Purchase Category
-            </DialogTitle>
+            <DialogTitle>Purchase Category</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -468,7 +498,9 @@ const VendorAddService = () => {
               <Select
                 value={selectedCategoryToPurchase?._id || ""}
                 onValueChange={(value) => {
-                  const category = allCategories.find(cat => cat._id === value);
+                  const category = allCategories.find(
+                    (cat) => cat._id === value,
+                  );
                   setSelectedCategoryToPurchase(category || null);
                 }}
               >
@@ -477,7 +509,10 @@ const VendorAddService = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {allCategories
-                    .filter(cat => !myCategories.some(myCat => myCat._id === cat._id))
+                    .filter(
+                      (cat) =>
+                        !myCategories.some((myCat) => myCat._id === cat._id),
+                    )
                     .map((cat) => (
                       <SelectItem key={cat._id} value={cat._id}>
                         {cat.name} - ₹{cat.price}
@@ -499,7 +534,8 @@ const VendorAddService = () => {
                 </p>
                 {selectedCategoryToPurchase.autoFilled && (
                   <p className="text-sm text-blue-700">
-                    <strong>Type:</strong> {selectedCategoryToPurchase.autoFilled}
+                    <strong>Type:</strong>{" "}
+                    {selectedCategoryToPurchase.autoFilled}
                   </p>
                 )}
               </div>
@@ -510,7 +546,9 @@ const VendorAddService = () => {
               <div className="space-y-2">
                 <Label>Payment Method</Label>
                 <div className="flex gap-4">
-                  <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "cash" ? "bg-green-100 border-green-500 text-green-700" : "bg-gray-50 border-gray-200"}`}>
+                  <label
+                    className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "cash" ? "bg-green-100 border-green-500 text-green-700" : "bg-gray-50 border-gray-200"}`}
+                  >
                     <input
                       type="radio"
                       name="paymentMethod"
@@ -521,7 +559,9 @@ const VendorAddService = () => {
                     />
                     <span className="font-medium">💵 Cash</span>
                   </label>
-                  <label className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "qr" ? "bg-blue-100 border-blue-500 text-blue-700" : "bg-gray-50 border-gray-200"}`}>
+                  <label
+                    className={`flex items-center gap-2 px-4 py-2 border rounded-lg cursor-pointer transition-colors ${paymentMethod === "qr" ? "bg-blue-100 border-blue-500 text-blue-700" : "bg-gray-50 border-gray-200"}`}
+                  >
                     <input
                       type="radio"
                       name="paymentMethod"
@@ -539,7 +579,9 @@ const VendorAddService = () => {
             {/* Transaction ID - Only show for QR */}
             {selectedCategoryToPurchase && paymentMethod === "qr" && (
               <div className="space-y-2">
-                <Label>Transaction ID <span className="text-red-500">*</span></Label>
+                <Label>
+                  Transaction ID <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   type="text"
                   placeholder="Enter transaction ID"
@@ -550,19 +592,27 @@ const VendorAddService = () => {
             )}
 
             <DialogFooter>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setPurchaseModalOpen(false)}
                 disabled={purchaseLoading}
               >
                 Cancel
               </Button>
-              <Button 
+              <Button
                 onClick={handlePurchaseCategory}
-                disabled={purchaseLoading || !selectedCategoryToPurchase || (paymentMethod === "qr" && !transactionId.trim())}
+                disabled={
+                  purchaseLoading ||
+                  !selectedCategoryToPurchase ||
+                  (paymentMethod === "qr" && !transactionId.trim())
+                }
                 className="bg-green-600 hover:bg-green-700"
               >
-                {purchaseLoading ? "Purchasing..." : selectedCategoryToPurchase ? `Purchase for ₹${selectedCategoryToPurchase.price}` : "Select Category"}
+                {purchaseLoading
+                  ? "Purchasing..."
+                  : selectedCategoryToPurchase
+                    ? `Purchase for ₹${selectedCategoryToPurchase.price}`
+                    : "Select Category"}
               </Button>
             </DialogFooter>
           </div>
