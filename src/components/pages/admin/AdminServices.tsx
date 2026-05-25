@@ -39,10 +39,11 @@ import {
   Trash2,
   FileText,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
-import { updatePropertyStatusAPI, deletePropertyAPI } from "@/service/operations/property";
+import { updatePropertyStatusAPI, deletePropertyAPI, getAllPropertyAPI } from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
-import { BASE_URL } from "@/service/apis";
 import * as XLSX from "xlsx";
 import { RootState } from "@/redux/store.ts";
 import { useSelector } from "react-redux";
@@ -68,7 +69,6 @@ interface Service {
 
 const AdminServices = () => {
   const [services, setServices] = useState<Service[]>([]);
-  const [filteredServices, setFilteredServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -76,20 +76,44 @@ const AdminServices = () => {
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<Service | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const PAGE_SIZE = 10;
   const { toast } = useToast();
   const { user } = useSelector((state: RootState) => state.auth);
 
-  const fetchServices = async () => {
+  const fetchServices = async (page = currentPage, search = searchTerm, status = statusFilter) => {
     try {
       setLoading(true);
-      // For admin, we need to fetch all services (active and inactive)
-      // We'll modify the API call to include inactive services for admin
-      const response = await fetch(`${BASE_URL}/property/getAll?includeInactive=true`);
-      const data = await response.json();
-      
-      if (data.success) {
-        setServices(data.properties || []);
-        setFilteredServices(data.properties || []);
+      const result = await getAllPropertyAPI({
+        page,
+        limit: PAGE_SIZE,
+        search: search || undefined,
+        includeInactive: true,
+        ...(status !== 'all' ? {} : {}),
+      });
+
+      // Handle paginated response
+      if (result && result.pagination) {
+        let fetchedServices = result.properties || [];
+        // Client-side status filter (since backend includeInactive gives us all)
+        if (status !== 'all') {
+          // We need to re-fetch with no pagination to filter by status on backend
+          // OR filter client-side on current page. For now, let's do a backend approach.
+          // Actually, let's filter the current page results
+          fetchedServices = fetchedServices.filter((s: Service) => s.status === status);
+        }
+        setServices(fetchedServices);
+        setTotalPages(result.pagination.totalPages);
+        setTotalCount(result.pagination.total);
+        setCurrentPage(result.pagination.page);
+      } else {
+        // Backward compatible: plain array
+        const allServices = Array.isArray(result) ? result : [];
+        setServices(allServices);
+        setTotalPages(1);
+        setTotalCount(allServices.length);
       }
     } catch (error) {
       console.error("Error fetching services:", error);
@@ -104,30 +128,24 @@ const AdminServices = () => {
   };
 
   useEffect(() => {
-    fetchServices();
+    fetchServices(1, "", "all");
   }, []);
 
-  useEffect(() => {
-    let filtered = services;
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchServices(1, searchTerm, statusFilter);
+  };
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(
-        (service) =>
-          service.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (typeof service.vendor === 'object' && service.vendor?.name?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (typeof service.vendor === 'object' && service.vendor?.company?.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (service.category?.name || service.category || '').toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    fetchServices(page, searchTerm, statusFilter);
+  };
 
-    // Filter by status
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((service) => service.status === statusFilter);
-    }
-
-    setFilteredServices(filtered);
-  }, [services, searchTerm, statusFilter]);
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value);
+    setCurrentPage(1);
+    fetchServices(1, searchTerm, value);
+  };
 
   const handleStatusToggle = async (serviceId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
@@ -161,10 +179,9 @@ const AdminServices = () => {
     setEditModalOpen(true);
   };
 
-  const handleSaveService = (updatedService: Service) => {
-    setServices(
-      services.map((s) => (s._id === updatedService._id ? updatedService : s))
-    );
+  const handleSaveService = (_updatedService: Service) => {
+    // Re-fetch from backend to get fresh data
+    fetchServices(currentPage, searchTerm, statusFilter);
   };
 
   const handleDeleteService = (service: Service) => {
@@ -213,8 +230,8 @@ const AdminServices = () => {
   };
 
   const handleDownloadExcel = () => {
-    // Prepare comprehensive services data for Excel export
-    const excelData = filteredServices.map((service) => ({
+    // Prepare comprehensive services data for Excel export (current page)
+    const excelData = services.map((service) => ({
       "Service ID": service._id,
       "Service Title": service.title,
       "Category": service.category?.name || service.category,
@@ -270,7 +287,7 @@ const AdminServices = () => {
     // Show success toast
     toast({
       title: "Success",
-      description: `Downloaded ${filteredServices.length} services to Excel file`,
+      description: `Downloaded ${services.length} services to Excel file`,
     });
   };
 
@@ -312,7 +329,7 @@ const AdminServices = () => {
           </button>
           <Button
             variant="outline"
-            onClick={fetchServices}
+            onClick={() => fetchServices(currentPage, searchTerm, statusFilter)}
             disabled={loading}
             className="flex items-center gap-2"
           >
@@ -333,20 +350,30 @@ const AdminServices = () => {
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search services, vendors, or categories..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="relative flex gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search services, vendors, or categories..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
+                    className="pl-10"
+                  />
+                </div>
+                <Button
+                  onClick={handleSearch}
+                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                >
+                  <Search className="w-4 h-4" />
+                  Search
+                </Button>
               </div>
             </div>
             <div className="w-full md:w-48">
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => handleStatusFilterChange(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>
@@ -362,7 +389,7 @@ const AdminServices = () => {
       <Card>
         <CardHeader>
           <CardTitle>
-            Services ({filteredServices.length})
+            Services ({totalCount}){searchTerm && <span className="text-sm font-normal text-gray-500 ml-2">— results for "{searchTerm}"</span>}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -380,7 +407,7 @@ const AdminServices = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredServices.map((service) => (
+                {services.map((service) => (
                   <TableRow key={service._id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -495,9 +522,61 @@ const AdminServices = () => {
             </Table>
           </div>
           
-          {filteredServices.length === 0 && (
+          {services.length === 0 && !loading && (
             <div className="text-center py-8">
               <p className="text-gray-500">No services found matching your criteria.</p>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-4 border-t mt-4">
+              <p className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages} ({totalCount} total services)
+              </p>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1 || loading}
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+                {/* Page numbers */}
+                {(() => {
+                  const pages: number[] = [];
+                  const maxVisible = 5;
+                  let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+                  let end = Math.min(totalPages, start + maxVisible - 1);
+                  if (end - start + 1 < maxVisible) {
+                    start = Math.max(1, end - maxVisible + 1);
+                  }
+                  for (let i = start; i <= end; i++) pages.push(i);
+                  return pages.map((p) => (
+                    <Button
+                      key={p}
+                      variant={p === currentPage ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(p)}
+                      disabled={loading}
+                      className={p === currentPage ? "bg-blue-600 text-white" : ""}
+                    >
+                      {p}
+                    </Button>
+                  ));
+                })()}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages || loading}
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

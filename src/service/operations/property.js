@@ -64,6 +64,18 @@ export const getAllPropertyAPI = async (filters = {}) => {
     if (filters.category && filters.category !== 'all') {
       params.append('category', filters.category);
     }
+    if (filters.page) {
+      params.append('page', filters.page.toString());
+    }
+    if (filters.limit) {
+      params.append('limit', filters.limit.toString());
+    }
+    if (filters.search && filters.search.trim()) {
+      params.append('search', filters.search.trim());
+    }
+    if (filters.includeInactive) {
+      params.append('includeInactive', 'true');
+    }
     
     const url = params.toString() ? `${GET_ALL_PROPERTY_API}?${params.toString()}` : GET_ALL_PROPERTY_API;
     const response = await apiConnector("GET", url);
@@ -72,6 +84,15 @@ export const getAllPropertyAPI = async (filters = {}) => {
       throw new Error(response?.data?.message || "Something went wrong!");
     }
 
+    // Return full response with pagination if available
+    if (response?.data?.pagination) {
+      return {
+        properties: response?.data?.properties || [],
+        pagination: response.data.pagination
+      };
+    }
+
+    // Backward compatible: return just properties array
     return response?.data?.properties || [];
   } catch (error) {
     console.error("GET vendor property API ERROR:", error);
@@ -79,6 +100,7 @@ export const getAllPropertyAPI = async (filters = {}) => {
     return [];
   }
 };
+
 
 export const getPropertyBYIDAPI = async (id, userId) => {
   try {

@@ -51,13 +51,16 @@ const ServicesSlider = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const [allServices, reviews] = await Promise.all([
-        getAllPropertyAPI(),
+      const [result, reviews] = await Promise.all([
+        getAllPropertyAPI({ limit: 12 }),
         getAllReatingAPI()
       ]);
+      
+      // Handle paginated response format
+      const allServices = result?.properties ? result.properties : (Array.isArray(result) ? result : []);
       console.log("service", allServices)
       
-      setServices(allServices || []);
+      setServices(allServices);
       setAllReviews(reviews || []);
       
       // Log summary
