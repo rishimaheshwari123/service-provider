@@ -14,7 +14,10 @@ import {
 import VendorGetInquiry from "./VendorGetInquiry";
 import { useNavigate } from "react-router-dom";
 import DashboardSummary from "./DashboardSummary";
-import { getPurchasedCategoriesAPI, getAllCategoriesAPI } from "@/service/operations/category";
+import {
+  getPurchasedCategoriesAPI,
+  getAllCategoriesAPI,
+} from "@/service/operations/category";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 
@@ -42,7 +45,20 @@ const VendorDashboard = () => {
         const data = await getVendorDashboardData(user._id);
         setDashboardData(data);
         const cats = await getPurchasedCategoriesAPI(user._id);
-        setPurchasedCategories(cats);
+        // API may return purchase objects with nested `category` field
+        // normalize to a simple category shape for rendering
+        const normalized = (cats || []).map((item: any) => {
+          if (item?.category) {
+            return {
+              ...item.category,
+              // preserve price or use category price
+              price: item.price ?? item.category.price,
+              priceTier: item.priceTier,
+            };
+          }
+          return item;
+        });
+        setPurchasedCategories(normalized);
         const all = await getAllCategoriesAPI();
         setAllCategories(all);
       } catch (error) {
@@ -59,7 +75,7 @@ const VendorDashboard = () => {
   }, [user]);
 
   const filteredPurchased = purchasedCategories.filter((c) =>
-    c.name?.toLowerCase().includes(search.toLowerCase())
+    c.name?.toLowerCase().includes(search.toLowerCase()),
   );
   const filteredAvailable = allCategories
     .filter((ac) => !purchasedCategories.some((pc) => pc._id === ac._id))
@@ -178,9 +194,15 @@ const VendorDashboard = () => {
       {/* Categories Tab */}
       <section className="mb-16">
         <Tabs defaultValue="purchased" className="w-full">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <h2 className="text-2xl font-bold text-gray-800">Categories</h2>
-            <button className="px-4 py-2 bg-indigo-600 text-white rounded-md" onClick={() => navigate("/vendor/purchase-categories")}>Go to Purchase</button>
+
+            <button
+              className="w-full md:w-auto px-4 py-2 bg-indigo-600 hover:bg-indigo-700 transition-all duration-200 text-white rounded-md"
+              onClick={() => navigate("/vendor/purchase-categories")}
+            >
+              Go to Purchase
+            </button>
           </div>
           <div className="mb-4">
             <Input
@@ -195,17 +217,25 @@ const VendorDashboard = () => {
           </TabsList>
           <TabsContent value="purchased" className="mt-6">
             {filteredPurchased.length === 0 ? (
-              <p className="text-gray-500">You have not purchased any categories yet.</p>
+              <p className="text-gray-500">
+                You have not purchased any categories yet.
+              </p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {filteredPurchased.map((c) => (
-                  <div key={c._id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                  <div
+                    key={c._id}
+                    className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+                  >
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-gray-800">{c.name}</h3>
+                      <h3 className="text-lg font-bold text-gray-800">
+                        {c.name}
+                      </h3>
                       <span className="text-sm text-gray-600">₹{c.price}</span>
                     </div>
-                    <p className="text-gray-500 text-sm mt-2">You can add services under this category.</p>
-                    <button className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-md" onClick={() => navigate("/vendor/services")}>Add Service</button>
+                    <p className="text-gray-500 text-sm mt-2">
+                      You can add services under this category.
+                    </p>
                   </div>
                 ))}
               </div>
@@ -217,12 +247,22 @@ const VendorDashboard = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 {filteredAvailable.map((c) => (
-                  <div key={c._id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+                  <div
+                    key={c._id}
+                    className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+                  >
                     <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-gray-800">{c.name}</h3>
+                      <h3 className="text-lg font-bold text-gray-800">
+                        {c.name}
+                      </h3>
                       <span className="text-sm text-gray-600">₹{c.price}</span>
                     </div>
-                    <button className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md" onClick={() => navigate("/vendor/purchase-categories")}>Purchase</button>
+                    <button
+                      className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md"
+                      onClick={() => navigate("/vendor/purchase-categories")}
+                    >
+                      Purchase
+                    </button>
                   </div>
                 ))}
               </div>
@@ -236,7 +276,7 @@ const VendorDashboard = () => {
           Quick Tools
         </h2>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
+        <div className="grid md:grid-cols-4 gap-6 lg:gap-8">
           {quickActions.map((action, index) => (
             <div
               key={index}

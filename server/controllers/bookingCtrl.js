@@ -37,7 +37,7 @@ exports.createBookingCtrl = async (req, res) => {
 
         // Get service details for audit log
         const serviceDetails = await Property.findById(service).populate('vendor');
-        
+
         // Create audit log for booking
         try {
             await AuditLogs.create({
@@ -65,13 +65,13 @@ exports.createBookingCtrl = async (req, res) => {
         // Award booking reward points to user
         try {
             const rewardSettings = await RewardSettings.findOne();
-            
+
             if (rewardSettings && rewardSettings.isActive && rewardSettings.bookingPoints > 0) {
                 console.log(`🎁 Processing booking reward for user ${user}`);
-                
+
                 // Get or create reward points record
                 let userRewardPoints = await RewardPoints.findOne({ userId: user });
-                
+
                 if (!userRewardPoints) {
                     userRewardPoints = await RewardPoints.create({
                         userId: user,
@@ -79,13 +79,13 @@ exports.createBookingCtrl = async (req, res) => {
                         availablePoints: 0,
                     });
                 }
-                
+
                 // Add booking points
                 const pointsToAdd = rewardSettings.bookingPoints;
                 userRewardPoints.totalPoints += pointsToAdd;
                 userRewardPoints.availablePoints += pointsToAdd;
                 await userRewardPoints.save();
-                
+
                 // Create reward history entry
                 await RewardHistory.create({
                     userId: user,
@@ -97,7 +97,7 @@ exports.createBookingCtrl = async (req, res) => {
                     referenceModel: "Booking",
                     balanceAfter: userRewardPoints.availablePoints,
                 });
-                
+
                 console.log(`✅ Awarded ${pointsToAdd} booking reward points to user ${user}`);
             } else {
                 console.log('ℹ️ Booking rewards not active or not configured');
@@ -299,7 +299,6 @@ exports.getBookingsByVendorCtrl = async (req, res) => {
             });
 
         // Debug log to check user population
-        console.log("Sample booking user data:", bookings[0]?.user);
 
         if (!bookings.length) {
             return res.status(404).json({

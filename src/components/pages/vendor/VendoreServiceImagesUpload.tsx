@@ -57,19 +57,26 @@ const VendoreServiceImagesUpload = () => {
     fetchServices();
   }, [user]);
 
-  const handleToggleStatus = async (serviceId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    
+  const handleToggleStatus = async (
+    serviceId: string,
+    currentStatus: string,
+  ) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
+
     try {
       const result = await updatePropertyStatusAPI(serviceId, newStatus);
       if (result) {
         // Update local state
-        setServices(services.map(service => 
-          service._id === serviceId 
-            ? { ...service, status: newStatus }
-            : service
-        ));
-        toast.success(`Service ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`);
+        setServices(
+          services.map((service) =>
+            service._id === serviceId
+              ? { ...service, status: newStatus }
+              : service,
+          ),
+        );
+        toast.success(
+          `Service ${newStatus === "active" ? "activated" : "deactivated"} successfully!`,
+        );
       }
     } catch (error) {
       console.error("Error updating service status:", error);
@@ -90,7 +97,7 @@ const VendoreServiceImagesUpload = () => {
 
   const handleSaveService = (updatedService: Service) => {
     setServices(
-      services.map((s) => (s._id === updatedService._id ? updatedService : s))
+      services.map((s) => (s._id === updatedService._id ? updatedService : s)),
     );
   };
 
@@ -109,18 +116,20 @@ const VendoreServiceImagesUpload = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex h-16 items-center border-b px-6">
-        <h1 className="ml-4 text-lg font-semibold">Vendor Dashboard</h1>
-      </div>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div className="text-center md:text-left">
+          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+            Upload Services Images
+          </h1>
 
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Services</h1>
-          <p className="text-gray-600">Manage your offered services</p>
+          <p className="text-sm md:text-base text-gray-600 mt-1">
+            Manage your offered services
+          </p>
         </div>
+
         <Button
           onClick={() => navigate("/vendor/services")}
-          className="gradient-gold text-white"
+          className="w-full md:w-auto gradient-gold text-white flex items-center justify-center"
         >
           <Plus className="w-4 h-4 mr-2" />
           Add Service
@@ -161,21 +170,20 @@ const VendoreServiceImagesUpload = () => {
                     alt={service.title}
                     className="w-full h-full object-cover"
                   />
-                  <Badge 
+                  <Badge
                     className={`absolute top-2 right-2 ${
-                      service.status === 'active' 
-                        ? 'bg-green-100 text-green-800' 
-                        : 'bg-red-100 text-red-800'
+                      service.status === "active"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                     }`}
                   >
-                    {service.status === 'active' ? 'Active' : 'Inactive'}
+                    {service.status === "active" ? "Active" : "Inactive"}
                   </Badge>
                 </div>
               )}
               <CardHeader>
                 <CardTitle className="text-lg">{service.title}</CardTitle>
                 <div className="flex items-center justify-between">
-                 
                   <span className="text-sm text-gray-500 capitalize">
                     {service.category?.name || service.category}
                   </span>
@@ -195,17 +203,17 @@ const VendoreServiceImagesUpload = () => {
                     </p>
                   )}
                 </div>
-               <div className="w-full">
-  <Button
-    className="w-full flex items-center bg-green-400 justify-center gap-2"
-    size="sm"
-    variant="outline"
-    onClick={() => handleEditService(service)}
-  >
-    <Edit className="w-4 h-4" />
-    Upload Images
-  </Button>
-</div>
+                <div className="w-full">
+                  <Button
+                    className="w-full flex items-center bg-green-400 justify-center gap-2"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEditService(service)}
+                  >
+                    <Edit className="w-4 h-4" />
+                    Upload Images
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
