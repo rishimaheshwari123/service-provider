@@ -86,7 +86,7 @@ export const AddRoles = () => {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 font-inter">
-      <h1 className="text-5xl font-extrabold text-gray-900 mb-8 mt-12 text-center drop-shadow-lg">
+      <h1 className="text-sm md:text-4xl font-extrabold text-gray-900 mb-8 mt-12 text-center drop-shadow-lg">
         Employee Management Portal
       </h1>
 

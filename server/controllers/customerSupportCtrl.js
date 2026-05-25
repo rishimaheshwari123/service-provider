@@ -14,6 +14,7 @@ const createCustomerSupportCtrl = async (req, res) => {
             subject,
             category,
             message,
+            status: "in_progress", // Default status
         });
 
         return res.status(201).json({
@@ -48,7 +49,47 @@ const getCustomerSupportCtrl = async (req, res) => {
     }
 };
 
+const updateSupportStatusCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        if (!status || !["in_progress", "resolved", "rejected"].includes(status)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid status. Must be 'in_progress', 'resolved', or 'rejected'.",
+            });
+        }
+
+        const updatedRequest = await CustomerSupport.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true }
+        );
+
+        if (!updatedRequest) {
+            return res.status(404).json({
+                success: false,
+                message: "Support request not found.",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Support request status updated successfully.",
+            data: updatedRequest,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update support request status.",
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
     createCustomerSupportCtrl,
     getCustomerSupportCtrl,
+    updateSupportStatusCtrl,
 };

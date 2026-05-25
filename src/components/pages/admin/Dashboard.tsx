@@ -90,12 +90,12 @@ const Dashboard = () => {
       icon: FaClipboardList,
       color: "bg-gradient-to-r from-purple-500 to-purple-600",
     },
-    {
-      name: "Inquiries",
-      value: data.inquiries,
-      icon: FaHeadset,
-      color: "bg-gradient-to-r from-red-500 to-red-600",
-    },
+    // {
+    //   name: "Inquiries",
+    //   value: data.inquiries,
+    //   icon: FaHeadset,
+    //   color: "bg-gradient-to-r from-red-500 to-red-600",
+    // },
   ];
 
   useEffect(() => {
@@ -122,7 +122,7 @@ const Dashboard = () => {
     <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
       {/* Welcome Header */}
       <header className="mb-10 text-center">
-        <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800">
+        <h1 className="text-xl md:text-3xl  font-extrabold text-gray-800">
           Welcome back, {""}
           <span className="text-indigo-600">
             {user?.name
@@ -142,13 +142,13 @@ const Dashboard = () => {
       <section className="mb-16">
         <div className="flex items-center justify-center mb-6">
           <FaChartLine className="text-3xl text-indigo-600 mr-2" />
-          <h2 className="text-2xl font-bold text-gray-800 uppercase tracking-wider">
+          <h2 className="text-sm md:text-2xl font-bold text-gray-800 uppercase tracking-wider">
             System Overview
           </h2>
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
             {/* Skeleton Loaders for a better UX */}
             {[...Array(4)].map((_, i) => (
               <div
@@ -158,7 +158,7 @@ const Dashboard = () => {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {statsCards.map((stat, index) => {
               const StatIcon = stat.icon; // Component for the icon
               return (
@@ -193,13 +193,13 @@ const Dashboard = () => {
           </div>
         )}
       </section>
-      <AdminDashboardSummary />
+      {/* <AdminDashboardSummary /> */}
 
       {/* --- */}
 
       {/* Quick Actions Section (Modern Grid) */}
       <section className="mb-16">
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-8 uppercase tracking-wider">
+        <h2 className="text-sm md:text-2xl font-bold text-gray-800 text-center mb-8 uppercase tracking-wider">
           Quick Access & Tools
         </h2>
 
@@ -225,32 +225,54 @@ const Dashboard = () => {
       {/* --- */}
 
       {/* Categories Overview */}
-      <section className="mb-16">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800">Categories Overview</h2>
-          <Button onClick={() => navigate("/admin/categories")}>Manage Categories</Button>
-        </div>
-        {categories.length === 0 ? (
-          <p className="text-gray-500">No categories created yet.</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {categories.slice(0, 6).map((c) => (
-              <div key={c._id} className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold text-gray-800">{c.name}</h3>
-                  <span className="text-sm text-gray-600">₹{c.price}</span>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">Active: {c.active ? "Yes" : "No"}</p>
-              </div>
-            ))}
+    <section className="mb-16">
+  <div className="flex items-center justify-center mb-6">
+    <h2 className="text-sm md:text-2xl font-bold text-gray-800">
+      Categories Overview
+    </h2>
+  </div>
+
+  {categories.length === 0 ? (
+    <p className="text-gray-500 text-center">
+      No categories created yet.
+    </p>
+  ) : (
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {categories.slice(0, 6).map((c) => (
+          <div
+            key={c._id}
+            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-bold text-gray-800">
+                {c.name}
+              </h3>
+              <span className="text-sm text-gray-600">
+                ₹{c.price}
+              </span>
+            </div>
+
+            <p className="text-xs text-gray-500 mt-2">
+              Active: {c.active ? "Yes" : "No"}
+            </p>
           </div>
-        )}
-      </section>
+        ))}
+      </div>
+
+      <div className="flex justify-center mt-8">
+        <Button onClick={() => navigate("/admin/categories")}>
+          View All Categories
+        </Button>
+      </div>
+    </>
+  )}
+</section>
 
       {/* All Users Component */}
-      <section className="mt-16">
+      {/* <section className="mt-16">
         <AllUsers />
-      </section>
+      </section> */}
     </div>
   );
 };

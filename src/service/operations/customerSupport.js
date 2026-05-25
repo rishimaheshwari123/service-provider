@@ -4,7 +4,10 @@ import { customerSupport } from "../apis";
 
 
 const {
-  CREATE_CUSTOMER_SUPPORT_API, GET_ALL_CUSTOMER_SUPPORT_API } = customerSupport;
+  CREATE_CUSTOMER_SUPPORT_API, 
+  GET_ALL_CUSTOMER_SUPPORT_API,
+  UPDATE_SUPPORT_STATUS_API 
+} = customerSupport;
 
 export const createCustomerSupportAPI = async (jobData) => {
   const toastId = toast.loading("Loading...");
@@ -46,5 +49,22 @@ export const getCustomerSupportRequestAPI = async () => {
     console.error("GET support API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to get requiest !");
     return [];
+  }
+};
+
+export const updateSupportStatusAPI = async (id, status) => {
+  try {
+    const response = await apiConnector("PUT", `${UPDATE_SUPPORT_STATUS_API}/${id}`, { status });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Status updated successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("UPDATE support status API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to update status!");
+    return null;
   }
 };

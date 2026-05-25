@@ -28,6 +28,11 @@ const customerSupportSchema = new mongoose.Schema(
             required: true,
             trim: true,
         },
+        status: {
+            type: String,
+            enum: ["in_progress", "resolved", "rejected"],
+            default: "in_progress",
+        },
     },
     {
         timestamps: true, // Adds createdAt and updatedAt
