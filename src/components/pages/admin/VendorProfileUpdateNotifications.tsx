@@ -35,14 +35,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { getAllVendorAPI, requestForTheUpdateProfileAPI } from "@/service/operations/vendor";
 import { 
   getPendingUpdateRequestsAPI,
   approveUpdateRequestAPI,
   rejectUpdateRequestAPI 
 } from "@/service/operations/vendorProfileUpdateRequest";
 import { useVendorNotifications } from "@/hooks/useVendorNotifications";
-import VendorProfileMangeByAdmin from "./VendorProfileMangeByAdmin";
 import VendorProfileUpdateComparison from "./VendorProfileUpdateComparison";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";

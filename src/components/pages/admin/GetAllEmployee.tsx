@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Edit, Key } from "lucide-react";
+import { X, Edit, Key, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getAllUsersAPI,
   editPermissionAPI,
@@ -43,10 +43,17 @@ export const GetAllEmployee = () => {
   const [employees, setEmployees] = useState([]);
   const [filteredEmployees, setFilteredEmployees] = useState([]);
   const [roleFilter, setRoleFilter] = useState("all"); // New state for role filtering
-  const [searchTerm, setSearchTerm] = useState(""); // New state for search
+  const [searchInput, setSearchInput] = useState(""); // Input field value
+  const [searchQuery, setSearchQuery] = useState(""); // Actual search query for API
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalEmployees, setTotalEmployees] = useState(0);
+  const [limit] = useState(10);
 
   const initialEditFormData = {
     name: "",
@@ -85,14 +92,19 @@ export const GetAllEmployee = () => {
     { id: "isLogs", label: "Manage Logs" },
   ];
 
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (page = 1, search = "") => {
     setMessage("Loading employees...");
     setIsSuccess(false);
     try {
-      const response = await getAllUsersAPI();
+      const response = await getAllUsersAPI(page, limit, search);
       if (response) {
-        setEmployees(response);
-        setFilteredEmployees(response); // Initialize filtered employees
+        // Handle new response format with pagination
+        const employeesData = response.users || response;
+        setEmployees(employeesData);
+        setFilteredEmployees(employeesData); // Initialize filtered employees
+        setCurrentPage(response.pagination?.currentPage || 1);
+        setTotalPages(response.pagination?.totalPages || 1);
+        setTotalEmployees(response.pagination?.totalUsers || employeesData.length);
         setMessage("");
       } else {
         setMessage("Failed to load employees.");
@@ -103,7 +115,7 @@ export const GetAllEmployee = () => {
     }
   };
 
-  // Filter employees based on role and search term
+  // Filter employees based on role only (search is handled by backend)
   const filterEmployees = () => {
     let filtered = employees;
 
@@ -111,16 +123,6 @@ export const GetAllEmployee = () => {
     if (roleFilter !== "all") {
       filtered = filtered.filter(employee => 
         employee.role?.toLowerCase() === roleFilter.toLowerCase()
-      );
-    }
-
-    // Filter by search term
-    if (searchTerm.trim()) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(employee =>
-        employee.name?.toLowerCase().includes(search) ||
-        employee.email?.toLowerCase().includes(search) ||
-        employee.role?.toLowerCase().includes(search)
       );
     }
 
@@ -132,19 +134,34 @@ export const GetAllEmployee = () => {
     setRoleFilter(role);
   };
 
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+  // Handle search button click
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
+    setCurrentPage(1); // Reset to first page on new search
   };
 
-  // Update filtered employees when employees data, role filter, or search term changes
+  // Handle Enter key in search input
+  const handleSearchKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
+  // Clear search
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
+    setCurrentPage(1);
+  };
+
+  // Update filtered employees when employees data or role filter changes
   useEffect(() => {
     filterEmployees();
-  }, [employees, roleFilter, searchTerm]);
+  }, [employees, roleFilter]);
 
   useEffect(() => {
-    fetchEmployees();
-  }, []);
+    fetchEmployees(currentPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
   const handleEditClick = (employee) => {
     setEditingEmployee(employee);
@@ -284,7 +301,7 @@ export const GetAllEmployee = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 font-inter">
+    <div className="min-h-screen flex flex-col items-center p-4 font-inter ">
       {message && (
         <div
           className={`p-4 mb-6 rounded-xl text-center ${
@@ -616,25 +633,38 @@ export const GetAllEmployee = () => {
 
         {/* Search Bar */}
         <div className="mb-6">
-          <div className="relative max-w-md">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="flex gap-2 max-w-2xl">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              <input
+                type="text"
+                placeholder="Search by name, email, or phone..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyPress={handleSearchKeyPress}
+                className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
+              />
+            </div>
+            <button
+              onClick={handleSearch}
+              className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
+            >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-            </div>
-            <input
-              type="text"
-              placeholder="Search by name, email, or role..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
-            />
-            {searchTerm && (
+              Search
+            </button>
+            {searchQuery && (
               <button
-                onClick={() => setSearchTerm("")}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                onClick={handleClearSearch}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-all duration-200 flex items-center gap-2"
               >
-                <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                <X className="h-4 w-4" />
+                Clear
               </button>
             )}
           </div>
@@ -643,15 +673,18 @@ export const GetAllEmployee = () => {
         {/* Results Summary */}
         <div className="mb-6">
           <p className="text-gray-600">
-            Showing {filteredEmployees.length} of {employees.length} employees
+            {searchQuery ? (
+              <>
+                Found <span className="font-semibold text-purple-600">{totalEmployees}</span> employee(s) matching "{searchQuery}"
+              </>
+            ) : (
+              <>
+                Showing {filteredEmployees.length} of {totalEmployees} total employees
+              </>
+            )}
             {roleFilter !== "all" && (
               <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-sm font-medium">
                 Role: {roleFilter.charAt(0).toUpperCase() + roleFilter.slice(1)}
-              </span>
-            )}
-            {searchTerm && (
-              <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                Search: "{searchTerm}"
               </span>
             )}
           </p>
@@ -665,15 +698,15 @@ export const GetAllEmployee = () => {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              {searchTerm 
-                ? `No employees found matching "${searchTerm}"` 
+              {searchQuery 
+                ? `No employees found matching "${searchQuery}"` 
                 : roleFilter === "all" 
                 ? "No employees found" 
                 : `No ${roleFilter} employees found`
               }
             </h3>
             <p className="text-gray-500">
-              {searchTerm
+              {searchQuery
                 ? "Try adjusting your search terms or clear the search to see all employees."
                 : roleFilter === "all" 
                 ? "Add some employees to get started!" 
@@ -695,9 +728,9 @@ export const GetAllEmployee = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Phone
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
-                  </th>
+                  </th> */}
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Role
                   </th>
@@ -724,7 +757,7 @@ export const GetAllEmployee = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {employee?.phone}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         employee.type === 'active' 
                           ? 'bg-green-100 text-green-800' 
@@ -732,7 +765,7 @@ export const GetAllEmployee = () => {
                       }`}>
                         {employee.type}
                       </span>
-                    </td>
+                    </td> */}
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                         employee.role === 'admin' 
@@ -746,24 +779,37 @@ export const GetAllEmployee = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-700">
                       <div className="flex flex-wrap gap-2">
-                        {permissionFields.map(
-                          (perm) =>
-                            employee[perm.id] && (
-                              <span
-                                key={perm.id}
-                                className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800"
-                              >
-                                {perm.label}
+                        {(() => {
+                          // Get all active permissions
+                          const activePermissions = permissionFields.filter(
+                            (perm) => employee[perm.id]
+                          );
+                          
+                          if (activePermissions.length === 0) {
+                            return (
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
+                                No Permissions
                               </span>
-                            )
-                        )}
-                        {permissionFields.every(
-                          (perm) => !employee[perm.id]
-                        ) && (
-                          <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
-                            No Permissions
-                          </span>
-                        )}
+                            );
+                          }
+                          
+                          // Show first permission
+                          const firstPermission = activePermissions[0];
+                          const remainingCount = activePermissions.length - 1;
+                          
+                          return (
+                            <>
+                              <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
+                                {firstPermission.label}
+                              </span>
+                              {remainingCount > 0 && (
+                                <span className="px-2 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-800">
+                                  +{remainingCount}
+                                </span>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-4">
@@ -795,6 +841,75 @@ export const GetAllEmployee = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
+            <div className="text-sm text-gray-600">
+              Showing <span className="font-semibold">{(currentPage - 1) * limit + 1}</span> to{" "}
+              <span className="font-semibold">
+                {Math.min(currentPage * limit, totalEmployees)}
+              </span>{" "}
+              of <span className="font-semibold">{totalEmployees}</span> employees
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className={`px-3 py-2 rounded-lg border ${
+                  currentPage === 1
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+
+              {/* Page Numbers */}
+              <div className="flex gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`px-3 py-2 rounded-lg border text-sm font-medium ${
+                        currentPage === pageNum
+                          ? "bg-purple-600 text-white border-purple-600"
+                          : "bg-white text-gray-700 hover:bg-gray-50"
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className={`px-3 py-2 rounded-lg border ${
+                  currentPage === totalPages
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : "bg-white text-gray-700 hover:bg-gray-50"
+                }`}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         )}
       </div>

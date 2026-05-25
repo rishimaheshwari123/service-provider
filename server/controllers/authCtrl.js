@@ -13,7 +13,6 @@ const registerCtrl = async (req, res) => {
       email,
       password,
       phone,
-      type = "user",
       role = "user",
       referralCode,
       isVendor,
@@ -177,13 +176,50 @@ const loginCtrl = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await authModel.find().sort({ createdAt: -1 });
+    const { page = 1, limit = 10, search = '' } = req.query;
+    
+    // Convert to numbers
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    // Build search query
+    let searchQuery = {};
+    if (search && search.trim() !== '') {
+      searchQuery = {
+        $or: [
+          { name: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } },
+          { phone: { $regex: search, $options: 'i' } }
+        ]
+      };
+    }
+
+    // Get total count for pagination
+    const totalUsers = await authModel.countDocuments(searchQuery);
+    
+    // Get paginated users
+    const users = await authModel
+      .find(searchQuery)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .select('-password'); // Don't send password
+
     res.status(200).json({
       success: true,
-      users
+      users,
+      pagination: {
+        currentPage: pageNum,
+        totalPages: Math.ceil(totalUsers / limitNum),
+        totalUsers,
+        limit: limitNum,
+        hasNextPage: pageNum < Math.ceil(totalUsers / limitNum),
+        hasPrevPage: pageNum > 1
+      }
     });
   } catch (error) {
-    console.error("Error fetching applications:", error);
+    console.error("Error fetching users:", error);
     res.status(500).json({ success: false, message: "Server error." });
   }
 };
@@ -326,7 +362,6 @@ const changeUserTypeCtrl = async (req, res) => {
 
     user.type = type;
     await user.save();
-    console.log(user)
 
     return res.status(200).json({
       success: true,

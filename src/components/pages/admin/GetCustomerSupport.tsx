@@ -1,34 +1,97 @@
 import React, { useState, useEffect } from "react";
-import { Home } from "lucide-react";
-import { getCustomerSupportRequestAPI } from "@/service/operations/customerSupport";
+import { CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { getCustomerSupportRequestAPI, updateSupportStatusAPI } from "@/service/operations/customerSupport";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
+
 const GetCustomerSupport = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [selectedStatuses, setSelectedStatuses] = useState<Record<string, string>>({});
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
-  useEffect(() => {
-    const fetchSupportRequests = async () => {
-      try {
-        setLoading(true); // Start loading
-        const response = await getCustomerSupportRequestAPI();
-        if (response?.success) {
-          setRequests(response?.data);
-        } else {
-          setError("Failed to fetch support requests.");
-        }
-      } catch (err) {
-        console.error("Error fetching support requests:", err);
-        setError("An error occurred while fetching data.");
-      } finally {
-        setLoading(false); // End loading
+  const fetchSupportRequests = async () => {
+    try {
+      setLoading(true);
+      const response = await getCustomerSupportRequestAPI();
+      if (response?.success) {
+        setRequests(response?.data);
+        // Initialize selected statuses with current status
+        const initialStatuses = {};
+        response?.data.forEach(req => {
+          initialStatuses[req._id] = req.status || "in_progress";
+        });
+        setSelectedStatuses(initialStatuses);
+      } else {
+        setError("Failed to fetch support requests.");
       }
-    };
+    } catch (err) {
+      console.error("Error fetching support requests:", err);
+      setError("An error occurred while fetching data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSupportRequests();
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
+
+  const handleStatusChange = async (requestId: string) => {
+    const newStatus = selectedStatuses[requestId];
+    
+    try {
+      setUpdatingStatus(requestId);
+      const response = await updateSupportStatusAPI(requestId, newStatus);
+      
+      if (response?.success) {
+        // Update local state
+        setRequests(requests.map(req => 
+          req._id === requestId ? { ...req, status: newStatus } : req
+        ));
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  const handleDropdownChange = (requestId: string, newStatus: string) => {
+    setSelectedStatuses(prev => ({
+      ...prev,
+      [requestId]: newStatus
+    }));
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "resolved":
+        return {
+          bg: "bg-green-100",
+          text: "text-green-800",
+          icon: <CheckCircle className="w-4 h-4" />,
+          label: "Resolved"
+        };
+      case "rejected":
+        return {
+          bg: "bg-red-100",
+          text: "text-red-800",
+          icon: <XCircle className="w-4 h-4" />,
+          label: "Rejected"
+        };
+      case "in_progress":
+      default:
+        return {
+          bg: "bg-yellow-100",
+          text: "text-yellow-800",
+          icon: <Clock className="w-4 h-4" />,
+          label: "In Progress"
+        };
+    }
+  };
 
   if (loading) {
     return (
@@ -45,7 +108,6 @@ const GetCustomerSupport = () => {
     return (
       <div className="text-center text-red-600 text-lg p-8">
         <p>{error}</p>
-        {/* No back button needed if only requests are displayed */}
       </div>
     );
   }
@@ -59,12 +121,10 @@ const GetCustomerSupport = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-100 font-inter antialiased text-gray-800">
-      {/* Header Section */}
-
-      {/* Main Content Section - Displaying Requests */}
-      <main className="container mx-auto my-8 p-4 md:p-12 bg-white shadow-2xl rounded-3xl">
-        <h2 className="text-4xl font-extrabold text-blue-700 mb-10 rounded-md text-center">
+    <div className="min-h-screen font-inter antialiased text-gray-800">
+      {/* Main Content Section */}
+      <main className=" mx-auto my-8 p-4 md:p-12 bg-white shadow-2xl rounded-3xl">
+        <h2 className="text-sm md:text-4xl font-extrabold text-blue-700 mb-10 rounded-md text-center">
           Current Support Requests
         </h2>
         {requests.length === 0 ? (
@@ -73,63 +133,132 @@ const GetCustomerSupport = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {requests.map((request) => (
-              <div
-                key={request._id}
-                className="bg-white p-6 rounded-xl shadow-lg border border-blue-100 flex flex-col justify-between"
-              >
-                <div>
-                  <h3 className="text-2xl font-semibold text-blue-800 mb-2">
-                    {request.subject}
-                  </h3>
-                  <p className="text-gray-700 mb-1">
-                    <strong>ID:</strong> {request._id}
-                  </p>
-                  <p className="text-gray-700 mb-1">
-                    <strong>From:</strong> {request.name} (
-                    <a
-                      href={`mailto:${request.email}`}
-                      className="text-blue-600 hover:underline"
-                    >
-                      {request.email}
-                    </a>
-                    )
-                  </p>
-                  <p className="text-gray-700 mb-1">
-                    <strong>Category:</strong>{" "}
-                    <span className="font-medium text-purple-700">
-                      {request.category
-                        .replace(/_/g, " ")
-                        .split(" ")
-                        .map(
-                          (word) => word.charAt(0).toUpperCase() + word.slice(1)
-                        )
-                        .join(" ")}
+            {requests.map((request) => {
+              const statusBadge = getStatusBadge(request.status);
+              const isUpdating = updatingStatus === request._id;
+              const hasStatusChanged = selectedStatuses[request._id] !== request.status;
+              
+              return (
+                <div
+                  key={request._id}
+                  className="bg-white p-6 rounded-xl shadow-lg border border-blue-100 hover:shadow-xl transition-shadow"
+                >
+                  {/* Header with Status and Date */}
+                  <div className="flex justify-between items-start mb-4 pb-3 border-b border-gray-200">
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${statusBadge.bg} ${statusBadge.text}`}>
+                      {statusBadge.icon}
+                      {statusBadge.label}
                     </span>
-                  </p>
-                  <p className="text-gray-600 mt-3 border-t border-gray-200 pt-3">
-                    <span className="font-semibold">Message:</span>{" "}
-                    {request.message}
-                  </p>
+                    <span className="text-xs text-gray-500">
+                      {new Date(request.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                      })}
+                    </span>
+                  </div>
+
+                  {/* Subject */}
+                  <div className="mb-4">
+                    <h3 className="text-xl font-bold text-blue-800 mb-1">
+                      Subject : {request.subject}
+                    </h3>
+                  </div>
+
+                  {/* User Info */}
+                  <div className="mb-4 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+  <span className="text-sm font-semibold text-gray-600">
+    From:
+  </span>
+
+  <p className="text-sm font-medium text-gray-800">
+    {request.name}
+  </p>
+
+  <a
+    href={`mailto:${request.email}`}
+    className="text-sm text-blue-600 hover:underline"
+  >
+    {request.email}
+  </a>
+</div>
+
+                    <div className="flex items-center">
+                      <span className="text-sm font-semibold text-gray-600 w-20">Category:</span>
+                      <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
+                        {request.category
+                          .replace(/_/g, " ")
+                          .split(" ")
+                          .map(
+                            (word) => word.charAt(0).toUpperCase() + word.slice(1)
+                          )
+                          .join(" ")}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Message */}
+                  <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-sm font-semibold text-gray-700 mb-2">Message:</p>
+                    <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {request.message}
+                    </p>
+                  </div>
+
+                  {/* Status Update Actions */}
+               <div className="pt-4 border-t border-gray-200">
+  <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
+    
+    {/* Select */}
+    <select
+      value={selectedStatuses[request._id] || request.status}
+      onChange={(e) =>
+        handleDropdownChange(request._id, e.target.value)
+      }
+      disabled={isUpdating}
+      className="w-full sm:flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium bg-white"
+    >
+      <option value="in_progress">🟡 In Progress</option>
+      <option value="resolved">✅ Resolved</option>
+      <option value="rejected">❌ Rejected</option>
+    </select>
+
+    {/* Button */}
+    <button
+      onClick={() => handleStatusChange(request._id)}
+      disabled={isUpdating || !hasStatusChanged}
+      className={`w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${
+        isUpdating
+          ? "bg-gray-400 text-white cursor-not-allowed"
+          : hasStatusChanged
+          ? "bg-blue-600 text-white hover:bg-blue-700 shadow-md"
+          : "bg-gray-300 text-gray-500 cursor-not-allowed"
+      }`}
+    >
+      {isUpdating ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Updating...
+        </>
+      ) : (
+        <>
+          <CheckCircle className="w-4 h-4" />
+          Update Status
+        </>
+      )}
+    </button>
+  </div>
+
+  {hasStatusChanged && !isUpdating && (
+    <p className="text-xs text-blue-600 mt-2 text-center sm:text-left">
+      Click "Update Status" to save changes
+    </p>
+  )}
+</div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center text-sm text-gray-500">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                      request.status === "Pending"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : request.status === "Resolved"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-blue-100 text-blue-800"
-                    }`}
-                  >
-                    {request.status}
-                  </span>
-                  <span>
-                    Date: {new Date(request.createdAt).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </main>
@@ -137,4 +266,4 @@ const GetCustomerSupport = () => {
   );
 };
 
-export default GetCustomerSupport; // Export GetCustomerSupport as the main component
+export default GetCustomerSupport;

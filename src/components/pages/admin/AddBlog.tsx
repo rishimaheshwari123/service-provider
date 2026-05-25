@@ -4,6 +4,26 @@ import { getAllCategoriesAPI } from "@/service/operations/category";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { generateSlug, isValidSlug } from "@/utils/blogUtils";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  FileText, 
+  Image as ImageIcon, 
+  Tag, 
+  Globe, 
+  Share2, 
+  Eye, 
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+  Upload
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 const AddBlog = () => {
   const [formData, setFormData] = useState({
@@ -24,8 +44,12 @@ const AddBlog = () => {
 
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [ogImagePreview, setOgImagePreview] = useState<string | null>(null);
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
+  const { toast } = useToast();
 
   // Fetch categories on component mount
   useEffect(() => {
@@ -36,6 +60,11 @@ const AddBlog = () => {
         setCategories(categoriesData);
       } catch (error) {
         console.error("Error fetching categories:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load categories",
+          variant: "destructive",
+        });
       } finally {
         setLoadingCategories(false);
       }
@@ -44,7 +73,7 @@ const AddBlog = () => {
     fetchCategories();
   }, []);
 
-  const handleChange = (e) => {
+  const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
     
@@ -66,18 +95,43 @@ const AddBlog = () => {
     }
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = (e: any) => {
     const { name } = e.target;
+    const file = e.target.files[0];
+    
     setFormData({
       ...formData,
-      [name]: e.target.files[0],
+      [name]: file,
     });
+
+    // Create preview
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (name === 'image') {
+          setImagePreview(reader.result as string);
+        } else if (name === 'ogImage') {
+          setOgImagePreview(reader.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
 
+    if (!isValidSlug(formData.slug)) {
+      toast({
+        title: "Invalid Slug",
+        description: "Please enter a valid URL-friendly slug",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
+      setSubmitting(true);
       const formDataToSend = new FormData();
       formDataToSend.append("title", formData.title);
       formDataToSend.append("slug", formData.slug);
@@ -101,6 +155,12 @@ const AddBlog = () => {
       const response = await createBlogAPI(formDataToSend);
 
       if (response) {
+        toast({
+          title: "Success!",
+          description: "Blog post created successfully",
+        });
+        
+        // Reset form
         setFormData({
           title: "",
           slug: "",
@@ -116,323 +176,422 @@ const AddBlog = () => {
           ogImage: null,
           published: false,
         });
+        setImagePreview(null);
+        setOgImagePreview(null);
       }
     } catch (error) {
       console.log(error);
+      toast({
+        title: "Error",
+        description: "Failed to create blog post",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
     }
   };
 
   if (!user?.isBlog) {
     return (
-      <div className="text-red-600 text-center p-4 font-semibold">
-        You do not have permission to view this page.
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Card className="w-full max-w-md">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Access Denied</h3>
+              <p className="text-gray-600">You do not have permission to view this page.</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   return (
-    <>
-      <h6 className="text-blue-600 text-center text-3xl border-b-2 border-blue-600 pb-2">
-        Add Blogs
-      </h6>
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col space-y-6 mt-10 max-w-4xl mx-auto"
-      >
-        {/* Title */}
-        <div>
-          <label
-            className="block text-gray-600 text-xl font-bold mb-2"
-            htmlFor="title"
-          >
-            Title: <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-600 leading-tight focus:outline-none focus:shadow-outline text-xl"
-            name="title"
-            id="title"
-            value={formData.title}
-            onChange={handleChange}
-            required
-          />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl font-bold text-gray-900 flex items-center justify-center gap-3">
+            <FileText className="w-10 h-10 text-blue-600" />
+            Create New Blog Post
+          </h1>
+          <p className="text-gray-600">Share your insights and stories with the world</p>
         </div>
 
-        {/* Slug */}
-        <div>
-          <label
-            className="block text-gray-600 text-xl font-bold mb-2"
-            htmlFor="slug"
-          >
-            Slug: <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            className={`shadow appearance-none border rounded w-full py-3 px-4 text-gray-600 leading-tight focus:outline-none focus:shadow-outline text-xl ${
-              formData.slug && !isValidSlug(formData.slug) ? 'border-red-500' : ''
-            }`}
-            name="slug"
-            id="slug"
-            value={formData.slug}
-            onChange={handleChange}
-            required
-            placeholder="auto-generated-from-title"
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            URL-friendly version of the title. Auto-generated but can be edited.
-          </p>
-          {formData.slug && !isValidSlug(formData.slug) && (
-            <p className="text-sm text-red-500 mt-1">
-              Slug should only contain lowercase letters, numbers, and hyphens. No spaces or special characters.
-            </p>
-          )}
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Basic Information */}
+          <Card className="shadow-lg border-t-4 border-t-blue-600">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-blue-600" />
+                Basic Information
+              </CardTitle>
+              <CardDescription>
+                Enter the main details of your blog post
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Title */}
+              <div className="space-y-2">
+                <Label htmlFor="title" className="text-base font-semibold">
+                  Title <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="title"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  placeholder="Enter an engaging blog title..."
+                  required
+                  className="text-lg"
+                />
+              </div>
 
-        {/* Thumbnail Image */}
-        <div>
-          <label
-            className="block text-gray-600 text-xl font-bold mb-2"
-            htmlFor="image"
-          >
-            Thumbnail:
-          </label>
-          <input
-            className="appearance-none border rounded w-full py-3 px-4 text-gray-600 leading-tight focus:outline-none focus:shadow-outline text-xl"
-            id="image"
-            name="image"
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-          />
-          <p className="text-sm text-gray-500 mt-1">
-            Select an image or paste image URL
-          </p>
-        </div>
+              {/* Slug */}
+              <div className="space-y-2">
+                <Label htmlFor="slug" className="text-base font-semibold">
+                  URL Slug <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="slug"
+                  name="slug"
+                  value={formData.slug}
+                  onChange={handleChange}
+                  placeholder="auto-generated-from-title"
+                  required
+                  className={`font-mono ${
+                    formData.slug && !isValidSlug(formData.slug) ? 'border-red-500' : ''
+                  }`}
+                />
+                <div className="flex items-start gap-2 text-sm">
+                  {formData.slug && isValidSlug(formData.slug) ? (
+                    <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                  ) : formData.slug ? (
+                    <AlertCircle className="w-4 h-4 text-red-500 mt-0.5" />
+                  ) : null}
+                  <p className={formData.slug && !isValidSlug(formData.slug) ? "text-red-500" : "text-gray-500"}>
+                    {formData.slug && !isValidSlug(formData.slug)
+                      ? "Slug should only contain lowercase letters, numbers, and hyphens"
+                      : "URL-friendly version of the title. Auto-generated but can be edited."}
+                  </p>
+                </div>
+              </div>
 
-        {/* Category */}
-        <div>
-          <label
-            className="block text-gray-600 text-xl font-bold mb-2"
-            htmlFor="category"
-          >
-            Category:
-          </label>
-          {loadingCategories ? (
-            <div className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-600 leading-tight focus:outline-none focus:shadow-outline text-xl">
-              Loading categories...
-            </div>
-          ) : (
-            <select
-              name="category"
-              id="category"
-              className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-600 leading-tight focus:outline-none focus:shadow-outline text-xl"
-              value={formData.category}
-              onChange={handleChange}
+              {/* Category */}
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-base font-semibold">
+                  Category
+                </Label>
+                {loadingCategories ? (
+                  <div className="flex items-center gap-2 text-gray-500">
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Loading categories...
+                  </div>
+                ) : (
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData({ ...formData, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="General">General</SelectItem>
+                      {categories.map((category: any) => (
+                        <SelectItem key={category._id} value={category.name}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+
+              {/* Content */}
+              <div className="space-y-2">
+                <Label htmlFor="description" className="text-base font-semibold">
+                  Content <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  placeholder="Write your blog content here... (HTML allowed)"
+                  required
+                  rows={12}
+                  className="font-mono text-sm"
+                />
+                <p className="text-sm text-gray-500">
+                  HTML tags are supported for rich formatting
+                </p>
+              </div>
+
+              {/* Published Status */}
+              <div className="flex items-center space-x-2 p-4 bg-gray-50 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="published"
+                  name="published"
+                  checked={formData.published}
+                  onChange={handleChange}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <Label htmlFor="published" className="cursor-pointer flex items-center gap-2">
+                  <Eye className="w-4 h-4" />
+                  Publish immediately
+                </Label>
+                {formData.published && (
+                  <Badge variant="default" className="ml-2">Live</Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Media */}
+          <Card className="shadow-lg border-t-4 border-t-purple-600">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ImageIcon className="w-5 h-5 text-purple-600" />
+                Media
+              </CardTitle>
+              <CardDescription>
+                Upload images for your blog post
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Thumbnail Image */}
+              <div className="space-y-2">
+                <Label htmlFor="image" className="text-base font-semibold">
+                  Featured Image
+                </Label>
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <label htmlFor="image" className="cursor-pointer">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-purple-500 transition-colors text-center">
+                        {imagePreview ? (
+                          <div className="space-y-2">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="max-h-48 mx-auto rounded-lg"
+                            />
+                            <p className="text-sm text-gray-600">Click to change image</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Upload className="w-12 h-12 mx-auto text-gray-400" />
+                            <p className="text-gray-600">Click to upload featured image</p>
+                            <p className="text-sm text-gray-500">PNG, JPG, JPEG up to 10MB</p>
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                    <input
+                      id="image"
+                      name="image"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* OG Image */}
+              <div className="space-y-2">
+                <Label htmlFor="ogImage" className="text-base font-semibold">
+                  Social Media Image (Open Graph)
+                </Label>
+                <div className="flex items-start gap-4">
+                  <div className="flex-1">
+                    <label htmlFor="ogImage" className="cursor-pointer">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-purple-500 transition-colors text-center">
+                        {ogImagePreview ? (
+                          <div className="space-y-2">
+                            <img
+                              src={ogImagePreview}
+                              alt="OG Preview"
+                              className="max-h-48 mx-auto rounded-lg"
+                            />
+                            <p className="text-sm text-gray-600">Click to change image</p>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <Share2 className="w-12 h-12 mx-auto text-gray-400" />
+                            <p className="text-gray-600">Click to upload social media image</p>
+                            <p className="text-sm text-gray-500">Recommended: 1200x630px</p>
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                    <input
+                      id="ogImage"
+                      name="ogImage"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* SEO Settings */}
+          <Card className="shadow-lg border-t-4 border-t-green-600">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Globe className="w-5 h-5 text-green-600" />
+                SEO Settings
+              </CardTitle>
+              <CardDescription>
+                Optimize your blog post for search engines
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Meta Title */}
+              <div className="space-y-2">
+                <Label htmlFor="metaTitle" className="text-base font-semibold">
+                  Meta Title
+                </Label>
+                <Input
+                  id="metaTitle"
+                  name="metaTitle"
+                  value={formData.metaTitle}
+                  onChange={handleChange}
+                  placeholder="SEO-optimized title"
+                  maxLength={60}
+                />
+                <p className="text-sm text-gray-500">
+                  {formData.metaTitle.length}/60 characters
+                </p>
+              </div>
+
+              {/* Meta Description */}
+              <div className="space-y-2">
+                <Label htmlFor="metaDescription" className="text-base font-semibold">
+                  Meta Description
+                </Label>
+                <Textarea
+                  id="metaDescription"
+                  name="metaDescription"
+                  value={formData.metaDescription}
+                  onChange={handleChange}
+                  placeholder="Brief description for search results"
+                  rows={3}
+                  maxLength={160}
+                />
+                <p className="text-sm text-gray-500">
+                  {formData.metaDescription.length}/160 characters
+                </p>
+              </div>
+
+              {/* Keywords */}
+              <div className="space-y-2">
+                <Label htmlFor="keywords" className="text-base font-semibold flex items-center gap-2">
+                  <Tag className="w-4 h-4" />
+                  Keywords
+                </Label>
+                <Input
+                  id="keywords"
+                  name="keywords"
+                  value={formData.keywords}
+                  onChange={handleChange}
+                  placeholder="keyword1, keyword2, keyword3"
+                />
+                <p className="text-sm text-gray-500">
+                  Separate keywords with commas
+                </p>
+              </div>
+
+              {/* Canonical URL */}
+              <div className="space-y-2">
+                <Label htmlFor="canonicalUrl" className="text-base font-semibold">
+                  Canonical URL
+                </Label>
+                <Input
+                  id="canonicalUrl"
+                  name="canonicalUrl"
+                  type="url"
+                  value={formData.canonicalUrl}
+                  onChange={handleChange}
+                  placeholder="https://example.com/blog/post-slug"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Open Graph Settings */}
+          <Card className="shadow-lg border-t-4 border-t-orange-600">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Share2 className="w-5 h-5 text-orange-600" />
+                Social Media (Open Graph)
+              </CardTitle>
+              <CardDescription>
+                Control how your blog appears when shared on social media
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* OG Title */}
+              <div className="space-y-2">
+                <Label htmlFor="ogTitle" className="text-base font-semibold">
+                  Social Media Title
+                </Label>
+                <Input
+                  id="ogTitle"
+                  name="ogTitle"
+                  value={formData.ogTitle}
+                  onChange={handleChange}
+                  placeholder="Title for social media sharing"
+                />
+              </div>
+
+              {/* OG Description */}
+              <div className="space-y-2">
+                <Label htmlFor="ogDescription" className="text-base font-semibold">
+                  Social Media Description
+                </Label>
+                <Textarea
+                  id="ogDescription"
+                  name="ogDescription"
+                  value={formData.ogDescription}
+                  onChange={handleChange}
+                  placeholder="Description for social media sharing"
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Submit Button */}
+          <div className="flex justify-center pt-6 pb-12">
+            <Button
+              type="submit"
+              disabled={submitting}
+              size="lg"
+              className="px-12 py-6 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg"
             >
-              <option value="General">General</option>
-              {categories.map((category) => (
-                <option key={category._id} value={category.name}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
-
-        {/* Content */}
-        <div>
-          <label
-            htmlFor="description"
-            className="block font-medium text-gray-700 text-xl mb-2"
-          >
-            Content (HTML allowed): <span className="text-red-500">*</span>
-          </label>
-          <textarea
-            name="description"
-            id="description"
-            rows={8}
-            className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-600 leading-tight focus:outline-none focus:shadow-outline text-xl"
-            value={formData.description}
-            onChange={handleChange}
-            required
-          ></textarea>
-        </div>
-
-        {/* SEO Section */}
-        <div className="border-t pt-6">
-          <h3 className="text-xl font-bold text-gray-700 mb-4">SEO Settings</h3>
-          
-          {/* Meta Title */}
-          <div className="mb-4">
-            <label
-              className="block text-gray-600 text-lg font-bold mb-2"
-              htmlFor="metaTitle"
-            >
-              Meta Title:
-            </label>
-            <input
-              type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
-              name="metaTitle"
-              id="metaTitle"
-              value={formData.metaTitle}
-              onChange={handleChange}
-              maxLength={60}
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              {formData.metaTitle.length}/60 characters
-            </p>
+              {submitting ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  Creating Blog Post...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-5 h-5 mr-2" />
+                  Create Blog Post
+                </>
+              )}
+            </Button>
           </div>
-
-          {/* Meta Description */}
-          <div className="mb-4">
-            <label
-              className="block text-gray-600 text-lg font-bold mb-2"
-              htmlFor="metaDescription"
-            >
-              Meta Description:
-            </label>
-            <textarea
-              name="metaDescription"
-              id="metaDescription"
-              rows={3}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
-              value={formData.metaDescription}
-              onChange={handleChange}
-              maxLength={160}
-            ></textarea>
-            <p className="text-sm text-gray-500 mt-1">
-              {formData.metaDescription.length}/160 characters
-            </p>
-          </div>
-
-          {/* Keywords */}
-          <div className="mb-4">
-            <label
-              className="block text-gray-600 text-lg font-bold mb-2"
-              htmlFor="keywords"
-            >
-              Keywords (comma separated):
-            </label>
-            <input
-              type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
-              name="keywords"
-              id="keywords"
-              value={formData.keywords}
-              onChange={handleChange}
-              placeholder="real estate, property, investment"
-            />
-          </div>
-
-          {/* Canonical URL */}
-          <div className="mb-4">
-            <label
-              className="block text-gray-600 text-lg font-bold mb-2"
-              htmlFor="canonicalUrl"
-            >
-              Canonical URL:
-            </label>
-            <input
-              type="url"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
-              name="canonicalUrl"
-              id="canonicalUrl"
-              value={formData.canonicalUrl}
-              onChange={handleChange}
-              placeholder="https://example.com/blog/post-slug"
-            />
-          </div>
-        </div>
-
-        {/* Open Graph Section */}
-        <div className="border-t pt-6">
-          <h3 className="text-xl font-bold text-gray-700 mb-4">Open Graph (Social Media)</h3>
-          
-          {/* OG Title */}
-          <div className="mb-4">
-            <label
-              className="block text-gray-600 text-lg font-bold mb-2"
-              htmlFor="ogTitle"
-            >
-              OG Title:
-            </label>
-            <input
-              type="text"
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
-              name="ogTitle"
-              id="ogTitle"
-              value={formData.ogTitle}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* OG Description */}
-          <div className="mb-4">
-            <label
-              className="block text-gray-600 text-lg font-bold mb-2"
-              htmlFor="ogDescription"
-            >
-              OG Description:
-            </label>
-            <textarea
-              name="ogDescription"
-              id="ogDescription"
-              rows={3}
-              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
-              value={formData.ogDescription}
-              onChange={handleChange}
-            ></textarea>
-          </div>
-
-          {/* OG Image */}
-          <div className="mb-4">
-            <label
-              className="block text-gray-600 text-lg font-bold mb-2"
-              htmlFor="ogImage"
-            >
-              OG Image:
-            </label>
-            <input
-              className="appearance-none border rounded w-full py-2 px-3 text-gray-600 leading-tight focus:outline-none focus:shadow-outline"
-              id="ogImage"
-              name="ogImage"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-            />
-            <p className="text-sm text-gray-500 mt-1">
-              Select an image for social media sharing
-            </p>
-          </div>
-        </div>
-
-        {/* Published Checkbox */}
-        <div className="flex items-center">
-          <input
-            type="checkbox"
-            id="published"
-            name="published"
-            checked={formData.published}
-            onChange={handleChange}
-            className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-          />
-          <label htmlFor="published" className="text-lg text-gray-700">
-            Published
-          </label>
-        </div>
-
-        {/* Submit Button */}
-        <div className="flex justify-center pt-6">
-          <button
-            className="px-8 py-3 bg-blue-600 text-white rounded-md text-xl hover:bg-blue-700 transition font-semibold"
-            type="submit"
-          >
-            Create Blog
-          </button>
-        </div>
-      </form>
-    </>
+        </form>
+      </div>
+    </div>
   );
 };
 

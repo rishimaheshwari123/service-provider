@@ -97,21 +97,28 @@ export async function signUp(formData) {
 }
 
 
-export const getAllUsersAPI = async () => {
-
+export const getAllUsersAPI = async (page = 1, limit = 10, search = "") => {
   try {
-    const response = await apiConnector("GET", `${GET_ALL_USER_API}`)
-
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search: search
+    });
+    
+    const response = await apiConnector("GET", `${GET_ALL_USER_API}?${params.toString()}`);
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
     }
 
-    return response?.data?.users || [];
+    return {
+      users: response?.data?.users || [],
+      pagination: response?.data?.pagination || {}
+    };
   } catch (error) {
     console.error("GET users API ERROR:", error);
-    toast.error(error?.response?.data?.message || "Failed to get users !");
-    return [];
+    toast.error(error?.response?.data?.message || "Failed to get users!");
+    return { users: [], pagination: {} };
   }
 };
 export const getUserProfile = async (id) => {
