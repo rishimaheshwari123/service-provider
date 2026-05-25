@@ -99,6 +99,7 @@ const STEPS = [
 // Import your API functions
 import {
   getAllVendorAPI,
+  getAllVendorPaginatedAPI,
   updateVendorStatusAPI,
   updateVendorPersentageAPI,
   updateVendorProfileAPI,
@@ -142,7 +143,13 @@ const VendorManagement = () => {
     newPassword: "",
     confirmPassword: "",
   });
-  const [loading, setLoading] = useState(true);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalVendors, setTotalVendors] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+  const [loading, setLoading] = useState(true);   // full-page spinner — only on initial load
+  const [refreshing, setRefreshing] = useState(false); // button spinner — on refresh/search
   const [submitting, setSubmitting] = useState(false);
   const [loadingProperties, setLoadingProperties] = useState(false);
   const [deletingServiceId, setDeletingServiceId] = useState<string | null>(null);
@@ -250,58 +257,53 @@ const VendorManagement = () => {
     status: "approved",
   });
 
-  // Fetch all vendors
-  const fetchVendors = async () => {
-    try {
+  // Fetch vendors using the new paginated API
+  const fetchVendors = async (page = currentPage, search = searchTerm, status = statusFilter) => {
+    const isInitialLoad = vendors.length === 0;
+    if (isInitialLoad) {
       setLoading(true);
-      const response = await getAllVendorAPI();
+    } else {
+      setRefreshing(true);
+    }
 
-      if (response && Array.isArray(response)) {
-        setVendors(response);
+    try {
+      const result = await getAllVendorPaginatedAPI({ page, limit: ITEMS_PER_PAGE, search, status });
+
+      if (result && result.vendors) {
+        setVendors(result.vendors);
+        setCurrentPage(result.pagination.page);
+        setTotalPages(result.pagination.totalPages);
+        setTotalVendors(result.pagination.total);
+
         // Initialize percentages with existing values
         const initialPercentages = {};
-        response.forEach((vendor) => {
+        result.vendors.forEach((vendor) => {
           initialPercentages[vendor._id] = vendor.percentage || "";
         });
         setPercentages(initialPercentages);
 
-        toast({
-          title: "Success",
-          description: `Loaded ${response.length} vendors successfully`,
-        });
-
         // Load payment status in background (non-blocking)
-        setLoading(false); // Show vendors immediately
-        checkPendingPayments(response); // Load payment status in background
-
+        checkPendingPayments(result.vendors);
       } else {
         setVendors([]);
-        toast({
-          title: "Info",
-          description: "No vendors found",
-          variant: "default",
-        });
-        setLoading(false);
+        setTotalVendors(0);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
       setVendors([]);
-      toast({
-        title: "Error",
-        description: "Failed to load vendors. Please try again.",
-        variant: "destructive",
-      });
+    } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  // Check pending payments for all vendors - OPTIMIZED
+
+
+  // Check pending payments for all vendors
   const checkPendingPayments = async (vendorsList) => {
-    console.log("🔍 Checking pending payments for", vendorsList.length, "vendors");
     setPaymentStatusLoading(true);
 
     try {
-      // Make all API calls in parallel instead of sequential
       const results = await Promise.allSettled(
         vendorsList.map(async (vendor) => {
           try {
@@ -312,22 +314,11 @@ const VendorManagement = () => {
 
             return {
               vendorId: vendor._id,
-              vendorName: vendor.name,
               hasPending: pendingPurchases && pendingPurchases.length > 0,
               hasPurchased: purchasedCategories && purchasedCategories.length > 0,
-              pendingCount: pendingPurchases?.length || 0,
-              purchasedCount: purchasedCategories?.length || 0
             };
-          } catch (error) {
-            console.error(`❌ Error for vendor ${vendor.name}:`, error);
-            return {
-              vendorId: vendor._id,
-              vendorName: vendor.name,
-              hasPending: false,
-              hasPurchased: false,
-              pendingCount: 0,
-              purchasedCount: 0
-            };
+          } catch {
+            return { vendorId: vendor._id, hasPending: false, hasPurchased: false };
           }
         })
       );
@@ -340,17 +331,13 @@ const VendorManagement = () => {
           const data = result.value;
           pendingMap[data.vendorId] = data.hasPending;
           purchasedMap[data.vendorId] = data.hasPurchased;
-
-          console.log(`✅ ${data.vendorName}: Pending=${data.pendingCount}, Paid=${data.purchasedCount}`);
         }
       });
 
-      console.log("✅ Payment check completed for all vendors");
+      // Batch both state updates together to avoid double re-render
       setVendorPendingPayments(pendingMap);
       setVendorPurchasedCategories(purchasedMap);
-
-    } catch (error) {
-      console.error("❌ Error checking payments:", error);
+    } catch {
       setVendorPendingPayments({});
       setVendorPurchasedCategories({});
     } finally {
@@ -358,10 +345,25 @@ const VendorManagement = () => {
     }
   };
 
+
+  // Initial load only
   useEffect(() => {
-    fetchVendors();
-    console.log(user?.isvendor);
+    fetchVendors(1, "", statusFilter);
   }, []);
+
+  // Status filter change triggers immediate search (no button needed for dropdown)
+  const handleStatusChange = (newStatus: string) => {
+    setStatusFilter(newStatus);
+    setCurrentPage(1);
+    fetchVendors(1, searchTerm, newStatus);
+  };
+
+  // Search triggered by button click or Enter key
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchVendors(1, searchTerm, statusFilter);
+  };
+
 
   // Fetch categories
   useEffect(() => {
@@ -1361,24 +1363,8 @@ const VendorManagement = () => {
     // Save the file
     XLSX.writeFile(workbook, filename);
   };
-  const filteredVendors = vendors.filter((vendor) => {
-    // Extract category name properly - handle both object and string
-    const vendorCategoryName = typeof vendor.category === 'object' && vendor.category !== null
-      ? vendor.category.name
-      : vendor.category;
+  const filteredVendors = vendors; // server-side filtered
 
-    const matchesSearch =
-      vendor.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendorCategoryName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      vendor.subCategory?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" || vendor.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
 
   if (loading) {
     return (
@@ -1426,11 +1412,11 @@ const VendorManagement = () => {
           </button>
           <Button
             variant="outline"
-            onClick={fetchVendors}
-            disabled={loading}
+            onClick={() => fetchVendors(currentPage, searchTerm, statusFilter)}
+            disabled={refreshing || loading}
             className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
             Refresh
           </Button>
 
@@ -1446,7 +1432,7 @@ const VendorManagement = () => {
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
                   <User className="w-5 h-5 text-blue-600" />
-                  Add New Partner - Step {currentStep} of 7
+                  Add New Partner - Step {currentStep} of 8
                 </DialogTitle>
                 <DialogDescription>
                   Register a new vendor to list their properties
@@ -2668,15 +2654,24 @@ const VendorManagement = () => {
                   placeholder="Search partners by name, email, company, or category..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                  className="pl-10 pr-4"
                 />
               </div>
             </div>
+            <Button
+              onClick={handleSearch}
+              disabled={refreshing || loading}
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Search className="w-4 h-4" />
+              Search
+            </Button>
             <div className="flex items-center gap-2">
               <Filter className="w-4 h-4 text-gray-500" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) => handleStatusChange(e.target.value)}
                 className="border rounded-md px-3 py-2 text-sm"
               >
                 <option value="all">All Status</option>
@@ -2685,6 +2680,22 @@ const VendorManagement = () => {
                 <option value="rejected">Rejected</option>
               </select>
             </div>
+            {(searchTerm || statusFilter !== "all") && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("all");
+                  setCurrentPage(1);
+                  fetchVendors(1, "", "all");
+                }}
+                disabled={refreshing || loading}
+                className="flex items-center gap-2 text-gray-600 hover:text-red-600 hover:border-red-300"
+              >
+                <X className="w-4 h-4" />
+                Clear
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -2694,7 +2705,7 @@ const VendorManagement = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5" />
-            All Partners ({filteredVendors.length})
+            All Partners ({totalVendors} total, showing {vendors.length})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -2983,6 +2994,77 @@ const VendorManagement = () => {
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <p className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages} &bull; {totalVendors} total vendors
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newPage = currentPage - 1;
+                    setCurrentPage(newPage);
+                    fetchVendors(newPage, searchTerm, statusFilter);
+                  }}
+                  disabled={currentPage <= 1 || loading}
+                  className="flex items-center gap-1"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </Button>
+
+                {/* Page number buttons */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => {
+                          setCurrentPage(pageNum);
+                          fetchVendors(pageNum, searchTerm, statusFilter);
+                        }}
+                        disabled={loading}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const newPage = currentPage + 1;
+                    setCurrentPage(newPage);
+                    fetchVendors(newPage, searchTerm, statusFilter);
+                  }}
+                  disabled={currentPage >= totalPages || loading}
+                  className="flex items-center gap-1"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

@@ -20,10 +20,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getAllVendorAPI } from "@/service/operations/vendor";
+import { getAllVendorPaginatedAPI } from "@/service/operations/vendor";
 import { apiConnector } from "@/service/apiConnector";
 import { vendor as vendorEndpoints, reward as rewardEndpoints } from "@/service/apis";
-import { Store, Search, Settings, DollarSign, Percent, MoreVertical, Edit, Building2, Calendar, Gift, User, History } from "lucide-react";
+import { Store, Search, Settings, DollarSign, Percent, MoreVertical, Edit, Building2, Calendar, Gift, User, History, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -32,13 +32,17 @@ const RewardApplications = () => {
   const { token } = useSelector((state: any) => state.auth);
   const [loading, setLoading] = useState(false);
   const [vendors, setVendors] = useState<any[]>([]);
-  const [filteredVendors, setFilteredVendors] = useState<any[]>([]);
   const [search, setSearch] = useState("");
   const [selectedVendor, setSelectedVendor] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isHistoryDialogOpen, setIsHistoryDialogOpen] = useState(false);
   const [vendorHistory, setVendorHistory] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalVendors, setTotalVendors] = useState(0);
+  const ITEMS_PER_PAGE = 10;
   const [formData, setFormData] = useState({
     acceptsRewardPoints: false,
     discountType: "flat",
@@ -50,48 +54,37 @@ const RewardApplications = () => {
   });
 
   useEffect(() => {
-    fetchAllVendors();
+    fetchAllVendors(1, "");
   }, []);
 
-  useEffect(() => {
-    // Filter vendors based on search
-    if (search.trim() === "") {
-      setFilteredVendors(vendors);
-    } else {
-      const searchLower = search.toLowerCase();
-      const filtered = vendors.filter((vendor: any) => 
-        vendor.name?.toLowerCase().includes(searchLower) ||
-        vendor.email?.toLowerCase().includes(searchLower) ||
-        vendor.company?.toLowerCase().includes(searchLower) ||
-        vendor.phone?.includes(search)
-      );
-      setFilteredVendors(filtered);
-    }
-  }, [search, vendors]);
+  // Search triggered by button click or Enter key
+  const handleSearch = () => {
+    setCurrentPage(1);
+    fetchAllVendors(1, search);
+  };
 
-  const fetchAllVendors = async () => {
+  const fetchAllVendors = async (page = 1, searchQuery = search) => {
     try {
       setLoading(true);
-      const response = await getAllVendorAPI();
-      
-      if (response && Array.isArray(response)) {
-        // Filter out vendors without name or with invalid data
-        const validVendors = response.filter((vendor: any) => 
+      const result = await getAllVendorPaginatedAPI({ page, limit: ITEMS_PER_PAGE, search: searchQuery });
+
+      if (result && result.vendors) {
+        const validVendors = result.vendors.filter((vendor: any) =>
           vendor.name && vendor.name.trim() !== "" && vendor.name !== "N/A"
         );
-        
+
         setVendors(validVendors);
-        setFilteredVendors(validVendors);
-        toast.success(`Loaded ${validVendors.length} vendors successfully`);
+        setCurrentPage(result.pagination.page);
+        setTotalPages(result.pagination.totalPages);
+        setTotalVendors(result.pagination.total);
       } else {
         setVendors([]);
-        setFilteredVendors([]);
-        toast.info("No vendors found");
+        setTotalVendors(0);
       }
     } catch (error) {
       console.error("Error fetching vendors:", error);
       setVendors([]);
-      setFilteredVendors([]);
+      setTotalVendors(0);
       toast.error("Failed to fetch vendors");
     } finally {
       setLoading(false);
@@ -130,7 +123,7 @@ const RewardApplications = () => {
 
       if (response.data.success) {
         setIsDialogOpen(false);
-        fetchAllVendors(); // Refresh the list
+        fetchAllVendors(currentPage, search); // Refresh the current page
         toast.success("Vendor reward settings updated successfully");
       }
     } catch (error) {
@@ -195,9 +188,33 @@ const RewardApplications = () => {
                 placeholder="Search vendors by name, email, or company..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                 className="pl-10"
               />
             </div>
+            <Button
+              onClick={handleSearch}
+              disabled={loading}
+              className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              <Search className="w-4 h-4" />
+              Search
+            </Button>
+            {search && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSearch("");
+                  setCurrentPage(1);
+                  fetchAllVendors(1, "");
+                }}
+                disabled={loading}
+                className="flex items-center gap-2 text-gray-600 hover:text-red-600 hover:border-red-300"
+              >
+                <X className="w-4 h-4" />
+                Clear
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -209,7 +226,7 @@ const RewardApplications = () => {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Store className="w-5 h-5" />
-                All Vendors ({filteredVendors.length})
+                All Vendors ({totalVendors} total, showing {vendors.length})
               </CardTitle>
               <CardDescription>Manage reward point acceptance and discount settings for vendors</CardDescription>
             </div>
@@ -218,7 +235,7 @@ const RewardApplications = () => {
         <CardContent>
           {loading ? (
             <div className="text-center py-8">Loading...</div>
-          ) : filteredVendors.length === 0 ? (
+          ) : vendors.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               {search ? "No vendors found matching your search" : "No vendors found"}
             </div>
@@ -239,7 +256,7 @@ const RewardApplications = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredVendors.map((vendor: any) => (
+                  {vendors.map((vendor: any) => (
                     <tr key={vendor._id} className="border-b hover:bg-gray-50">
                       {/* Partner */}
                       <td className="p-3">
@@ -354,10 +371,78 @@ const RewardApplications = () => {
             </div>
           )}
 
+          {/* Pagination Controls */}
+          {!loading && totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+              <p className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages} &bull; {totalVendors} total vendors
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    const newPage = currentPage - 1;
+                    setCurrentPage(newPage);
+                    fetchAllVendors(newPage, search);
+                  }}
+                  disabled={currentPage <= 1 || loading}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Previous
+                </button>
+
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum: number;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => {
+                          setCurrentPage(pageNum);
+                          fetchAllVendors(pageNum, search);
+                        }}
+                        disabled={loading}
+                        className={`w-8 h-8 text-sm rounded-md border ${
+                          currentPage === pageNum
+                            ? "bg-purple-600 text-white border-purple-600"
+                            : "hover:bg-gray-50"
+                        } disabled:opacity-50`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => {
+                    const newPage = currentPage + 1;
+                    setCurrentPage(newPage);
+                    fetchAllVendors(newPage, search);
+                  }}
+                  disabled={currentPage >= totalPages || loading}
+                  className="flex items-center gap-1 px-3 py-1.5 text-sm border rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Total Count */}
-          {!loading && filteredVendors.length > 0 && (
+          {!loading && vendors.length > 0 && (
             <div className="mt-4 text-sm text-gray-600">
-              Showing {filteredVendors.length} of {vendors.length} vendors
+              Showing {vendors.length} of {totalVendors} vendors
             </div>
           )}
         </CardContent>

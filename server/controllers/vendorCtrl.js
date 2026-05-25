@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const vendorModel = require("../models/vendorModel");
+const categoryModel = require("../models/categoryModel");
 const jwt = require("jsonwebtoken");
 
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
@@ -490,6 +491,81 @@ const getAllVendorCtrl = async (req, res) => {
     })
   }
 }
+
+const getAllVendorPaginatedCtrl = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const status = req.query.status || "all";
+    const skip = (page - 1) * limit;
+
+    // Build base filter: must have a valid name
+    const filter = { name: { $exists: true, $ne: "", $ne: null } };
+
+    // Status filter
+    if (status && status !== "all") {
+      filter.status = status;
+    }
+
+    // Search filter — matches same fields as original frontend filter:
+    // name, email, company, subCategory, category name
+    if (search.trim()) {
+      const searchRegex = new RegExp(search.trim(), "i");
+
+      // Find matching category IDs first (category is a ref ObjectId, can't regex it directly)
+      const matchingCategories = await categoryModel
+        .find({ name: searchRegex })
+        .select("_id")
+        .lean();
+      const matchingCategoryIds = matchingCategories.map((c) => c._id);
+
+      filter.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { company: searchRegex },
+        { subCategory: searchRegex },
+        // Match by category ObjectId if any categories matched the search term
+        ...(matchingCategoryIds.length > 0
+          ? [{ category: { $in: matchingCategoryIds } }]
+          : []),
+      ];
+    }
+
+    const [vendors, total] = await Promise.all([
+      vendorModel
+        .find(filter)
+        .populate("category", "name")
+        .sort({ name: 1 })
+        .skip(skip)
+        .limit(limit),
+      vendorModel.countDocuments(filter),
+    ]);
+
+    // Transform vendor data to PascalCase for display
+    const transformedVendors = vendors.map((vendor) => {
+      const vendorObj = vendor.toObject();
+      return transformVendorForDisplay(vendorObj);
+    });
+
+    return res.status(200).json({
+      success: true,
+      vendors: transformedVendors,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
+  } catch (error) {
+    console.error("Error in getAllVendorPaginatedCtrl:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error in getting paginated vendors",
+    });
+  }
+};
 
 const updateVendorStatusCtrl = async (req, res) => {
   try {
@@ -1618,6 +1694,7 @@ module.exports = {
   vendorRegisterCtrl,
   vendorLoginCtrl,
   getAllVendorCtrl,
+  getAllVendorPaginatedCtrl,
   updateVendorStatusCtrl,
   getVendorByIDCtrl,
   updateVendorProfileCtrl,

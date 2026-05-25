@@ -7,6 +7,7 @@ const {
   LOGIN_API,
   SIGNUP_API,
   GET_ALL_VENDOR,
+  GET_ALL_VENDOR_PAGINATED,
   UPDATE_VENDOR,
   GET_VENDOR,
   UPDATE_VENDOR_PROFILE,
@@ -191,6 +192,26 @@ export const getAllVendorAPI = async () => {
     return [];
   }
 
+};
+
+export const getAllVendorPaginatedAPI = async ({ page = 1, limit = 10, search = "", status = "all" } = {}) => {
+  try {
+    const params = new URLSearchParams({ page, limit, search, status }).toString();
+    const response = await apiConnector("GET", `${GET_ALL_VENDOR_PAGINATED}?${params}`);
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    return {
+      vendors: response?.data?.vendors || [],
+      pagination: response?.data?.pagination || { total: 0, page: 1, limit, totalPages: 1 },
+    };
+  } catch (error) {
+    console.error("GET paginated vendor API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to get vendors!");
+    return { vendors: [], pagination: { total: 0, page: 1, limit, totalPages: 1 } };
+  }
 };
 export const getVendorByIdAPI = async (id) => {
 
