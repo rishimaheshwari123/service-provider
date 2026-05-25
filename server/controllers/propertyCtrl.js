@@ -303,7 +303,11 @@ const vendorUpdatePropertyRequestCtrl = async (req, res) => {
 
 const getPropertiesCtrl = async (req, res) => {
     try {
-        const { category, includeInactive } = req.query;
+        const { category, includeInactive, search, page, limit } = req.query;
+
+        // Parse pagination params
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.max(1, Math.min(100, parseInt(limit) || 10));
 
         let query = {};
         
@@ -331,20 +335,63 @@ const getPropertiesCtrl = async (req, res) => {
                     // Category not found, return empty results
                     return res.status(200).json({
                         success: true,
-                        properties: []
+                        properties: [],
+                        pagination: { page: pageNum, limit: limitNum, total: 0, totalPages: 0 }
                     });
                 }
             }
         }
 
-        const properties = await Property.find(query)
+        // Fetch all matching properties with populated fields
+        let properties = await Property.find(query)
             .populate('vendor')
             .populate('review')
             .populate('category', 'name');
 
+        // Server-side search across populated fields
+        if (search && search.trim()) {
+            const searchTerm = search.trim().toLowerCase();
+            properties = properties.filter(prop => {
+                const fields = [
+                    prop.title,
+                    prop.description,
+                    prop.location,
+                    prop.state,
+                    prop.city,
+                    prop.zipcode,
+                    prop.pincode,
+                    prop.address,
+                    prop.category?.name,
+                    prop.vendor?.name,
+                    prop.vendor?.company,
+                    prop.vendor?.address,
+                    prop.vendor?.city,
+                    prop.vendor?.state,
+                    prop.vendor?.pincode,
+                    prop.vendor?.zipcode,
+                    prop.vendor?.location,
+                    prop.vendor?.serviceLocation,
+                    prop.vendor?.phone,
+                ];
+                return fields.some(f => f && f.toString().toLowerCase().includes(searchTerm));
+            });
+        }
+
+        // Calculate pagination
+        const total = properties.length;
+        const totalPages = Math.ceil(total / limitNum);
+        const startIndex = (pageNum - 1) * limitNum;
+        const paginatedProperties = properties.slice(startIndex, startIndex + limitNum);
+
         res.status(200).json({
             success: true,
-            properties
+            properties: paginatedProperties,
+            pagination: {
+                page: pageNum,
+                limit: limitNum,
+                total,
+                totalPages
+            }
         });
     } catch (error) {
         console.error(error);
