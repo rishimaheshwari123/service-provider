@@ -149,13 +149,13 @@ const AdminServices = () => {
 
   const handleStatusToggle = async (serviceId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
-    
+
     try {
       const result = await updatePropertyStatusAPI(serviceId, newStatus);
       if (result) {
         // Update local state
-        setServices(services.map(service => 
-          service._id === serviceId 
+        setServices(services.map(service =>
+          service._id === serviceId
             ? { ...service, status: newStatus }
             : service
         ));
@@ -271,7 +271,7 @@ const AdminServices = () => {
       { wch: 15 }, // Created Date
       { wch: 15 }, // Created Time
     ];
-    
+
     worksheet['!cols'] = columnWidths;
 
     // Add worksheet to workbook
@@ -293,17 +293,26 @@ const AdminServices = () => {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Services Management</h1>
-            <p className="text-gray-600">Loading services...</p>
+      <div className="flex items-center justify-center min-h-[70vh]">
+        <div className="flex flex-col items-center gap-4">
+
+          {/* Spinner */}
+          <div className="w-14 h-14 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+
+          {/* Text */}
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-gray-800">
+              Loading Services...
+            </h2>
+
+            <p className="text-sm text-gray-500 mt-1">
+              Please wait while we fetch the services
+            </p>
           </div>
         </div>
       </div>
     );
   }
-
   if (!user?.isManageService) {
     return (
       <div className="text-red-600 text-center p-4 font-semibold">
@@ -314,67 +323,96 @@ const AdminServices = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+        {/* Left Side */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Services Management</h1>
-          <p className="text-gray-600">Manage all services across the platform</p>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900">
+            Services Management
+          </h1>
+
+          <p className="text-sm sm:text-base text-gray-600 mt-1">
+            Manage all services across the platform
+          </p>
         </div>
-        <div className="flex gap-2">
+
+        {/* Right Side Buttons */}
+        <div className="flex flex-col sm:flex-row gap-2 w-full lg:w-auto">
+
           <button
             onClick={handleDownloadExcel}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition flex items-center gap-2"
+            className="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center justify-center gap-2"
           >
             <FileText className="w-4 h-4" />
             Download Excel
           </button>
+
           <Button
             variant="outline"
-            onClick={() => fetchServices(currentPage, searchTerm, statusFilter)}
+            onClick={() =>
+              fetchServices(currentPage, searchTerm, statusFilter)
+            }
             disabled={loading}
-            className="flex items-center gap-2"
+            className="w-full sm:w-auto flex items-center justify-center gap-2"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`w-4 h-4 ${loading ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
+
         </div>
       </div>
-
       {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="w-5 h-5" />
+      <Card className="shadow-sm border border-gray-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <Filter className="w-5 h-5 text-blue-600" />
             Filters
           </CardTitle>
         </CardHeader>
+
         <CardContent>
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+
+            {/* Search Section */}
             <div className="flex-1">
-              <div className="relative flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-3">
+
+                {/* Input */}
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+
                   <Input
                     placeholder="Search services, vendors, or categories..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === 'Enter') handleSearch(); }}
-                    className="pl-10"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSearch();
+                    }}
+                    className="pl-10 h-11 text-sm"
                   />
                 </div>
+
+                {/* Search Button */}
                 <Button
                   onClick={handleSearch}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
+                  className="w-full sm:w-auto h-11 px-6 bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center gap-2"
                 >
                   <Search className="w-4 h-4" />
                   Search
                 </Button>
               </div>
             </div>
-            <div className="w-full md:w-48">
+
+            {/* Status Filter */}
+            <div className="w-full lg:w-56">
               <select
                 value={statusFilter}
-                onChange={(e) => handleStatusFilterChange(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onChange={(e) =>
+                  handleStatusFilterChange(e.target.value)
+                }
+                className="w-full h-11 px-3 border border-gray-300 rounded-md bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="all">All Status</option>
                 <option value="active">Active</option>
@@ -521,7 +559,7 @@ const AdminServices = () => {
               </TableBody>
             </Table>
           </div>
-          
+
           {services.length === 0 && !loading && (
             <div className="text-center py-8">
               <p className="text-gray-500">No services found matching your criteria.</p>
@@ -530,30 +568,53 @@ const AdminServices = () => {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-4 border-t mt-4">
-              <p className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages} ({totalCount} total services)
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pt-4 border-t mt-4">
+
+              {/* Left Info */}
+              <p className="text-sm text-gray-600 text-center lg:text-left">
+                Page <span className="font-semibold">{currentPage}</span> of{" "}
+                <span className="font-semibold">{totalPages}</span> (
+                {totalCount} total services)
               </p>
-              <div className="flex items-center gap-1">
+
+              {/* Pagination */}
+              <div className="flex flex-wrap items-center justify-center gap-2">
+
+                {/* Previous */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1 || loading}
+                  className="flex items-center gap-1"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Previous
+                  <span className="hidden sm:inline">Previous</span>
                 </Button>
-                {/* Page numbers */}
+
+                {/* Page Numbers */}
                 {(() => {
                   const pages: number[] = [];
                   const maxVisible = 5;
-                  let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
-                  let end = Math.min(totalPages, start + maxVisible - 1);
+
+                  let start = Math.max(
+                    1,
+                    currentPage - Math.floor(maxVisible / 2)
+                  );
+
+                  let end = Math.min(
+                    totalPages,
+                    start + maxVisible - 1
+                  );
+
                   if (end - start + 1 < maxVisible) {
                     start = Math.max(1, end - maxVisible + 1);
                   }
-                  for (let i = start; i <= end; i++) pages.push(i);
+
+                  for (let i = start; i <= end; i++) {
+                    pages.push(i);
+                  }
+
                   return pages.map((p) => (
                     <Button
                       key={p}
@@ -561,19 +622,25 @@ const AdminServices = () => {
                       size="sm"
                       onClick={() => handlePageChange(p)}
                       disabled={loading}
-                      className={p === currentPage ? "bg-blue-600 text-white" : ""}
+                      className={`min-w-[38px] ${p === currentPage
+                        ? "bg-blue-600 text-white hover:bg-blue-700"
+                        : ""
+                        }`}
                     >
                       {p}
                     </Button>
                   ));
                 })()}
+
+                {/* Next */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages || loading}
+                  className="flex items-center gap-1"
                 >
-                  Next
+                  <span className="hidden sm:inline">Next</span>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>

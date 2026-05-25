@@ -11,13 +11,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  FileText, 
-  Image as ImageIcon, 
-  Tag, 
-  Globe, 
-  Share2, 
-  Eye, 
+import {
+  FileText,
+  Image as ImageIcon,
+  Tag,
+  Globe,
+  Share2,
+  Eye,
   Loader2,
   CheckCircle,
   AlertCircle,
@@ -76,7 +76,7 @@ const AddBlog = () => {
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === 'checkbox' ? checked : value;
-    
+
     setFormData({
       ...formData,
       [name]: newValue,
@@ -98,7 +98,7 @@ const AddBlog = () => {
   const handleFileChange = (e: any) => {
     const { name } = e.target;
     const file = e.target.files[0];
-    
+
     setFormData({
       ...formData,
       [name]: file,
@@ -144,7 +144,7 @@ const AddBlog = () => {
       formDataToSend.append("ogTitle", formData.ogTitle);
       formDataToSend.append("ogDescription", formData.ogDescription);
       formDataToSend.append("published", formData.published.toString());
-      
+
       if (formData.image) {
         formDataToSend.append("image", formData.image);
       }
@@ -159,7 +159,7 @@ const AddBlog = () => {
           title: "Success!",
           description: "Blog post created successfully",
         });
-        
+
         // Reset form
         setFormData({
           title: "",
@@ -212,8 +212,7 @@ const AddBlog = () => {
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold text-gray-900 flex items-center justify-center gap-3">
-            <FileText className="w-10 h-10 text-blue-600" />
+          <h1 className="text-xl  md:text-4xl font-bold text-gray-900 flex items-center justify-center gap-3">
             Create New Blog Post
           </h1>
           <p className="text-gray-600">Share your insights and stories with the world</p>
@@ -260,9 +259,8 @@ const AddBlog = () => {
                   onChange={handleChange}
                   placeholder="auto-generated-from-title"
                   required
-                  className={`font-mono ${
-                    formData.slug && !isValidSlug(formData.slug) ? 'border-red-500' : ''
-                  }`}
+                  className={`font-mono ${formData.slug && !isValidSlug(formData.slug) ? 'border-red-500' : ''
+                    }`}
                 />
                 <div className="flex items-start gap-2 text-sm">
                   {formData.slug && isValidSlug(formData.slug) ? (
