@@ -142,12 +142,21 @@ const ServiceUpdateRequests: React.FC = () => {
             <div className="flex flex-wrap gap-2 mt-2">
               {hasCurrentImages ? (
                 currentValue.map((img: any, idx: number) => (
-                  <img 
-                    key={idx} 
-                    src={img.url} 
-                    alt={`Current ${idx + 1}`} 
-                    className="w-24 h-24 object-cover rounded border-2 border-red-300" 
-                  />
+                  <div key={idx} className="relative w-24 h-24">
+                    <img 
+                      src={img.url} 
+                      alt={`Current ${idx + 1}`} 
+                      className="w-24 h-24 object-cover rounded border-2 border-red-300" 
+                    />
+                    <a 
+                      href={img.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="absolute top-1 right-1 bg-black bg-opacity-75 hover:bg-black text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow transition-colors"
+                    >
+                      View
+                    </a>
+                  </div>
                 ))
               ) : (
                 <span className="text-gray-400 text-sm">No images</span>
@@ -159,12 +168,21 @@ const ServiceUpdateRequests: React.FC = () => {
             <div className="flex flex-wrap gap-2 mt-2">
               {hasProposedImages ? (
                 proposedValue.map((img: any, idx: number) => (
-                  <img 
-                    key={idx} 
-                    src={img.url} 
-                    alt={`Proposed ${idx + 1}`} 
-                    className="w-24 h-24 object-cover rounded border-2 border-green-300" 
-                  />
+                  <div key={idx} className="relative w-24 h-24">
+                    <img 
+                      src={img.url} 
+                      alt={`Proposed ${idx + 1}`} 
+                      className="w-24 h-24 object-cover rounded border-2 border-green-300" 
+                    />
+                    <a 
+                      href={img.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="absolute top-1 right-1 bg-black bg-opacity-75 hover:bg-black text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow transition-colors"
+                    >
+                      View
+                    </a>
+                  </div>
                 ))
               ) : (
                 <span className="text-gray-400 text-sm">No images</span>

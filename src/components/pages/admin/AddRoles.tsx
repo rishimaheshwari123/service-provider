@@ -28,6 +28,7 @@ export const AddRoles = () => {
     isLogs: false,
   });
   const [isSuccess, setIsSuccess] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   const handleChange = (e) => {
@@ -67,6 +68,7 @@ export const AddRoles = () => {
           isLogs: false,
         });
         setShowForm(false);
+        setRefreshTrigger((prev) => prev + 1);
       } else {
         setIsSuccess(false);
       }
@@ -278,7 +280,7 @@ export const AddRoles = () => {
         `}
       </style>
 
-      <GetAllEmployee />
+      <GetAllEmployee refreshTrigger={refreshTrigger} />
     </div>
   );
 };

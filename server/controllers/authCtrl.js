@@ -13,6 +13,7 @@ const registerCtrl = async (req, res) => {
       email,
       password,
       phone,
+      type,
       role = "user",
       referralCode,
       isVendor,

@@ -32,7 +32,7 @@ const Modal = ({ isOpen, onClose, children, title }) => {
   );
 };
 
-export const GetAllEmployee = () => {
+export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false);
   const [resetPasswordEmployee, setResetPasswordEmployee] = useState(null);
@@ -161,7 +161,7 @@ export const GetAllEmployee = () => {
 
   useEffect(() => {
     fetchEmployees(currentPage, searchQuery);
-  }, [currentPage, searchQuery]);
+  }, [currentPage, searchQuery, refreshTrigger]);
 
   const handleEditClick = (employee) => {
     setEditingEmployee(employee);
