@@ -6,8 +6,7 @@ const jwt = require("jsonwebtoken");
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const { generateOTP, sendSMSOTP, sendWhatsAppOTP, sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
 
-// In-memory OTP store: key = phone/whatsappNumber, value = { otp, expiry }
-const otpStore = new Map();
+const otpModel = require("../models/otpModel");
 
 const normalizePhone = (value) => (value || "").toString().trim();
 const buildUniquePhones = (...values) => [...new Set(values.map(normalizePhone).filter(Boolean))];
@@ -119,49 +118,15 @@ const vendorRegisterCtrl = async (req, res) => {
       [inputNumbers.phone, inputNumbers.whatsappNumber, inputNumbers.alternatePhone]
     );
     
-    // Check if this is a FULLY registered vendor (not just OTP verified)
-    // A fully registered vendor has: verified phone + name + password
-    const isFullyRegistered = existingUser && 
-                              existingUser.isPhoneVerified && 
-                              existingUser.name && 
-                              existingUser.password;
-    
-    // Only block if vendor is FULLY registered
-    if (isFullyRegistered) {
-      const conflictFields = getConflictingInputFields(inputNumbers, existingUser);
-      return res.status(400).json({
-        success: false,
-        message: buildDuplicateNumberMessage(conflictFields),
-        errorType: "DUPLICATE_VENDOR_NUMBER",
-        duplicateFields: conflictFields,
-      });
-    }
-
-    // For registration, we need either phone or whatsapp to be verified
-    let isVerified = false;
-    
+    // Block registration if a vendor already exists with any of the numbers
     if (existingUser) {
-      const normalizedPhone = normalizePhone(phone);
-      const normalizedWhatsapp = normalizePhone(whatsappNumber);
-
-      const phoneVerified = 
-        normalizePhone(existingUser.phone) === normalizedPhone && 
-        existingUser.isPhoneVerified;
-
-      const whatsappVerified = 
-        normalizePhone(existingUser.whatsappNumber) === normalizedWhatsapp && 
-        existingUser.isWhatsappVerified;
-
-      isVerified = phoneVerified || whatsappVerified;
-    }
-    
-    if (!isVerified) {
       return res.status(400).json({
         success: false,
-        message: "Phone number not verified. Please verify your phone number with OTP first.",
-        requiresOTP: true
+        message: "Partner is already registered with this number",
       });
     }
+
+
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
@@ -353,21 +318,19 @@ const vendorRegisterCtrl = async (req, res) => {
       selectedPrice: selectedPrice ? parseInt(sanitizeValue(selectedPrice)) : 0,
     };
 
-    const user = await vendorModel.findByIdAndUpdate(
-      existingUser._id,
-      {
-        ...sanitizedData,
-        password: hashedPassword,
-        numberOfStaff: processedNumberOfStaff,
-        paymentMethod: paymentMethodValue,
-        bankDetail: processedBankDetail, 
-        upiId: paymentMethodValue === "upi" ? sanitizeValue(upiIdValue) : "",
-        experience: processedExperience,
-        // File uploads
-        ...fileUpdates
-      },
-      { new: true }
-    );
+    const user = await vendorModel.create({
+      ...sanitizedData,
+      password: hashedPassword,
+      numberOfStaff: processedNumberOfStaff,
+      paymentMethod: paymentMethodValue,
+      bankDetail: processedBankDetail, 
+      upiId: paymentMethodValue === "upi" ? sanitizeValue(upiIdValue) : "",
+      experience: processedExperience,
+      isPhoneVerified: true,
+      isWhatsappVerified: whatsappNumber ? true : false,
+      // File uploads
+      ...fileUpdates
+    });
 
     // Populate category for transformation
     const populatedUser = await vendorModel.findById(user._id).populate('category', 'name');
@@ -1135,12 +1098,32 @@ const sendVendorOTP = async (req, res) => {
       });
     }
 
+    const normalizedNumber = normalizePhone(targetNumber);
+
+    // Check if vendor already exists with this phone or WhatsApp number
+    const existingVendor = await vendorModel.findOne({
+      $or: [
+        { phone: normalizedNumber },
+        { whatsappNumber: normalizedNumber }
+      ]
+    });
+
+    if (existingVendor) {
+      return res.status(400).json({
+        success: false,
+        message: "This number is already registered with another vendor.",
+      });
+    }
+
     // Generate OTP
     const otp = generateOTP();
-    const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-    // Store OTP in memory (keyed by number)
-    otpStore.set(targetNumber, { otp, expiry });
+    // Save OTP to the OTP model (delete existing first to avoid duplicate active OTPs)
+    await otpModel.deleteMany({ number: normalizedNumber });
+    const otpRecord = await otpModel.create({
+      number: normalizedNumber,
+      otp: otp
+    });
 
     // Send OTP — WhatsApp if whatsappNumber provided, else SMS
     let otpResult;
@@ -1151,7 +1134,7 @@ const sendVendorOTP = async (req, res) => {
     }
 
     if (!otpResult.success) {
-      otpStore.delete(targetNumber); // clean up if send failed
+      await otpModel.deleteOne({ _id: otpRecord._id }); // clean up if send failed
       return res.status(500).json({
         success: false,
         message: "Failed to send OTP",
@@ -1187,8 +1170,10 @@ const verifyVendorOTP = async (req, res) => {
       });
     }
 
-    // Look up OTP from in-memory store
-    const record = otpStore.get(targetNumber);
+    const normalizedNumber = normalizePhone(targetNumber);
+
+    // Look up OTP from the OTP database (get the newest one)
+    const record = await otpModel.findOne({ number: normalizedNumber }).sort({ createdAt: -1 });
 
     if (!record) {
       return res.status(400).json({
@@ -1197,8 +1182,10 @@ const verifyVendorOTP = async (req, res) => {
       });
     }
 
-    if (Date.now() > record.expiry) {
-      otpStore.delete(targetNumber);
+    // Double check expiration (10 minutes)
+    const otpExpiryTime = new Date(record.createdAt).getTime() + 10 * 60 * 1000;
+    if (Date.now() > otpExpiryTime) {
+      await otpModel.deleteMany({ number: normalizedNumber });
       return res.status(400).json({
         success: false,
         message: "OTP has expired. Please request a new one.",
@@ -1212,8 +1199,8 @@ const verifyVendorOTP = async (req, res) => {
       });
     }
 
-    // OTP matched — clear from store
-    otpStore.delete(targetNumber);
+    // OTP matched — delete all OTPs for this number
+    await otpModel.deleteMany({ number: normalizedNumber });
 
     return res.status(200).json({
       success: true,
