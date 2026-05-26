@@ -80,6 +80,8 @@ interface VendorData {
   businessType?: string;
   gstNumber?: string;
   tradeLicense?: string;
+  voterId?: string;
+  drivingLicence?: string;
   numberOfStaff?: number;
   servicesOffered?: string;
   workingDaysTimings?: string;
@@ -146,7 +148,7 @@ const VendorProfile = () => {
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
   const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
   const [selectedDocumentType, setSelectedDocumentType] = useState<
-    "aadhaar" | "pan" | "gst" | "tradeLicense" | ""
+    "aadhaar" | "pan" | "gst" | "tradeLicense" | "voterId" | "drivingLicence" | ""
   >("");
   const [businessDocuments, setBusinessDocuments] = useState<{
     aadhaarFront: File | null;
@@ -154,12 +156,20 @@ const VendorProfile = () => {
     panCard: File | null;
     gstCertificate: File | null;
     tradeLicenseDoc: File | null;
+    voterIdFront: File | null;
+    voterIdBack: File | null;
+    drivingLicenceFront: File | null;
+    drivingLicenceBack: File | null;
   }>({
     aadhaarFront: null,
     aadhaarBack: null,
     panCard: null,
     gstCertificate: null,
     tradeLicenseDoc: null,
+    voterIdFront: null,
+    voterIdBack: null,
+    drivingLicenceFront: null,
+    drivingLicenceBack: null,
   });
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [uploadingProfileImage, setUploadingProfileImage] = useState(false);
@@ -437,6 +447,20 @@ const VendorProfile = () => {
         if (businessDocuments.tradeLicenseDoc instanceof File) {
           form.append("document1", businessDocuments.tradeLicenseDoc);
         }
+      } else if (selectedDocumentType === "voterId") {
+        if (businessDocuments.voterIdFront instanceof File) {
+          form.append("document1", businessDocuments.voterIdFront);
+        }
+        if (businessDocuments.voterIdBack instanceof File) {
+          form.append("document2", businessDocuments.voterIdBack);
+        }
+      } else if (selectedDocumentType === "drivingLicence") {
+        if (businessDocuments.drivingLicenceFront instanceof File) {
+          form.append("document1", businessDocuments.drivingLicenceFront);
+        }
+        if (businessDocuments.drivingLicenceBack instanceof File) {
+          form.append("document2", businessDocuments.drivingLicenceBack);
+        }
       }
 
       // Use new API to create profile update request
@@ -514,6 +538,10 @@ const VendorProfile = () => {
       panCard: null,
       gstCertificate: null,
       tradeLicenseDoc: null,
+      voterIdFront: null,
+      voterIdBack: null,
+      drivingLicenceFront: null,
+      drivingLicenceBack: null,
     });
   };
 
@@ -969,6 +997,12 @@ const VendorProfile = () => {
                             <SelectItem value="tradeLicense">
                               Trade License
                             </SelectItem>
+                            <SelectItem value="voterId">
+                              Voter ID Card (Front & Back)
+                            </SelectItem>
+                            <SelectItem value="drivingLicence">
+                              Driving Licence (Front & Back)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1315,6 +1349,269 @@ const VendorProfile = () => {
                                 <X size={16} />
                               </Button>
                             )}
+                          </div>
+                        </div>
+                      )}
+                        {selectedDocumentType === "voterId" && (
+                        <div className="space-y-3">
+                          <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                            📸 Upload both front and back images of Voter ID card
+                          </p>
+
+                          {/* Voter ID Number Input */}
+                          <div className="space-y-2">
+                            <Label>Voter ID Number</Label>
+                            <Input
+                              value={formData.voterId || ""}
+                              onChange={(e) =>
+                                handleInputChange("voterId", e.target.value.toUpperCase())
+                              }
+                              placeholder="Enter Voter ID number"
+                            />
+                          </div>
+
+                          {/* Voter ID Front */}
+                          <div className="space-y-2">
+                            <Label>Voter ID Card - Front Side</Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.voterIdFront
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
+                                  {businessDocuments.voterIdFront ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.voterIdFront.name}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload Voter ID Front</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdFront",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
+                              </label>
+                              {businessDocuments.voterIdFront && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdFront",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Voter ID Back */}
+                          <div className="space-y-2">
+                            <Label>Voter ID Card - Back Side</Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.voterIdBack
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
+                                  {businessDocuments.voterIdBack ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.voterIdBack.name}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload Voter ID Back</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdBack",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
+                              </label>
+                              {businessDocuments.voterIdBack && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdBack",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedDocumentType === "drivingLicence" && (
+                        <div className="space-y-3">
+                          <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                            📸 Upload both front and back images of Driving Licence
+                          </p>
+
+                          {/* Driving Licence Number Input */}
+                          <div className="space-y-2">
+                            <Label>Driving Licence Number</Label>
+                            <Input
+                              value={formData.drivingLicence || ""}
+                              onChange={(e) =>
+                                handleInputChange("drivingLicence", e.target.value.toUpperCase())
+                              }
+                              placeholder="Enter Driving Licence number"
+                            />
+                          </div>
+
+                          {/* Driving Licence Front */}
+                          <div className="space-y-2">
+                            <Label>Driving Licence - Front Side</Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.drivingLicenceFront
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
+                                  {businessDocuments.drivingLicenceFront ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.drivingLicenceFront.name}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload DL Front</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceFront",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
+                              </label>
+                              {businessDocuments.drivingLicenceFront && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceFront",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Driving Licence Back */}
+                          <div className="space-y-2">
+                            <Label>Driving Licence - Back Side</Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.drivingLicenceBack
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
+                                  {businessDocuments.drivingLicenceBack ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.drivingLicenceBack.name}
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload DL Back</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceBack",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
+                              </label>
+                              {businessDocuments.drivingLicenceBack && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceBack",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}

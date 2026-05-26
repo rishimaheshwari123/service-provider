@@ -33,7 +33,7 @@ const findVendorByAnyNumber = async (numbers, excludeVendorId = null) => {
     query._id = { $ne: excludeVendorId };
   }
 
-  return vendorModel.findOne(query).select("_id phone whatsappNumber alternatePhone isPhoneVerified name email");
+  return vendorModel.findOne(query).select("_id phone whatsappNumber alternatePhone isPhoneVerified isWhatsappVerified name email");
 };
 
 const getConflictingInputFields = (inputNumbers, existingVendor) => {

@@ -8,7 +8,6 @@ const CommunicationLogs = require("../models/communicationLogs");
 const logCommunication = async (logData) => {
   try {
     const log = await CommunicationLogs.create(logData);
-    console.log(`📝 Communication logged: ${logData.type} - ${logData.purpose}`);
     return log;
   } catch (error) {
     console.error("❌ Error logging communication:", error);

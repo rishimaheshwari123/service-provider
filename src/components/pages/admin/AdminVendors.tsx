@@ -209,14 +209,13 @@ const VendorManagement = () => {
 
   // OTP Verification States
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
+  const [verifiedNumber, setVerifiedNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState('');
   const [otpLoading, setOtpLoading] = useState(false);
 
   const navigate = useNavigate();
   const { toast } = useToast();
-
-  console.log(user);
 
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
@@ -266,6 +265,8 @@ const VendorManagement = () => {
 
     status: "approved",
   });
+
+  const isCurrentVerified = isPhoneVerified && verifiedNumber === (hasWhatsApp ? formData.whatsappNumber : formData.phone);
 
   // Fetch vendors using the new paginated API
   const fetchVendors = async (page = currentPage, search = searchTerm, status = statusFilter) => {
@@ -389,6 +390,15 @@ const VendorManagement = () => {
       .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
     setFormData(prev => ({ ...prev, workingDays: `${selectedDays.join(", ")} | ${workingTime}` }));
   }, []);
+
+  // Check verification status when phone/whatsapp numbers change
+  useEffect(() => {
+    const activeNumber = hasWhatsApp ? formData.whatsappNumber : formData.phone;
+    if (activeNumber !== verifiedNumber) {
+      setOtpSent(false);
+      setOtp('');
+    }
+  }, [formData.phone, formData.whatsappNumber, hasWhatsApp, verifiedNumber]);
 
   const handleBusinessDocumentChange = (docKey: keyof typeof businessDocuments, file: File | null) => {
     setBusinessDocuments(prev => ({ ...prev, [docKey]: file }));
@@ -547,7 +557,7 @@ const VendorManagement = () => {
         }
       }
       // Check OTP verification
-      if (!isPhoneVerified) {
+      if (!isCurrentVerified) {
         toast({
           title: "Validation Error",
           description: "Please verify the phone number / WhatsApp number with OTP before proceeding",
@@ -804,6 +814,7 @@ const VendorManagement = () => {
 
     if (result.success) {
       setIsPhoneVerified(true);
+      setVerifiedNumber(numberToVerify);
       setOtpSent(false);
       setOtp('');
 
@@ -1830,20 +1841,15 @@ const VendorManagement = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Primary Contact Number <span className="text-red-500">*</span>
-                          {hasWhatsApp === false && isPhoneVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                          {hasWhatsApp === false && isCurrentVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
                         </Label>
                         <div className="flex gap-2">
                           <Input
                             name="phone"
                             placeholder="10-digit number"
                             value={formData.phone}
-                            onChange={(e) => {
-                              handleFormChange(e);
-                              setIsPhoneVerified(false);
-                              setOtpSent(false);
-                              setOtp('');
-                            }}
-                            className={hasWhatsApp === false && isPhoneVerified ? "bg-green-50 border-green-200" : ""}
+                            onChange={handleFormChange}
+                            className={hasWhatsApp === false && isCurrentVerified ? "bg-green-50 border-green-200" : ""}
                           />
                           {hasWhatsApp === false && (
                             <Button
@@ -1852,11 +1858,11 @@ const VendorManagement = () => {
                               disabled={otpLoading || !formData.phone || formData.phone.length !== 10}
                               variant="outline"
                             >
-                              {otpLoading ? "Sending..." : isPhoneVerified ? "Resend" : "Verify"}
+                              {otpLoading ? "Sending..." : isCurrentVerified ? "Resend" : "Verify"}
                             </Button>
                           )}
                         </div>
-                        {hasWhatsApp === false && isPhoneVerified && (
+                        {hasWhatsApp === false && isCurrentVerified && (
                           <p className="text-xs text-green-600">Phone number verified! ✓</p>
                         )}
                       </div>
@@ -1898,20 +1904,15 @@ const VendorManagement = () => {
                       {hasWhatsApp && (
                         <div className="space-y-2">
                           <Label>WhatsApp Number <span className="text-red-500">*</span>
-                            {isPhoneVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                            {isCurrentVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
                           </Label>
                           <div className="flex gap-2">
                             <Input
                               name="whatsappNumber"
                               placeholder="10-digit WhatsApp number"
                               value={formData.whatsappNumber}
-                              onChange={(e) => {
-                                handleFormChange(e);
-                                setIsPhoneVerified(false);
-                                setOtpSent(false);
-                                setOtp('');
-                              }}
-                              className={isPhoneVerified ? "bg-green-50 border-green-200" : ""}
+                              onChange={handleFormChange}
+                              className={isCurrentVerified ? "bg-green-50 border-green-200" : ""}
                             />
                             <Button
                               type="button"
@@ -1919,10 +1920,10 @@ const VendorManagement = () => {
                               disabled={otpLoading || !formData.whatsappNumber || formData.whatsappNumber.length !== 10}
                               variant="outline"
                             >
-                              {otpLoading ? "Sending..." : isPhoneVerified ? "Resend" : "Verify"}
+                              {otpLoading ? "Sending..." : isCurrentVerified ? "Resend" : "Verify"}
                             </Button>
                           </div>
-                          {isPhoneVerified && (
+                          {isCurrentVerified && (
                             <p className="text-xs text-green-600">WhatsApp number verified! ✓</p>
                           )}
                         </div>
@@ -1930,7 +1931,7 @@ const VendorManagement = () => {
                     </div>
 
                     {/* OTP Verification Section */}
-                    {otpSent && !isPhoneVerified && (
+                    {otpSent && !isCurrentVerified && (
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
                         <div className="text-center">
                           <p className="text-blue-800 font-medium">
@@ -1992,7 +1993,7 @@ const VendorManagement = () => {
                     </div>
 
                     {/* OTP Verification Warning */}
-                    {!isPhoneVerified && (
+                    {!isCurrentVerified && (
                       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
                         <div className="flex items-start">
                           <div className="flex-shrink-0">
@@ -2012,7 +2013,7 @@ const VendorManagement = () => {
                       </div>
                     )}
 
-                    {isPhoneVerified && (
+                    {isCurrentVerified && (
                       <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
                         <div className="flex items-start">
                           <div className="flex-shrink-0">
@@ -2372,9 +2373,8 @@ const VendorManagement = () => {
                             <Label>Voter ID - Front Side <span className="text-red-500">*</span></Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.voterIdFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.voterIdFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.voterIdFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -2401,9 +2401,8 @@ const VendorManagement = () => {
                             <Label>Voter ID - Back Side <span className="text-red-500">*</span></Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.voterIdBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.voterIdBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.voterIdBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -2447,9 +2446,8 @@ const VendorManagement = () => {
                             <Label>Driving Licence - Front Side <span className="text-red-500">*</span></Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.drivingLicenceFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.drivingLicenceFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.drivingLicenceFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -2476,9 +2474,8 @@ const VendorManagement = () => {
                             <Label>Driving Licence - Back Side <span className="text-red-500">*</span></Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.drivingLicenceBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.drivingLicenceBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.drivingLicenceBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -2769,26 +2766,7 @@ const VendorManagement = () => {
                       </p>
                     </div>
 
-                    {/* Info about business documents */}
-                    <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
-                      <div className="flex items-start">
-                        <div className="flex-shrink-0">
-                          <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <div className="ml-3">
-                          <p className="text-sm text-green-700 font-medium">
-                            ✓ Business Document Uploaded
-                          </p>
-                          <p className="text-sm text-green-600 mt-1">
-                            You have already uploaded {selectedDocumentType === "aadhaar" ? "Aadhaar Card" :
-                              selectedDocumentType === "pan" ? "PAN Card" :
-                                selectedDocumentType === "gst" ? "GST Certificate" : "Trade License"} in the Business step.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+
                   </div>
                 )}
 
