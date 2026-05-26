@@ -252,10 +252,7 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
     };
 
     const newProperty = await Property.create(propertyData);
-    console.log("Property created automatically:", newProperty._id);
-    console.log("Images used:", vendor.portfolioImages && vendor.portfolioImages.length > 0
-      ? `Vendor portfolio images (${vendor.portfolioImages.length} images)`
-      : "Category image (fallback)");
+
     return newProperty;
   } catch (error) {
     console.error("Error creating property automatically:", error);
@@ -341,7 +338,6 @@ const purchaseCategoryCtrl = async (req, res) => {
       console.log("Vendor not found:", vendorId);
       return res.status(404).json({ success: false, message: "Vendor not found" });
     }
-    console.log("Vendor found:", { id: vendor._id, name: vendor.name, email: vendor.email });
 
     const category = await Category.findById(categoryId);
     if (!category || category.active === false) {
@@ -407,6 +403,7 @@ const purchaseCategoryCtrl = async (req, res) => {
       // For cash/QR payments, don't create service - wait for admin approval
       else if (finalPaymentMode === "cash" || finalPaymentMode === "qr") {
         purchase.status = isAdmin ? "purchased" : "pending";
+        purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
         purchase.priceTier = priceTier;
         purchase.selectedPrice = selectedPrice;
@@ -414,6 +411,7 @@ const purchaseCategoryCtrl = async (req, res) => {
         purchase.couponCode = couponCode;
         purchase.couponId = couponId;
         purchase.discountAmount = discountAmount;
+        purchase.reason = undefined; // Clear any previous rejection reason
         await purchase.save();
         if (isAdmin) {
           shouldCreateProperty = true; // Create property if admin approves cash/QR payment
@@ -755,6 +753,7 @@ const approvePurchaseCtrl = async (req, res) => {
 
     purchase.status = "purchased";
     purchase.paymentMode = purchase.paymentMode || "cash";
+    purchase.reason = undefined; // Clear any previous rejection reason
     await purchase.save();
 
     // Create property automatically when purchase is approved
