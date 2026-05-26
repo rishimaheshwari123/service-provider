@@ -329,19 +329,6 @@ const purchaseCategoryCtrl = async (req, res) => {
     // Support both paymentMode (old) and paymentMethod (new from admin assign)
     const finalPaymentMode = paymentMethod || paymentMode;
 
-    console.log("Purchase request received:", {
-      vendorId,
-      categoryId,
-      finalPaymentMode,
-      assignedByAdmin,
-      status,
-      isAdmin,
-      priceTier,
-      selectedPrice,
-      finalPrice,
-      couponCode,
-      discountAmount
-    });
 
     if (!vendorId || !categoryId) {
       return res.status(400).json({ success: false, message: "vendorId and categoryId are required" });
