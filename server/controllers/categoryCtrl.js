@@ -281,17 +281,14 @@ const sendVendorWelcomeMessages = async (vendor) => {
     // Send second welcome SMS (account registered)
     const welcomeSMS2Result = await sendWelcomeSMS2(phoneNumber, vendorName, supportContact, vendorId);
     if (welcomeSMS2Result.success) {
-      console.log('✅ Welcome SMS 2 sent successfully');
     } else {
       console.error('❌ Welcome SMS 2 failed:', welcomeSMS2Result.message);
     }
 
     // Send WhatsApp welcome message if user has WhatsApp verified
     if (vendor.whatsappNumber && vendor.isWhatsappVerified) {
-      console.log('📱 Sending WhatsApp welcome message...');
       const whatsappWelcomeResult = await sendWhatsAppWelcome(vendor.whatsappNumber, vendorName, supportContact, vendorId);
       if (whatsappWelcomeResult.success) {
-        console.log('✅ WhatsApp welcome message sent successfully');
       } else {
         console.error('❌ WhatsApp welcome message failed:', whatsappWelcomeResult.message);
       }
@@ -765,13 +762,11 @@ const approvePurchaseCtrl = async (req, res) => {
       const vendor = await Vendor.findById(purchase.vendor);
 
       if (vendor) {
-        console.log('🎉 Category purchase approved by admin! Sending approval messages...');
 
         // Send SMS approval message
         if (vendor.phone) {
           const smsResult = await sendApprovalSMS(vendor.phone, vendor.name, vendor._id);
           if (smsResult.success) {
-            console.log('✅ Approval SMS sent successfully');
           } else {
             console.error('❌ Approval SMS failed:', smsResult.message);
           }
