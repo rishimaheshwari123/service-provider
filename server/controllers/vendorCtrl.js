@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken");
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const { generateOTP, sendSMSOTP, sendWhatsAppOTP, sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
 
+// In-memory OTP store: key = phone/whatsappNumber, value = { otp, expiry }
+const otpStore = new Map();
+
 const normalizePhone = (value) => (value || "").toString().trim();
 const buildUniquePhones = (...values) => [...new Set(values.map(normalizePhone).filter(Boolean))];
 const phoneFieldLabelMap = {
@@ -1121,136 +1124,51 @@ const deleteVendorCtrl = async (req, res) => {
 // Send OTP for vendor registration
 const sendVendorOTP = async (req, res) => {
   try {
-    const { phone, whatsappNumber, preferredMethod, forceResend } = req.body;
+    const { phone, whatsappNumber } = req.body;
 
-    if (!phone) {
+    // Validate: at least one number required
+    const targetNumber = whatsappNumber || phone;
+    if (!targetNumber) {
       return res.status(400).json({
         success: false,
-        message: "Phone number is required"
-      });
-    }
-
-    // For WhatsApp method, we'll verify the WhatsApp number
-    // For SMS method, we'll verify the phone number
-    const numberToVerify = preferredMethod === 'whatsapp' && whatsappNumber ? whatsappNumber : phone;
-
-    // Check if phone number is already registered in vendor collection ONLY
-    const existingVendor = await vendorModel.findOne({ 
-      $or: [
-        { phone: numberToVerify },
-        { whatsappNumber: numberToVerify }
-      ]
-    });
-    
-    // Block if vendor is fully registered (has name and is verified)
-    if (existingVendor && existingVendor.isPhoneVerified && existingVendor.name && !forceResend) {
-      return res.status(400).json({
-        success: false,
-        message: "This phone number is already registered as a vendor. Please use a different number or login."
+        message: "Phone number or WhatsApp number is required",
       });
     }
 
     // Generate OTP
     const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const expiry = Date.now() + 10 * 60 * 1000; // 10 minutes
 
+    // Store OTP in memory (keyed by number)
+    otpStore.set(targetNumber, { otp, expiry });
+
+    // Send OTP — WhatsApp if whatsappNumber provided, else SMS
     let otpResult;
-    let targetNumber = numberToVerify;
-
-    // Send OTP based on preferred method
-    if (preferredMethod === 'whatsapp' && whatsappNumber) {
-      console.log('🔄 Attempting WhatsApp OTP to:', whatsappNumber);
-      otpResult = await sendWhatsAppOTP(
-        whatsappNumber, 
-        otp, 
-        existingVendor?._id, 
-        null, 
-        existingVendor?.name
-      );
+    if (whatsappNumber) {
+      otpResult = await sendWhatsAppOTP(whatsappNumber, otp);
     } else {
-      console.log('🔄 Attempting SMS OTP to:', phone);
-      otpResult = await sendSMSOTP(
-        phone, 
-        otp, 
-        existingVendor?._id, 
-        null, 
-        existingVendor?.name
-      );
-      targetNumber = phone;
+      otpResult = await sendSMSOTP(phone, otp);
     }
 
     if (!otpResult.success) {
+      otpStore.delete(targetNumber); // clean up if send failed
       return res.status(500).json({
         success: false,
-        message: otpResult.message,
-        error: otpResult.error
+        message: "Failed to send OTP",
+        error: otpResult.error,
       });
-    }
-
-    // Determine the actual method used and message
-    let actualMethod = preferredMethod;
-    let responseMessage = otpResult.message;
-    
-    if (otpResult.method === 'sms_fallback') {
-      actualMethod = 'sms_fallback';
-      responseMessage = `OTP sent via SMS to your WhatsApp number (${targetNumber}) - WhatsApp temporarily unavailable`;
-    }
-
-    // Store or update OTP in database using the number being verified
-    if (existingVendor) {
-      existingVendor.otp = otp;
-      existingVendor.otpExpiry = otpExpiry;
-      existingVendor.preferredOtpMethod = preferredMethod;
-      
-      // Reset verification status for re-verification
-      if (forceResend) {
-        existingVendor.isPhoneVerified = false;
-        existingVendor.isWhatsappVerified = false;
-      }
-      
-      // Update the correct number field
-      if (preferredMethod === 'whatsapp' && whatsappNumber) {
-        existingVendor.whatsappNumber = whatsappNumber;
-      } else {
-        existingVendor.phone = phone;
-      }
-      
-      await existingVendor.save();
-    } else {
-      const vendorData = {
-        otp,
-        otpExpiry,
-        preferredOtpMethod: preferredMethod,
-        status: 'pending',
-        isPhoneVerified: false,
-        isWhatsappVerified: false
-      };
-      
-      // Set the correct number field
-      if (preferredMethod === 'whatsapp' && whatsappNumber) {
-        vendorData.whatsappNumber = whatsappNumber;
-        vendorData.phone = phone; // Also store phone as backup
-      } else {
-        vendorData.phone = phone;
-      }
-      
-      await vendorModel.create(vendorData);
     }
 
     return res.status(200).json({
       success: true,
-      message: responseMessage,
-      method: actualMethod,
-      targetNumber: targetNumber.replace(/(\d{2})(\d{4})(\d{4})/, '$1****$3'), // Mask middle digits
-      originalMethod: preferredMethod // Show what user originally requested
+      message: `OTP sent successfully via ${whatsappNumber ? "WhatsApp" : "SMS"}`,
     });
-
   } catch (error) {
     console.error("❌ Send OTP error:", error);
     return res.status(500).json({
       success: false,
       message: "Error sending OTP",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -1258,70 +1176,56 @@ const sendVendorOTP = async (req, res) => {
 // Verify OTP for vendor registration
 const verifyVendorOTP = async (req, res) => {
   try {
-    const { phone, otp } = req.body;
+    const { phone, whatsappNumber, otp } = req.body;
 
-    if (!phone || !otp) {
+    const targetNumber = whatsappNumber || phone;
+
+    if (!targetNumber || !otp) {
       return res.status(400).json({
         success: false,
-        message: "Phone number and OTP are required"
+        message: "Phone/WhatsApp number and OTP are required",
       });
     }
 
-    // Find vendor with the phone number (could be in phone or whatsappNumber field)
-    const vendor = await vendorModel.findOne({
-      $or: [
-        { phone: phone },
-        { whatsappNumber: phone }
-      ]
-    });
-    
-    if (!vendor) {
-      return res.status(404).json({
-        success: false,
-        message: "No registration found with this number"
-      });
-    }
+    // Look up OTP from in-memory store
+    const record = otpStore.get(targetNumber);
 
-    // Check if OTP is valid and not expired
-    if (vendor.otp !== otp) {
+    if (!record) {
       return res.status(400).json({
         success: false,
-        message: "Invalid OTP"
+        message: "OTP not found. Please request a new one.",
       });
     }
 
-    if (new Date() > vendor.otpExpiry) {
+    if (Date.now() > record.expiry) {
+      otpStore.delete(targetNumber);
       return res.status(400).json({
         success: false,
-        message: "OTP has expired. Please request a new one."
+        message: "OTP has expired. Please request a new one.",
       });
     }
 
-    // Mark as verified based on which method was used
-    vendor.isPhoneVerified = true;
-    if (vendor.preferredOtpMethod === 'whatsapp') {
-      vendor.isWhatsappVerified = true;
+    if (record.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
     }
-    
-    // Clear OTP data
-    vendor.otp = undefined;
-    vendor.otpExpiry = undefined;
-    
-    await vendor.save();
+
+    // OTP matched — clear from store
+    otpStore.delete(targetNumber);
 
     return res.status(200).json({
       success: true,
-      message: "OTP verified successfully. You can now complete your registration.",
+      message: "OTP verified successfully.",
       isVerified: true,
-      method: vendor.preferredOtpMethod
     });
-
   } catch (error) {
     console.error("❌ Verify OTP error:", error);
     return res.status(500).json({
       success: false,
       message: "Error verifying OTP",
-      error: error.message
+      error: error.message,
     });
   }
 };

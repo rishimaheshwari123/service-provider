@@ -179,19 +179,29 @@ const VendorManagement = () => {
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
   const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"bank" | "upi">("bank");
-  const [selectedDocumentType, setSelectedDocumentType] = useState<"aadhaar" | "pan" | "gst" | "tradeLicense" | "">("");
+  const [selectedDocumentType, setSelectedDocumentType] = useState<"aadhaar" | "pan" | "gst" | "tradeLicense" | "voterId" | "drivingLicence" | "">("");
+  const [voterIdNumber, setVoterIdNumber] = useState("");
+  const [drivingLicenceNumber, setDrivingLicenceNumber] = useState("");
   const [businessDocuments, setBusinessDocuments] = useState<{
     aadhaarFront: File | null;
     aadhaarBack: File | null;
     panCard: File | null;
     gstCertificate: File | null;
     tradeLicenseDoc: File | null;
+    voterIdFront: File | null;
+    voterIdBack: File | null;
+    drivingLicenceFront: File | null;
+    drivingLicenceBack: File | null;
   }>({
     aadhaarFront: null,
     aadhaarBack: null,
     panCard: null,
     gstCertificate: null,
     tradeLicenseDoc: null,
+    voterIdFront: null,
+    voterIdBack: null,
+    drivingLicenceFront: null,
+    drivingLicenceBack: null,
   });
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [portfolioImages, setPortfolioImages] = useState<Array<{ public_id: string; url: string }>>([]);
@@ -432,29 +442,115 @@ const VendorManagement = () => {
   };
 
   const nextStep = () => {
-    // Validate step 2 for WhatsApp selection and OTP verification
+    // Validate Step 1 - Basic Info
+    if (currentStep === 1) {
+      if (!formData.company || formData.company.trim().length < 2) {
+        toast({
+          title: "Validation Error",
+          description: "Service Provider / Business Name is required (minimum 2 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData.typeOfService || formData.typeOfService.trim().length < 2) {
+        toast({
+          title: "Validation Error",
+          description: "Type of service is required (minimum 2 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData.description || formData.description.trim().length < 10) {
+        toast({
+          title: "Validation Error",
+          description: "Service description is required (minimum 10 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData.category) {
+        toast({
+          title: "Validation Error",
+          description: "Category is required",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData.subCategory) {
+        toast({
+          title: "Validation Error",
+          description: "Sub-category is required",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData.name || formData.name.trim().length < 2) {
+        toast({
+          title: "Validation Error",
+          description: "Owner / Authorized Person Name is required (minimum 2 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Validate Step 2 - Contact Details
     if (currentStep === 2) {
+      if (!formData.address || formData.address.trim().length < 5) {
+        toast({
+          title: "Validation Error",
+          description: "Registered Office / Home Address is required (minimum 5 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData.serviceLocation || formData.serviceLocation.trim().length < 2) {
+        toast({
+          title: "Validation Error",
+          description: "Service Location / Area Covered is required (minimum 2 characters)",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!formData.phone || !/^[1-9]\d{9}$/.test(formData.phone)) {
+        toast({
+          title: "Validation Error",
+          description: "Primary Contact Number must be a valid 10-digit number",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (formData.alternatePhone && !/^[1-9]\d{9}$/.test(formData.alternatePhone)) {
+        toast({
+          title: "Validation Error",
+          description: "Alternate Contact Number must be a valid 10-digit number if provided",
+          variant: "destructive",
+        });
+        return;
+      }
       if (hasWhatsApp === null) {
         toast({
-          title: "Error",
+          title: "Validation Error",
           description: "Please select whether you have WhatsApp or not",
           variant: "destructive",
         });
         return;
       }
-      if (hasWhatsApp && !formData.whatsappNumber) {
-        toast({
-          title: "Error",
-          description: "Please enter your WhatsApp number",
-          variant: "destructive",
-        });
-        return;
+      if (hasWhatsApp) {
+        if (!formData.whatsappNumber || !/^[1-9]\d{9}$/.test(formData.whatsappNumber)) {
+          toast({
+            title: "Validation Error",
+            description: "WhatsApp Number must be a valid 10-digit number",
+            variant: "destructive",
+          });
+          return;
+        }
       }
       // Check OTP verification
       if (!isPhoneVerified) {
         toast({
-          title: "Error",
-          description: "Please verify your phone number with OTP before proceeding",
+          title: "Validation Error",
+          description: "Please verify the phone number / WhatsApp number with OTP before proceeding",
           variant: "destructive",
         });
         return;
@@ -463,9 +559,17 @@ const VendorManagement = () => {
 
     // Validate Step 3 - Business documents
     if (currentStep === 3) {
+      if (!formData.businessType) {
+        toast({
+          title: "Validation Error",
+          description: "Please select your Business Type",
+          variant: "destructive",
+        });
+        return;
+      }
       if (!selectedDocumentType) {
         toast({
-          title: "Error",
+          title: "Validation Error",
           description: "Please select a document type to upload",
           variant: "destructive",
         });
@@ -473,41 +577,128 @@ const VendorManagement = () => {
       }
 
       if (selectedDocumentType === "aadhaar") {
+        if (!formData.adhar || !/^\d{12}$/.test(formData.adhar)) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter a valid 12-digit Aadhaar number",
+            variant: "destructive",
+          });
+          return;
+        }
         if (!businessDocuments.aadhaarFront || !businessDocuments.aadhaarBack) {
           toast({
-            title: "Error",
+            title: "Validation Error",
             description: "Please upload both front and back of Aadhaar card",
             variant: "destructive",
           });
           return;
         }
       } else if (selectedDocumentType === "pan") {
+        if (!formData.pan || !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.pan)) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter a valid PAN number (e.g. ABCDE1234F)",
+            variant: "destructive",
+          });
+          return;
+        }
         if (!businessDocuments.panCard) {
           toast({
-            title: "Error",
-            description: "Please upload PAN card",
+            title: "Validation Error",
+            description: "Please upload PAN card image",
             variant: "destructive",
           });
           return;
         }
       } else if (selectedDocumentType === "gst") {
+        if (!formData.gstNumber || !formData.gstNumber.trim()) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter your GST number",
+            variant: "destructive",
+          });
+          return;
+        }
         if (!businessDocuments.gstCertificate) {
           toast({
-            title: "Error",
+            title: "Validation Error",
             description: "Please upload GST certificate",
             variant: "destructive",
           });
           return;
         }
       } else if (selectedDocumentType === "tradeLicense") {
+        if (!formData.tradeLicense || !formData.tradeLicense.trim()) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter your Trade License / Shop Act Registration number",
+            variant: "destructive",
+          });
+          return;
+        }
         if (!businessDocuments.tradeLicenseDoc) {
           toast({
-            title: "Error",
+            title: "Validation Error",
             description: "Please upload Trade License document",
             variant: "destructive",
           });
           return;
         }
+      } else if (selectedDocumentType === "voterId") {
+        if (!voterIdNumber || !voterIdNumber.trim()) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter your Voter ID number",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!businessDocuments.voterIdFront || !businessDocuments.voterIdBack) {
+          toast({
+            title: "Validation Error",
+            description: "Please upload both front and back of Voter ID card",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else if (selectedDocumentType === "drivingLicence") {
+        if (!drivingLicenceNumber || !drivingLicenceNumber.trim()) {
+          toast({
+            title: "Validation Error",
+            description: "Please enter your Driving Licence number",
+            variant: "destructive",
+          });
+          return;
+        }
+        if (!businessDocuments.drivingLicenceFront || !businessDocuments.drivingLicenceBack) {
+          toast({
+            title: "Validation Error",
+            description: "Please upload both front and back of Driving Licence",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+    }
+
+    // Validate Step 5 - Experience & working timings
+    if (currentStep === 5) {
+      const hasAnyWorkingDay = Object.values(workingDays).some(v => v);
+      if (!hasAnyWorkingDay) {
+        toast({
+          title: "Validation Error",
+          description: "Please select at least one working day",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (!workingTime || !workingTime.trim()) {
+        toast({
+          title: "Validation Error",
+          description: "Working timings are required",
+          variant: "destructive",
+        });
+        return;
       }
     }
 
@@ -1076,6 +1267,26 @@ const VendorManagement = () => {
           submitFormData.append("document1", businessDocuments.tradeLicenseDoc);
           console.log("📄 Adding document1 (Trade License):", businessDocuments.tradeLicenseDoc.name);
         }
+      } else if (selectedDocumentType === "voterId") {
+        if (voterIdNumber) submitFormData.append("voterId", voterIdNumber);
+        if (businessDocuments.voterIdFront) {
+          submitFormData.append("document1", businessDocuments.voterIdFront);
+          console.log("📄 Adding document1 (Voter ID Front):", businessDocuments.voterIdFront.name);
+        }
+        if (businessDocuments.voterIdBack) {
+          submitFormData.append("document2", businessDocuments.voterIdBack);
+          console.log("📄 Adding document2 (Voter ID Back):", businessDocuments.voterIdBack.name);
+        }
+      } else if (selectedDocumentType === "drivingLicence") {
+        if (drivingLicenceNumber) submitFormData.append("drivingLicence", drivingLicenceNumber);
+        if (businessDocuments.drivingLicenceFront) {
+          submitFormData.append("document1", businessDocuments.drivingLicenceFront);
+          console.log("📄 Adding document1 (DL Front):", businessDocuments.drivingLicenceFront.name);
+        }
+        if (businessDocuments.drivingLicenceBack) {
+          submitFormData.append("document2", businessDocuments.drivingLicenceBack);
+          console.log("📄 Adding document2 (DL Back):", businessDocuments.drivingLicenceBack.name);
+        }
       }
 
       // Add portfolio images URLs (already uploaded to server)
@@ -1166,12 +1377,18 @@ const VendorManagement = () => {
         setSelectedDocumentType("");
         setPortfolioImages([]);
         setProfilePhoto(null);
+        setVoterIdNumber("");
+        setDrivingLicenceNumber("");
         setBusinessDocuments({
           aadhaarFront: null,
           aadhaarBack: null,
           panCard: null,
           gstCertificate: null,
           tradeLicenseDoc: null,
+          voterIdFront: null,
+          voterIdBack: null,
+          drivingLicenceFront: null,
+          drivingLicenceBack: null,
         });
       } else {
         throw new Error("Failed to register vendor");
@@ -1466,7 +1683,7 @@ const VendorManagement = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleAddVendor} className="space-y-4">
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
                 {/* Step 1: Basic Info */}
                 {currentStep === 1 && (
                   <div className="space-y-4">
@@ -1863,6 +2080,8 @@ const VendorManagement = () => {
                             <SelectItem value="pan">PAN Card</SelectItem>
                             <SelectItem value="gst">GST Certificate</SelectItem>
                             <SelectItem value="tradeLicense">Trade License</SelectItem>
+                            <SelectItem value="voterId">Voter ID Card (Front & Back)</SelectItem>
+                            <SelectItem value="drivingLicence">Driving Licence (Front & Back)</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -1876,12 +2095,13 @@ const VendorManagement = () => {
 
                           {/* Aadhaar Number Input */}
                           <div className="space-y-2">
-                            <Label>Aadhaar Number</Label>
+                            <Label>Aadhaar Number <span className="text-red-500">*</span></Label>
                             <Input
                               name="adhar"
-                              placeholder="12-digit Aadhaar number (optional)"
+                              placeholder="Enter 12-digit Aadhaar number"
                               value={formData.adhar}
                               onChange={handleFormChange}
+                              maxLength={12}
                             />
                           </div>
 
@@ -1973,13 +2193,14 @@ const VendorManagement = () => {
                         <div className="space-y-2">
                           {/* PAN Number Input */}
                           <div className="space-y-2">
-                            <Label>PAN Number</Label>
+                            <Label>PAN Number <span className="text-red-500">*</span></Label>
                             <Input
                               name="pan"
-                              placeholder="ABCDE1234F (optional)"
+                              placeholder="Enter 10-character PAN (e.g. ABCDE1234F)"
                               value={formData.pan}
                               onChange={handleFormChange}
                               className="uppercase"
+                              maxLength={10}
                             />
                           </div>
 
@@ -2028,7 +2249,7 @@ const VendorManagement = () => {
                         <div className="space-y-2">
                           {/* GST Number Input */}
                           <div className="space-y-2">
-                            <Label>GST Number</Label>
+                            <Label>GST Number <span className="text-red-500">*</span></Label>
                             <Input
                               name="gstNumber"
                               placeholder="Enter GST number"
@@ -2082,7 +2303,7 @@ const VendorManagement = () => {
                         <div className="space-y-2">
                           {/* Trade License Number Input */}
                           <div className="space-y-2">
-                            <Label>Trade License / Shop Act Registration No.</Label>
+                            <Label>Trade License / Shop Act Registration No. <span className="text-red-500">*</span></Label>
                             <Input
                               name="tradeLicense"
                               placeholder="Enter license number"
@@ -2128,6 +2349,156 @@ const VendorManagement = () => {
                                 <X size={16} />
                               </Button>
                             )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Voter ID */}
+                      {selectedDocumentType === "voterId" && (
+                        <div className="space-y-3">
+                          <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                            📸 Please upload both front and back images of Voter ID card
+                          </p>
+                          <div className="space-y-2">
+                            <Label>Voter ID Number <span className="text-red-500">*</span></Label>
+                            <Input
+                              value={voterIdNumber}
+                              onChange={(e) => setVoterIdNumber(e.target.value.toUpperCase())}
+                              placeholder="Enter Voter ID number (e.g., ABC1234567)"
+                            />
+                          </div>
+                          {/* Voter ID Front */}
+                          <div className="space-y-2">
+                            <Label>Voter ID - Front Side <span className="text-red-500">*</span></Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.voterIdFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
+                                  {businessDocuments.voterIdFront ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">{businessDocuments.voterIdFront.name}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload Voter ID Front</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input type="file" className="hidden" accept="image/*,.pdf"
+                                  onChange={(e) => handleBusinessDocumentChange('voterIdFront', e.target.files?.[0] || null)} />
+                              </label>
+                              {businessDocuments.voterIdFront && (
+                                <Button type="button" variant="outline" size="icon"
+                                  onClick={() => handleBusinessDocumentChange('voterIdFront', null)}><X size={16} /></Button>
+                              )}
+                            </div>
+                          </div>
+                          {/* Voter ID Back */}
+                          <div className="space-y-2">
+                            <Label>Voter ID - Back Side <span className="text-red-500">*</span></Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.voterIdBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
+                                  {businessDocuments.voterIdBack ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">{businessDocuments.voterIdBack.name}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload Voter ID Back</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input type="file" className="hidden" accept="image/*,.pdf"
+                                  onChange={(e) => handleBusinessDocumentChange('voterIdBack', e.target.files?.[0] || null)} />
+                              </label>
+                              {businessDocuments.voterIdBack && (
+                                <Button type="button" variant="outline" size="icon"
+                                  onClick={() => handleBusinessDocumentChange('voterIdBack', null)}><X size={16} /></Button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Driving Licence */}
+                      {selectedDocumentType === "drivingLicence" && (
+                        <div className="space-y-3">
+                          <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                            📸 Please upload both front and back images of Driving Licence
+                          </p>
+                          <div className="space-y-2">
+                            <Label>Driving Licence Number <span className="text-red-500">*</span></Label>
+                            <Input
+                              value={drivingLicenceNumber}
+                              onChange={(e) => setDrivingLicenceNumber(e.target.value.toUpperCase())}
+                              placeholder="e.g., MP07-2020-0012345"
+                            />
+                          </div>
+                          {/* DL Front */}
+                          <div className="space-y-2">
+                            <Label>Driving Licence - Front Side <span className="text-red-500">*</span></Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.drivingLicenceFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
+                                  {businessDocuments.drivingLicenceFront ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">{businessDocuments.drivingLicenceFront.name}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload DL Front</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input type="file" className="hidden" accept="image/*,.pdf"
+                                  onChange={(e) => handleBusinessDocumentChange('drivingLicenceFront', e.target.files?.[0] || null)} />
+                              </label>
+                              {businessDocuments.drivingLicenceFront && (
+                                <Button type="button" variant="outline" size="icon"
+                                  onClick={() => handleBusinessDocumentChange('drivingLicenceFront', null)}><X size={16} /></Button>
+                              )}
+                            </div>
+                          </div>
+                          {/* DL Back */}
+                          <div className="space-y-2">
+                            <Label>Driving Licence - Back Side <span className="text-red-500">*</span></Label>
+                            <div className="flex items-center gap-3">
+                              <label className="flex-1 cursor-pointer">
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.drivingLicenceBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
+                                  {businessDocuments.drivingLicenceBack ? (
+                                    <div className="flex items-center justify-center gap-2 text-green-600">
+                                      <Check size={20} />
+                                      <span className="truncate max-w-[200px]">{businessDocuments.drivingLicenceBack.name}</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center justify-center gap-2 text-gray-500">
+                                      <Upload size={20} />
+                                      <span>Upload DL Back</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <input type="file" className="hidden" accept="image/*,.pdf"
+                                  onChange={(e) => handleBusinessDocumentChange('drivingLicenceBack', e.target.files?.[0] || null)} />
+                              </label>
+                              {businessDocuments.drivingLicenceBack && (
+                                <Button type="button" variant="outline" size="icon"
+                                  onClick={() => handleBusinessDocumentChange('drivingLicenceBack', null)}><X size={16} /></Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       )}
@@ -2607,7 +2978,8 @@ const VendorManagement = () => {
                     </Button>
                   ) : (
                     <Button
-                      type="submit"
+                      type="button"
+                      onClick={handleAddVendor}
                       disabled={submitting}
                       className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
                     >

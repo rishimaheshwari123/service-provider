@@ -122,19 +122,29 @@ const VendorRegister = () => {
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
   const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"bank" | "upi">("bank");
-  const [selectedDocumentType, setSelectedDocumentType] = useState<"aadhaar" | "pan" | "gst" | "tradeLicense" | "">("");
+  const [selectedDocumentType, setSelectedDocumentType] = useState<"aadhaar" | "pan" | "gst" | "tradeLicense" | "voterId" | "drivingLicence" | "">("");
+  const [voterIdNumber, setVoterIdNumber] = useState("");
+  const [drivingLicenceNumber, setDrivingLicenceNumber] = useState("");
   const [businessDocuments, setBusinessDocuments] = useState<{
     aadhaarFront: File | null;
     aadhaarBack: File | null;
     panCard: File | null;
     gstCertificate: File | null;
     tradeLicenseDoc: File | null;
+    voterIdFront: File | null;
+    voterIdBack: File | null;
+    drivingLicenceFront: File | null;
+    drivingLicenceBack: File | null;
   }>({
     aadhaarFront: null,
     aadhaarBack: null,
     panCard: null,
     gstCertificate: null,
     tradeLicenseDoc: null,
+    voterIdFront: null,
+    voterIdBack: null,
+    drivingLicenceFront: null,
+    drivingLicenceBack: null,
   });
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
   const [portfolioImages, setPortfolioImages] = useState<Array<{ public_id: string; url: string }>>([]);
@@ -261,23 +271,61 @@ const VendorRegister = () => {
       }
       
       if (selectedDocumentType === "aadhaar") {
+        const aadhaarVal = watch("adhar") || "";
+        if (!aadhaarVal || !/^\d{12}$/.test(aadhaarVal)) {
+          toast.error("Please enter a valid 12-digit Aadhaar number");
+          return false;
+        }
         if (!businessDocuments.aadhaarFront || !businessDocuments.aadhaarBack) {
           toast.error("Please upload both front and back of Aadhaar card");
           return false;
         }
       } else if (selectedDocumentType === "pan") {
+        const panVal = watch("pan") || "";
+        if (!panVal || !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(panVal)) {
+          toast.error("Please enter a valid PAN number (e.g. ABCDE1234F)");
+          return false;
+        }
         if (!businessDocuments.panCard) {
           toast.error("Please upload PAN card");
           return false;
         }
       } else if (selectedDocumentType === "gst") {
+        const gstVal = watch("gstNumber") || "";
+        if (!gstVal.trim()) {
+          toast.error("Please enter your GST number");
+          return false;
+        }
         if (!businessDocuments.gstCertificate) {
           toast.error("Please upload GST certificate");
           return false;
         }
       } else if (selectedDocumentType === "tradeLicense") {
+        const tlVal = watch("tradeLicense") || "";
+        if (!tlVal.trim()) {
+          toast.error("Please enter your Trade License / Shop Act Registration number");
+          return false;
+        }
         if (!businessDocuments.tradeLicenseDoc) {
           toast.error("Please upload Trade License document");
+          return false;
+        }
+      } else if (selectedDocumentType === "voterId") {
+        if (!voterIdNumber.trim()) {
+          toast.error("Please enter your Voter ID number");
+          return false;
+        }
+        if (!businessDocuments.voterIdFront || !businessDocuments.voterIdBack) {
+          toast.error("Please upload both front and back of Voter ID");
+          return false;
+        }
+      } else if (selectedDocumentType === "drivingLicence") {
+        if (!drivingLicenceNumber.trim()) {
+          toast.error("Please enter your Driving Licence number");
+          return false;
+        }
+        if (!businessDocuments.drivingLicenceFront || !businessDocuments.drivingLicenceBack) {
+          toast.error("Please upload both front and back of Driving Licence");
           return false;
         }
       }
@@ -291,26 +339,14 @@ const VendorRegister = () => {
   // Simple OTP functions
   const handleSendOTP = async () => {
     const phoneNumber = watch("phone");
-    const whatsappNumber = watch("whatsappNumber");
-    
-    // Determine which number to verify based on WhatsApp selection
-    let numberToVerify;
-    let preferredMethod;
-    
+    const whatsappNum = watch("whatsappNumber");
+
     if (hasWhatsApp) {
-      // If user has WhatsApp, verify WhatsApp number
-      numberToVerify = whatsappNumber;
-      preferredMethod = 'whatsapp';
-      
-      if (!whatsappNumber || whatsappNumber.length !== 10) {
+      if (!whatsappNum || whatsappNum.length !== 10) {
         toast.error('Please enter a valid 10-digit WhatsApp number');
         return;
       }
     } else {
-      // If user doesn't have WhatsApp, verify phone number via SMS
-      numberToVerify = phoneNumber;
-      preferredMethod = 'sms';
-      
       if (!phoneNumber || phoneNumber.length !== 10) {
         toast.error('Please enter a valid 10-digit phone number');
         return;
@@ -318,59 +354,37 @@ const VendorRegister = () => {
     }
 
     setOtpLoading(true);
-    
-    const otpData: any = {
-      phone: numberToVerify, // Use the number to be verified as the primary phone
-      preferredMethod: preferredMethod,
-      forceResend: true // Add this flag to force resend even if already verified
-    };
-    
-    // For WhatsApp, also send the WhatsApp number
-    if (hasWhatsApp && whatsappNumber) {
-      otpData.whatsappNumber = whatsappNumber;
-    }
 
-    const result = await sendOTP(otpData);
-    
+    const result = await sendOTP(hasWhatsApp ? { whatsappNumber: whatsappNum } : { phone: phoneNumber });
+
     if (result.success) {
       setOtpSent(true);
-      // Reset verification status to allow re-verification
       setIsPhoneVerified(false);
-      // Clear the OTP input when resending
       setOtp('');
-      
-      // Don't show additional toast here - sendOTP already shows it
-      // The toast from sendOTP function will display the correct message
     }
-    
+
     setOtpLoading(false);
   };
 
   const handleVerifyOTP = async () => {
     const phoneNumber = watch("phone");
-    const whatsappNumber = watch("whatsappNumber");
-    
-    // Use the same number that was used for sending OTP
-    const numberToVerify = hasWhatsApp ? whatsappNumber : phoneNumber;
-    
+    const whatsappNum = watch("whatsappNumber");
+
     if (!otp || otp.length !== 6) {
       toast.error('Please enter a valid 6-digit OTP');
       return;
     }
 
     setOtpLoading(true);
-    
-    const result = await verifyOTP({
-      phone: numberToVerify,
-      otp: otp
-    });
-    
+
+    const result = await verifyOTP(hasWhatsApp ? { whatsappNumber: whatsappNum, otp } : { phone: phoneNumber, otp });
+
     if (result.success) {
       setIsPhoneVerified(true);
       setOtpSent(false);
       setOtp('');
     }
-    
+
     setOtpLoading(false);
   };
 
@@ -535,6 +549,26 @@ const VendorRegister = () => {
       if (businessDocuments.tradeLicenseDoc) {
         formData.append("document1", businessDocuments.tradeLicenseDoc);
         console.log("📄 Adding document1 (Trade License):", businessDocuments.tradeLicenseDoc.name);
+      }
+    } else if (selectedDocumentType === "voterId") {
+      if (voterIdNumber) formData.append("voterId", voterIdNumber);
+      if (businessDocuments.voterIdFront) {
+        formData.append("document1", businessDocuments.voterIdFront);
+        console.log("📄 Adding document1 (Voter ID Front):", businessDocuments.voterIdFront.name);
+      }
+      if (businessDocuments.voterIdBack) {
+        formData.append("document2", businessDocuments.voterIdBack);
+        console.log("📄 Adding document2 (Voter ID Back):", businessDocuments.voterIdBack.name);
+      }
+    } else if (selectedDocumentType === "drivingLicence") {
+      if (drivingLicenceNumber) formData.append("drivingLicence", drivingLicenceNumber);
+      if (businessDocuments.drivingLicenceFront) {
+        formData.append("document1", businessDocuments.drivingLicenceFront);
+        console.log("📄 Adding document1 (DL Front):", businessDocuments.drivingLicenceFront.name);
+      }
+      if (businessDocuments.drivingLicenceBack) {
+        formData.append("document2", businessDocuments.drivingLicenceBack);
+        console.log("📄 Adding document2 (DL Back):", businessDocuments.drivingLicenceBack.name);
       }
     }
     
@@ -747,85 +781,6 @@ const VendorRegister = () => {
                       <p className="text-xs text-gray-500">This field auto-fills when you select a category</p>
                     </div>
                   </div>
-
-                    {/* Price Tier Selection - Show only when category is selected */}
-                    {/* {selectedCategoryData && (
-                      <div className="space-y-2">
-                        <Label>Select Plan <span className="text-red-500">*</span></Label>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <label className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                            selectedPriceTier === "basic" 
-                              ? "border-green-500 bg-green-50 text-green-700" 
-                              : "border-gray-200 hover:border-gray-300"
-                          }`}>
-                            <input
-                              type="radio"
-                              name="priceTier"
-                              value="basic"
-                              checked={selectedPriceTier === "basic"}
-                              onChange={() => setSelectedPriceTier("basic")}
-                              className="sr-only"
-                            />
-                            <div className="text-center">
-                              <div className="font-semibold text-sm">Basic Plan</div>
-                              <div className="text-lg font-bold">₹{selectedCategoryData.price}</div>
-                              <div className="text-xs text-gray-500 mt-1">Standard features</div>
-                            </div>
-                          </label>
-
-                          {selectedCategoryData.premiumPrice && selectedCategoryData.premiumPrice > 0 && (
-                            <label className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                              selectedPriceTier === "premium" 
-                                ? "border-orange-500 bg-orange-50 text-orange-700" 
-                                : "border-gray-200 hover:border-gray-300"
-                            }`}>
-                              <input
-                                type="radio"
-                                name="priceTier"
-                                value="premium"
-                                checked={selectedPriceTier === "premium"}
-                                onChange={() => setSelectedPriceTier("premium")}
-                                className="sr-only"
-                              />
-                              <div className="text-center">
-                                <div className="font-semibold text-sm">Premium Plan</div>
-                                <div className="text-lg font-bold">₹{selectedCategoryData.premiumPrice}</div>
-                                <div className="text-xs text-gray-500 mt-1">Enhanced features</div>
-                              </div>
-                            </label>
-                          )}
-
-                          {selectedCategoryData.premiumPlusPrice > 0 && (
-                            <label className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                              selectedPriceTier === "premiumPlus" 
-                                ? "border-purple-500 bg-purple-50 text-purple-700" 
-                                : "border-gray-200 hover:border-gray-300"
-                            }`}>
-                              <input
-                                type="radio"
-                                name="priceTier"
-                                value="premiumPlus"
-                                checked={selectedPriceTier === "premiumPlus"}
-                                onChange={() => setSelectedPriceTier("premiumPlus")}
-                                className="sr-only"
-                              />
-                              <div className="text-center">
-                                <div className="font-semibold text-sm">Premium Plus</div>
-                                <div className="text-lg font-bold">₹{selectedCategoryData.premiumPlusPrice}</div>
-                                <div className="text-xs text-gray-500 mt-1">All premium features</div>
-                              </div>
-                            </label>
-                          )}
-                        </div>
-                        
-                        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="text-center">
-                            <span className="text-sm text-blue-600">Selected Plan Price: </span>
-                            <span className="text-xl font-bold text-blue-700">₹{getCurrentPrice()}</span>
-                          </div>
-                        </div>
-                      </div>
-                    )} */}
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
@@ -1109,6 +1064,8 @@ const VendorRegister = () => {
                           <SelectItem value="pan">PAN Card</SelectItem>
                           <SelectItem value="gst">GST Certificate</SelectItem>
                           <SelectItem value="tradeLicense">Trade License</SelectItem>
+                          <SelectItem value="voterId">Voter ID Card (Front & Back)</SelectItem>
+                          <SelectItem value="drivingLicence">Driving Licence (Front & Back)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1122,8 +1079,13 @@ const VendorRegister = () => {
                         
                         {/* Aadhaar Number Input */}
                         <div className="space-y-2">
-                          <Label>Aadhaar Number</Label>
-                          <Input {...register("adhar")} placeholder="12-digit Aadhaar number (optional)" />
+                          <Label>Aadhaar Number <span className="text-red-500">*</span></Label>
+                          <Input
+                            {...register("adhar")}
+                            placeholder="Enter 12-digit Aadhaar number"
+                            maxLength={12}
+                            onInput={(e: any) => { e.target.value = e.target.value.replace(/\D/g, ''); }}
+                          />
                           {errors.adhar && <p className="text-sm text-red-500">{errors.adhar.message}</p>}
                         </div>
                         
@@ -1217,8 +1179,13 @@ const VendorRegister = () => {
                       <div className="space-y-2">
                         {/* PAN Number Input */}
                         <div className="space-y-2">
-                          <Label>PAN Number</Label>
-                          <Input {...register("pan")} placeholder="ABCDE1234F (optional)" className="uppercase" />
+                          <Label>PAN Number <span className="text-red-500">*</span></Label>
+                          <Input
+                            {...register("pan")}
+                            placeholder="e.g. ABCDE1234F"
+                            className="uppercase"
+                            maxLength={10}
+                          />
                           {errors.pan && <p className="text-sm text-red-500">{errors.pan.message}</p>}
                         </div>
                         
@@ -1268,8 +1235,9 @@ const VendorRegister = () => {
                       <div className="space-y-2">
                         {/* GST Number Input */}
                         <div className="space-y-2">
-                          <Label>GST Number</Label>
-                          <Input {...register("gstNumber")} placeholder="Enter GST number" />
+                          <Label>GST Number <span className="text-red-500">*</span></Label>
+                          <Input {...register("gstNumber")} placeholder="Enter your GST number" />
+                          {errors.gstNumber && <p className="text-sm text-red-500">{errors.gstNumber.message}</p>}
                         </div>
                         
                         {/* GST Certificate Upload */}
@@ -1318,8 +1286,9 @@ const VendorRegister = () => {
                       <div className="space-y-2">
                         {/* Trade License Number Input */}
                         <div className="space-y-2">
-                          <Label>Trade License / Shop Act Registration No.</Label>
+                          <Label>Trade License / Shop Act Registration No. <span className="text-red-500">*</span></Label>
                           <Input {...register("tradeLicense")} placeholder="Enter license number" />
+                          {errors.tradeLicense && <p className="text-sm text-red-500">{errors.tradeLicense.message}</p>}
                         </div>
                         
                         {/* Trade License Upload */}
@@ -1360,6 +1329,156 @@ const VendorRegister = () => {
                               <X size={16} />
                             </Button>
                           )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Voter ID */}
+                    {selectedDocumentType === "voterId" && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                          📸 Please upload both front and back images of your Voter ID card
+                        </p>
+                        <div className="space-y-2">
+                          <Label>Voter ID Number <span className="text-red-500">*</span></Label>
+                          <Input
+                            value={voterIdNumber}
+                            onChange={(e) => setVoterIdNumber(e.target.value.toUpperCase())}
+                            placeholder="Enter Voter ID number (e.g., ABC1234567)"
+                          />
+                        </div>
+                        {/* Voter ID Front */}
+                        <div className="space-y-2">
+                          <Label>Voter ID - Front Side <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex-1 cursor-pointer">
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                !businessDocuments.voterIdFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                              }`}>
+                                {businessDocuments.voterIdFront ? (
+                                  <div className="flex items-center justify-center gap-2 text-green-600">
+                                    <Check size={20} />
+                                    <span className="truncate max-w-[200px]">{businessDocuments.voterIdFront.name}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                                    <Upload size={20} />
+                                    <span>Upload Voter ID Front</span>
+                                  </div>
+                                )}
+                              </div>
+                              <input type="file" className="hidden" accept="image/*,.pdf"
+                                onChange={(e) => handleBusinessDocumentChange('voterIdFront', e.target.files?.[0] || null)} />
+                            </label>
+                            {businessDocuments.voterIdFront && (
+                              <Button type="button" variant="outline" size="icon"
+                                onClick={() => handleBusinessDocumentChange('voterIdFront', null)}><X size={16} /></Button>
+                            )}
+                          </div>
+                        </div>
+                        {/* Voter ID Back */}
+                        <div className="space-y-2">
+                          <Label>Voter ID - Back Side <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex-1 cursor-pointer">
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                !businessDocuments.voterIdBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                              }`}>
+                                {businessDocuments.voterIdBack ? (
+                                  <div className="flex items-center justify-center gap-2 text-green-600">
+                                    <Check size={20} />
+                                    <span className="truncate max-w-[200px]">{businessDocuments.voterIdBack.name}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                                    <Upload size={20} />
+                                    <span>Upload Voter ID Back</span>
+                                  </div>
+                                )}
+                              </div>
+                              <input type="file" className="hidden" accept="image/*,.pdf"
+                                onChange={(e) => handleBusinessDocumentChange('voterIdBack', e.target.files?.[0] || null)} />
+                            </label>
+                            {businessDocuments.voterIdBack && (
+                              <Button type="button" variant="outline" size="icon"
+                                onClick={() => handleBusinessDocumentChange('voterIdBack', null)}><X size={16} /></Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Driving Licence */}
+                    {selectedDocumentType === "drivingLicence" && (
+                      <div className="space-y-3">
+                        <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
+                          📸 Please upload both front and back images of your Driving Licence
+                        </p>
+                        <div className="space-y-2">
+                          <Label>Driving Licence Number <span className="text-red-500">*</span></Label>
+                          <Input
+                            value={drivingLicenceNumber}
+                            onChange={(e) => setDrivingLicenceNumber(e.target.value.toUpperCase())}
+                            placeholder="e.g., MP07-2020-0012345"
+                          />
+                        </div>
+                        {/* DL Front */}
+                        <div className="space-y-2">
+                          <Label>Driving Licence - Front Side <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex-1 cursor-pointer">
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                !businessDocuments.drivingLicenceFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                              }`}>
+                                {businessDocuments.drivingLicenceFront ? (
+                                  <div className="flex items-center justify-center gap-2 text-green-600">
+                                    <Check size={20} />
+                                    <span className="truncate max-w-[200px]">{businessDocuments.drivingLicenceFront.name}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                                    <Upload size={20} />
+                                    <span>Upload DL Front</span>
+                                  </div>
+                                )}
+                              </div>
+                              <input type="file" className="hidden" accept="image/*,.pdf"
+                                onChange={(e) => handleBusinessDocumentChange('drivingLicenceFront', e.target.files?.[0] || null)} />
+                            </label>
+                            {businessDocuments.drivingLicenceFront && (
+                              <Button type="button" variant="outline" size="icon"
+                                onClick={() => handleBusinessDocumentChange('drivingLicenceFront', null)}><X size={16} /></Button>
+                            )}
+                          </div>
+                        </div>
+                        {/* DL Back */}
+                        <div className="space-y-2">
+                          <Label>Driving Licence - Back Side <span className="text-red-500">*</span></Label>
+                          <div className="flex items-center gap-3">
+                            <label className="flex-1 cursor-pointer">
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                !businessDocuments.drivingLicenceBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                              }`}>
+                                {businessDocuments.drivingLicenceBack ? (
+                                  <div className="flex items-center justify-center gap-2 text-green-600">
+                                    <Check size={20} />
+                                    <span className="truncate max-w-[200px]">{businessDocuments.drivingLicenceBack.name}</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center justify-center gap-2 text-gray-500">
+                                    <Upload size={20} />
+                                    <span>Upload DL Back</span>
+                                  </div>
+                                )}
+                              </div>
+                              <input type="file" className="hidden" accept="image/*,.pdf"
+                                onChange={(e) => handleBusinessDocumentChange('drivingLicenceBack', e.target.files?.[0] || null)} />
+                            </label>
+                            {businessDocuments.drivingLicenceBack && (
+                              <Button type="button" variant="outline" size="icon"
+                                onClick={() => handleBusinessDocumentChange('drivingLicenceBack', null)}><X size={16} /></Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}

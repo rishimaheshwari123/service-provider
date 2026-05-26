@@ -60,7 +60,7 @@ interface VendorData {
   pan: string;
   percentage?: string;
   updateProfileRequest?: string;
-  
+
   // Additional fields from registration
   typeOfService?: string;
   category?: string;
@@ -77,7 +77,7 @@ interface VendorData {
   workingDaysTimings?: string;
   referralCode?: string;
   referralName?: string;
-  
+
   bankDetail?: {
     accountNumber?: string;
     IFSC?: string;
@@ -175,10 +175,10 @@ const VendorProfileMangeByAdmin = ({ user }) => {
       console.log("📋 Fetched vendor data (Admin):", data);
       console.log("📋 Category data:", data.category);
       console.log("📋 Category type:", typeof data.category);
-      
+
       setVendor(data);
       setFormData(data);
-      
+
       // Initialize category selection - handle both object and string
       if (data.category) {
         // If category is an object, extract the ID
@@ -191,7 +191,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
       if (data.subCategory) {
         setSelectedAutoFilled(data.subCategory);
       }
-      
+
       // Initialize working days if available
       if (data.workingDaysTimings) {
         const workingDaysStr = data.workingDaysTimings;
@@ -213,7 +213,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
           setWorkingDays(newWorkingDays);
         }
       }
-      
+
       // Initialize WhatsApp selection
       if (data.whatsappNumber) {
         setHasWhatsApp(true);
@@ -233,7 +233,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
 
   const handleRequestUpdate = async () => {
     if (!vendor?._id) return;
-    
+
     try {
       const result = await requestForTheUpdateProfileAPI(vendor._id, "requested");
 
@@ -288,7 +288,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
 
       // Add basic text fields (exclude special fields that will be added separately)
       const fieldsToSkip = ['bankDetail', 'experience', 'workingHours', 'profilePhoto', 'document1', 'document2', 'document3', 'document4', 'document5', 'paymentMethod', 'upiId', 'numberOfStaff'];
-      
+
       Object.entries(formData).forEach(([key, value]) => {
         if (!fieldsToSkip.includes(key)) {
           if (value !== undefined && value !== null) {
@@ -341,7 +341,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
 
       // Add business documents in backend format (document1, document2, etc.)
       form.append("selectedDocumentType", selectedDocumentType);
-      
+
       if (selectedDocumentType === "aadhaar") {
         if (businessDocuments.aadhaarFront instanceof File) {
           form.append("document1", businessDocuments.aadhaarFront);
@@ -369,10 +369,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
         setVendor((prev) => ({ ...prev, ...formData } as VendorData));
         setIsEditing(false);
         setCurrentStep(1); // Reset to first step
-        toast({
-          title: "Success",
-          description: "Profile updated successfully",
-        });
+
       }
     } catch (error) {
       toast({
@@ -389,7 +386,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
     setFormData(vendor || {});
     setIsEditing(false);
     setCurrentStep(1); // Reset to first step
-    
+
     // Reset category selections
     if (vendor?.category) {
       setSelectedCategory(vendor.categoryId || vendor.category?._id || vendor.category);
@@ -397,14 +394,14 @@ const VendorProfileMangeByAdmin = ({ user }) => {
     if (vendor?.subCategory) {
       setSelectedAutoFilled(vendor.subCategory);
     }
-    
+
     // Reset WhatsApp selection
     if (vendor?.whatsappNumber) {
       setHasWhatsApp(true);
     } else {
       setHasWhatsApp(false);
     }
-    
+
     // Reset documents
     setSelectedDocumentType("");
     setProfilePhoto(null);
@@ -514,19 +511,17 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                 {EDIT_STEPS.map((step) => (
                   <div
                     key={step.id}
-                    className={`flex flex-col items-center min-w-[80px] cursor-pointer ${
-                      currentStep >= step.id ? "text-yellow-600" : "text-gray-400"
-                    }`}
+                    className={`flex flex-col items-center min-w-[80px] cursor-pointer ${currentStep >= step.id ? "text-yellow-600" : "text-gray-400"
+                      }`}
                     onClick={() => setCurrentStep(step.id)}
                   >
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-lg mb-1 ${
-                        currentStep > step.id
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-lg mb-1 ${currentStep > step.id
                           ? "bg-green-500 text-white"
                           : currentStep === step.id
-                          ? "bg-yellow-500 text-white"
-                          : "bg-gray-200"
-                      }`}
+                            ? "bg-yellow-500 text-white"
+                            : "bg-gray-200"
+                        }`}
                     >
                       {currentStep > step.id ? <Check size={20} /> : step.icon}
                     </div>
@@ -549,37 +544,37 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Service Provider / Business Name</Label>
-                        <Input 
-                          value={formData.company || ""} 
+                        <Input
+                          value={formData.company || ""}
                           onChange={(e) => handleInputChange("company", e.target.value)}
-                          placeholder="Enter business name" 
+                          placeholder="Enter business name"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Type of Service</Label>
-                        <Input 
-                          value={formData.typeOfService || ""} 
+                        <Input
+                          value={formData.typeOfService || ""}
                           onChange={(e) => handleInputChange("typeOfService", e.target.value)}
-                          placeholder="e.g., Plumbing, Electrical" 
+                          placeholder="e.g., Plumbing, Electrical"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
                       <Label>Service Description</Label>
-                      <Textarea 
-                        value={formData.description || ""} 
+                      <Textarea
+                        value={formData.description || ""}
                         onChange={(e) => handleInputChange("description", e.target.value)}
-                        placeholder="Describe your services in detail" 
-                        rows={3} 
+                        placeholder="Describe your services in detail"
+                        rows={3}
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Category (Service)</Label>
-                        <Select 
-                        disabled
+                        <Select
+                          disabled
                           value={selectedCategory}
                           onValueChange={(val) => {
                             setSelectedCategory(val);
@@ -606,9 +601,9 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       </div>
                       <div className="space-y-2">
                         <Label>Sub Category (Auto Filled)</Label>
-                        <Input 
-                        disabled
-                          placeholder="Auto-filled based on category" 
+                        <Input
+                          disabled
+                          placeholder="Auto-filled based on category"
                           value={selectedAutoFilled}
                           onChange={(e) => {
                             setSelectedAutoFilled(e.target.value);
@@ -622,18 +617,18 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Year of Establishment</Label>
-                        <Input 
-                          value={formData.yearOfEstablishment || ""} 
+                        <Input
+                          value={formData.yearOfEstablishment || ""}
                           onChange={(e) => handleInputChange("yearOfEstablishment", e.target.value)}
-                          placeholder="e.g., 2020" 
+                          placeholder="e.g., 2020"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Owner / Authorized Person Name</Label>
-                        <Input 
-                          value={formData.name || ""} 
+                        <Input
+                          value={formData.name || ""}
                           onChange={(e) => handleInputChange("name", e.target.value)}
-                          placeholder="Enter owner name" 
+                          placeholder="Enter owner name"
                         />
                       </div>
                     </div>
@@ -645,21 +640,21 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                   <div className="space-y-4">
                     <div className="space-y-2">
                       <Label>Registered Office / Home Address</Label>
-                      <Textarea 
-                        value={formData.address || ""} 
+                      <Textarea
+                        value={formData.address || ""}
                         onChange={(e) => handleInputChange("address", e.target.value)}
-                        placeholder="Enter complete address" 
-                        rows={2} 
+                        placeholder="Enter complete address"
+                        rows={2}
                       />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Pincode</Label>
-                        <Input 
-                          value={formData.pincode || ""} 
+                        <Input
+                          value={formData.pincode || ""}
                           onChange={(e) => handleInputChange("pincode", e.target.value)}
-                          placeholder="Enter 6-digit pincode" 
+                          placeholder="Enter 6-digit pincode"
                           maxLength={6}
                         />
                       </div>
@@ -676,18 +671,18 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Primary Contact Number</Label>
-                        <Input 
-                          value={formData.phone || ""} 
+                        <Input
+                          value={formData.phone || ""}
                           onChange={(e) => handleInputChange("phone", e.target.value)}
-                          placeholder="10-digit number" 
+                          placeholder="10-digit number"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Alternate Contact Number</Label>
-                        <Input 
-                          value={formData.alternatePhone || ""} 
+                        <Input
+                          value={formData.alternatePhone || ""}
                           onChange={(e) => handleInputChange("alternatePhone", e.target.value)}
-                          placeholder="10-digit number (optional)" 
+                          placeholder="10-digit number (optional)"
                         />
                       </div>
                     </div>
@@ -719,10 +714,10 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       {hasWhatsApp && (
                         <div className="space-y-2">
                           <Label>WhatsApp Number <span className="text-red-500">*</span></Label>
-                          <Input 
-                            value={formData.whatsappNumber || ""} 
+                          <Input
+                            value={formData.whatsappNumber || ""}
                             onChange={(e) => handleInputChange("whatsappNumber", e.target.value)}
-                            placeholder="10-digit WhatsApp number" 
+                            placeholder="10-digit WhatsApp number"
                           />
                         </div>
                       )}
@@ -730,11 +725,11 @@ const VendorProfileMangeByAdmin = ({ user }) => {
 
                     <div className="space-y-2">
                       <Label>Email ID</Label>
-                      <Input 
-                        value={formData.email || ""} 
+                      <Input
+                        value={formData.email || ""}
                         onChange={(e) => handleInputChange("email", e.target.value)}
-                        type="email" 
-                        placeholder="email@example.com (optional)" 
+                        type="email"
+                        placeholder="email@example.com (optional)"
                       />
                     </div>
                   </div>
@@ -774,7 +769,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       {/* Document Type Selection */}
                       <div className="space-y-2">
                         <Label>Select Document Type (Optional)</Label>
-                        <Select 
+                        <Select
                           value={selectedDocumentType}
                           onValueChange={(val: any) => setSelectedDocumentType(val)}
                         >
@@ -796,25 +791,24 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                           <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
                             📸 Upload both front and back images of Aadhaar card
                           </p>
-                          
+
                           {/* Aadhaar Number Input */}
                           <div className="space-y-2">
                             <Label>Aadhaar Number</Label>
-                            <Input 
-                              value={formData.adhar || ""} 
+                            <Input
+                              value={formData.adhar || ""}
                               onChange={(e) => handleInputChange("adhar", e.target.value)}
-                              placeholder="12-digit Aadhaar number" 
+                              placeholder="12-digit Aadhaar number"
                             />
                           </div>
-                          
+
                           {/* Aadhaar Front */}
                           <div className="space-y-2">
                             <Label>Aadhaar Card - Front Side</Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.aadhaarFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.aadhaarFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -854,9 +848,8 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                             <Label>Aadhaar Card - Back Side</Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.aadhaarBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                  }`}>
                                   {businessDocuments.aadhaarBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -898,21 +891,20 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                           {/* PAN Number Input */}
                           <div className="space-y-2">
                             <Label>PAN Number</Label>
-                            <Input 
-                              value={formData.pan || ""} 
+                            <Input
+                              value={formData.pan || ""}
                               onChange={(e) => handleInputChange("pan", e.target.value)}
-                              placeholder="ABCDE1234F" 
-                              className="uppercase" 
+                              placeholder="ABCDE1234F"
+                              className="uppercase"
                             />
                           </div>
-                          
+
                           {/* PAN Card Upload */}
                           <Label>PAN Card</Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.panCard ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.panCard ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
                                 {businessDocuments.panCard ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -953,20 +945,19 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                           {/* GST Number Input */}
                           <div className="space-y-2">
                             <Label>GST Number</Label>
-                            <Input 
-                              value={formData.gstNumber || ""} 
+                            <Input
+                              value={formData.gstNumber || ""}
                               onChange={(e) => handleInputChange("gstNumber", e.target.value)}
-                              placeholder="Enter GST number" 
+                              placeholder="Enter GST number"
                             />
                           </div>
-                          
+
                           {/* GST Certificate Upload */}
                           <Label>GST Certificate</Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.gstCertificate ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.gstCertificate ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
                                 {businessDocuments.gstCertificate ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -1007,20 +998,19 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                           {/* Trade License Number Input */}
                           <div className="space-y-2">
                             <Label>Trade License / Shop Act Registration No.</Label>
-                            <Input 
-                              value={formData.tradeLicense || ""} 
+                            <Input
+                              value={formData.tradeLicense || ""}
                               onChange={(e) => handleInputChange("tradeLicense", e.target.value)}
-                              placeholder="Enter license number" 
+                              placeholder="Enter license number"
                             />
                           </div>
-                          
+
                           {/* Trade License Upload */}
                           <Label>Trade License</Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                !businessDocuments.tradeLicenseDoc ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                              }`}>
+                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.tradeLicenseDoc ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
+                                }`}>
                                 {businessDocuments.tradeLicenseDoc ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -1105,8 +1095,8 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Bank Name</Label>
-                            <Input 
-                              value={formData.bankDetail?.branch || ""} 
+                            <Input
+                              value={formData.bankDetail?.branch || ""}
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1116,13 +1106,13 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                                   },
                                 }))
                               }
-                              placeholder="Enter bank name" 
+                              placeholder="Enter bank name"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label>Account Holder Name</Label>
-                            <Input 
-                              value={formData.bankDetail?.accountHolderName || ""} 
+                            <Input
+                              value={formData.bankDetail?.accountHolderName || ""}
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1132,15 +1122,15 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                                   },
                                 }))
                               }
-                              placeholder="Name as per bank account" 
+                              placeholder="Name as per bank account"
                             />
                           </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Account Number</Label>
-                            <Input 
-                              value={formData.bankDetail?.accountNumber || ""} 
+                            <Input
+                              value={formData.bankDetail?.accountNumber || ""}
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1150,13 +1140,13 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                                   },
                                 }))
                               }
-                              placeholder="Enter account number" 
+                              placeholder="Enter account number"
                             />
                           </div>
                           <div className="space-y-2">
                             <Label>IFSC Code</Label>
-                            <Input 
-                              value={formData.bankDetail?.IFSC || ""} 
+                            <Input
+                              value={formData.bankDetail?.IFSC || ""}
                               onChange={(e) =>
                                 setFormData((prev) => ({
                                   ...prev,
@@ -1166,8 +1156,8 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                                   },
                                 }))
                               }
-                              placeholder="Enter IFSC code" 
-                              className="uppercase" 
+                              placeholder="Enter IFSC code"
+                              className="uppercase"
                             />
                           </div>
                         </div>
@@ -1178,10 +1168,10 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     {formData.paymentMethod === "upi" && (
                       <div className="space-y-2">
                         <Label>UPI ID</Label>
-                        <Input 
-                          value={formData.upiId || ""} 
+                        <Input
+                          value={formData.upiId || ""}
                           onChange={(e) => handleInputChange("upiId", e.target.value)}
-                          placeholder="Enter UPI ID (e.g., yourname@paytm, 9876543210@ybl)" 
+                          placeholder="Enter UPI ID (e.g., yourname@paytm, 9876543210@ybl)"
                         />
                         <p className="text-xs text-gray-500">
                           💡 Enter UPI ID from any UPI app (PhonePe, Google Pay, Paytm, etc.)
@@ -1197,8 +1187,8 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Years of Experience</Label>
-                        <Input 
-                          value={formData.experience?.totalYears || ""} 
+                        <Input
+                          value={formData.experience?.totalYears || ""}
                           onChange={(e) =>
                             setFormData((prev) => ({
                               ...prev,
@@ -1208,17 +1198,17 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                               },
                             }))
                           }
-                          type="number" 
-                          placeholder="e.g., 5" 
+                          type="number"
+                          placeholder="e.g., 5"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Number of Technicians / Staff</Label>
-                        <Input 
-                          value={formData.numberOfStaff || ""} 
+                        <Input
+                          value={formData.numberOfStaff || ""}
                           onChange={(e) => handleInputChange("numberOfStaff", Number(e.target.value))}
-                          type="number" 
-                          placeholder="e.g., 3" 
+                          type="number"
+                          placeholder="e.g., 3"
                         />
                       </div>
                     </div>
@@ -1255,11 +1245,10 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                         ].map((day) => (
                           <label
                             key={day.key}
-                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                              workingDays[day.key as keyof typeof workingDays]
+                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${workingDays[day.key as keyof typeof workingDays]
                                 ? "bg-yellow-100 border-yellow-500 text-yellow-700"
                                 : "bg-gray-50 border-gray-200 text-gray-500"
-                            }`}
+                              }`}
                           >
                             <input
                               type="checkbox"
@@ -1285,7 +1274,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
 
                     <div className="space-y-2">
                       <Label>Working Timings</Label>
-                      <Input 
+                      <Input
                         value={workingTime}
                         onChange={(e) => {
                           setWorkingTime(e.target.value);
@@ -1294,7 +1283,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                             .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
                           handleInputChange("workingDays", `${selectedDays.join(", ")} | ${e.target.value}`);
                         }}
-                        placeholder="e.g., 9 AM - 7 PM" 
+                        placeholder="e.g., 9 AM - 7 PM"
                       />
                     </div>
                   </div>
@@ -1306,7 +1295,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
                       📸 Upload or update profile photo. Business documents can be updated in Step 3.
                     </p>
-                    
+
                     {/* Profile Photo Section */}
                     <div className="space-y-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                       <Label className="text-yellow-800 font-semibold">Profile Photo</Label>
@@ -1404,18 +1393,18 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Referral Code</Label>
-                        <Input 
-                          value={formData.referralCode || ""} 
+                        <Input
+                          value={formData.referralCode || ""}
                           onChange={(e) => handleInputChange("referralCode", e.target.value)}
-                          placeholder="Enter referral code if any" 
+                          placeholder="Enter referral code if any"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Referral Name</Label>
-                        <Input 
-                          value={formData.referralName || ""} 
+                        <Input
+                          value={formData.referralName || ""}
                           onChange={(e) => handleInputChange("referralName", e.target.value)}
-                          placeholder="Enter referral name if any" 
+                          placeholder="Enter referral name if any"
                         />
                       </div>
                     </div>
@@ -1771,7 +1760,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       <span className="capitalize">{vendor.paymentMethod || "Bank"}</span>
                     </p>
                   </div>
-                  
+
                   {/* Bank Details */}
                   {(!vendor.paymentMethod || vendor.paymentMethod === "bank") && (
                     <>
@@ -1809,7 +1798,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       </div>
                     </>
                   )}
-                  
+
                   {/* UPI Details */}
                   {vendor.paymentMethod === "upi" && (
                     <div>
@@ -1892,7 +1881,7 @@ const VendorProfileMangeByAdmin = ({ user }) => {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {[1, 2, 3, 4, 5].map((num) => (
                       <div key={num}>
