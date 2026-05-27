@@ -28,13 +28,20 @@ export const createAuditForPropertyCallAndEmailAPI = async (id, userId, type) =>
 
 
 
-export const getAuditLogsAPI = async (page = 1, limit = 50, vendorId = "") => {
+export const getAuditLogsAPI = async (page = 1, limit = 50, vendorId = "", token) => {
   try {
     // Directly add query params in the URL
     const url = `${GET_ALL_AUDIT_API}?page=${page}&limit=${limit}${vendorId ? `&vendorId=${vendorId}` : ""
       }`;
 
-    const response = await apiConnector("GET", url);
+    const response = await apiConnector(
+      "GET", 
+      url,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");

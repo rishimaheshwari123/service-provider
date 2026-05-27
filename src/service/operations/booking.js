@@ -27,7 +27,7 @@ export const createBookingAPI = async (formDataToSend) => {
 };
 
 // ✅ Get All Bookings (Admin or All Users)
-export const getAllBookingAPI = async (page, limit, search, status) => {
+export const getAllBookingAPI = async (page, limit, search, status, token) => {
   try {
     let url = GET_ALL_BOOKINGS;
     const params = [];
@@ -39,7 +39,14 @@ export const getAllBookingAPI = async (page, limit, search, status) => {
     if (params.length > 0) {
       url += `?${params.join("&")}`;
     }
-    const response = await apiConnector("GET", url);
+    const response = await apiConnector(
+      "GET", 
+      url,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -57,9 +64,16 @@ export const getAllBookingAPI = async (page, limit, search, status) => {
 };
 
 // ✅ Get All Bookings by Vendor ID
-export const getVendorAllBookingAPI = async (vendorId) => {
+export const getVendorAllBookingAPI = async (vendorId, token) => {
   try {
-    const response = await apiConnector("GET", `${GET_VENDOR_ALL_BOOKINGS}/${vendorId}`);
+    const response = await apiConnector(
+      "GET", 
+      `${GET_VENDOR_ALL_BOOKINGS}/${vendorId}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -84,6 +98,31 @@ export const updateBookingStatusAPI = async (bookingId, status) => {
   } catch (error) {
     console.error("GET VENDOR BOOKINGS API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to get vendor bookings!");
+    return [];
+  }
+};
+
+
+// ✅ Get All Bookings by User ID
+export const getUserAllBookingAPI = async (userId, token) => {
+  try {
+    const response = await apiConnector(
+      "GET", 
+      `${GET_ALL_BOOKINGS.replace('/getAll', '')}/user/${userId}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    return response?.data?.bookings || [];
+  } catch (error) {
+    console.error("GET USER BOOKINGS API ERROR:", error);
+    // toast.error(error?.response?.data?.message || "Failed to get user bookings!");
     return [];
   }
 };

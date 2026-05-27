@@ -66,7 +66,7 @@ const RewardApplications = () => {
   const fetchAllVendors = async (page = 1, searchQuery = search) => {
     try {
       setLoading(true);
-      const result = await getAllVendorPaginatedAPI({ page, limit: ITEMS_PER_PAGE, search: searchQuery });
+      const result = await getAllVendorPaginatedAPI({ page, limit: ITEMS_PER_PAGE, search: searchQuery, token });
 
       if (result && result.vendors) {
         const validVendors = result.vendors.filter((vendor: any) =>

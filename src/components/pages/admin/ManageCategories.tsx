@@ -148,7 +148,8 @@ const ManageCategories = () => {
   const openAssignToVendor = async (category) => {
     setCurrentCategory(category);
     if (vendors.length === 0) {
-      const all = await getAllVendorAPI();
+      const token = (user as any)?.token;
+      const all = await getAllVendorAPI(token);
       setVendors(all);
     }
     setSelectedVendorId("");
@@ -258,7 +259,8 @@ const ManageCategories = () => {
   const openPurchaseCategory = async (category: any) => {
     setCurrentCategory(category);
     if (vendors.length === 0) {
-      const all = await getAllVendorAPI();
+      const token = (user as any)?.token;
+      const all = await getAllVendorAPI(token);
       setVendors(all);
     }
     setPurchaseVendorId("");

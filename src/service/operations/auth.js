@@ -97,7 +97,7 @@ export async function signUp(formData) {
 }
 
 
-export const getAllUsersAPI = async (page = 1, limit = 10, search = "") => {
+export const getAllUsersAPI = async (page = 1, limit = 10, search = "", token) => {
   try {
     const params = new URLSearchParams({
       page: page.toString(),
@@ -105,7 +105,14 @@ export const getAllUsersAPI = async (page = 1, limit = 10, search = "") => {
       search: search
     });
     
-    const response = await apiConnector("GET", `${GET_ALL_USER_API}?${params.toString()}`);
+    const response = await apiConnector(
+      "GET", 
+      `${GET_ALL_USER_API}?${params.toString()}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");

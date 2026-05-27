@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { X, Edit, Key, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   getAllUsersAPI,
@@ -49,6 +51,9 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   
+  // Get user from Redux for token
+  const user = useSelector((state: RootState) => state.auth?.user ?? null);
+  
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -96,7 +101,8 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
     setMessage("Loading employees...");
     setIsSuccess(false);
     try {
-      const response = await getAllUsersAPI(page, limit, search);
+      const token = (user as any)?.token;
+      const response = await getAllUsersAPI(page, limit, search, token);
       if (response) {
         // Handle new response format with pagination
         const employeesData = response.users || response;

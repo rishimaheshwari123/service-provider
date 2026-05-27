@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { toast } from "react-toastify";
 import { getAllBookingAPI } from "@/service/operations/booking";
 import { Loader2 } from "lucide-react";
@@ -14,12 +16,14 @@ interface Booking {
 const AdminDashboardSummary: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const fetchBookings = async () => {
       setLoading(true);
       try {
-        const data = await getAllBookingAPI();
+        const token = (user as any)?.token;
+        const data = await getAllBookingAPI(undefined, undefined, undefined, undefined, token);
         setBookings(data);
       } catch (error) {
         console.error("Error fetching bookings:", error);

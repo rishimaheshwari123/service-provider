@@ -5,15 +5,16 @@ const {
   getSearchStats,
   downloadSearchLogs,
 } = require("../controllers/searchLogsCtrl");
+const { verifyToken, isAdmin } = require("../utils/verifyToken");
 
 const router = express.Router();
 
 // Public route - anyone can log searches
 router.post("/create", createSearchLog);
 
-// Admin routes - no auth middleware for now (add if needed)
-router.get("/", getAllSearchLogs);
-router.get("/stats", getSearchStats);
-router.get("/download", downloadSearchLogs);
+// Protected Admin Routes - Only Admin can access search logs
+router.get("/", verifyToken, isAdmin, getAllSearchLogs);
+router.get("/stats", verifyToken, isAdmin, getSearchStats);
+router.get("/download", verifyToken, isAdmin, downloadSearchLogs);
 
 module.exports = router;

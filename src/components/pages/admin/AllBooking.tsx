@@ -76,7 +76,7 @@ const AllBooking: React.FC<AllBookingProps> = ({ user }) => {
     if (!token || !user?._id) return;
 
     try {
-      const data: ExtendedBooking[] = await getVendorAllBookingAPI(user._id);
+      const data: ExtendedBooking[] = await getVendorAllBookingAPI(user._id, token);
       setBookings(data);
     } catch (error) {
       console.error("Error fetching vendor bookings:", error);

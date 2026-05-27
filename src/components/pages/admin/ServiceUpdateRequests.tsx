@@ -74,7 +74,8 @@ const ServiceUpdateRequests: React.FC = () => {
   const fetchPendingRequests = async () => {
     setLoading(true);
     try {
-      const data = await getPendingServiceUpdateRequestsAPI();
+      const token = (user as any)?.token;
+      const data = await getPendingServiceUpdateRequestsAPI(token);
       setRequests(data);
     } catch (error) {
       console.error('Error fetching requests:', error);
@@ -94,10 +95,11 @@ const ServiceUpdateRequests: React.FC = () => {
     if (!selectedRequest || !user?._id) return;
 
     try {
+      const token = (user as any)?.token;
       if (actionType === 'approve') {
-        await approveServiceUpdateRequestAPI(selectedRequest._id, user._id, adminMessage);
+        await approveServiceUpdateRequestAPI(selectedRequest._id, user._id, adminMessage, token);
       } else {
-        await rejectServiceUpdateRequestAPI(selectedRequest._id, user._id, adminMessage);
+        await rejectServiceUpdateRequestAPI(selectedRequest._id, user._id, adminMessage, token);
       }
       
       // Refresh the list

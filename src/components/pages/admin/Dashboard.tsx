@@ -102,7 +102,8 @@ const Dashboard = () => {
     const fetchDashboardData = async () => {
       setLoading(true);
       try {
-        const res = await getAdminDashboardData();
+        const token = (user as any)?.token;
+        const res = await getAdminDashboardData(token);
         setData(res);
         const cats = await getAllCategoriesAPI();
         setCategories(cats);

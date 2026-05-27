@@ -35,7 +35,12 @@ export default function SearchLogs() {
         if (value) params.append(key, value.toString());
       });
 
-      const response = await axios.get(`${searchLogs.GET_ALL_LOGS_API}?${params}`);
+      const token = (user as any)?.token;
+      const response = await axios.get(`${searchLogs.GET_ALL_LOGS_API}?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       
       if (response.data && response.data.logs) {
         setLogs(response.data.logs || []);
@@ -60,7 +65,12 @@ export default function SearchLogs() {
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
 
-      const response = await axios.get(`${searchLogs.GET_STATS_API}?${params}`);
+      const token = (user as any)?.token;
+      const response = await axios.get(`${searchLogs.GET_STATS_API}?${params}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
       
       if (response.data && response.data.stats) {
         setStats(response.data.stats);
@@ -81,8 +91,12 @@ export default function SearchLogs() {
         }
       });
 
+      const token = (user as any)?.token;
       const response = await axios.get(`${searchLogs.DOWNLOAD_LOGS_API}?${params}`, {
         responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));

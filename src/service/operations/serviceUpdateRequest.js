@@ -66,9 +66,16 @@ export const createImageUpdateRequestAPI = async (propertyId, imageData) => {
 };
 
 // Get vendor's service update requests
-export const getVendorServiceUpdateRequestsAPI = async (vendorId) => {
+export const getVendorServiceUpdateRequestsAPI = async (vendorId, token) => {
   try {
-    const response = await apiConnector("GET", `${GET_VENDOR_REQUESTS_API}/${vendorId}`);
+    const response = await apiConnector(
+      "GET", 
+      `${GET_VENDOR_REQUESTS_API}/${vendorId}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -83,9 +90,16 @@ export const getVendorServiceUpdateRequestsAPI = async (vendorId) => {
 };
 
 // Get all pending service update requests (admin)
-export const getPendingServiceUpdateRequestsAPI = async () => {
+export const getPendingServiceUpdateRequestsAPI = async (token) => {
   try {
-    const response = await apiConnector("GET", GET_PENDING_REQUESTS_API);
+    const response = await apiConnector(
+      "GET", 
+      GET_PENDING_REQUESTS_API,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -100,14 +114,17 @@ export const getPendingServiceUpdateRequestsAPI = async () => {
 };
 
 // Approve service update request (admin)
-export const approveServiceUpdateRequestAPI = async (requestId, adminId, message = "") => {
+export const approveServiceUpdateRequestAPI = async (requestId, adminId, message = "", token) => {
   const toastId = toast.loading("Approving request...");
 
   try {
     const response = await apiConnector(
       "PUT", 
       `${APPROVE_REQUEST_API}/${requestId}`, 
-      { adminId, message }
+      { adminId, message },
+      {
+        Authorization: `Bearer ${token}`,
+      }
     );
 
     if (!response?.data?.success) {
@@ -126,14 +143,17 @@ export const approveServiceUpdateRequestAPI = async (requestId, adminId, message
 };
 
 // Reject service update request (admin)
-export const rejectServiceUpdateRequestAPI = async (requestId, adminId, message = "") => {
+export const rejectServiceUpdateRequestAPI = async (requestId, adminId, message = "", token) => {
   const toastId = toast.loading("Rejecting request...");
 
   try {
     const response = await apiConnector(
       "PUT", 
       `${REJECT_REQUEST_API}/${requestId}`, 
-      { adminId, message }
+      { adminId, message },
+      {
+        Authorization: `Bearer ${token}`,
+      }
     );
 
     if (!response?.data?.success) {

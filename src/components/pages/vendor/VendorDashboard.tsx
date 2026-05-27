@@ -41,8 +41,9 @@ const VendorDashboard = () => {
       if (!user?._id) return;
       setLoading(true);
       try {
+        const token = (user as any)?.token;
         // Assuming getVendorDashboardData returns the required data
-        const data = await getVendorDashboardData(user._id);
+        const data = await getVendorDashboardData(user._id, token);
         setDashboardData(data);
         const cats = await getPurchasedCategoriesAPI(user._id);
         // API may return purchase objects with nested `category` field

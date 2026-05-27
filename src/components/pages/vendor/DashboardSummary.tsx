@@ -19,7 +19,7 @@ const DashboardSummary: React.FC = () => {
   const fetchBookings = useCallback(async () => {
     if (!token || !user?._id) return;
     try {
-      const data: Booking[] = await getVendorAllBookingAPI(user._id);
+      const data: Booking[] = await getVendorAllBookingAPI(user._id, token);
       setBookings(data);
     } catch (error) {
       console.error("Error fetching bookings:", error);
