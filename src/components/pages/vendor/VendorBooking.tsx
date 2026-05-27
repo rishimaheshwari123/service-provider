@@ -109,7 +109,7 @@ const VendorBookings: React.FC = () => {
 
     try {
       // API call with proper typing/error handling
-      const data: ExtendedBooking[] = await getVendorAllBookingAPI(user._id);
+      const data: ExtendedBooking[] = await getVendorAllBookingAPI(user._id, token);
       setBookings(data);
     } catch (error) {
       console.error("Error fetching vendor bookings:", error);

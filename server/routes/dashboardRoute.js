@@ -2,9 +2,13 @@
 const express = require("express");
 const router = express.Router();
 const { getCountsCtrl, getVendorDashboardCtrl } = require("../controllers/dashboardDataCtrl");
+const { verifyToken, isAdmin, isVendor } = require("../utils/verifyToken");
 
-// agar auth chahiye ho to middleware add kar do, warna seedha:
-router.get("/stats", getCountsCtrl);
-router.get("/vendor-stats/:id", getVendorDashboardCtrl);
+// Protected Routes
+// Admin can see all stats
+router.get("/stats", verifyToken, isAdmin, getCountsCtrl);
+
+// Vendor can see only their own dashboard stats
+router.get("/vendor-stats/:id", verifyToken, isVendor, getVendorDashboardCtrl);
 
 module.exports = router;

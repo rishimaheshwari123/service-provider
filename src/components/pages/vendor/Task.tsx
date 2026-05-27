@@ -69,7 +69,7 @@ const Task: React.FC = () => {
     if (!token || !user?._id) return;
     setLoading(true);
     try {
-      const data: ExtendedBooking[] = await getVendorAllBookingAPI(user._id);
+      const data: ExtendedBooking[] = await getVendorAllBookingAPI(user._id, token);
       setBookings(data);
     } catch (error) {
       console.error("Error fetching vendor bookings:", error);

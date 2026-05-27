@@ -42,7 +42,8 @@ const AllUsers = () => {
   const fetchUsers = async (page = 1, search = "") => {
     try {
       setLoading(true);
-      const data = await getAllUsersAPI(page, limit, search);
+      const token = (user as any)?.token;
+      const data = await getAllUsersAPI(page, limit, search, token);
       setUsers(data.users || []);
       setCurrentPage(data.pagination?.currentPage || 1);
       setTotalPages(data.pagination?.totalPages || 1);

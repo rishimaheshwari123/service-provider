@@ -367,3 +367,47 @@ exports.updateBookingStatusCtrl = async (req, res) => {
         });
     }
 };
+
+
+// ✅ Get Bookings by User ID
+exports.getBookingsByUserCtrl = async (req, res) => {
+    try {
+        const { userId } = req.params;
+
+        if (!userId) {
+            return res.status(400).json({
+                success: false,
+                message: "User ID is required.",
+            });
+        }
+
+        // Get all bookings for this user
+        const bookings = await Booking.find({ user: userId })
+            .populate({
+                path: "service",
+                select: "title price location images vendor category",
+                populate: {
+                    path: "vendor",
+                    select: "name phone email",
+                },
+            })
+            .populate({
+                path: "user",
+                model: "auth",
+                select: "name email phone",
+            })
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            total: bookings.length,
+            bookings,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error fetching user bookings.",
+            error: error.message,
+        });
+    }
+};

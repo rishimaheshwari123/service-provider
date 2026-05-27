@@ -175,10 +175,17 @@ export function logout(navigate) {
 }
 
 
-export const getAllVendorAPI = async () => {
+export const getAllVendorAPI = async (token) => {
 
   try {
-    const response = await apiConnector("GET", GET_ALL_VENDOR,)
+    const response = await apiConnector(
+      "GET", 
+      GET_ALL_VENDOR,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    )
 
 
     if (!response?.data?.success) {
@@ -194,10 +201,17 @@ export const getAllVendorAPI = async () => {
 
 };
 
-export const getAllVendorPaginatedAPI = async ({ page = 1, limit = 10, search = "", status = "all" } = {}) => {
+export const getAllVendorPaginatedAPI = async ({ page = 1, limit = 10, search = "", status = "all", token } = {}) => {
   try {
     const params = new URLSearchParams({ page, limit, search, status }).toString();
-    const response = await apiConnector("GET", `${GET_ALL_VENDOR_PAGINATED}?${params}`);
+    const response = await apiConnector(
+      "GET", 
+      `${GET_ALL_VENDOR_PAGINATED}?${params}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");

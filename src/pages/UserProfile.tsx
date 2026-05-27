@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
 import { getUserProfile } from "@/service/operations/auth";
+import { getUserAllBookingAPI } from "@/service/operations/booking";
 import {
   FaUserCircle,
   FaEnvelope,
@@ -220,28 +221,11 @@ const UserProfile = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await axios.get<BookingsResponse>(
-        `${BASE_URL}/booking/getAll`,
-      );
-      if (response.data.success && authUser?._id) {
-        // Filter bookings to show only those made by the current logged-in user
-        const userBookings = response.data.bookings.filter(
-          (booking: Booking) => {
-            // Check if booking belongs to current user and has valid service data
-            const belongsToUser =
-              (typeof booking.user === "string"
-                ? booking.user === authUser._id
-                : booking.user?._id === authUser._id) ||
-              booking.user === authUser._id;
-
-            const hasValidService =
-              booking.service && typeof booking.service === "object";
-
-            return belongsToUser && hasValidService;
-          },
-        );
-        setBookings(userBookings);
-      }
+      if (!authUser?._id) return;
+      
+      const token = (authUser as any)?.token;
+      const userBookings = await getUserAllBookingAPI(authUser._id, token);
+      setBookings(userBookings);
     } catch (error) {
       console.error("Error fetching bookings:", error);
     }

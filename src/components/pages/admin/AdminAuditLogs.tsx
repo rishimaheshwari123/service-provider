@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 import { getAuditLogsAPI } from "@/service/operations/audit";
 import { 
   Loader2, 
@@ -45,11 +47,14 @@ const AdminAuditLogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const limit = 50;
+  
+  const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   const fetchLogs = async (nextPage = 1, activeSearch = searchTerm) => {
     setLoading(true);
     try {
-      const data = await getAuditLogsAPI(nextPage, activeSearch ? limit : limit, activeSearch);
+      const token = (user as any)?.token;
+      const data = await getAuditLogsAPI(nextPage, activeSearch ? limit : limit, activeSearch, token);
       console.log("Audit Logs Response:", data);
       
       if (nextPage === 1) setLogs(data.logs || []);

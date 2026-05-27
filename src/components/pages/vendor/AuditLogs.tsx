@@ -39,7 +39,8 @@ const AuditLogsPage = () => {
   const fetchLogs = async (nextPage = 1) => {
     setLoading(true);
     try {
-      const data = await getAuditLogsAPI(nextPage, limit, vendorId);
+      const token = (user as any)?.token;
+      const data = await getAuditLogsAPI(nextPage, limit, vendorId, token);
       if (nextPage === 1) setLogs(data.logs);
       else setLogs((prev) => [...prev, ...data.logs]);
 

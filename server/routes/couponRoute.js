@@ -10,14 +10,15 @@ const {
     deleteCouponCtrl,
     getCouponStatsCtrl
 } = require('../controllers/couponCtrl');
+const { verifyToken, isAdmin } = require('../utils/verifyToken');
 
-// Admin routes - add authentication middleware if needed in the future
-router.post('/create', createCouponCtrl);
-router.get('/getAll', getAllCouponsCtrl);
-router.get('/stats', getCouponStatsCtrl);
-router.get('/:couponId', getCouponByIdCtrl);
-router.put('/:couponId', updateCouponCtrl);
-router.delete('/:couponId', deleteCouponCtrl);
+// Protected Admin routes - Only Admin can manage coupons
+router.post('/create', verifyToken, isAdmin, createCouponCtrl);
+router.get('/getAll', verifyToken, isAdmin, getAllCouponsCtrl);
+router.get('/stats', verifyToken, isAdmin, getCouponStatsCtrl);
+router.get('/:couponId', verifyToken, isAdmin, getCouponByIdCtrl);
+router.put('/:couponId', verifyToken, isAdmin, updateCouponCtrl);
+router.delete('/:couponId', verifyToken, isAdmin, deleteCouponCtrl);
 
 // Public routes - for coupon validation and application
 router.post('/validate', validateCouponCtrl);

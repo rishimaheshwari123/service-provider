@@ -1,5 +1,6 @@
 const express = require("express")
 const { vendorLoginCtrl, vendorRegisterCtrl, getAllVendorCtrl, getAllVendorPaginatedCtrl, updateVendorStatusCtrl, getVendorByIDCtrl, updateVendorProfileCtrl, updateVendorPercentageCtrl, updateWorkingHours, requestProfileUpdateCtrl, deleteVendorCtrl, sendVendorOTP, verifyVendorOTP, vendorForgotPasswordCtrl, vendorVerifyResetOTPCtrl, vendorResetPasswordCtrl, adminResetVendorPasswordCtrl, updateVendorProfileImageCtrl, updateVendorRewardSettingsCtrl } = require("../controllers/vendorCtrl")
+const { verifyToken, isAdmin } = require("../utils/verifyToken")
 const router = express.Router()
 
 
@@ -11,8 +12,11 @@ router.post("/forgot-password", vendorForgotPasswordCtrl)
 router.post("/verify-reset-otp", vendorVerifyResetOTPCtrl)
 router.post("/reset-password", vendorResetPasswordCtrl)
 router.post("/admin-reset-password", adminResetVendorPasswordCtrl)
-router.get("/getAll", getAllVendorCtrl)
-router.get("/getAllPaginated", getAllVendorPaginatedCtrl)
+
+// Protected Admin Routes - Only Admin can access all vendors
+router.get("/getAll", verifyToken, isAdmin, getAllVendorCtrl)
+router.get("/getAllPaginated", verifyToken, isAdmin, getAllVendorPaginatedCtrl)
+
 router.get("/get/:id", getVendorByIDCtrl)
 router.put("/update/:id", updateVendorStatusCtrl)
 router.put("/update-profile/:id", updateVendorProfileCtrl)

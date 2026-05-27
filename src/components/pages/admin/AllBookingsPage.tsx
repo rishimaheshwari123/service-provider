@@ -103,11 +103,13 @@ const AllBookingsPage: React.FC = () => {
     const fetchBookings = async () => {
       setLoading(true);
       try {
+        const token = (user as any)?.token;
         const response = await getAllBookingAPI(
           currentPage,
           limit,
           activeSearch,
-          selectedStatus
+          selectedStatus,
+          token
         );
         if (response && response.bookings) {
           setBookings(response.bookings);
@@ -132,11 +134,13 @@ const AllBookingsPage: React.FC = () => {
   const downloadBookingsPDF = async () => {
     const toastId = toast.loading("Generating PDF Report...");
     try {
+      const token = (user as any)?.token;
       const allBookings = await getAllBookingAPI(
         undefined,
         undefined,
         activeSearch,
-        selectedStatus
+        selectedStatus,
+        token
       );
 
       if (!allBookings || allBookings.length === 0) {

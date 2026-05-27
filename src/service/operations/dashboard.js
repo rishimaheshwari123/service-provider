@@ -5,9 +5,16 @@ import { dashboar } from "../apis";
 const { ADMIN_DASHBOARD_DATA, VENDOR_DASHBOARD_DATA } = dashboar;
 
 // ✅ Admin Dashboard Data
-export const getAdminDashboardData = async () => {
+export const getAdminDashboardData = async (token) => {
   try {
-    const response = await apiConnector("GET", `${ADMIN_DASHBOARD_DATA}`);
+    const response = await apiConnector(
+      "GET", 
+      `${ADMIN_DASHBOARD_DATA}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
@@ -25,9 +32,16 @@ export const getAdminDashboardData = async () => {
 };
 
 // ✅ Vendor Dashboard Data
-export const getVendorDashboardData = async (id) => {
+export const getVendorDashboardData = async (id, token) => {
   try {
-    const response = await apiConnector("GET", `${VENDOR_DASHBOARD_DATA}/${id}`);
+    const response = await apiConnector(
+      "GET", 
+      `${VENDOR_DASHBOARD_DATA}/${id}`,
+      null,
+      {
+        Authorization: `Bearer ${token}`,
+      }
+    );
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");

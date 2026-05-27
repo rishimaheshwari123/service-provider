@@ -278,7 +278,8 @@ const VendorManagement = () => {
     }
 
     try {
-      const result = await getAllVendorPaginatedAPI({ page, limit: ITEMS_PER_PAGE, search, status });
+      const token = (user as any)?.token;
+      const result = await getAllVendorPaginatedAPI({ page, limit: ITEMS_PER_PAGE, search, status, token });
 
       if (result && result.vendors) {
         setVendors(result.vendors);
