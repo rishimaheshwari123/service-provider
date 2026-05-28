@@ -5,7 +5,7 @@ import { endpoints, vendor } from "../apis";
 import Swal from "sweetalert2";
 const {
   LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER,
-  FORGOT_PASSWORD_API, VERIFY_RESET_OTP_API, RESET_PASSWORD_API
+  FORGOT_PASSWORD_API, VERIFY_RESET_OTP_API, RESET_PASSWORD_API, SEND_PHONE_VERIFICATION_OTP_API, VERIFY_PHONE_OTP_API
 } = endpoints;
 
 export async function login(phone, password, dispatch) {
@@ -70,7 +70,7 @@ export async function signUp(formData) {
     Swal.close();
     if (!response?.data?.success) {
       await Swal.fire({
-        title: "Login Failed",
+        title: "Registration Failed",
         text: response.data.message,
         icon: "error",
       });
@@ -78,8 +78,8 @@ export async function signUp(formData) {
     }
 
     Swal.fire({
-      title: `Role created successfully!`,
-      text: `Have a nice day!`,
+      title: `Account created successfully!`,
+      text: `Welcome to MeraGharSansaar!`,
       icon: "success",
     });
 
@@ -93,6 +93,7 @@ export async function signUp(formData) {
         "Something went wrong, please try again later",
       icon: "error",
     });
+    return null;
   }
 }
 
@@ -369,6 +370,56 @@ export const vendorResetPassword = async (resetToken, newPassword) => {
   } catch (error) {
     console.error("VENDOR RESET PASSWORD API ERROR:", error);
     toast.error(error?.response?.data?.message || "Failed to reset password!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+
+// Phone Verification Functions
+export const sendPhoneVerificationOTP = async (userId, otpMethod = 'whatsapp') => {
+  const toastId = toast.loading("Sending verification OTP...");
+
+  try {
+    const response = await apiConnector("POST", SEND_PHONE_VERIFICATION_OTP_API, {
+      userId,
+      otpMethod
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Verification OTP sent successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("SEND PHONE VERIFICATION OTP API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to send verification OTP!");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const verifyPhoneOTP = async (userId, otp) => {
+  const toastId = toast.loading("Verifying phone number...");
+
+  try {
+    const response = await apiConnector("POST", VERIFY_PHONE_OTP_API, {
+      userId,
+      otp
+    });
+
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Something went wrong!");
+    }
+
+    toast.success(response?.data?.message || "Phone number verified successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("VERIFY PHONE OTP API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to verify phone number!");
     throw error;
   } finally {
     toast.dismiss(toastId);

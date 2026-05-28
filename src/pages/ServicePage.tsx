@@ -33,14 +33,13 @@ const MAX_PRICE_LIMIT = 50000;
 const MIN_PRICE_LIMIT = 0;
 
 const ServicesPage = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { token } = useSelector((state: RootState) => state.auth);
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
   const [allReviews, setAllReviews] = useState<any[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
   const [dataInitialized, setDataInitialized] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -68,6 +67,7 @@ const ServicesPage = () => {
   const [categorySearchTerm, setCategorySearchTerm] = useState("");
   const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(-1);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  const autoSearchPerformed = useRef(false); // Track if auto-search has been performed
 
   // TEMPORARY FLAG: Set to false when real reviews are available
   const USE_MOCK_REVIEWS = false;
@@ -79,29 +79,21 @@ const ServicesPage = () => {
     const params = new URLSearchParams(location.search);
     const minPrice = Number(params.get("minPrice")) || MIN_PRICE_LIMIT;
     const maxPrice = Number(params.get("maxPrice")) || MAX_PRICE_LIMIT;
+    const categoryParam = params.get("category");
+    const searchParam = params.get("search") || params.get("title") || params.get("location") || "";
+
+    // Reset auto-search performed flag when URL changes
+    autoSearchPerformed.current = false;
 
     const newFilters = {
-      search:
-        params.get("search") ||
-        params.get("title") ||
-        params.get("location") ||
-        "",
+      search: searchParam,
       price: [minPrice, maxPrice],
-      category: params.get("category") || "all",
+      category: categoryParam || "all",
       autoFilled: params.get("autoFilled") || "",
-      shouldAutoSearch: false,
+      shouldAutoSearch: !!location.search, // Set to true if there are any URL params
     };
+    
     setFilters(newFilters);
-
-    // If there are URL parameters, trigger search automatically
-    if (location.search) {
-      // Set a flag to trigger search after data is loaded
-      setFilters((prev) => ({
-        ...prev,
-        ...newFilters,
-        shouldAutoSearch: true,
-      }));
-    }
   }, [location.search]);
 
   // Close category dropdown when clicking outside
@@ -139,8 +131,8 @@ const ServicesPage = () => {
         setCategories(categoriesData || []);
         setAllReviews(reviewsData || []);
 
-        // Then fetch services only once
-        await fetchServices();
+        // Don't fetch services here - let the auto-search effect handle it
+        // This prevents overriding URL params with default empty search
       } catch (error) {
         console.error("Error initializing data:", error);
         setDataInitialized(false); // Reset on error
@@ -191,10 +183,21 @@ const ServicesPage = () => {
     [],
   );
 
-  // Apply filters only on initial load or when services/categories change
+  // Auto-search effect - runs once when data is ready
   useEffect(() => {
-    if (categories.length > 0 && dataInitialized) {
-      // Check if we should auto-search (from URL params)
+    // Only run if:
+    // 1. Categories are loaded
+    // 2. Data is initialized
+    // 3. Auto-search hasn't been performed yet
+    if (
+      categories.length > 0 &&
+      dataInitialized &&
+      !autoSearchPerformed.current
+    ) {
+      // Mark as performed to prevent re-runs
+      autoSearchPerformed.current = true;
+
+      // If URL params exist, use them; otherwise fetch all services
       if (filters.shouldAutoSearch) {
         // Trigger backend search with URL parameters
         fetchServices({
@@ -202,11 +205,14 @@ const ServicesPage = () => {
           search: filters.search || undefined,
           category: filters.category !== "all" ? filters.category : undefined,
         });
-        // Reset the flag
+        // Reset the flag in state
         setFilters((prev) => ({ ...prev, shouldAutoSearch: false }));
+      } else {
+        // No URL params - fetch all services
+        fetchServices({ page: 1 });
       }
     }
-  }, [categories, dataInitialized, filters.shouldAutoSearch]);
+  }, [categories.length, dataInitialized, filters.shouldAutoSearch, fetchServices]);
 
   // Note: Removed filters from dependency array so it doesn't auto-filter on every change
 
@@ -467,7 +473,7 @@ const ServicesPage = () => {
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex flex-col lg:flex-row lg:items-center gap-3">
               {/* Search Input */}
-              <div className="flex-1 w-full lg:max-w-2xl">
+              <div className="flex-1 w-full">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
                   <input
@@ -603,17 +609,6 @@ const ServicesPage = () => {
                     <span>{toPascalCase("Find Services")}</span>
                   </button>
 
-                  <button
-                    onClick={() => setShowFilters(!showFilters)}
-                    className="flex-none flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors bg-white"
-                  >
-                    <Filter className="w-4 h-4" />
-                    <span>{toPascalCase(t("common.filter"))}</span>
-                    <ChevronDown
-                      className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`}
-                    />
-                  </button>
-
                   {(filters.search ||
                     filters.category !== "all" ||
                     filters.autoFilled) && (
@@ -629,41 +624,7 @@ const ServicesPage = () => {
               </div>
             </div>
 
-            {/* Extended Filters */}
-            {showFilters && (
-              <div className="mt-3 pt-3 border-t flex flex-wrap gap-4 items-center">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">
-                    {toPascalCase("Price")}:
-                  </span>
-                  <input
-                    type="number"
-                    value={filters.price[0]}
-                    onChange={(e) =>
-                      setFilters({
-                        ...filters,
-                        price: [Number(e.target.value), filters.price[1]],
-                      })
-                    }
-                    className="w-24 px-2 py-1 border rounded text-sm"
-                    placeholder={toPascalCase("Min")}
-                  />
-                  <span>-</span>
-                  <input
-                    type="number"
-                    value={filters.price[1]}
-                    onChange={(e) =>
-                      setFilters({
-                        ...filters,
-                        price: [filters.price[0], Number(e.target.value)],
-                      })
-                    }
-                    className="w-24 px-2 py-1 border rounded text-sm"
-                    placeholder={toPascalCase("Max")}
-                  />
-                </div>
-              </div>
-            )}
+            {/* Extended Filters - Removed */}
           </div>
         </div>
 
@@ -728,82 +689,86 @@ const ServicesPage = () => {
               </div>
 
               {/* English Section */}
-              <div className="mb-8 pb-8 border-b border-gray-200">
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  Service Coming Soon in Your Area 🚀
-                </h3>
-                <p className="text-gray-600 mb-6 text-lg">
-                  This service is not available at the moment — but we're
-                  expanding fast!
-                </p>
-
-                {/* Service Provider CTA */}
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-                  <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
-                    <span className="text-2xl">👨‍🔧</span>
-                    <span className="text-left">
-                      <strong>Are you a service provider?</strong>
-                      <br />
-                      Register now on our app and start receiving customer
-                      leads.
-                    </span>
+              {i18n.language === 'en' && (
+                <div className="mb-8">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                    Service Coming Soon in Your Area 🚀
+                  </h3>
+                  <p className="text-gray-600 mb-6 text-lg">
+                    This service is not available at the moment — but we're
+                    expanding fast!
                   </p>
-                  <button
-                    onClick={() => navigate("/vendor/register")}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
-                  >
-                    Register Now
-                  </button>
-                </div>
 
-                {/* Customer Interest */}
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
-                  <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
-                    <span className="text-2xl">📩</span>
-                    <span className="text-left">
-                      <strong>Want this service in your area?</strong>
-                      <br />
-                      Leave your contact details, and we'll notify you when it's
-                      live.
-                    </span>
-                  </p>
-                  <button
-                    onClick={() => navigate("/contact")}
-                    className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
-                  >
-                    Notify Me
-                  </button>
+                  {/* Service Provider CTA */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                    <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
+                      <span className="text-2xl">👨‍🔧</span>
+                      <span className="text-left">
+                        <strong>Are you a service provider?</strong>
+                        <br />
+                        Register now on our app and start receiving customer
+                        leads.
+                      </span>
+                    </p>
+                    <button
+                      onClick={() => navigate("/vendor/register")}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+                    >
+                      Register Now
+                    </button>
+                  </div>
+
+                  {/* Customer Interest */}
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                    <p className="text-gray-700 mb-4 flex items-start justify-center gap-2">
+                      <span className="text-2xl">📩</span>
+                      <span className="text-left">
+                        <strong>Want this service in your area?</strong>
+                        <br />
+                        Leave your contact details, and we'll notify you when it's
+                        live.
+                      </span>
+                    </p>
+                    <button
+                      onClick={() => navigate("/contact")}
+                      className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+                    >
+                      Notify Me
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Hindi Section */}
-              <div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                  सेवा उपलब्ध नहीं है 😔
-                </h3>
-                <p className="text-gray-600 mb-4 text-lg">
-                  क्षमा करें! यह सेवा फिलहाल आपके क्षेत्र में उपलब्ध नहीं है।
-                </p>
-                <p className="text-gray-600 mb-6">
-                  हम लगातार नए सेवा प्रदाताओं को जोड़ रहे हैं और जल्द ही यह सेवा
-                  आपके क्षेत्र में उपलब्ध होगी।
-                </p>
-
-                {/* Service Provider CTA - Hindi */}
-                <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
-                  <p className="text-gray-700 mb-4">
-                    <span className="text-2xl">👉</span> यदि आप किसी भी प्रकार
-                    की सेवा प्रदान करते हैं, तो कृपया हमारे ऐप पर रजिस्टर करें
-                    और अपने व्यवसाय को बढ़ाएं।
+              {i18n.language === 'hi' && (
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                    सेवा उपलब्ध नहीं है 😔
+                  </h3>
+                  <p className="text-gray-600 mb-4 text-lg">
+                    क्षमा करें! यह सेवा फिलहाल आपके क्षेत्र में उपलब्ध नहीं है।
                   </p>
-                  <button
-                    onClick={() => navigate("/vendor/register")}
-                    className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
-                  >
-                    सेवा प्रदाता के रूप में रजिस्टर करें
-                  </button>
+                  <p className="text-gray-600 mb-6">
+                    हम लगातार नए सेवा प्रदाताओं को जोड़ रहे हैं और जल्द ही यह सेवा
+                    आपके क्षेत्र में उपलब्ध होगी।
+                  </p>
+
+                  {/* Service Provider CTA - Hindi */}
+                  <div className="bg-orange-50 border border-orange-200 rounded-xl p-6">
+                    <p className="text-gray-700 mb-4">
+                      <span className="text-2xl">👉</span> यदि आप किसी भी प्रकार
+                      की सेवा प्रदान करते हैं, तो कृपया हमारे ऐप पर रजिस्टर करें
+                      और अपने व्यवसाय को बढ़ाएं।
+                    </p>
+                    <button
+                      onClick={() => navigate("/vendor/register")}
+                      className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg font-semibold transition-colors shadow-md hover:shadow-lg"
+                    >
+                      सेवा प्रदाता के रूप में रजिस्टर करें
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Search Suggestions (if search was used) */}
               {filters.search && (

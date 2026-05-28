@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
 import { getUserProfile } from "@/service/operations/auth";
 import { getUserAllBookingAPI } from "@/service/operations/booking";
+import PhoneVerificationModal from "@/components/PhoneVerificationModal";
 import {
   FaUserCircle,
   FaEnvelope,
@@ -93,6 +94,8 @@ interface UserData {
   _id: string;
   name: string;
   email: string;
+  phone?: string;
+  phoneVerified?: boolean;
   role: string;
   createdAt: string;
 }
@@ -133,6 +136,9 @@ const UserProfile = () => {
     confirmPassword: "",
   });
 
+  // Phone Verification States
+  const [showPhoneVerificationModal, setShowPhoneVerificationModal] = useState(false);
+
   // Sorting States
   const [bookingSortOrder, setBookingSortOrder] = useState<"asc" | "desc">(
     "desc",
@@ -158,6 +164,14 @@ const UserProfile = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handlePhoneVerificationSuccess = () => {
+    // Refresh profile data after verification
+    if (authUser?._id) {
+      fetchProfile(authUser._id);
+    }
+    setShowPhoneVerificationModal(false);
   };
 
   const handleUpdateProfile = async () => {
@@ -469,6 +483,31 @@ const UserProfile = () => {
                         {profileData.user.email}
                       </p>
                     )}
+                  </div>
+                </div>
+                <div className="flex items-center text-gray-700">
+                  <FaPhone className="text-indigo-500 mr-3 text-xl flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-500">Phone Number</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-semibold">
+                        {profileData.user.phone || "Not provided"}
+                      </p>
+                      {profileData.user.phone && (
+                        profileData.user.phoneVerified ? (
+                          <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+                            <FaCheckCircle /> Verified
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => setShowPhoneVerificationModal(true)}
+                            className="text-xs bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full hover:bg-yellow-200 transition-colors font-medium"
+                          >
+                            Verify Now
+                          </button>
+                        )
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex items-center text-gray-700">
@@ -1018,6 +1057,17 @@ const UserProfile = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Phone Verification Modal */}
+      {showPhoneVerificationModal && profileData?.user.phone && (
+        <PhoneVerificationModal
+          isOpen={showPhoneVerificationModal}
+          onClose={() => setShowPhoneVerificationModal(false)}
+          userId={profileData.user._id}
+          phoneNumber={profileData.user.phone}
+          onVerificationSuccess={handlePhoneVerificationSuccess}
+        />
       )}
     </>
   );

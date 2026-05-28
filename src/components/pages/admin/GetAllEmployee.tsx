@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { X, Edit, Key, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Edit, Key, ChevronLeft, ChevronRight, Loader2, Phone, CheckCircle, XCircle } from "lucide-react";
 import {
   getAllUsersAPI,
   editPermissionAPI,
   deleteUserAPI,
+  changeUserType,
 } from "@/service/operations/auth";
 import { FaTrash } from "react-icons/fa";
 import { endpoints } from "@/service/apis";
@@ -50,6 +51,7 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
+  const [typeLoading, setTypeLoading] = useState<string | null>(null);
   
   // Get user from Redux for token
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
@@ -158,6 +160,19 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
     setSearchInput("");
     setSearchQuery("");
     setCurrentPage(1);
+  };
+
+  // Handle change user type (Active/Inactive)
+  const handleChangeType = async (id: string, newType: string) => {
+    try {
+      setTypeLoading(id);
+      await changeUserType(id, newType);
+      fetchEmployees(currentPage, searchQuery);
+    } catch {
+      // Error already handled in API
+    } finally {
+      setTypeLoading(null);
+    }
   };
 
   // Update filtered employees when employees data or role filter changes
@@ -734,11 +749,14 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Phone
                   </th>
-                  {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th> */}
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Verified
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Role
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Change Type
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Permissions
@@ -761,7 +779,29 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                       {employee.email}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {employee?.phone}
+                      <div className="flex items-center gap-2">
+                        <Phone className="w-4 h-4 text-gray-400" />
+                        <span>{employee?.phone || "—"}</span>
+                      </div>
+                    </td>
+                    
+                    {/* Phone Verification Status */}
+                    <td className="px-6 py-4 text-center">
+                      {employee?.phone ? (
+                        employee?.phoneVerified ? (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                            <CheckCircle className="w-4 h-4" />
+                            Verified
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                            <XCircle className="w-4 h-4" />
+                            Not Verified
+                          </span>
+                        )
+                      ) : (
+                        <span className="text-gray-400 text-xs">—</span>
+                      )}
                     </td>
                     {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -783,6 +823,25 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                         {employee.role}
                       </span>
                     </td>
+
+                    {/* Change Type Dropdown */}
+                    <td className="px-6 py-4 text-center">
+                      <select
+                        onChange={(e) =>
+                          handleChangeType(employee._id, e.target.value)
+                        }
+                        value={employee.type}
+                        disabled={typeLoading === employee._id}
+                        className="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                      </select>
+                      {typeLoading === employee._id && (
+                        <Loader2 className="w-4 h-4 ml-2 inline-block animate-spin text-purple-600" />
+                      )}
+                    </td>
+
                     <td className="px-6 py-4 whitespace-normal text-sm text-gray-700">
                       <div className="flex flex-wrap gap-2">
                         {(() => {

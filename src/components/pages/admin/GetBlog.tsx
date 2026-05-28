@@ -236,7 +236,7 @@ const GetBlog = () => {
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 shadow-md rounded-md max-h-60 overflow-y-auto z-[200]">
                   {/* Category Search Input */}
-                  <div className="px-2 py-1.5 border-b border-gray-100 sticky top-0 bg-white z-10">
+                  <div className="px-2 py-1.5 border-b border-gray-100 sticky -top-2 bg-white z-10">
                     <input
                       type="text"
                       placeholder="Search category..."

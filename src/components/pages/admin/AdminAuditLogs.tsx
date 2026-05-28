@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { getAuditLogsAPI } from "@/service/operations/audit";
+import { getAuditLogsAPI, addAdminCommentAPI } from "@/service/operations/audit";
 import { 
   Loader2, 
   ClipboardList, 
@@ -9,7 +9,9 @@ import {
   Building2, 
   Clock, 
   Phone, 
-  Mail, 
+  Mail,
+  MessageSquare,
+  Send, 
   FileDown, 
   Search, 
   Building,
@@ -47,6 +49,8 @@ const AdminAuditLogs = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const limit = 50;
+  const [commentText, setCommentText] = useState<Record<string, string>>({});
+  const [addingComment, setAddingComment] = useState<string | null>(null);
   
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
@@ -82,6 +86,43 @@ const AdminAuditLogs = () => {
   const clearFilters = () => {
     setSearchInput("");
     setSearchTerm("");
+  };
+
+  const handleAddComment = async (logId: string) => {
+    const comment = commentText[logId];
+    
+    if (!comment || !comment.trim()) {
+      return;
+    }
+
+    try {
+      setAddingComment(logId);
+      const token = (user as any)?.token;
+      const response = await addAdminCommentAPI(logId, comment.trim(), user._id, token);
+      
+      if (response?.success) {
+        // Update local state with new comment
+        setLogs(logs.map(log => 
+          log._id === logId ? response.data : log
+        ));
+        // Clear comment text
+        setCommentText(prev => ({
+          ...prev,
+          [logId]: ""
+        }));
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    } finally {
+      setAddingComment(null);
+    }
+  };
+
+  const handleCommentChange = (logId: string, value: string) => {
+    setCommentText(prev => ({
+      ...prev,
+      [logId]: value
+    }));
   };
 
   const downloadExcel = () => {
@@ -327,6 +368,84 @@ const AdminAuditLogs = () => {
                     </div>
 
                   </div>
+
+                  {/* Admin Comments Section - Full Width at Bottom */}
+                  <div className="mt-6 pt-6 border-t-2 border-gray-200">
+                    <div className="flex items-center gap-2 mb-4">
+                      <h4 className="text-base font-bold text-gray-800">Admin Comments</h4>
+                      <span className="text-xs text-gray-500 ml-auto">
+                        {log.adminComments?.length || 0} comment(s)
+                      </span>
+                    </div>
+
+                    {/* Existing Comments - Full Width */}
+                    {log.adminComments && log.adminComments.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        {log.adminComments.map((comment, index) => (
+                          <div key={index} className="bg-gradient-to-r from-indigo-50 to-blue-50 p-4 rounded-xl border border-indigo-200 shadow-sm">
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm">
+                                  {comment.adminName?.charAt(0).toUpperCase()}
+                                </div>
+                                <div>
+                                  <span className="text-sm font-bold text-indigo-900">
+                                    {comment.adminName}
+                                  </span>
+                                  <span className="text-xs text-gray-500 ml-2">
+                                    {new Date(comment.createdAt).toLocaleString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric',
+                                      hour: '2-digit',
+                                      minute: '2-digit'
+                                    })}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-800 leading-relaxed pl-10">{comment.comment}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add New Comment - Full Width */}
+                  <div className="bg-gray-50 p-4 rounded-xl border-2 border-dashed border-gray-300">
+  <div className="flex flex-col sm:flex-row gap-3">
+    <input
+      type="text"
+      value={commentText[log._id] || ""}
+      onChange={(e) => handleCommentChange(log._id, e.target.value)}
+      placeholder="Add your admin comment here..."
+      disabled={addingComment === log._id}
+      className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium bg-white transition-all"
+    />
+
+    <button
+      onClick={() => handleAddComment(log._id)}
+      disabled={addingComment === log._id || !commentText[log._id]?.trim()}
+      className={`px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-md ${
+        addingComment === log._id || !commentText[log._id]?.trim()
+          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+          : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg transform hover:-translate-y-0.5"
+      }`}
+    >
+      {addingComment === log._id ? (
+        <>
+          <Loader2 className="w-4 h-4 animate-spin" />
+          Adding...
+        </>
+      ) : (
+        <>
+          Add Comment
+        </>
+      )}
+    </button>
+  </div>
+</div>
+                  </div>
+
                 </div>
               ))}
             </div>

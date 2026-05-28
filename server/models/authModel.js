@@ -100,6 +100,18 @@ const authSchema = new mongoose.Schema(
             type: Date,
         },
 
+        // Phone Verification Fields
+        phoneVerified: {
+            type: Boolean,
+            default: false,
+        },
+        phoneVerificationOTP: {
+            type: String,
+        },
+        phoneVerificationOTPExpiry: {
+            type: Date,
+        },
+
         // Referral Fields
         referralCode: {
             type: String,

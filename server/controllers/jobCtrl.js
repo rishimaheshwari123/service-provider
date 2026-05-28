@@ -62,7 +62,6 @@ const getJobByIdCtrl = async (req, res) => {
             return res.status(404).json({ message: 'Job not found' });
         }
 
-        console.log(job)
         res.status(200).json({ success: true, job });
     } catch (error) {
         res.status(500).json({ success: false, message: 'Server error', error: error.message });

@@ -19,15 +19,12 @@ const DisplayRating = ({ property }) => {
       
       // Filter ratings for this specific property
       if (property && property._id) {
-        console.log("Current property ID:", property._id);
         const filteredRatings = response.filter(
           (rating: any) => {
-            console.log(`Comparing rating.property: ${rating.property} with property._id: ${property._id}`);
             return rating.property === property._id;
           }
         );
-        console.log(`Found ${filteredRatings.length} reviews for property ${property._id}`);
-        console.log("Filtered ratings:", filteredRatings);
+       
         setPropertyRatings(filteredRatings);
       } else {
         console.log("No property or property._id found:", property);

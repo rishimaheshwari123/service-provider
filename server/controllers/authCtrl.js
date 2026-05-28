@@ -660,6 +660,154 @@ const generateReferralCodeCtrl = async (req, res) => {
   }
 };
 
+// Send Phone Verification OTP
+const sendPhoneVerificationOTPCtrl = async (req, res) => {
+  try {
+    const { userId, otpMethod = 'whatsapp' } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    const user = await authModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!user.phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number not found for this user",
+      });
+    }
+
+    // Check if phone is already verified
+    if (user.phoneVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is already verified",
+      });
+    }
+
+    // Generate OTP
+    const { generateOTP, sendSMSOTP, sendWhatsAppOTP } = require('../utils/otpService');
+    const otp = generateOTP();
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    // Save OTP to user
+    user.phoneVerificationOTP = otp;
+    user.phoneVerificationOTPExpiry = otpExpiry;
+    await user.save();
+
+    // Send OTP based on method
+    let otpResult;
+    if (otpMethod === 'whatsapp') {
+      otpResult = await sendWhatsAppOTP(user.phone, otp, null, user._id, user.name);
+    } else {
+      otpResult = await sendSMSOTP(user.phone, otp, null, user._id, user.name);
+    }
+
+    if (otpResult.success) {
+      return res.status(200).json({
+        success: true,
+        message: `Verification OTP sent via ${otpResult.method || otpMethod}`,
+        method: otpResult.method || otpMethod,
+      });
+    } else {
+      return res.status(500).json({
+        success: false,
+        message: otpResult.message || "Failed to send OTP. Please try again.",
+      });
+    }
+  } catch (error) {
+    console.error("Send phone verification OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
+// Verify Phone Number with OTP
+const verifyPhoneOTPCtrl = async (req, res) => {
+  try {
+    const { userId, otp } = req.body;
+
+    if (!userId || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID and OTP are required",
+      });
+    }
+
+    const user = await authModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check if phone is already verified
+    if (user.phoneVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is already verified",
+      });
+    }
+
+    // Check if OTP exists and is not expired
+    if (!user.phoneVerificationOTP || !user.phoneVerificationOTPExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "No OTP found. Please request a new one.",
+      });
+    }
+
+    if (new Date() > user.phoneVerificationOTPExpiry) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP has expired. Please request a new one.",
+      });
+    }
+
+    if (user.phoneVerificationOTP !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    // OTP is valid - mark phone as verified
+    user.phoneVerified = true;
+    user.phoneVerificationOTP = undefined;
+    user.phoneVerificationOTPExpiry = undefined;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Phone number verified successfully",
+      user: {
+        _id: user._id,
+        name: user.name,
+        phone: user.phone,
+        phoneVerified: user.phoneVerified,
+      },
+    });
+  } catch (error) {
+    console.error("Verify phone OTP error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
 module.exports = {
   registerCtrl,
   loginCtrl,
@@ -673,4 +821,6 @@ module.exports = {
   verifyResetOTPCtrl,
   resetPasswordCtrl,
   generateReferralCodeCtrl,
+  sendPhoneVerificationOTPCtrl,
+  verifyPhoneOTPCtrl,
 };

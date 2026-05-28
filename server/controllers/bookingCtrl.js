@@ -125,6 +125,7 @@ exports.getAllBookingsCtrl = async (req, res) => {
         const page = parseInt(req.query.page);
         const limit = parseInt(req.query.limit) || 10;
         const status = req.query.status;
+        const paymentStatus = req.query.paymentStatus;
         const search = req.query.search;
 
         let filterConditions = {};
@@ -142,6 +143,11 @@ exports.getAllBookingsCtrl = async (req, res) => {
         // Status filter
         if (status && status !== "all") {
             filterConditions.status = status;
+        }
+
+        // Payment status filter
+        if (paymentStatus && paymentStatus !== "all") {
+            filterConditions["payment.paymentStatus"] = paymentStatus;
         }
 
         // Search filter across Populated Fields

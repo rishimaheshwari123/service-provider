@@ -14,6 +14,9 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  Phone,
+  CheckCircle,
+  XCircle,
 } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -268,6 +271,12 @@ const AllUsers = () => {
                     <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Email
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                      Phone
+                    </th>
+                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                      Verified
+                    </th>
                     <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Change Type
                     </th>
@@ -294,6 +303,33 @@ const AllUsers = () => {
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
                         {user.email}
+                      </td>
+                      
+                      {/* Phone Number */}
+                      <td className="px-6 py-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-gray-400" />
+                          <span>{user.phone || "—"}</span>
+                        </div>
+                      </td>
+
+                      {/* Phone Verification Status */}
+                      <td className="px-6 py-4 text-center">
+                        {user.phone ? (
+                          user.phoneVerified ? (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                              <CheckCircle className="w-4 h-4" />
+                              Verified
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-700">
+                              <XCircle className="w-4 h-4" />
+                              Not Verified
+                            </span>
+                          )
+                        ) : (
+                          <span className="text-gray-400 text-xs">—</span>
+                        )}
                       </td>
 
                       {/* Type change dropdown */}
