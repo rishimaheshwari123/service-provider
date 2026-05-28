@@ -79,6 +79,8 @@ const Sidebar = () => {
     const collapsed = !isCollapsed;
     setIsCollapsed(collapsed);
     localStorage.setItem("sidebarCollapsed", collapsed.toString());
+    // Dispatch custom event for Layout to listen
+    window.dispatchEvent(new Event("sidebarToggle"));
   };
 
   // Effect to close sidebar when clicking outside
@@ -87,6 +89,8 @@ const Sidebar = () => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
         setIsCollapsed(true);
         localStorage.setItem("sidebarCollapsed", "true");
+        // Dispatch custom event for Layout to listen
+        window.dispatchEvent(new Event("sidebarToggle"));
       }
     };
 
@@ -292,16 +296,16 @@ const Sidebar = () => {
         key={item.to}
         to={item.to}
         className={({ isActive }) =>
-          `flex items-center space-x-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
+          `flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'} px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
             isActive
-              ? "bg-blue-50 border-r-4 border-blue-600 text-blue-700"
+              ? `bg-blue-50 ${isCollapsed ? 'ring-2 ring-blue-600' : 'border-r-4 border-blue-600'} text-blue-700`
               : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
           }`
         }
       >
         {({ isActive }) => (
           <>
-            <div className="relative">
+            <div className="relative flex-shrink-0">
               <Icon
                 className={`h-5 w-5 flex-shrink-0 ${
                   isActive ? "text-blue-600" : item.color
@@ -317,16 +321,16 @@ const Sidebar = () => {
               )}
             </div>
             <span
-              className={`font-medium ${
+              className={`font-medium text-sm leading-tight ${
                 isCollapsed ? "hidden" : "block"
-              } transition-all duration-200 flex-1`}
+              } transition-all duration-200 flex-1 min-w-0 break-words`}
             >
               {item.label}
             </span>
             {showNotificationBadge && !isCollapsed && (
               <Badge
                 variant="destructive"
-                className="ml-auto h-5 px-2 text-xs font-bold animate-pulse"
+                className="ml-auto h-5 px-2 text-xs font-bold animate-pulse flex-shrink-0"
               >
                 {pendingRequestsCount}
               </Badge>
@@ -342,7 +346,7 @@ const Sidebar = () => {
       ref={sidebarRef}
       className={`fixed h-screen top-0 z-50 ${
         isCollapsed ? "w-20" : "w-64"
-      } bg-white border-r border-gray-200 shadow-lg transition-all duration-300 flex flex-col`}
+      } bg-white border-r border-gray-200 shadow-lg transition-all duration-300 flex flex-col overflow-hidden`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
