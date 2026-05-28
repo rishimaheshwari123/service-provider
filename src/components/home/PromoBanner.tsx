@@ -86,7 +86,6 @@ export default function PromoBanner() {
         ]);
         setAds(adsData);
         setAvailableCategories(categoriesData || []);
-        console.log("Available categories:", categoriesData);
       } catch (error) {
         console.error("Failed to fetch data:", error);
       }

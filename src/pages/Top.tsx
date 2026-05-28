@@ -211,6 +211,7 @@ const TopSearchBar = () => {
             </div>
           )}
         </div>
+        
 
         {/* Search Input */}
         <div className="flex items-center flex-1 px-4 border-r border-gray-200 focus-within:ring-2 focus-within:ring-blue-600 focus-within:z-10 transition-shadow">

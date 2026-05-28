@@ -25,7 +25,29 @@ const auditLogSchema = new mongoose.Schema(
             name: String,
             email: String,
             phone: String
-        }
+        },
+        adminComments: [
+            {
+                comment: {
+                    type: String,
+                    required: true,
+                    trim: true,
+                },
+                adminId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "auth",
+                    required: true,
+                },
+                adminName: {
+                    type: String,
+                    required: true,
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     { timestamps: true }
 );

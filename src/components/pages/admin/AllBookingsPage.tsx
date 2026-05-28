@@ -68,6 +68,7 @@ const AllBookingsPage: React.FC = () => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [activeSearch, setActiveSearch] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("all");
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
@@ -99,6 +100,12 @@ const AllBookingsPage: React.FC = () => {
     setCurrentPage(1);
   };
 
+  // Handle payment status select change
+  const handlePaymentStatusChange = (paymentStatus: string) => {
+    setSelectedPaymentStatus(paymentStatus);
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     const fetchBookings = async () => {
       setLoading(true);
@@ -109,6 +116,7 @@ const AllBookingsPage: React.FC = () => {
           limit,
           activeSearch,
           selectedStatus,
+          selectedPaymentStatus,
           token
         );
         if (response && response.bookings) {
@@ -129,7 +137,7 @@ const AllBookingsPage: React.FC = () => {
     };
 
     fetchBookings();
-  }, [currentPage, activeSearch, selectedStatus]);
+  }, [currentPage, activeSearch, selectedStatus, selectedPaymentStatus]);
 
   const downloadBookingsPDF = async () => {
     const toastId = toast.loading("Generating PDF Report...");
@@ -140,6 +148,7 @@ const AllBookingsPage: React.FC = () => {
         undefined,
         activeSearch,
         selectedStatus,
+        selectedPaymentStatus,
         token
       );
 
@@ -241,9 +250,9 @@ const AllBookingsPage: React.FC = () => {
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 bg-white p-4 rounded-xl border shadow-sm">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 bg-white p-4 rounded-xl border shadow-sm">
         {/* Search Field (Form wrapper to support Enter submission) */}
-        <form onSubmit={handleSearchSubmit} className="sm:col-span-2">
+        <form onSubmit={handleSearchSubmit} className="sm:col-span-2 lg:col-span-2">
           <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
             Search Bookings
           </label>
@@ -290,6 +299,24 @@ const AllBookingsPage: React.FC = () => {
               <SelectItem value="confirmed">Confirmed</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Payment Status Filter */}
+        <div>
+          <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block mb-1">
+            Payment Status
+          </label>
+          <Select value={selectedPaymentStatus} onValueChange={handlePaymentStatusChange}>
+            <SelectTrigger className="w-full border rounded-lg">
+              <SelectValue placeholder="All Payments" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Payments</SelectItem>
+              <SelectItem value="success">Success</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="failed">Failed</SelectItem>
             </SelectContent>
           </Select>
         </div>

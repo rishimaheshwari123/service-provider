@@ -1,8 +1,8 @@
 
 
-export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
+// export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
 // export const BASE_URL = "https://service-provider-1-6ite.onrender.com/api/v1"
-// export const BASE_URL = "http://localhost:8000/api/v1"
+export const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -17,6 +17,8 @@ export const endpoints = {
   VERIFY_RESET_OTP_API: BASE_URL + "/auth/verify-reset-otp",
   RESET_PASSWORD_API: BASE_URL + "/auth/reset-password",
   ADMIN_RESET_USER_PASSWORD_API: BASE_URL + "/auth/admin-reset-password",
+  SEND_PHONE_VERIFICATION_OTP_API: BASE_URL + "/auth/send-phone-verification-otp",
+  VERIFY_PHONE_OTP_API: BASE_URL + "/auth/verify-phone-otp",
 }
 
 export const image = {
@@ -103,6 +105,7 @@ export const customerSupport = {
   CREATE_CUSTOMER_SUPPORT_API: BASE_URL + "/customer-support/create",
   GET_ALL_CUSTOMER_SUPPORT_API: BASE_URL + "/customer-support/getAll",
   UPDATE_SUPPORT_STATUS_API: BASE_URL + "/customer-support/update-status",
+  ADD_ADMIN_REMARK_API: BASE_URL + "/customer-support/add-remark",
 }
 
 export const job = {
@@ -133,6 +136,7 @@ export const booking = {
 export const audit = {
   ADD_AUDIT_API: BASE_URL + "/audit/create",
   GET_ALL_AUDIT_API: BASE_URL + "/audit/getAll",
+  ADD_ADMIN_COMMENT_API: BASE_URL + "/audit/add-comment",
 }
 
 export const ads = {
@@ -193,13 +197,13 @@ export const reward = {
   GET_REWARD_APPLICATIONS_API: BASE_URL + "/reward/admin/applications",
   GET_VENDOR_HISTORY_API: BASE_URL + "/reward/admin/vendor-history",
   GET_REWARD_STATISTICS_API: BASE_URL + "/reward/admin/statistics",
-  
+
   // User APIs
   GET_USER_POINTS_API: BASE_URL + "/reward/user/points",
   GET_USER_HISTORY_API: BASE_URL + "/reward/user/history",
   GENERATE_REDEEM_CODE_API: BASE_URL + "/reward/user/generate-code",
   GET_USER_REDEEM_CODES_API: BASE_URL + "/reward/user/redeem-codes",
-  
+
   // Vendor APIs
   VERIFY_REDEEM_CODE_API: BASE_URL + "/reward/vendor/verify-code",
   APPLY_REDEEM_CODE_API: BASE_URL + "/reward/vendor/apply-code",

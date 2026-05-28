@@ -50,7 +50,6 @@ export const getAllReatingAPI = async () => {
     console.log("Fetching all reviews from API...");
     const response = await apiConnector("GET", GETALL_RATING_API);
     
-    console.log("Rating API response:", response);
 
     if (!response?.data?.success) {
       console.error("Rating API returned unsuccessful response:", response?.data);
@@ -58,7 +57,6 @@ export const getAllReatingAPI = async () => {
     }
     
     const reviews = response?.data?.allReviews || [];
-    console.log("Successfully fetched reviews:", reviews);
     return reviews;
   } catch (error) {
     console.error("Error fetching reviews:", error);

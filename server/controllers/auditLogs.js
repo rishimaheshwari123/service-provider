@@ -3,6 +3,7 @@ const Property = require("../models/propertyModel");
 const RewardSettings = require("../models/rewardSettingsModel");
 const RewardPoints = require("../models/rewardPointsModel");
 const RewardHistory = require("../models/rewardHistoryModel");
+const Auth = require("../models/authModel");
 
 const createAuditCtrl = async (req, res) => {
     try {
@@ -119,6 +120,7 @@ const getAuditLogsCtrl = async (req, res) => {
                     select: "name company phone",
                 },
             })
+            .populate("adminComments.adminId", "name email")
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(limit);
@@ -169,4 +171,72 @@ const getAuditLogsCtrl = async (req, res) => {
     }
 };
 
-module.exports = { createAuditCtrl, getAuditLogsCtrl };
+const addAdminCommentCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { comment, adminId } = req.body;
+
+        if (!comment || !adminId) {
+            return res.status(400).json({
+                success: false,
+                message: "Comment and adminId are required.",
+            });
+        }
+
+        // Get admin details
+        const admin = await Auth.findById(adminId);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: "Admin not found.",
+            });
+        }
+
+        // Add comment to audit log
+        const updatedLog = await AuditLogs.findByIdAndUpdate(
+            id,
+            {
+                $push: {
+                    adminComments: {
+                        comment,
+                        adminId,
+                        adminName: admin.name,
+                        createdAt: new Date(),
+                    },
+                },
+            },
+            { new: true }
+        )
+        .populate("userId", "name email phone")
+        .populate({
+            path: "propertyId",
+            select: "title vendor",
+            populate: {
+                path: "vendor",
+                select: "name company phone",
+            },
+        })
+        .populate("adminComments.adminId", "name email");
+
+        if (!updatedLog) {
+            return res.status(404).json({
+                success: false,
+                message: "Audit log not found.",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Admin comment added successfully.",
+            data: updatedLog,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to add admin comment.",
+            error: error.message,
+        });
+    }
+};
+
+module.exports = { createAuditCtrl, getAuditLogsCtrl, addAdminCommentCtrl };

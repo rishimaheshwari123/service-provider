@@ -9,7 +9,10 @@ exports.getCountsCtrl = async (req, res) => {
         const [usersCount, vendorsCount, servicesCount, inquiriesCount] =
             await Promise.all([
                 User.countDocuments({}),
-                Vendor.countDocuments({}),
+                // Only count vendors with valid name (non-empty, non-null, and exists)
+                Vendor.countDocuments({ 
+                    name: { $exists: true, $ne: "", $ne: null } 
+                }),
                 Service.countDocuments({}),
                 Inquiry.countDocuments({})
             ]);

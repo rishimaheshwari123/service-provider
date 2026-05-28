@@ -719,61 +719,94 @@ const VendorRegister = () => {
                       {errors.description && <p className="text-sm text-red-500">{errors.description.message}</p>}
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Category (Service) <span className="text-red-500">*</span></Label>
-                        <Select
-                          value={selectedCategory}
-                          onValueChange={(val) => {
-                            console.log("🎯 Category selected:", val);
-                            setSelectedCategory(val);
-                            setValue("category", val);
-                            const selectedCat = categories.find(c => c._id === val);
-                            console.log("📋 Selected category data:", selectedCat);
-                            setSelectedCategoryData(selectedCat || null);
-                            if (selectedCat?.autoFilled) {
-                              console.log("✅ Auto-filling with:", selectedCat.autoFilled);
-                              setSelectedAutoFilled(selectedCat.autoFilled);
-                              setValue("subCategory", selectedCat.autoFilled);
-                            } else {
-                              console.log("❌ No autoFilled value found");
-                              setSelectedAutoFilled("");
-                              setValue("subCategory", "");
-                            }
-                            // Reset price tier when category changes
-                            setSelectedPriceTier("basic");
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {errors.category && <p className="text-sm text-red-500">{errors.category.message}</p>}
-                      </div>
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="space-y-2">
+    <Label>
+      Category (Service) <span className="text-red-500">*</span>
+    </Label>
 
+    <Select
+      value={selectedCategory}
+      onValueChange={(val) => {
+        console.log("🎯 Category selected:", val);
 
+        setSelectedCategory(val);
+        setValue("category", val);
 
-                      <div className="space-y-2">
-                        <Label>Sub Category (Auto Filled) <span className="text-red-500">*</span></Label>
-                        <Input
-                          placeholder="Auto-filled based on category"
-                          value={selectedAutoFilled}
-                          disabled
-                          onChange={(e) => {
-                            setSelectedAutoFilled(e.target.value);
-                            setValue("subCategory", e.target.value);
-                          }}
-                          className="bg-gray-50"
-                        />
-                        {errors.subCategory && <p className="text-sm text-red-500">{errors.subCategory.message}</p>}
-                        <p className="text-xs text-gray-500">This field auto-fills when you select a category</p>
-                      </div>
-                    </div>
+        const selectedCat = categories.find((c) => c._id === val);
+
+        console.log("📋 Selected category data:", selectedCat);
+
+        setSelectedCategoryData(selectedCat || null);
+
+        if (selectedCat?.autoFilled) {
+          console.log("✅ Auto-filling with:", selectedCat.autoFilled);
+
+          setSelectedAutoFilled(selectedCat.autoFilled);
+          setValue("subCategory", selectedCat.autoFilled);
+        } else {
+          console.log("❌ No autoFilled value found");
+
+          setSelectedAutoFilled("");
+          setValue("subCategory", "");
+        }
+
+        // Reset price tier when category changes
+        setSelectedPriceTier("basic");
+      }}
+    >
+      <SelectTrigger className="h-10 text-sm overflow-hidden">
+        <SelectValue placeholder="Select category" />
+      </SelectTrigger>
+
+      <SelectContent className="max-h-60 overflow-y-auto">
+        {categories.map((cat) => (
+          <SelectItem
+            key={cat._id}
+            value={cat._id}
+            className="text-sm"
+          >
+            {cat.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+
+    {errors.category && (
+      <p className="text-sm text-red-500">
+        {errors.category.message}
+      </p>
+    )}
+  </div>
+
+  <div className="space-y-2">
+    <Label>
+      Sub Category (Auto Filled){" "}
+      <span className="text-red-500">*</span>
+    </Label>
+
+    <Input
+      placeholder="Auto-filled based on category"
+      value={selectedAutoFilled}
+      disabled
+      onChange={(e) => {
+        setSelectedAutoFilled(e.target.value);
+        setValue("subCategory", e.target.value);
+      }}
+      className="bg-gray-50 h-10 text-sm"
+    />
+
+    {errors.subCategory && (
+      <p className="text-sm text-red-500">
+        {errors.subCategory.message}
+      </p>
+    )}
+
+    <p className="text-xs text-gray-500">
+      This field auto-fills when you select a category
+    </p>
+  </div>
+</div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">

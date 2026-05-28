@@ -1,4 +1,5 @@
 const CustomerSupport = require("../models/customerSupport");
+const Auth = require("../models/authModel");
 
 const createCustomerSupportCtrl = async (req, res) => {
     try {
@@ -33,7 +34,9 @@ const createCustomerSupportCtrl = async (req, res) => {
 
 const getCustomerSupportCtrl = async (req, res) => {
     try {
-        const supportRequests = await CustomerSupport.find().sort({ createdAt: -1 });
+        const supportRequests = await CustomerSupport.find()
+            .populate('adminRemarks.adminId', 'name email')
+            .sort({ createdAt: -1 });
 
         return res.status(200).json({
             message: "Support requests fetched successfully.",
@@ -88,8 +91,67 @@ const updateSupportStatusCtrl = async (req, res) => {
     }
 };
 
+const addAdminRemarkCtrl = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { remark, adminId } = req.body;
+
+        if (!remark || !adminId) {
+            return res.status(400).json({
+                success: false,
+                message: "Remark and adminId are required.",
+            });
+        }
+
+        // Get admin details
+        const admin = await Auth.findById(adminId);
+        if (!admin) {
+            return res.status(404).json({
+                success: false,
+                message: "Admin not found.",
+            });
+        }
+
+        // Add remark to support request
+        const updatedRequest = await CustomerSupport.findByIdAndUpdate(
+            id,
+            {
+                $push: {
+                    adminRemarks: {
+                        remark,
+                        adminId,
+                        adminName: admin.name,
+                        createdAt: new Date(),
+                    },
+                },
+            },
+            { new: true }
+        ).populate('adminRemarks.adminId', 'name email');
+
+        if (!updatedRequest) {
+            return res.status(404).json({
+                success: false,
+                message: "Support request not found.",
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Admin remark added successfully.",
+            data: updatedRequest,
+        });
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Failed to add admin remark.",
+            error: error.message,
+        });
+    }
+};
+
 module.exports = {
     createCustomerSupportCtrl,
     getCustomerSupportCtrl,
     updateSupportStatusCtrl,
+    addAdminRemarkCtrl,
 };

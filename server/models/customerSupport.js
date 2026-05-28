@@ -33,6 +33,28 @@ const customerSupportSchema = new mongoose.Schema(
             enum: ["in_progress", "resolved", "rejected"],
             default: "in_progress",
         },
+        adminRemarks: [
+            {
+                remark: {
+                    type: String,
+                    required: true,
+                    trim: true,
+                },
+                adminId: {
+                    type: mongoose.Schema.Types.ObjectId,
+                    ref: "auth",
+                    required: true,
+                },
+                adminName: {
+                    type: String,
+                    required: true,
+                },
+                createdAt: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     {
         timestamps: true, // Adds createdAt and updatedAt

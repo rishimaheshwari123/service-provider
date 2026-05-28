@@ -15,7 +15,6 @@ const sendSMSOTP = async (phoneNumber, otp, vendorId = null, userId = null, vend
 
         const response = await axios.get(smsUrl);
 
-        console.log('SMS OTP response:', response.data);
 
         // Check for insufficient credits error
         if (response.data && response.data.ErrorCode === '21') {

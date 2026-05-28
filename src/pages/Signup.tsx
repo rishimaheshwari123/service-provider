@@ -13,6 +13,7 @@ import { signUp } from "@/service/operations/auth";
 import { Eye, EyeOff, Gift } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import PhoneVerificationModal from "@/components/PhoneVerificationModal";
 
 // 🔹 Signup schema with phone validation
 const signupSchema = z
@@ -42,6 +43,8 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [showVerificationModal, setShowVerificationModal] = useState(false);
+  const [registeredUser, setRegisteredUser] = useState<{ userId: string; phone: string } | null>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -64,15 +67,38 @@ const Signup = () => {
         email: data.email,
         phone: data.phone || "",
         password: data.password,
+        type: "active",
+        role: "user",
         referralCode: data.referralCode || "",
       };
-      const success = await signUp(formData, navigate, dispatch);
-      if (success) {
-        navigate("/login");
+      const response = await signUp(formData, navigate, dispatch);
+      if (response && response.user) {
+        // Show phone verification modal if phone number exists
+        if (data.phone) {
+          setRegisteredUser({
+            userId: response.user._id,
+            phone: data.phone,
+          });
+          setShowVerificationModal(true);
+        } else {
+          // No phone number, redirect to login
+          navigate("/login");
+        }
       }
     } catch (error) {
       console.error("Signup error:", error);
     }
+  };
+
+  const handleVerificationSuccess = () => {
+    // Redirect to login after successful verification
+    navigate("/login");
+  };
+
+  const handleVerificationModalClose = () => {
+    // User skipped verification, redirect to login
+    setShowVerificationModal(false);
+    navigate("/login");
   };
 
   return (
@@ -249,6 +275,18 @@ const Signup = () => {
         </div>
       </Card>
     </div>
+
+    {/* Phone Verification Modal */}
+    {showVerificationModal && registeredUser && (
+      <PhoneVerificationModal
+        isOpen={showVerificationModal}
+        onClose={handleVerificationModalClose}
+        userId={registeredUser.userId}
+        phoneNumber={registeredUser.phone}
+        onVerificationSuccess={handleVerificationSuccess}
+      />
+    )}
+
     <Footer/>
   </div>
   );

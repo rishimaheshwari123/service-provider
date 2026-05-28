@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
-import { getCustomerSupportRequestAPI, updateSupportStatusAPI } from "@/service/operations/customerSupport";
+import { CheckCircle, XCircle, Clock, Loader2, MessageSquare, Send } from "lucide-react";
+import { getCustomerSupportRequestAPI, updateSupportStatusAPI, addAdminRemarkAPI } from "@/service/operations/customerSupport";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
 
@@ -10,12 +10,15 @@ const GetCustomerSupport = () => {
   const [error, setError] = useState(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [selectedStatuses, setSelectedStatuses] = useState<Record<string, string>>({});
+  const [remarkText, setRemarkText] = useState<Record<string, string>>({});
+  const [addingRemark, setAddingRemark] = useState<string | null>(null);
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   const fetchSupportRequests = async () => {
     try {
       setLoading(true);
-      const response = await getCustomerSupportRequestAPI();
+      const token = (user as any)?.token;
+      const response = await getCustomerSupportRequestAPI(token);
       if (response?.success) {
         setRequests(response?.data);
         // Initialize selected statuses with current status
@@ -44,7 +47,8 @@ const GetCustomerSupport = () => {
     
     try {
       setUpdatingStatus(requestId);
-      const response = await updateSupportStatusAPI(requestId, newStatus);
+      const token = (user as any)?.token;
+      const response = await updateSupportStatusAPI(requestId, newStatus, token);
       
       if (response?.success) {
         // Update local state
@@ -63,6 +67,43 @@ const GetCustomerSupport = () => {
     setSelectedStatuses(prev => ({
       ...prev,
       [requestId]: newStatus
+    }));
+  };
+
+  const handleAddRemark = async (requestId: string) => {
+    const remark = remarkText[requestId];
+    
+    if (!remark || !remark.trim()) {
+      return;
+    }
+
+    try {
+      setAddingRemark(requestId);
+      const token = (user as any)?.token;
+      const response = await addAdminRemarkAPI(requestId, remark.trim(), user._id, token);
+      
+      if (response?.success) {
+        // Update local state with new remark
+        setRequests(requests.map(req => 
+          req._id === requestId ? response.data : req
+        ));
+        // Clear remark text
+        setRemarkText(prev => ({
+          ...prev,
+          [requestId]: ""
+        }));
+      }
+    } catch (error) {
+      console.error("Error adding remark:", error);
+    } finally {
+      setAddingRemark(null);
+    }
+  };
+
+  const handleRemarkChange = (requestId: string, value: string) => {
+    setRemarkText(prev => ({
+      ...prev,
+      [requestId]: value
     }));
   };
 
@@ -123,8 +164,8 @@ const GetCustomerSupport = () => {
   return (
     <div className="min-h-screen font-inter antialiased text-gray-800">
       {/* Main Content Section */}
-      <main className=" mx-auto my-8 p-4 md:p-12 bg-white shadow-2xl rounded-3xl">
-        <h2 className="text-sm md:text-4xl font-extrabold text-blue-700 mb-10 rounded-md text-center">
+      <main className=" mb-4">
+        <h2 className="text-xl md:text-4xl font-extrabold text-blue-700 mb-4 md:mb-8 rounded-md text-center">
           Current Support Requests
         </h2>
         {requests.length === 0 ? (
@@ -256,6 +297,68 @@ const GetCustomerSupport = () => {
     </p>
   )}
 </div>
+
+                  {/* Admin Remarks Section */}
+                  <div className="mt-6 pt-4 border-t border-gray-200">
+                    <div className="flex items-center gap-2 mb-3">
+                      <MessageSquare className="w-5 h-5 text-blue-600" />
+                      <h4 className="text-lg font-semibold text-gray-800">Admin Remarks</h4>
+                    </div>
+
+                    {/* Existing Remarks */}
+                    {request.adminRemarks && request.adminRemarks.length > 0 && (
+                      <div className="space-y-3 mb-4">
+                        {request.adminRemarks.map((remark, index) => (
+                          <div key={index} className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                            <div className="flex items-start justify-between mb-1">
+                              <span className="text-sm font-semibold text-blue-800">
+                                {remark.adminName}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(remark.createdAt).toLocaleString()}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-700">{remark.remark}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Add New Remark */}
+                  <div className="flex flex-col sm:flex-row gap-2">
+  <input
+    type="text"
+    value={remarkText[request._id] || ""}
+    onChange={(e) => handleRemarkChange(request._id, e.target.value)}
+    placeholder="Add admin remark..."
+    disabled={addingRemark === request._id}
+    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+  />
+
+  <button
+    onClick={() => handleAddRemark(request._id)}
+    disabled={addingRemark === request._id || !remarkText[request._id]?.trim()}
+    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all flex items-center justify-center gap-2 ${
+      addingRemark === request._id || !remarkText[request._id]?.trim()
+        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+        : "bg-blue-600 text-white hover:bg-blue-700"
+    }`}
+  >
+    {addingRemark === request._id ? (
+      <>
+        <Loader2 className="w-4 h-4 animate-spin" />
+        Adding...
+      </>
+    ) : (
+      <>
+        <Send className="w-4 h-4" />
+        Add
+      </>
+    )}
+  </button>
+</div>
+                  </div>
+
                 </div>
               );
             })}

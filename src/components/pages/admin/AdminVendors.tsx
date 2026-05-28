@@ -1731,47 +1731,70 @@ const VendorManagement = () => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Category (Service) <span className="text-red-500">*</span></Label>
-                        <Select
-                          value={selectedCategory}
-                          onValueChange={(val) => {
-                            setSelectedCategory(val);
-                            setFormData(prev => ({ ...prev, category: val }));
-                            const selectedCat = categories.find(c => c._id === val);
-                            if (selectedCat?.autoFilled) {
-                              setSelectedAutoFilled(selectedCat.autoFilled);
-                              setFormData(prev => ({ ...prev, subCategory: selectedCat.autoFilled }));
-                            } else {
-                              setSelectedAutoFilled("");
-                              setFormData(prev => ({ ...prev, subCategory: "" }));
-                            }
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map((cat) => (
-                              <SelectItem key={cat._id} value={cat._id}>{cat.name}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Sub Category (Auto Filled) <span className="text-red-500">*</span></Label>
-                        <Input
-                          placeholder="Auto-filled based on category"
-                          value={selectedAutoFilled}
-                          onChange={(e) => {
-                            setSelectedAutoFilled(e.target.value);
-                            setFormData(prev => ({ ...prev, subCategory: e.target.value }));
-                          }}
-                          className="bg-gray-50"
-                        />
-                      </div>
-                    </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  <div className="space-y-2">
+    <Label>
+      Category (Service) <span className="text-red-500">*</span>
+    </Label>
+
+    <Select
+      value={selectedCategory}
+      onValueChange={(val) => {
+        setSelectedCategory(val);
+        setFormData((prev) => ({ ...prev, category: val }));
+
+        const selectedCat = categories.find((c) => c._id === val);
+
+        if (selectedCat?.autoFilled) {
+          setSelectedAutoFilled(selectedCat.autoFilled);
+          setFormData((prev) => ({
+            ...prev,
+            subCategory: selectedCat.autoFilled,
+          }));
+        } else {
+          setSelectedAutoFilled("");
+          setFormData((prev) => ({ ...prev, subCategory: "" }));
+        }
+      }}
+    >
+      <SelectTrigger className="h-10 text-sm overflow-hidden">
+        <SelectValue placeholder="Select category" />
+      </SelectTrigger>
+
+      <SelectContent className="max-h-60 overflow-y-auto">
+        {categories.map((cat) => (
+          <SelectItem
+            key={cat._id}
+            value={cat._id}
+            className="text-sm"
+          >
+            {cat.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
+
+  <div className="space-y-2">
+    <Label>
+      Sub Category (Auto Filled){" "}
+      <span className="text-red-500">*</span>
+    </Label>
+
+    <Input
+      placeholder="Auto-filled based on category"
+      value={selectedAutoFilled}
+      onChange={(e) => {
+        setSelectedAutoFilled(e.target.value);
+        setFormData((prev) => ({
+          ...prev,
+          subCategory: e.target.value,
+        }));
+      }}
+      className="bg-gray-50 h-10 text-sm"
+    />
+  </div>
+</div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">

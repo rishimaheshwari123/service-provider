@@ -60,7 +60,7 @@ const Navbar = () => {
   const menuLinks = [
     { label: t("nav.home"), href: "/", icon: Home },
     { label: t("nav.about"), href: "/about", icon: Info },
-    { label: t("nav.services"), href: "/services", icon: Briefcase, hot: true },
+    { label: t("nav.services"), href: "/services", icon: Briefcase },
     { label: t("nav.blogs"), href: "/blogs", icon: Layers },
     { label: t("nav.jobs"), href: "/careers", icon: HardHat },
     { label: t("nav.contact"), href: "/contact", icon: Mail },

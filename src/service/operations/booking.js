@@ -27,7 +27,7 @@ export const createBookingAPI = async (formDataToSend) => {
 };
 
 // ✅ Get All Bookings (Admin or All Users)
-export const getAllBookingAPI = async (page, limit, search, status, token) => {
+export const getAllBookingAPI = async (page, limit, search, status, paymentStatus, token) => {
   try {
     let url = GET_ALL_BOOKINGS;
     const params = [];
@@ -35,6 +35,7 @@ export const getAllBookingAPI = async (page, limit, search, status, token) => {
     if (limit) params.push(`limit=${limit}`);
     if (search) params.push(`search=${encodeURIComponent(search)}`);
     if (status) params.push(`status=${status}`);
+    if (paymentStatus) params.push(`paymentStatus=${paymentStatus}`);
 
     if (params.length > 0) {
       url += `?${params.join("&")}`;
