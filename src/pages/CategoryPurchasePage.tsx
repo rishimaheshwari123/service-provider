@@ -11,7 +11,8 @@ import { getKeyFeaturesAPI } from "@/service/operations/priceKeyFeatures";
 import { useToast } from "@/hooks/use-toast";
 import { BASE_URL } from "@/service/apis";
 import { ArrowLeft, CheckCircle, Info, X } from "lucide-react";
-import axios from "axios";
+import { validateCouponAPI } from "@/service/operations/coupon";
+import { capturePaymentAPI, verifyPaymentAPI } from "@/service/operations/razorpay";
 import {
   Dialog,
   DialogContent,
@@ -92,23 +93,15 @@ const CategoryPurchasePage = () => {
     setCouponError("");
 
     try {
-      const response = await fetch(`${BASE_URL}/coupon/validate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code: couponCode.trim(),
-          amount: getCurrentPrice(),
-          userId: vendorId,
-          categoryId: selectedCategory._id,
-          vendorId: vendorId,
-        }),
+      const data = await validateCouponAPI({
+        code: couponCode.trim(),
+        amount: getCurrentPrice(),
+        userId: vendorId,
+        categoryId: selectedCategory._id,
+        vendorId: vendorId,
       });
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (data && data.success) {
         setAppliedCoupon({
           ...data.coupon,
           discountAmount: data.discountAmount,
@@ -120,11 +113,11 @@ const CategoryPurchasePage = () => {
           description: `You saved ₹${data.discountAmount} with coupon ${data.coupon.code}`,
         });
       } else {
-        setCouponError(data.message || "Invalid coupon code");
+        setCouponError(data?.message || "Invalid coupon code");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error validating coupon:", error);
-      setCouponError("Failed to validate coupon. Please try again.");
+      setCouponError(error?.response?.data?.message || "Failed to validate coupon. Please try again.");
     } finally {
       setCouponLoading(false);
     }
@@ -393,9 +386,7 @@ const CategoryPurchasePage = () => {
       const amount = getFinalPrice(); // Use final price after discount
       if (!amount) throw new Error("Category price not found");
 
-      const { data } = await axios.post(`${base_url}/razorpay/capturePayment`, {
-        amount,
-      });
+      const data = await capturePaymentAPI(amount);
 
       if (!data?.order) throw new Error("Failed to initiate payment");
 
@@ -409,17 +400,14 @@ const CategoryPurchasePage = () => {
         order_id: data.order.id,
         handler: async (response: any) => {
           try {
-            const verifyResponse = await axios.post(
-              `${base_url}/razorpay/verifyPayment`,
-              {
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                vendorId,
-                categoryId: selectedCategoryId,
-                paymentMode: "prepaid",
-              },
-            );
+            const verifyResponse = await verifyPaymentAPI({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              vendorId,
+              categoryId: selectedCategoryId,
+              paymentMode: "prepaid",
+            });
 
             if (verifyResponse?.data?.success) {
               toast({
@@ -462,7 +450,7 @@ const CategoryPurchasePage = () => {
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (err) {
+    } catch (err: any) {
       console.error("Payment error:", err);
       toast({
         title: "Error",

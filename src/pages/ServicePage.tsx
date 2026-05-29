@@ -92,7 +92,7 @@ const ServicesPage = () => {
       autoFilled: params.get("autoFilled") || "",
       shouldAutoSearch: !!location.search, // Set to true if there are any URL params
     };
-    
+
     setFilters(newFilters);
   }, [location.search]);
 
@@ -556,11 +556,10 @@ const ServicesPage = () => {
                         {/* All Categories Option */}
                         <button
                           onClick={() => handleCategoryChange("all")}
-                          className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
-                            filters.category === "all"
-                              ? "bg-blue-50 text-blue-600"
-                              : ""
-                          } ${selectedCategoryIndex === 0 ? "bg-gray-100" : ""}`}
+                          className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${filters.category === "all"
+                            ? "bg-blue-50 text-blue-600"
+                            : ""
+                            } ${selectedCategoryIndex === 0 ? "bg-gray-100" : ""}`}
                         >
                           <span>
                             {toPascalCase(t("pages.home.allCategories"))}
@@ -576,11 +575,10 @@ const ServicesPage = () => {
                             <button
                               key={cat._id}
                               onClick={() => handleCategoryChange(cat._id)}
-                              className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${
-                                filters.category === cat._id
-                                  ? "bg-blue-50 text-blue-600"
-                                  : ""
-                              } ${selectedCategoryIndex === index + 1 ? "bg-gray-100" : ""}`}
+                              className={`w-full px-4 py-4 text-left hover:bg-gray-50 flex items-center justify-between text-base ${filters.category === cat._id
+                                ? "bg-blue-50 text-blue-600"
+                                : ""
+                                } ${selectedCategoryIndex === index + 1 ? "bg-gray-100" : ""}`}
                             >
                               <span className="truncate">
                                 {toPascalCase(cat.name)}
@@ -612,14 +610,14 @@ const ServicesPage = () => {
                   {(filters.search ||
                     filters.category !== "all" ||
                     filters.autoFilled) && (
-                    <button
-                      onClick={clearFilters}
-                      className="flex-none flex items-center justify-center gap-1 px-3 py-2.5 text-red-650 hover:bg-red-50 rounded-lg transition-colors bg-white border border-red-200"
-                    >
-                      <X className="w-4 h-4" />
-                      <span>{toPascalCase("Clear")}</span>
-                    </button>
-                  )}
+                      <button
+                        onClick={clearFilters}
+                        className="flex-none flex items-center justify-center gap-1 px-3 py-2.5 text-red-650 hover:bg-red-50 rounded-lg transition-colors bg-white border border-red-200"
+                      >
+                        <X className="w-4 h-4" />
+                        <span>{toPascalCase("Clear")}</span>
+                      </button>
+                    )}
                 </div>
               </div>
             </div>
@@ -826,7 +824,7 @@ const ServicesPage = () => {
                   >
                     <div className="flex flex-col md:flex-row">
                       {/* Image */}
-                      <div className="md:w-72 h-48 md:h-[50vh] relative flex-shrink-0">
+                      <div className="md:w-72 h-48 md:h-[40vh] relative flex-shrink-0">
                         <img
                           src={
                             service.images?.[0]?.url ||
@@ -861,26 +859,26 @@ const ServicesPage = () => {
                                     <p className="text-sm font-bold text-gray-600 truncate">
                                       {filters.search
                                         ? highlightSearchTerm(
-                                            toPascalCase(
-                                              service.vendor.company,
-                                            ),
-                                            filters.search,
-                                          )
+                                          toPascalCase(
+                                            service.vendor.company,
+                                          ),
+                                          filters.search,
+                                        )
                                         : toPascalCase(service.vendor.company)}
                                     </p>
                                   )}
                                   <p className="text-[12px] text-gray-900 truncate">
                                     {filters.search
                                       ? highlightSearchTerm(
-                                          toPascalCase(
-                                            service.vendor.name ||
-                                              "Vendor Name",
-                                          ),
-                                          filters.search,
-                                        )
+                                        toPascalCase(
+                                          service.vendor.name ||
+                                          "Vendor Name",
+                                        ),
+                                        filters.search,
+                                      )
                                       : toPascalCase(
-                                          service.vendor.name || "Vendor Name",
-                                        )}
+                                        service.vendor.name || "Vendor Name",
+                                      )}
                                   </p>
 
                                   {service.vendor.address && (
@@ -888,11 +886,11 @@ const ServicesPage = () => {
                                       <MapPin className="w-3 h-3 inline mr-1" />
                                       {filters.search
                                         ? highlightSearchTerm(
-                                            toPascalCase(
-                                              service.vendor.address,
-                                            ),
-                                            filters.search,
-                                          )
+                                          toPascalCase(
+                                            service.vendor.address,
+                                          ),
+                                          filters.search,
+                                        )
                                         : toPascalCase(service.vendor.address)}
                                     </p>
                                   )}
@@ -911,9 +909,9 @@ const ServicesPage = () => {
                               >
                                 {filters.search
                                   ? highlightSearchTerm(
-                                      toPascalCase(service.title),
-                                      filters.search,
-                                    )
+                                    toPascalCase(service.title),
+                                    filters.search,
+                                  )
                                   : toPascalCase(service.title)}
                               </h3>
                             </div>
@@ -1087,11 +1085,10 @@ const ServicesPage = () => {
                       key={p}
                       onClick={() => handlePageChange(p)}
                       disabled={loading}
-                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
-                        p === currentPage
-                          ? "bg-blue-600 text-white"
-                          : "border border-gray-300 hover:bg-gray-50"
-                      }`}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${p === currentPage
+                        ? "bg-blue-600 text-white"
+                        : "border border-gray-300 hover:bg-gray-50"
+                        }`}
                     >
                       {p}
                     </button>

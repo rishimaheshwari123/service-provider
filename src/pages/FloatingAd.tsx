@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { FaTimes, FaExternalLinkAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-import { BASE_URL } from "@/service/apis";
+import { getActiveAds } from "@/service/operations/ads";
 
 function FloatingAd() {
   const [ad, setAd] = useState(null);
@@ -14,9 +13,8 @@ function FloatingAd() {
   const getSingleAd = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BASE_URL}/ads/getAll`);
-      if (response?.data?.success && response.data.ads.length > 0) {
-        const ads = response.data.ads;
+      const ads = await getActiveAds();
+      if (ads && ads.length > 0) {
         const randomIndex = Math.floor(Math.random() * ads.length);
         setAd(ads[randomIndex]);
       } else {

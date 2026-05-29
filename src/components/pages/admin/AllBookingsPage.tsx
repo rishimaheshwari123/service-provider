@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { getAllBookingAPI } from "@/service/operations/booking";
+import { getAllBookingAPI, updateBookingStatusAPI } from "@/service/operations/booking";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
@@ -64,7 +64,7 @@ const AllBookingsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalBookings, setTotalBookings] = useState<number>(0);
-  
+
   // Custom Pagination state
   const [limit, setLimit] = useState<number>(10);
   const [showCustomPageSize, setShowCustomPageSize] = useState<boolean>(false);
@@ -77,6 +77,80 @@ const AllBookingsPage: React.FC = () => {
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>("all");
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
+
+  const handleBookingStatusUpdate = async (
+    bookingId: string,
+    newStatus: "pending" | "confirmed" | "completed" | "cancelled"
+  ) => {
+    try {
+      const response = await updateBookingStatusAPI(bookingId, newStatus);
+
+      if (response) {
+        toast.success("Booking status updated successfully!");
+
+        setBookings((prevBookings) =>
+          prevBookings.map((b) => {
+            if (b._id === bookingId) {
+              const updatedPayment =
+                newStatus === "completed"
+                  ? {
+                    ...b.payment,
+                    paymentStatus: "success" as const,
+                    paymentType: "cash",
+                  }
+                  : b.payment;
+
+              return {
+                ...b,
+                status: newStatus,
+                payment: updatedPayment,
+              };
+            }
+            return b;
+          })
+        );
+      } else {
+        toast.error("Failed to update booking status.");
+      }
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      toast.error("An error occurred while updating status.");
+    }
+  };
+
+  const handleBookingPaymentStatusUpdate = async (
+    bookingId: string,
+    newPaymentStatus: "pending" | "success" | "failed"
+  ) => {
+    try {
+      const response = await updateBookingStatusAPI(bookingId, { paymentStatus: newPaymentStatus });
+
+      if (response) {
+        toast.success("Payment status updated successfully!");
+
+        setBookings((prevBookings) =>
+          prevBookings.map((b) => {
+            if (b._id === bookingId) {
+              return {
+                ...b,
+                payment: {
+                  ...b.payment,
+                  paymentStatus: newPaymentStatus,
+                  paymentType: newPaymentStatus === "success" && !b.payment.paymentType ? "cash" : b.payment.paymentType
+                }
+              };
+            }
+            return b;
+          })
+        );
+      } else {
+        toast.error("Failed to update payment status.");
+      }
+    } catch (error) {
+      console.error("Error updating payment status:", error);
+      toast.error("An error occurred while updating payment status.");
+    }
+  };
 
   // Safe price formatter to eliminate ₹NaN rendering
   const formatPrice = (priceVal: any): string => {
@@ -245,7 +319,7 @@ const AllBookingsPage: React.FC = () => {
     );
   }
   return (
-    <div className="w-full max-w-full px-1 sm:px-4 py-4 md:p-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden">
+    <div className="w-full max-w-full px-1 sm:px-4 md:pr-4 md:ml-4 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden">
       {refreshing && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
@@ -334,7 +408,7 @@ const AllBookingsPage: React.FC = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Payments</SelectItem>
-              <SelectItem value="success">Success</SelectItem>
+              <SelectItem value="success">Paid</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="failed">Failed</SelectItem>
             </SelectContent>
@@ -352,119 +426,140 @@ const AllBookingsPage: React.FC = () => {
           No bookings found.
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           {bookings.map((b) => (
             <Card
               key={b._id}
-              className="overflow-hidden shadow-md border hover:shadow-lg transition duration-200"
+              className="overflow-hidden shadow-sm border border-gray-200 hover:shadow-md transition duration-200 flex flex-col sm:flex-row bg-white rounded-xl"
             >
-              {/* Service Image */}
-              <div className="relative">
+              {/* Left Side: Service Image (Nicely compact size) */}
+              <div className="relative w-full sm:w-44 h-36 sm:h-auto flex-shrink-0 bg-gray-50">
                 <img
                   src={
                     b.service?.images?.[0]?.url ||
                     "https://via.placeholder.com/400x250?text=No+Image"
                   }
                   alt={b.service?.title}
-                  className="w-full h-48 object-cover"
+                  className="w-full h-full object-cover"
                 />
-                <span
-                  className={`absolute top-2 right-2 px-3 py-1 text-xs font-semibold rounded-full ${b.status === "completed"
-                    ? "bg-green-100 text-green-700"
-                    : b.status === "confirmed"
-                      ? "bg-blue-100 text-blue-700"
-                      : b.status === "cancelled"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-yellow-100 text-yellow-700"
-                    }`}
-                >
-                  {b.status}
-                </span>
               </div>
 
-              <CardContent className="p-5 space-y-3">
-                {/* Service Details */}
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">
-                    {b.service?.title || "-"}
-                  </h2>
-
-                  <p className="text-sm text-gray-400">
-                    📍 {b.service?.location}
-                  </p>
-                </div>
-
-                {/* Vendor Info */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <h3 className="font-semibold text-gray-800 text-sm mb-1">
-                    Vendor Info
-                  </h3>
-                  <p className="text-sm text-gray-700">
-                    {b.service?.vendor?.name} ({b.service?.vendor?.company})
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    {b.service?.vendor?.email}
-
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    📞 {b.service?.vendor?.phone}
-                  </p>
-                </div>
-
-                {/* Booking Info */}
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <p className="text-gray-500">Date</p>
-                    <p className="font-medium text-gray-800">
-                      {formatDate(b.date)}
+              {/* Right Side: Flex-grow body containing the info split into nice compact sections */}
+              <div className="p-4 flex flex-col justify-between flex-grow gap-3 text-left">
+                {/* Top Row: Service Name + Price + Status Select */}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 min-w-0 w-full">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base font-bold text-gray-900 break-words whitespace-normal">
+                      {b.service?.title || "Unnamed Service"}
+                    </h3>
+                    <p className="text-xs text-gray-500 flex items-start gap-1 mt-1 break-words whitespace-normal">
+                      <span className="text-gray-400 mt-0.5 flex-shrink-0">📍</span>
+                      <span className="break-words whitespace-normal text-left">{b.service?.location || "Location N/A"}</span>
                     </p>
                   </div>
-                  <div>
-                    <p className="text-gray-500">Time</p>
-                    <p className="font-medium text-gray-800">
-                      {formatTime(b.time)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Price</p>
-                    <p className="font-semibold text-green-700">
+                  <div className="flex items-center gap-2 sm:flex-col sm:items-end flex-shrink-0">
+                    {/* <span className="text-lg font-black text-green-600">
                       ₹{formatPrice(b.service?.price)}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Payment</p>
-                    <p
-                      className={`font-medium ${b.payment?.paymentStatus === "success"
-                        ? "text-green-700"
-                        : b.payment?.paymentStatus === "pending"
-                          ? "text-yellow-700"
-                          : "text-red-700"
+                    </span> */}
+                    <select
+                      value={b.status}
+                      onChange={(e) =>
+                        handleBookingStatusUpdate(
+                          b._id,
+                          e.target.value as "pending" | "confirmed" | "completed" | "cancelled"
+                        )
+                      }
+                      className={`border rounded px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 cursor-pointer shadow-sm ${b.status === "completed"
+                        ? "bg-green-100 text-green-700 border-green-200"
+                        : b.status === "confirmed"
+                          ? "bg-blue-100 text-blue-700 border-blue-200"
+                          : b.status === "cancelled"
+                            ? "bg-red-100 text-red-700 border-red-200"
+                            : "bg-yellow-100 text-yellow-700 border-yellow-200"
                         }`}
                     >
-                      {b.payment?.paymentStatus || "N/A"}{" "}
-                      {b.payment?.paymentType
-                        ? `(${b.payment.paymentType})`
-                        : ""}
-                    </p>
+                      <option value="pending">Pending</option>
+                      <option value="confirmed">Confirmed</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
                   </div>
                 </div>
 
-                {/* User Info */}
-                <div className="border-t pt-3 mt-2">
-                  <h3 className="font-semibold text-gray-800 text-sm mb-1">
-                    Booked By
-                  </h3>
-                  <p className="text-sm text-gray-700">{b.user?.name}</p>
-                  <p className="text-xs text-gray-500">{b.user?.email}</p>
+                {/* Middle Row: Date, Time & Customer info */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs border-t border-b py-2 border-gray-100">
+                  {/* Left Column: Schedule & Customer */}
+                  <div className="space-y-1 text-gray-700">
+                    <p className="flex items-center gap-1.5">
+                      <span className="font-semibold text-gray-900 w-12">Date:</span>
+                      <span>{formatDate(b.date)}</span>
+                    </p>
+                    <p className="flex items-center gap-1.5">
+                      <span className="font-semibold text-gray-900 w-12">Time:</span>
+                      <span>{formatTime(b.time)}</span>
+                    </p>
+                    <p className="flex items-center gap-1.5 pt-1 border-t border-dashed border-gray-100 mt-1">
+                      <span className="font-semibold text-gray-900 w-12">User:</span>
+                      <span className="truncate">{b.user?.name || "Customer"}</span>
+                    </p>
+                    <p className="text-[11px] text-gray-500 truncate ml-[54px]">{b.user?.email}</p>
+                  </div>
+
+                  {/* Right Column: Vendor Info */}
+                  <div className="space-y-1 text-gray-700 border-t sm:border-t-0 sm:border-l pt-2 sm:pt-0 sm:pl-3 border-gray-100">
+                    <p className="font-bold text-gray-900 uppercase tracking-wide text-[10px] text-gray-400 mb-1">
+                      Vendor Details
+                    </p>
+                    <p className="truncate font-medium text-gray-800">
+                      {b.service?.vendor?.name || "No Name"}
+                    </p>
+                    {b.service?.vendor?.company && (
+                      <p className="text-gray-500 truncate">
+                        🏢 {b.service.vendor.company}
+                      </p>
+                    )}
+                    {b.service?.vendor?.phone && (
+                      <p className="text-gray-500">
+                        📞 <a href={`tel:${b.service.vendor.phone}`} className="hover:underline text-blue-600">{b.service.vendor.phone}</a>
+                      </p>
+                    )}
+                  </div>
                 </div>
 
-                {/* Notes (if available) */}
+                {/* Service Address & Notes */}
                 {b.notes && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-600 italic">📝 {b.notes}</p>
+                  <div className="text-[11px] text-gray-500 italic bg-gray-50 px-2 py-1 rounded border border-gray-100 flex items-start gap-1">
+                    <span className="flex-shrink-0">📝</span>
+                    <span className="line-clamp-2">{b.notes}</span>
                   </div>
                 )}
-              </CardContent>
+
+                {/* Bottom Row: Payment status select */}
+                <div className="flex items-center justify-between gap-3 pt-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">Payment:</span>
+                    <select
+                      value={b.payment?.paymentStatus || "pending"}
+                      onChange={(e) =>
+                        handleBookingPaymentStatusUpdate(
+                          b._id,
+                          e.target.value as "pending" | "success" | "failed"
+                        )
+                      }
+                      className="border border-gray-300 bg-white rounded px-2 py-1 text-xs font-semibold focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 cursor-pointer hover:border-gray-400 text-gray-800"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="success">Paid</option>
+                      <option value="failed">Failed</option>
+                    </select>
+                    {b.payment?.paymentType && (
+                      <span className="text-[10px] text-gray-400 capitalize">
+                        ({b.payment.paymentType})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </Card>
           ))}
         </div>

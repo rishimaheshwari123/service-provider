@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/redux/store";
-import { getUserProfile } from "@/service/operations/auth";
+import { getUserProfile, updateUserProfileAPI, changePasswordAPI } from "@/service/operations/auth";
 import { getUserAllBookingAPI } from "@/service/operations/booking";
 import PhoneVerificationModal from "@/components/PhoneVerificationModal";
 import {
@@ -30,8 +30,6 @@ import {
 } from "react-icons/fa";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import axios from "axios";
-import { BASE_URL } from "@/service/apis";
 import { setUser } from "@/redux/authSlice";
 import { toast } from "sonner";
 import UserRewardPoints from "./UserRewardPoints";
@@ -176,13 +174,12 @@ const UserProfile = () => {
 
   const handleUpdateProfile = async () => {
     try {
-      const response = await axios.put(
-        `${BASE_URL}/auth/update/${authUser?._id}`,
-        { name: editName, email: editEmail },
-      );
+      const response = await updateUserProfileAPI(authUser?._id, {
+        name: editName,
+        email: editEmail,
+      });
 
-      if (response.data.success) {
-        toast.success("Profile updated successfully!");
+      if (response && response.success) {
         setProfileData((prev) =>
           prev
             ? {
@@ -195,7 +192,7 @@ const UserProfile = () => {
         setIsEditMode(false);
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      console.error(error);
     }
   };
 
@@ -211,16 +208,12 @@ const UserProfile = () => {
     }
 
     try {
-      const response = await axios.put(
-        `${BASE_URL}/auth/change-password/${authUser?._id}`,
-        {
-          currentPassword: passwordData.currentPassword,
-          newPassword: passwordData.newPassword,
-        },
-      );
+      const response = await changePasswordAPI(authUser?._id, {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
 
-      if (response.data.success) {
-        toast.success("Password changed successfully!");
+      if (response && response.success) {
         setShowPasswordModal(false);
         setPasswordData({
           currentPassword: "",
@@ -229,7 +222,7 @@ const UserProfile = () => {
         });
       }
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to change password");
+      console.error(error);
     }
   };
 

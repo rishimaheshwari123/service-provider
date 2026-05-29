@@ -87,18 +87,19 @@ export const getVendorAllBookingAPI = async (vendorId, token) => {
     return [];
   }
 };
-export const updateBookingStatusAPI = async (bookingId, status) => {
+export const updateBookingStatusAPI = async (bookingId, statusOrPayload) => {
   try {
-    const response = await apiConnector("PUT", `${UPDATE_BOOKING_STATUS_BOOKINGS}/${bookingId}`, { status });
+    const payload = typeof statusOrPayload === "object" ? statusOrPayload : { status: statusOrPayload };
+    const response = await apiConnector("PUT", `${UPDATE_BOOKING_STATUS_BOOKINGS}/${bookingId}`, payload);
 
     if (!response?.data?.success) {
       throw new Error(response?.data?.message || "Something went wrong!");
     }
 
-    return response?.data?.bookings || [];
+    return response?.data?.booking || response?.data?.bookings || [];
   } catch (error) {
-    console.error("GET VENDOR BOOKINGS API ERROR:", error);
-    toast.error(error?.response?.data?.message || "Failed to get vendor bookings!");
+    console.error("UPDATE BOOKING API ERROR:", error);
+    toast.error(error?.response?.data?.message || "Failed to update booking!");
     return [];
   }
 };

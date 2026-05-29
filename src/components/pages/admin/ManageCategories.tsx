@@ -408,7 +408,7 @@ const ManageCategories = () => {
   };
 
   return (
-    <div className="w-full max-w-full px-1  py-4 md:p-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden bg-gray-50">
+    <div className="w-full max-w-full px-1 pb-2  md:ml-6 md:pr-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden bg-gray-50">
       <div className="">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Manage Categories</h1>
@@ -805,18 +805,16 @@ const ManageCategories = () => {
                     <span className="truncate text-gray-700 font-medium">
                       {selectedVendorId
                         ? vendors.find((v) => v._id === selectedVendorId)
-                          ? `${vendors.find((v) => v._id === selectedVendorId).name}${
-                              vendors.find((v) => v._id === selectedVendorId).company
-                                ? ` - ${vendors.find((v) => v._id === selectedVendorId).company}`
-                                : ""
-                            }`
+                          ? `${vendors.find((v) => v._id === selectedVendorId).name}${vendors.find((v) => v._id === selectedVendorId).company
+                            ? ` - ${vendors.find((v) => v._id === selectedVendorId).company}`
+                            : ""
+                          }`
                           : "Choose a vendor"
                         : "Choose a vendor"}
                     </span>
                     <svg
-                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                        assignDropdownOpen ? "transform rotate-180" : ""
-                      }`}
+                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${assignDropdownOpen ? "transform rotate-180" : ""
+                        }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -860,11 +858,10 @@ const ManageCategories = () => {
                                   setSelectedVendorId(isSelected ? "" : v._id);
                                   setAssignDropdownOpen(false); // Close on select
                                 }}
-                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-150 flex items-center justify-between gap-3 border ${
-                                  isSelected
-                                    ? "bg-blue-600 border-blue-600 text-white font-medium shadow-sm"
-                                    : "bg-white border-gray-150 hover:border-blue-200 text-gray-700 hover:bg-blue-50/20"
-                                }`}
+                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-150 flex items-center justify-between gap-3 border ${isSelected
+                                  ? "bg-blue-600 border-blue-600 text-white font-medium shadow-sm"
+                                  : "bg-white border-gray-150 hover:border-blue-200 text-gray-700 hover:bg-blue-50/20"
+                                  }`}
                               >
                                 <div className="min-w-0 flex-1 whitespace-normal break-words text-left pr-2">
                                   <span className="block font-semibold">
@@ -890,10 +887,10 @@ const ManageCategories = () => {
                             .toLowerCase()
                             .includes(searchText.toLowerCase())
                         ).length === 0 && (
-                          <div className="py-6 text-center text-sm text-gray-500 bg-white border border-gray-100 rounded-lg">
-                            No vendor found matching "{searchText}"
-                          </div>
-                        )}
+                            <div className="py-6 text-center text-sm text-gray-500 bg-white border border-gray-100 rounded-lg">
+                              No vendor found matching "{searchText}"
+                            </div>
+                          )}
                       </div>
                     </div>
                   )}
@@ -1163,18 +1160,16 @@ const ManageCategories = () => {
                     <span className="truncate text-gray-700 font-medium">
                       {purchaseVendorId
                         ? vendors.find((v) => v._id === purchaseVendorId)
-                          ? `${vendors.find((v) => v._id === purchaseVendorId).name}${
-                              vendors.find((v) => v._id === purchaseVendorId).company
-                                ? ` - ${vendors.find((v) => v._id === purchaseVendorId).company}`
-                                : ""
-                            }`
+                          ? `${vendors.find((v) => v._id === purchaseVendorId).name}${vendors.find((v) => v._id === purchaseVendorId).company
+                            ? ` - ${vendors.find((v) => v._id === purchaseVendorId).company}`
+                            : ""
+                          }`
                           : "Choose a vendor"
                         : "Choose a vendor"}
                     </span>
                     <svg
-                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
-                        purchaseDropdownOpen ? "transform rotate-180" : ""
-                      }`}
+                      className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${purchaseDropdownOpen ? "transform rotate-180" : ""
+                        }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -1218,11 +1213,10 @@ const ManageCategories = () => {
                                   setPurchaseVendorId(isSelected ? "" : v._id);
                                   setPurchaseDropdownOpen(false); // Close on select
                                 }}
-                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-150 flex items-center justify-between gap-3 border ${
-                                  isSelected
-                                    ? "bg-blue-600 border-blue-600 text-white font-medium shadow-sm"
-                                    : "bg-white border-gray-150 hover:border-blue-200 text-gray-700 hover:bg-blue-50/20"
-                                }`}
+                                className={`w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-150 flex items-center justify-between gap-3 border ${isSelected
+                                  ? "bg-blue-600 border-blue-600 text-white font-medium shadow-sm"
+                                  : "bg-white border-gray-150 hover:border-blue-200 text-gray-700 hover:bg-blue-50/20"
+                                  }`}
                               >
                                 <div className="min-w-0 flex-1 whitespace-normal break-words text-left pr-2">
                                   <span className="block font-semibold">
@@ -1248,10 +1242,10 @@ const ManageCategories = () => {
                             .toLowerCase()
                             .includes(searchText.toLowerCase())
                         ).length === 0 && (
-                          <div className="py-6 text-center text-sm text-gray-500 bg-white border border-gray-100 rounded-lg">
-                            No vendor found matching "{searchText}"
-                          </div>
-                        )}
+                            <div className="py-6 text-center text-sm text-gray-500 bg-white border border-gray-100 rounded-lg">
+                              No vendor found matching "{searchText}"
+                            </div>
+                          )}
                       </div>
                     </div>
                   )}

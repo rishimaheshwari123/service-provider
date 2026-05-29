@@ -17,8 +17,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { BASE_URL } from "@/service/apis";
-import axios from "axios";
 import { toast } from "react-toastify";
+import { capturePaymentAPI, verifyPaymentAPI } from "@/service/operations/razorpay";
 import { Search } from "lucide-react";
 
 declare global {
@@ -142,9 +142,7 @@ const PurchaseCategories = () => {
       const amount = all.find((c) => c._id === categoryId)?.price;
       if (!amount) throw new Error("Category price not found");
 
-      const { data } = await axios.post(`${base_url}/razorpay/capturePayment`, {
-        amount,
-      });
+      const data = await capturePaymentAPI(amount);
 
       if (!data?.order) throw new Error("Failed to initiate payment");
 
@@ -158,17 +156,14 @@ const PurchaseCategories = () => {
         order_id: data.order.id,
         handler: async (response: any) => {
           try {
-            const verifyResponse = await axios.post(
-              `${base_url}/razorpay/verifyPayment`,
-              {
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-                vendorId,
-                categoryId,
-                paymentMode: "prepaid",
-              }
-            );
+            const verifyResponse = await verifyPaymentAPI({
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              vendorId,
+              categoryId,
+              paymentMode: "prepaid",
+            });
             if (verifyResponse?.data?.success) {
               toast.success(verifyResponse.data.message);
               load();
@@ -186,7 +181,7 @@ const PurchaseCategories = () => {
 
       const rzp = new window.Razorpay(options);
       rzp.open();
-    } catch (err) {
+    } catch (err: any) {
       console.log(err);
       toast.error(err.message || "Payment failed");
     }

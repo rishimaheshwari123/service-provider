@@ -47,7 +47,7 @@ interface CouponStats {
 }
 
 const CouponManagement = () => {
-  const { token , user} = useSelector((state: RootState) => state.auth);
+  const { token, user } = useSelector((state: RootState) => state.auth);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [stats, setStats] = useState<CouponStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -112,7 +112,7 @@ const CouponManagement = () => {
   const filteredCoupons = coupons.filter((coupon) => {
     const now = new Date();
     const validUntil = new Date(coupon.validUntil);
-    
+
     switch (filter) {
       case "active":
         return coupon.isActive && now <= validUntil;
@@ -134,40 +134,40 @@ const CouponManagement = () => {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="md:ml-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-  
-  <h1 className="text-2xl sm:text-3xl font-bold">
-    Coupon Management
-  </h1>
 
-  <Dialog
-    open={isCreateDialogOpen}
-    onOpenChange={setIsCreateDialogOpen}
-  >
-    <DialogTrigger asChild>
-      <Button className="w-full sm:w-auto">
-        <Plus className="w-4 h-4 mr-2" />
-        Create Coupon
-      </Button>
-    </DialogTrigger>
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          Coupon Management
+        </h1>
 
-    <DialogContent className="max-w-2xl w-[95%] rounded-lg">
-      <DialogHeader>
-        <DialogTitle>Create New Coupon</DialogTitle>
-      </DialogHeader>
+        <Dialog
+          open={isCreateDialogOpen}
+          onOpenChange={setIsCreateDialogOpen}
+        >
+          <DialogTrigger asChild>
+            <Button className="w-full sm:w-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Coupon
+            </Button>
+          </DialogTrigger>
 
-      <CouponForm
-        onSuccess={() => {
-          setIsCreateDialogOpen(false);
-          fetchCoupons();
-          fetchStats();
-        }}
-        token={token}
-      />
-    </DialogContent>
-  </Dialog>
-</div>
+          <DialogContent className="max-w-2xl w-[95%] rounded-lg">
+            <DialogHeader>
+              <DialogTitle>Create New Coupon</DialogTitle>
+            </DialogHeader>
+
+            <CouponForm
+              onSuccess={() => {
+                setIsCreateDialogOpen(false);
+                fetchCoupons();
+                fetchStats();
+              }}
+              token={token}
+            />
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Statistics Cards */}
       {stats && (
@@ -220,63 +220,63 @@ const CouponManagement = () => {
       )}
 
       {/* Filter Tabs */}
-  <Tabs value={filter} onValueChange={setFilter}>
-  
-  {/* Responsive Tabs */}
-  <TabsList className="w-full flex flex-wrap sm:flex-nowrap gap-2 h-auto p-2">
-    <TabsTrigger
-      value="all"
-      className="flex-1 min-w-[120px] text-xs sm:text-sm"
-    >
-      All Coupons
-    </TabsTrigger>
+      <Tabs value={filter} onValueChange={setFilter}>
 
-    <TabsTrigger
-      value="active"
-      className="flex-1 min-w-[120px] text-xs sm:text-sm"
-    >
-      Active
-    </TabsTrigger>
+        {/* Responsive Tabs */}
+        <TabsList className="w-full flex flex-wrap sm:flex-nowrap gap-2 h-auto p-2">
+          <TabsTrigger
+            value="all"
+            className="flex-1 min-w-[120px] text-xs sm:text-sm"
+          >
+            All Coupons
+          </TabsTrigger>
 
-    <TabsTrigger
-      value="expired"
-      className="flex-1 min-w-[120px] text-xs sm:text-sm"
-    >
-      Expired
-    </TabsTrigger>
+          <TabsTrigger
+            value="active"
+            className="flex-1 min-w-[120px] text-xs sm:text-sm"
+          >
+            Active
+          </TabsTrigger>
 
-    <TabsTrigger
-      value="inactive"
-      className="flex-1 min-w-[120px] text-xs sm:text-sm"
-    >
-      Inactive
-    </TabsTrigger>
-  </TabsList>
+          <TabsTrigger
+            value="expired"
+            className="flex-1 min-w-[120px] text-xs sm:text-sm"
+          >
+            Expired
+          </TabsTrigger>
 
-  <TabsContent value={filter} className="space-y-4 mt-4">
-    {loading ? (
-      <div className="text-center py-8">
-        Loading coupons...
-      </div>
-    ) : filteredCoupons.length === 0 ? (
-      <div className="text-center py-8 text-gray-500">
-        No coupons found
-      </div>
-    ) : (
-      <div className="grid gap-4">
-        {filteredCoupons.map((coupon) => (
-          <CouponCard
-            key={coupon._id}
-            coupon={coupon}
-            onEdit={setSelectedCoupon}
-            onDelete={handleDeleteCoupon}
-            getStatusBadge={getStatusBadge}
-          />
-        ))}
-      </div>
-    )}
-  </TabsContent>
-</Tabs>
+          <TabsTrigger
+            value="inactive"
+            className="flex-1 min-w-[120px] text-xs sm:text-sm"
+          >
+            Inactive
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={filter} className="space-y-4 mt-4">
+          {loading ? (
+            <div className="text-center py-8">
+              Loading coupons...
+            </div>
+          ) : filteredCoupons.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              No coupons found
+            </div>
+          ) : (
+            <div className="grid gap-4">
+              {filteredCoupons.map((coupon) => (
+                <CouponCard
+                  key={coupon._id}
+                  coupon={coupon}
+                  onEdit={setSelectedCoupon}
+                  onDelete={handleDeleteCoupon}
+                  getStatusBadge={getStatusBadge}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Dialog */}
       {selectedCoupon && (

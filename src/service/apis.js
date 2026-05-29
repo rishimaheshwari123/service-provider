@@ -1,7 +1,7 @@
 
 
-export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
-// export const BASE_URL = "https://service-provider-1-6ite.onrender.com/api/v1"
+// export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
+export const BASE_URL = "https://service-provider-1-6ite.onrender.com/api/v1"
 // export const BASE_URL = "http://localhost:8000/api/v1"
 // const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
@@ -19,6 +19,8 @@ export const endpoints = {
   ADMIN_RESET_USER_PASSWORD_API: BASE_URL + "/auth/admin-reset-password",
   SEND_PHONE_VERIFICATION_OTP_API: BASE_URL + "/auth/send-phone-verification-otp",
   VERIFY_PHONE_OTP_API: BASE_URL + "/auth/verify-phone-otp",
+  CHANGE_PASSWORD_API: BASE_URL + "/auth/change-password",
+  GENERATE_REFERRAL_CODE_API: BASE_URL + "/auth/generate-referral-code",
 }
 
 export const image = {
@@ -210,3 +212,9 @@ export const reward = {
   GET_VENDOR_APPLIED_CODES_API: BASE_URL + "/reward/vendor/applied-codes",
   CHECK_VENDOR_SETTINGS_API: BASE_URL + "/reward/vendor/settings",
 }
+
+export const razorpay = {
+  CAPTURE_PAYMENT_API: BASE_URL + "/razorpay/capturePayment",
+  VERIFY_PAYMENT_API: BASE_URL + "/razorpay/verifyPayment",
+}
+
