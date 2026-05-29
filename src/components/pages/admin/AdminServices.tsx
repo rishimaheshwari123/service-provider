@@ -11,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +42,7 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from "lucide-react";
 import { updatePropertyStatusAPI, deletePropertyAPI, getAllPropertyAPI } from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
@@ -70,6 +72,7 @@ interface Service {
 const AdminServices = () => {
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -79,19 +82,33 @@ const AdminServices = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const PAGE_SIZE = 10;
+
+  // Custom Pagination state
+  const [limit, setLimit] = useState(10);
+  const [showCustomPageSize, setShowCustomPageSize] = useState(false);
+  const [customPageSizeInput, setCustomPageSizeInput] = useState("");
+
   const { toast } = useToast();
   const { user } = useSelector((state: RootState) => state.auth);
 
-  const fetchServices = async (page = currentPage, search = searchTerm, status = statusFilter) => {
+  const fetchServices = async (
+    page = currentPage,
+    search = searchTerm,
+    status = statusFilter,
+    pageLimit = limit
+  ) => {
     try {
-      setLoading(true);
+      const isInitialLoad = services.length === 0;
+      if (isInitialLoad) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
       const result = await getAllPropertyAPI({
         page,
-        limit: PAGE_SIZE,
+        limit: pageLimit,
         search: search || undefined,
         includeInactive: true,
-        ...(status !== 'all' ? {} : {}),
       });
 
       // Handle paginated response
@@ -99,9 +116,6 @@ const AdminServices = () => {
         let fetchedServices = result.properties || [];
         // Client-side status filter (since backend includeInactive gives us all)
         if (status !== 'all') {
-          // We need to re-fetch with no pagination to filter by status on backend
-          // OR filter client-side on current page. For now, let's do a backend approach.
-          // Actually, let's filter the current page results
           fetchedServices = fetchedServices.filter((s: Service) => s.status === status);
         }
         setServices(fetchedServices);
@@ -124,6 +138,7 @@ const AdminServices = () => {
       });
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -322,7 +337,15 @@ const AdminServices = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-full px-1 sm:px-4 py-4 md:p-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden">
+      {refreshing && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+            <p className="text-sm text-gray-600 font-medium">Loading services...</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
 
         {/* Left Side */}
@@ -424,14 +447,14 @@ const AdminServices = () => {
       </Card>
 
       {/* Services Table */}
-      <Card>
+      <Card className="w-full shadow-sm overflow-hidden mb-6">
         <CardHeader>
           <CardTitle>
             Services ({totalCount}){searchTerm && <span className="text-sm font-normal text-gray-500 ml-2">— results for "{searchTerm}"</span>}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -567,70 +590,68 @@ const AdminServices = () => {
           )}
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 pt-4 border-t mt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+            {/* Left Info */}
+            <p className="text-sm text-gray-600 text-center sm:text-left order-2 sm:order-1">
+              Page {currentPage} of {totalPages} &bull; {totalCount} total services
+            </p>
 
-              {/* Left Info */}
-              <p className="text-sm text-gray-600 text-center lg:text-left">
-                Page <span className="font-semibold">{currentPage}</span> of{" "}
-                <span className="font-semibold">{totalPages}</span> (
-                {totalCount} total services)
-              </p>
-
-              {/* Pagination */}
-              <div className="flex flex-wrap items-center justify-center gap-2">
-
+            {/* Center: Pagination buttons */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5 order-1 sm:order-2">
                 {/* Previous */}
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage <= 1 || loading}
-                  className="flex items-center gap-1"
+                  className="h-8 px-2.5"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  <span className="hidden sm:inline">Previous</span>
+                  <span className="hidden sm:inline ml-1">Previous</span>
                 </Button>
 
                 {/* Page Numbers */}
-                {(() => {
-                  const pages: number[] = [];
-                  const maxVisible = 5;
+                <div className="flex gap-1">
+                  {(() => {
+                    const pages: number[] = [];
+                    const maxVisible = 5;
 
-                  let start = Math.max(
-                    1,
-                    currentPage - Math.floor(maxVisible / 2)
-                  );
+                    let start = Math.max(
+                      1,
+                      currentPage - Math.floor(maxVisible / 2)
+                    );
 
-                  let end = Math.min(
-                    totalPages,
-                    start + maxVisible - 1
-                  );
+                    let end = Math.min(
+                      totalPages,
+                      start + maxVisible - 1
+                    );
 
-                  if (end - start + 1 < maxVisible) {
-                    start = Math.max(1, end - maxVisible + 1);
-                  }
+                    if (end - start + 1 < maxVisible) {
+                      start = Math.max(1, end - maxVisible + 1);
+                    }
 
-                  for (let i = start; i <= end; i++) {
-                    pages.push(i);
-                  }
+                    for (let i = start; i <= end; i++) {
+                      pages.push(i);
+                    }
 
-                  return pages.map((p) => (
-                    <Button
-                      key={p}
-                      variant={p === currentPage ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => handlePageChange(p)}
-                      disabled={loading}
-                      className={`min-w-[38px] ${p === currentPage
-                        ? "bg-blue-600 text-white hover:bg-blue-700"
-                        : ""
-                        }`}
-                    >
-                      {p}
-                    </Button>
-                  ));
-                })()}
+                    return pages.map((p) => (
+                      <Button
+                        key={p}
+                        variant={p === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(p)}
+                        disabled={loading}
+                        className={`w-8 h-8 p-0 text-xs ${p === currentPage
+                          ? "bg-blue-600 text-white"
+                          : ""
+                          }`}
+                      >
+                        {p}
+                      </Button>
+                    ));
+                  })()}
+                </div>
 
                 {/* Next */}
                 <Button
@@ -638,14 +659,93 @@ const AdminServices = () => {
                   size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= totalPages || loading}
-                  className="flex items-center gap-1"
+                  className="h-8 px-2.5"
                 >
-                  <span className="hidden sm:inline">Next</span>
+                  <span className="hidden sm:inline mr-1">Next</span>
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
+            )}
+
+            {/* Right: Rows per page dropdown */}
+            <div className="flex items-center gap-2 order-3">
+              <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page:</span>
+              <Select
+                value={showCustomPageSize ? "custom" : (limit >= 99999 ? "all" : String(limit))}
+                onValueChange={(value) => {
+                  if (value === "custom") {
+                    setShowCustomPageSize(true);
+                  } else if (value === "all") {
+                    setShowCustomPageSize(false);
+                    setCustomPageSizeInput("");
+                    setLimit(99999);
+                    setCurrentPage(1);
+                    fetchServices(1, searchTerm, statusFilter, 99999);
+                  } else {
+                    setShowCustomPageSize(false);
+                    setCustomPageSizeInput("");
+                    const size = parseInt(value);
+                    if (limit !== size) {
+                      setLimit(size);
+                      setCurrentPage(1);
+                      fetchServices(1, searchTerm, statusFilter, size);
+                    }
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[90px] h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+              {showCustomPageSize && (
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min="1"
+                    max="500"
+                    placeholder="e.g. 25"
+                    value={customPageSizeInput}
+                    onChange={(e) => setCustomPageSizeInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = parseInt(customPageSizeInput);
+                        if (val && val > 0 && val <= 500) {
+                          setLimit(val);
+                          setCurrentPage(1);
+                          setShowCustomPageSize(false);
+                          fetchServices(1, searchTerm, statusFilter, val);
+                        }
+                      }
+                    }}
+                    className="h-8 w-20 text-sm"
+                  />
+                  <Button
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => {
+                      const val = parseInt(customPageSizeInput);
+                      if (val && val > 0 && val <= 500) {
+                        setLimit(val);
+                        setCurrentPage(1);
+                        setShowCustomPageSize(false);
+                        fetchServices(1, searchTerm, statusFilter, val);
+                      }
+                    }}
+                  >
+                    Go
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </CardContent>
       </Card>
 

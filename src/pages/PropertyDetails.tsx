@@ -281,14 +281,14 @@ const PropertyDetails = () => {
                   )}
                   <div className="absolute bottom-2 left-2 bg-black/60 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
                     <Camera className="w-3 h-3" />
-                    {currentImageIndex }/{propertyImages.length}
+                    {currentImageIndex}/{propertyImages.length}
                   </div>
-                  <button
+                  {/* <button
                     onClick={() => setIsSaved(!isSaved)}
                     className="absolute top-2 right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow"
                   >
                     <Heart className={`w-4 h-4 ${isSaved ? "fill-red-500 text-red-500" : "text-gray-400"}`} />
-                  </button>
+                  </button> */}
                 </div>
                 {propertyImages.length > 1 && (
                   <div className="flex gap-1 p-2 bg-gray-50 overflow-x-auto">
@@ -424,7 +424,7 @@ const PropertyDetails = () => {
                         <p className="text-xs text-gray-500">{toPascalCase(property.vendor?.name) || toPascalCase("Service Provider")}</p>
                       </div>
                     </div>
-                    
+
                     {/* Provider Details - Compact version */}
                     <div className="space-y-3 pt-3 border-t border-gray-100">
                       {/* Type of Service */}
@@ -437,7 +437,7 @@ const PropertyDetails = () => {
                           </p>
                         </div>
                       </div>
-                      
+
                       {/* Year of Establishment */}
                       <div className="flex items-start gap-2">
                         <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
@@ -457,7 +457,7 @@ const PropertyDetails = () => {
                           </p>
                         </div>
                       </div>
-                      
+
                       {/* Experience Fields */}
                       <div className="flex items-start gap-2">
                         <Star className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
@@ -475,7 +475,7 @@ const PropertyDetails = () => {
                           )}
                         </div>
                       </div>
-                      
+
                       {/* Phone Number with Show Button Flow */}
                       <div className="flex items-start gap-2">
                         <Phone className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
@@ -515,7 +515,7 @@ const PropertyDetails = () => {
               </div>
             </div>
 
-            
+
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
@@ -574,8 +574,8 @@ const PropertyDetails = () => {
                       </div>
                     </button>
                   ) : (
-                    <a 
-                      href={`tel:${vendorPhone}`} 
+                    <a
+                      href={`tel:${vendorPhone}`}
                       onClick={handleCall}
                       className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100"
                     >

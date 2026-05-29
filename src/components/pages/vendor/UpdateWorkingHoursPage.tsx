@@ -86,8 +86,8 @@ const UpdateWorkingHoursPage = () => {
     );
 
   return (
-    <div className="min-h-screen bg-gray-50 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="min-h-screen bg-gray-50  md:ml-8 pb-5">
+      <div className="">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
@@ -106,18 +106,16 @@ const UpdateWorkingHoursPage = () => {
             return (
               <div
                 key={day}
-                className={`rounded-xl border transition-all duration-200 overflow-hidden ${
-                  isAvailable
-                    ? "bg-white border-blue-100 shadow-sm"
-                    : "bg-gray-100 border-gray-200"
-                }`}
+                className={`rounded-xl border transition-all duration-200 overflow-hidden ${isAvailable
+                  ? "bg-white border-blue-100 shadow-sm"
+                  : "bg-gray-100 border-gray-200"
+                  }`}
               >
                 {/* Day Row */}
                 <div className="flex items-center justify-between px-4 py-3">
                   <span
-                    className={`font-semibold capitalize text-base ${
-                      isAvailable ? "text-gray-800" : "text-gray-400"
-                    }`}
+                    className={`font-semibold capitalize text-base ${isAvailable ? "text-gray-800" : "text-gray-400"
+                      }`}
                   >
                     {day}
                   </span>
@@ -134,9 +132,8 @@ const UpdateWorkingHoursPage = () => {
                     />
                     <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-blue-600 transition-colors duration-200 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:shadow-sm after:transition-all peer-checked:after:translate-x-5" />
                     <span
-                      className={`ml-2 text-sm font-medium ${
-                        isAvailable ? "text-blue-600" : "text-gray-400"
-                      }`}
+                      className={`ml-2 text-sm font-medium ${isAvailable ? "text-blue-600" : "text-gray-400"
+                        }`}
                     >
                       {isAvailable ? "Open" : "Closed"}
                     </span>

@@ -7,7 +7,7 @@ import { RootState } from "@/redux/store";
 
 export default function SearchLogs() {
   const [logs, setLogs] = useState<any[]>([]);
-    const { user } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -41,7 +41,7 @@ export default function SearchLogs() {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.data && response.data.logs) {
         setLogs(response.data.logs || []);
         setPagination(response.data.pagination || { total: 0, page: 1, pages: 1 });
@@ -71,7 +71,7 @@ export default function SearchLogs() {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.data && response.data.stats) {
         setStats(response.data.stats);
       }
@@ -126,7 +126,7 @@ export default function SearchLogs() {
     setFilters((prev) => ({ ...prev, pageNum: newPage }));
   };
 
-  
+
   if (!user?.isLogs) {
     return (
       <div className="text-red-600 text-center p-4 font-semibold">
@@ -136,8 +136,8 @@ export default function SearchLogs() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gray-50 p-3 md:ml-5">
+      <div className="">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
@@ -316,11 +316,10 @@ export default function SearchLogs() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            log.page === "Home"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-purple-100 text-purple-800"
-                          }`}
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${log.page === "Home"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-purple-100 text-purple-800"
+                            }`}
                         >
                           {log.page}
                         </span>

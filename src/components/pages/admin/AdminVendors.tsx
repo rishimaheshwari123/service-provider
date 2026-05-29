@@ -147,7 +147,9 @@ const VendorManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalVendors, setTotalVendors] = useState(0);
-  const ITEMS_PER_PAGE = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [showCustomPageSize, setShowCustomPageSize] = useState(false);
+  const [customPageSizeInput, setCustomPageSizeInput] = useState("");
   const [loading, setLoading] = useState(true);   // full-page spinner — only on initial load
   const [refreshing, setRefreshing] = useState(false); // button spinner — on refresh/search
   const [submitting, setSubmitting] = useState(false);
@@ -269,7 +271,7 @@ const VendorManagement = () => {
   const isCurrentVerified = isPhoneVerified && verifiedNumber === (hasWhatsApp ? formData.whatsappNumber : formData.phone);
 
   // Fetch vendors using the new paginated API
-  const fetchVendors = async (page = currentPage, search = searchTerm, status = statusFilter) => {
+  const fetchVendors = async (page = currentPage, search = searchTerm, status = statusFilter, limit = itemsPerPage) => {
     const isInitialLoad = vendors.length === 0;
     if (isInitialLoad) {
       setLoading(true);
@@ -279,7 +281,7 @@ const VendorManagement = () => {
 
     try {
       const token = (user as any)?.token;
-      const result = await getAllVendorPaginatedAPI({ page, limit: ITEMS_PER_PAGE, search, status, token });
+      const result = await getAllVendorPaginatedAPI({ page, limit, search, status, token });
 
       if (result && result.vendors) {
         setVendors(result.vendors);
@@ -1615,7 +1617,7 @@ const VendorManagement = () => {
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
+    <div className="w-full max-w-full px-1 sm:px-4 py-4 md:p-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden">
       {/* Profile Update Notifications */}
       <VendorProfileUpdateNotifications />
 
@@ -1731,70 +1733,70 @@ const VendorManagement = () => {
                       />
                     </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div className="space-y-2">
-    <Label>
-      Category (Service) <span className="text-red-500">*</span>
-    </Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>
+                          Category (Service) <span className="text-red-500">*</span>
+                        </Label>
 
-    <Select
-      value={selectedCategory}
-      onValueChange={(val) => {
-        setSelectedCategory(val);
-        setFormData((prev) => ({ ...prev, category: val }));
+                        <Select
+                          value={selectedCategory}
+                          onValueChange={(val) => {
+                            setSelectedCategory(val);
+                            setFormData((prev) => ({ ...prev, category: val }));
 
-        const selectedCat = categories.find((c) => c._id === val);
+                            const selectedCat = categories.find((c) => c._id === val);
 
-        if (selectedCat?.autoFilled) {
-          setSelectedAutoFilled(selectedCat.autoFilled);
-          setFormData((prev) => ({
-            ...prev,
-            subCategory: selectedCat.autoFilled,
-          }));
-        } else {
-          setSelectedAutoFilled("");
-          setFormData((prev) => ({ ...prev, subCategory: "" }));
-        }
-      }}
-    >
-      <SelectTrigger className="h-10 text-sm overflow-hidden">
-        <SelectValue placeholder="Select category" />
-      </SelectTrigger>
+                            if (selectedCat?.autoFilled) {
+                              setSelectedAutoFilled(selectedCat.autoFilled);
+                              setFormData((prev) => ({
+                                ...prev,
+                                subCategory: selectedCat.autoFilled,
+                              }));
+                            } else {
+                              setSelectedAutoFilled("");
+                              setFormData((prev) => ({ ...prev, subCategory: "" }));
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="h-10 text-sm overflow-hidden">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
 
-      <SelectContent className="max-h-60 overflow-y-auto">
-        {categories.map((cat) => (
-          <SelectItem
-            key={cat._id}
-            value={cat._id}
-            className="text-sm"
-          >
-            {cat.name}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  </div>
+                          <SelectContent className="max-h-60 overflow-y-auto">
+                            {categories.map((cat) => (
+                              <SelectItem
+                                key={cat._id}
+                                value={cat._id}
+                                className="text-sm"
+                              >
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-  <div className="space-y-2">
-    <Label>
-      Sub Category (Auto Filled){" "}
-      <span className="text-red-500">*</span>
-    </Label>
+                      <div className="space-y-2">
+                        <Label>
+                          Sub Category (Auto Filled){" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
 
-    <Input
-      placeholder="Auto-filled based on category"
-      value={selectedAutoFilled}
-      onChange={(e) => {
-        setSelectedAutoFilled(e.target.value);
-        setFormData((prev) => ({
-          ...prev,
-          subCategory: e.target.value,
-        }));
-      }}
-      className="bg-gray-50 h-10 text-sm"
-    />
-  </div>
-</div>
+                        <Input
+                          placeholder="Auto-filled based on category"
+                          value={selectedAutoFilled}
+                          onChange={(e) => {
+                            setSelectedAutoFilled(e.target.value);
+                            setFormData((prev) => ({
+                              ...prev,
+                              subCategory: e.target.value,
+                            }));
+                          }}
+                          className="bg-gray-50 h-10 text-sm"
+                        />
+                      </div>
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -3075,7 +3077,7 @@ const VendorManagement = () => {
       </Card>
 
       {/* Vendors Table */}
-      <Card className="shadow-sm">
+      <Card className="w-full shadow-sm overflow-hidden mb-6">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5" />
@@ -3092,7 +3094,16 @@ const VendorManagement = () => {
               )}
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-x-auto relative">
+              {/* Loading overlay spinner - fixed to viewport center */}
+              {refreshing && (
+                <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+                  <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
+                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                    <p className="text-sm text-gray-600 font-medium">Loading vendors...</p>
+                  </div>
+                </div>
+              )}
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -3372,72 +3383,156 @@ const VendorManagement = () => {
           )}
 
           {/* Pagination Controls */}
-          {!loading && totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <p className="text-sm text-gray-600">
+          {!loading && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+              {/* Left: Page info */}
+              <p className="text-sm text-gray-500 whitespace-nowrap order-2 sm:order-1">
                 Page {currentPage} of {totalPages} &bull; {totalVendors} total vendors
               </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newPage = currentPage - 1;
-                    setCurrentPage(newPage);
-                    fetchVendors(newPage, searchTerm, statusFilter);
-                  }}
-                  disabled={currentPage <= 1 || loading}
-                  className="flex items-center gap-1"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
 
-                {/* Page number buttons */}
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => {
-                          setCurrentPage(pageNum);
-                          fetchVendors(pageNum, searchTerm, statusFilter);
-                        }}
-                        disabled={loading}
-                        className="w-8 h-8 p-0"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
+              {/* Center: Page navigation */}
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newPage = currentPage - 1;
+                      setCurrentPage(newPage);
+                      fetchVendors(newPage, searchTerm, statusFilter);
+                    }}
+                    disabled={currentPage <= 1 || loading}
+                    className="h-8 px-2.5"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-1">Previous</span>
+                  </Button>
+
+                  {/* Page number buttons */}
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <Button
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setCurrentPage(pageNum);
+                            fetchVendors(pageNum, searchTerm, statusFilter);
+                          }}
+                          disabled={loading}
+                          className="w-8 h-8 p-0 text-xs"
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const newPage = currentPage + 1;
+                      setCurrentPage(newPage);
+                      fetchVendors(newPage, searchTerm, statusFilter);
+                    }}
+                    disabled={currentPage >= totalPages || loading}
+                    className="h-8 px-2.5"
+                  >
+                    <span className="hidden sm:inline mr-1">Next</span>
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
                 </div>
+              )}
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const newPage = currentPage + 1;
-                    setCurrentPage(newPage);
-                    fetchVendors(newPage, searchTerm, statusFilter);
+              {/* Right: Rows per page dropdown */}
+              <div className="flex items-center gap-2 order-3">
+                <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page:</span>
+                <Select
+                  value={showCustomPageSize ? "custom" : (itemsPerPage >= 99999 ? "all" : String(itemsPerPage))}
+                  onValueChange={(value) => {
+                    if (value === "custom") {
+                      setShowCustomPageSize(true);
+                    } else if (value === "all") {
+                      setShowCustomPageSize(false);
+                      setCustomPageSizeInput("");
+                      setItemsPerPage(99999);
+                      setCurrentPage(1);
+                      fetchVendors(1, searchTerm, statusFilter, 99999);
+                    } else {
+                      setShowCustomPageSize(false);
+                      setCustomPageSizeInput("");
+                      const size = parseInt(value);
+                      if (itemsPerPage !== size) {
+                        setItemsPerPage(size);
+                        setCurrentPage(1);
+                        fetchVendors(1, searchTerm, statusFilter, size);
+                      }
+                    }
                   }}
-                  disabled={currentPage >= totalPages || loading}
-                  className="flex items-center gap-1"
                 >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
+                  <SelectTrigger className="w-[90px] h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+                {showCustomPageSize && (
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="500"
+                      placeholder="e.g. 25"
+                      value={customPageSizeInput}
+                      onChange={(e) => setCustomPageSizeInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const val = parseInt(customPageSizeInput);
+                          if (val && val > 0 && val <= 500) {
+                            setItemsPerPage(val);
+                            setCurrentPage(1);
+                            setShowCustomPageSize(false);
+                            fetchVendors(1, searchTerm, statusFilter, val);
+                          }
+                        }
+                      }}
+                      className="h-8 w-20 text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={() => {
+                        const val = parseInt(customPageSizeInput);
+                        if (val && val > 0 && val <= 500) {
+                          setItemsPerPage(val);
+                          setCurrentPage(1);
+                          setShowCustomPageSize(false);
+                          fetchVendors(1, searchTerm, statusFilter, val);
+                        }
+                      }}
+                    >
+                      Go
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}

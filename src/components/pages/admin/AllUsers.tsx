@@ -22,10 +22,12 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const AllUsers = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [inquiries, setInquiries] = useState([]);
   const [showModal, setShowModal] = useState(false);
@@ -38,15 +40,22 @@ const AllUsers = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
+  const [showCustomPageSize, setShowCustomPageSize] = useState(false);
+  const [customPageSizeInput, setCustomPageSizeInput] = useState("");
   
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
-  const fetchUsers = async (page = 1, search = "") => {
-    try {
+  const fetchUsers = async (page = 1, search = "", pageLimit = limit) => {
+    const isInitialLoad = users.length === 0;
+    if (isInitialLoad) {
       setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+    try {
       const token = (user as any)?.token;
-      const data = await getAllUsersAPI(page, limit, search, token);
+      const data = await getAllUsersAPI(page, pageLimit, search, token);
       setUsers(data.users || []);
       setCurrentPage(data.pagination?.currentPage || 1);
       setTotalPages(data.pagination?.totalPages || 1);
@@ -55,6 +64,7 @@ const AllUsers = () => {
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -174,12 +184,32 @@ const AllUsers = () => {
     );
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-indigo-600" />
+          <p className="text-gray-600">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
-      <h2 className="text-sm md:text-3xl font-extrabold mb-8 text-gray-900 flex items-center justify-center">
-        <Users className="w-7 h-7 mr-3 text-indigo-600" />
+    <div className="w-full max-w-full px-1 sm:px-4 py-4 md:p-8 min-h-screen flex flex-col font-inter">
+      <h2 className="text-xl md:text-3xl font-extrabold mb-3 md:mb-8 text-gray-900 flex items-center justify-center">
         All Registered Users
       </h2>
+
+      {/* Loading overlay spinner */}
+      {refreshing && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+            <p className="text-sm text-gray-600 font-medium">Loading users...</p>
+          </div>
+        </div>
+      )}
 
       {/* Search and Actions Bar */}
    <div className="bg-white shadow-md rounded-xl p-4 mb-6">
@@ -243,13 +273,8 @@ const AllUsers = () => {
   </div>
 </div>
 
-      <div className="bg-white shadow-xl rounded-xl p-4 sm:p-6 lg:p-8">
-        {loading ? (
-          <div className="flex justify-center items-center py-10">
-            <Loader2 className="animate-spin w-8 h-8 text-indigo-600" />
-            <p className="ml-3 text-lg text-gray-600">Loading users...</p>
-          </div>
-        ) : users.length === 0 ? (
+      <div className="w-full bg-white shadow-xl rounded-xl p-4 sm:p-6 lg:p-8 overflow-hidden mb-6">
+        {users.length === 0 ? (
           <div className="text-center py-10">
             <Users className="w-16 h-16 mx-auto text-gray-300 mb-4" />
             <p className="text-gray-500 text-lg">
@@ -258,32 +283,32 @@ const AllUsers = () => {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="w-full overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-indigo-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       #
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Name
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Email
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Phone
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Verified
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Change Type
                     </th>
-                    <th className="px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-center text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Inquiries
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
+                    <th className="px-4 sm:px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Created At
                     </th>
                   </tr>
@@ -295,18 +320,18 @@ const AllUsers = () => {
                       key={user._id}
                       className="hover:bg-gray-100 transition duration-150 ease-in-out"
                     >
-                      <td className="px-6 py-4 text-sm text-gray-500">
-                        {(currentPage - 1) * limit + index + 1}
+                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-500">
+                        {(currentPage - 1) * (limit >= 99999 ? users.length : limit) + index + 1}
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      <td className="px-4 sm:px-6 py-4 text-sm font-semibold text-gray-900">
                         {user.name || "—"}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-600">
                         {user.email}
                       </td>
                       
                       {/* Phone Number */}
-                      <td className="px-6 py-4 text-sm text-gray-600">
+                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-600">
                         <div className="flex items-center gap-2">
                           <Phone className="w-4 h-4 text-gray-400" />
                           <span>{user.phone || "—"}</span>
@@ -314,7 +339,7 @@ const AllUsers = () => {
                       </td>
 
                       {/* Phone Verification Status */}
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 sm:px-6 py-4 text-center">
                         {user.phone ? (
                           user.phoneVerified ? (
                             <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
@@ -333,7 +358,7 @@ const AllUsers = () => {
                       </td>
 
                       {/* Type change dropdown */}
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 sm:px-6 py-4 text-center">
                         <select
                           onChange={(e) =>
                             handleChangeType(user._id, e.target.value)
@@ -351,11 +376,11 @@ const AllUsers = () => {
                       </td>
 
                       {/* Inquiry Button */}
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-4 sm:px-6 py-4 text-center">
                         <button
                           onClick={() => handleSeeInquiry(user._id)}
                           disabled={inquiryLoading}
-                          className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg text-white shadow-sm transition duration-200 ease-in-out ${
+                          className={`inline-flex items-center px-3 sm:px-4 py-2 text-sm font-medium rounded-lg text-white shadow-sm transition duration-200 ease-in-out ${
                             inquiryLoading && selectedUser?._id === user._id
                               ? "bg-indigo-400 cursor-not-allowed"
                               : "bg-indigo-600 hover:bg-indigo-700 focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -370,7 +395,7 @@ const AllUsers = () => {
                         </button>
                       </td>
 
-                      <td className="px-6 py-4 text-sm text-gray-500">
+                      <td className="px-4 sm:px-6 py-4 text-sm text-gray-500">
                         {new Date(user.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
@@ -380,25 +405,22 @@ const AllUsers = () => {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
-                <div className="text-sm text-gray-600">
-                  Showing <span className="font-semibold">{(currentPage - 1) * limit + 1}</span> to{" "}
-                  <span className="font-semibold">
-                    {Math.min(currentPage * limit, totalUsers)}
-                  </span>{" "}
-                  of <span className="font-semibold">{totalUsers}</span> users
-                </div>
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
+              <div className="text-sm text-gray-600 order-2 sm:order-1">
+                Page {currentPage} of {totalPages} &bull; {totalUsers} total users
+              </div>
 
-                <div className="flex items-center gap-2">
+              {totalPages > 1 && (
+                <div className="flex items-center gap-1.5 order-1 sm:order-2">
                   <Button
                     onClick={goToPrevPage}
                     disabled={currentPage === 1}
                     variant="outline"
                     size="sm"
-                    className="px-3"
+                    className="h-8 px-2.5"
                   >
                     <ChevronLeft className="w-4 h-4" />
+                    <span className="hidden sm:inline ml-1">Previous</span>
                   </Button>
 
                   {/* Page Numbers */}
@@ -421,7 +443,7 @@ const AllUsers = () => {
                           onClick={() => goToPage(pageNum)}
                           variant={currentPage === pageNum ? "default" : "outline"}
                           size="sm"
-                          className={`px-3 ${
+                          className={`w-8 h-8 p-0 text-xs ${
                             currentPage === pageNum
                               ? "bg-indigo-600 text-white"
                               : ""
@@ -438,13 +460,93 @@ const AllUsers = () => {
                     disabled={currentPage === totalPages}
                     variant="outline"
                     size="sm"
-                    className="px-3"
+                    className="h-8 px-2.5"
                   >
+                    <span className="hidden sm:inline mr-1">Next</span>
                     <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
+              )}
+
+              {/* Rows per page dropdown */}
+              <div className="flex items-center gap-2 order-3">
+                <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page:</span>
+                <Select
+                  value={showCustomPageSize ? "custom" : (limit >= 99999 ? "all" : String(limit))}
+                  onValueChange={(value) => {
+                    if (value === "custom") {
+                      setShowCustomPageSize(true);
+                    } else if (value === "all") {
+                      setShowCustomPageSize(false);
+                      setCustomPageSizeInput("");
+                      setLimit(99999);
+                      setCurrentPage(1);
+                      fetchUsers(1, searchQuery, 99999);
+                    } else {
+                      setShowCustomPageSize(false);
+                      setCustomPageSizeInput("");
+                      const size = parseInt(value);
+                      if (limit !== size) {
+                        setLimit(size);
+                        setCurrentPage(1);
+                        fetchUsers(1, searchQuery, size);
+                      }
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-[90px] h-8 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+                {showCustomPageSize && (
+                  <div className="flex items-center gap-1.5">
+                    <Input
+                      type="number"
+                      min="1"
+                      max="500"
+                      placeholder="e.g. 25"
+                      value={customPageSizeInput}
+                      onChange={(e) => setCustomPageSizeInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const val = parseInt(customPageSizeInput);
+                          if (val && val > 0 && val <= 500) {
+                            setLimit(val);
+                            setCurrentPage(1);
+                            setShowCustomPageSize(false);
+                            fetchUsers(1, searchQuery, val);
+                          }
+                        }
+                      }}
+                      className="h-8 w-20 text-sm"
+                    />
+                    <Button
+                      size="sm"
+                      className="h-8 px-3 text-xs"
+                      onClick={() => {
+                        const val = parseInt(customPageSizeInput);
+                        if (val && val > 0 && val <= 500) {
+                          setLimit(val);
+                          setCurrentPage(1);
+                          setShowCustomPageSize(false);
+                          fetchUsers(1, searchQuery, val);
+                        }
+                      }}
+                    >
+                      Go
+                    </Button>
+                  </div>
+                )}
               </div>
-            )}
+            </div>
           </>
         )}
       </div>

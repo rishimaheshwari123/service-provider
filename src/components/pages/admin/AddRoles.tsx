@@ -87,15 +87,15 @@ export const AddRoles = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 font-inter">
-      <h1 className="text-sm md:text-4xl font-extrabold text-gray-900 mb-8 mt-12 text-center drop-shadow-lg">
+    <div className="w-full max-w-full flex flex-col items-center px-1 sm:px-4 py-4 font-inter">
+      <h1 className="text-lg sm:text-2xl md:text-4xl font-extrabold text-gray-900 mb-4 sm:mb-8  text-center drop-shadow-lg">
         Employee Management Portal
       </h1>
 
       {/* Toggle Button */}
       <button
         onClick={() => setShowForm(!showForm)}
-        className="flex items-center px-8 py-4 bg-purple-600 text-white font-bold text-lg rounded-full shadow-xl hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300 mb-10 group"
+        className="flex items-center px-5 sm:px-8 py-3 sm:py-4 bg-purple-600 text-white font-bold text-sm sm:text-lg rounded-full shadow-xl hover:bg-purple-700 transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-purple-300 mb-6 sm:mb-10 group"
       >
         {showForm ? (
           <>
@@ -112,8 +112,8 @@ export const AddRoles = () => {
 
       {/* Form */}
       {showForm && (
-        <div className="w-full max-w-lg bg-white p-10 rounded-3xl shadow-3xl animate-scale-in-fade-in border border-gray-200">
-          <h2 className="text-4xl font-bold text-gray-800 mb-8 text-center">
+        <div className="w-full max-w-lg bg-white p-5 sm:p-10 rounded-2xl sm:rounded-3xl shadow-3xl animate-scale-in-fade-in border border-gray-200">
+          <h2 className="text-2xl sm:text-4xl font-bold text-gray-800 mb-6 sm:mb-8 text-center">
             Register Employee
           </h2>
 

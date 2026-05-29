@@ -479,23 +479,23 @@ const VendorProfile = () => {
     } catch (error: unknown) {
       const backendMessage =
         error &&
-        typeof error === "object" &&
-        "response" in error &&
-        (
-          error as {
-            response?: { data?: { message?: string; error?: string } };
-          }
-        ).response?.data
+          typeof error === "object" &&
+          "response" in error &&
+          (
+            error as {
+              response?: { data?: { message?: string; error?: string } };
+            }
+          ).response?.data
           ? (
-              error as {
-                response?: { data?: { message?: string; error?: string } };
-              }
-            ).response?.data?.message ||
-            (
-              error as {
-                response?: { data?: { message?: string; error?: string } };
-              }
-            ).response?.data?.error
+            error as {
+              response?: { data?: { message?: string; error?: string } };
+            }
+          ).response?.data?.message ||
+          (
+            error as {
+              response?: { data?: { message?: string; error?: string } };
+            }
+          ).response?.data?.error
           : null;
       toast({
         title: "Error",
@@ -585,8 +585,8 @@ const VendorProfile = () => {
   const progress = (currentStep / 7) * 100;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-0  lg:px-8">
+    <div className="min-h-screen  pb-2 md:ml-8">
+      <div className="">
         {/* Header */}
         <div className="mb-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
@@ -647,21 +647,19 @@ const VendorProfile = () => {
                 {EDIT_STEPS.map((step) => (
                   <div
                     key={step.id}
-                    className={`flex flex-col items-center min-w-[80px] cursor-pointer ${
-                      currentStep >= step.id
-                        ? "text-yellow-600"
-                        : "text-gray-400"
-                    }`}
+                    className={`flex flex-col items-center min-w-[80px] cursor-pointer ${currentStep >= step.id
+                      ? "text-yellow-600"
+                      : "text-gray-400"
+                      }`}
                     onClick={() => setCurrentStep(step.id)}
                   >
                     <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center text-lg mb-1 ${
-                        currentStep > step.id
-                          ? "bg-green-500 text-white"
-                          : currentStep === step.id
-                            ? "bg-yellow-500 text-white"
-                            : "bg-gray-200"
-                      }`}
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-lg mb-1 ${currentStep > step.id
+                        ? "bg-green-500 text-white"
+                        : currentStep === step.id
+                          ? "bg-yellow-500 text-white"
+                          : "bg-gray-200"
+                        }`}
                     >
                       {currentStep > step.id ? <Check size={20} /> : step.icon}
                     </div>
@@ -1032,11 +1030,10 @@ const VendorProfile = () => {
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
                                 <div
-                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                    !businessDocuments.aadhaarFront
-                                      ? "border-gray-300 bg-white"
-                                      : "border-green-500 bg-green-50"
-                                  }`}
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarFront
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                    }`}
                                 >
                                   {businessDocuments.aadhaarFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1088,11 +1085,10 @@ const VendorProfile = () => {
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
                                 <div
-                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                    !businessDocuments.aadhaarBack
-                                      ? "border-gray-300 bg-white"
-                                      : "border-green-500 bg-green-50"
-                                  }`}
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarBack
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                    }`}
                                 >
                                   {businessDocuments.aadhaarBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1160,11 +1156,10 @@ const VendorProfile = () => {
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
                               <div
-                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.panCard
-                                    ? "border-gray-300 bg-white"
-                                    : "border-green-500 bg-green-50"
-                                }`}
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.panCard
+                                  ? "border-gray-300 bg-white"
+                                  : "border-green-500 bg-green-50"
+                                  }`}
                               >
                                 {businessDocuments.panCard ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1227,11 +1222,10 @@ const VendorProfile = () => {
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
                               <div
-                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.gstCertificate
-                                    ? "border-gray-300 bg-white"
-                                    : "border-green-500 bg-green-50"
-                                }`}
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.gstCertificate
+                                  ? "border-gray-300 bg-white"
+                                  : "border-green-500 bg-green-50"
+                                  }`}
                               >
                                 {businessDocuments.gstCertificate ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1302,11 +1296,10 @@ const VendorProfile = () => {
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
                               <div
-                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                  !businessDocuments.tradeLicenseDoc
-                                    ? "border-gray-300 bg-white"
-                                    : "border-green-500 bg-green-50"
-                                }`}
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.tradeLicenseDoc
+                                  ? "border-gray-300 bg-white"
+                                  : "border-green-500 bg-green-50"
+                                  }`}
                               >
                                 {businessDocuments.tradeLicenseDoc ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1352,7 +1345,7 @@ const VendorProfile = () => {
                           </div>
                         </div>
                       )}
-                        {selectedDocumentType === "voterId" && (
+                      {selectedDocumentType === "voterId" && (
                         <div className="space-y-3">
                           <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
                             📸 Upload both front and back images of Voter ID card
@@ -1376,11 +1369,10 @@ const VendorProfile = () => {
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
                                 <div
-                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                    !businessDocuments.voterIdFront
-                                      ? "border-gray-300 bg-white"
-                                      : "border-green-500 bg-green-50"
-                                  }`}
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.voterIdFront
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                    }`}
                                 >
                                   {businessDocuments.voterIdFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1432,11 +1424,10 @@ const VendorProfile = () => {
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
                                 <div
-                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                    !businessDocuments.voterIdBack
-                                      ? "border-gray-300 bg-white"
-                                      : "border-green-500 bg-green-50"
-                                  }`}
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.voterIdBack
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                    }`}
                                 >
                                   {businessDocuments.voterIdBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1508,11 +1499,10 @@ const VendorProfile = () => {
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
                                 <div
-                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                    !businessDocuments.drivingLicenceFront
-                                      ? "border-gray-300 bg-white"
-                                      : "border-green-500 bg-green-50"
-                                  }`}
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.drivingLicenceFront
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                    }`}
                                 >
                                   {businessDocuments.drivingLicenceFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1564,11 +1554,10 @@ const VendorProfile = () => {
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
                                 <div
-                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
-                                    !businessDocuments.drivingLicenceBack
-                                      ? "border-gray-300 bg-white"
-                                      : "border-green-500 bg-green-50"
-                                  }`}
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.drivingLicenceBack
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                    }`}
                                 >
                                   {businessDocuments.drivingLicenceBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
@@ -1844,11 +1833,10 @@ const VendorProfile = () => {
                         ].map((day) => (
                           <label
                             key={day.key}
-                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
-                              workingDays[day.key as keyof typeof workingDays]
-                                ? "bg-yellow-100 border-yellow-500 text-yellow-700"
-                                : "bg-gray-50 border-gray-200 text-gray-500"
-                            }`}
+                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${workingDays[day.key as keyof typeof workingDays]
+                              ? "bg-yellow-100 border-yellow-500 text-yellow-700"
+                              : "bg-gray-50 border-gray-200 text-gray-500"
+                              }`}
                           >
                             <input
                               type="checkbox"
@@ -1880,8 +1868,8 @@ const VendorProfile = () => {
                             {workingDays[
                               day.key as keyof typeof workingDays
                             ] && (
-                              <Check size={14} className="text-yellow-600" />
-                            )}
+                                <Check size={14} className="text-yellow-600" />
+                              )}
                           </label>
                         ))}
                       </div>
@@ -2153,7 +2141,7 @@ const VendorProfile = () => {
                     <div className="relative inline-block">
                       <Avatar className="w-24 h-24 mx-auto mb-4">
                         {vendor.profilePhoto &&
-                        typeof vendor.profilePhoto === "string" ? (
+                          typeof vendor.profilePhoto === "string" ? (
                           <AvatarImage
                             src={vendor.profilePhoto}
                             alt={vendor.name}
@@ -2481,41 +2469,41 @@ const VendorProfile = () => {
                   {/* Bank Details */}
                   {(!vendor.paymentMethod ||
                     vendor.paymentMethod === "bank") && (
-                    <>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Bank Name</Label>
-                          <p className="mt-1 text-gray-900 flex items-center gap-2">
-                            <Building className="w-4 h-4 text-gray-400" />
-                            {vendor.bankDetail?.branch || "-"}
-                          </p>
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Bank Name</Label>
+                            <p className="mt-1 text-gray-900 flex items-center gap-2">
+                              <Building className="w-4 h-4 text-gray-400" />
+                              {vendor.bankDetail?.branch || "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <Label>Account Holder Name</Label>
+                            <p className="mt-1 text-gray-900 flex items-center gap-2">
+                              <User className="w-4 h-4 text-gray-400" />
+                              {vendor.bankDetail?.accountHolderName || "-"}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <Label>Account Holder Name</Label>
-                          <p className="mt-1 text-gray-900 flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-400" />
-                            {vendor.bankDetail?.accountHolderName || "-"}
-                          </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Account Number</Label>
+                            <p className="mt-1 text-gray-900 flex items-center gap-2">
+                              <CreditCard className="w-4 h-4 text-gray-400" />
+                              {vendor.bankDetail?.accountNumber || "-"}
+                            </p>
+                          </div>
+                          <div>
+                            <Label>IFSC Code</Label>
+                            <p className="mt-1 text-gray-900 flex items-center gap-2">
+                              <CreditCard className="w-4 h-4 text-gray-400" />
+                              {vendor.bankDetail?.IFSC || "-"}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>Account Number</Label>
-                          <p className="mt-1 text-gray-900 flex items-center gap-2">
-                            <CreditCard className="w-4 h-4 text-gray-400" />
-                            {vendor.bankDetail?.accountNumber || "-"}
-                          </p>
-                        </div>
-                        <div>
-                          <Label>IFSC Code</Label>
-                          <p className="mt-1 text-gray-900 flex items-center gap-2">
-                            <CreditCard className="w-4 h-4 text-gray-400" />
-                            {vendor.bankDetail?.IFSC || "-"}
-                          </p>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                      </>
+                    )}
 
                   {/* UPI Details */}
                   {vendor.paymentMethod === "upi" && (
@@ -2585,7 +2573,7 @@ const VendorProfile = () => {
                     <div>
                       <Label>Profile Photo</Label>
                       {vendor.profilePhoto &&
-                      typeof vendor.profilePhoto === "string" ? (
+                        typeof vendor.profilePhoto === "string" ? (
                         <a
                           href={vendor.profilePhoto}
                           target="_blank"
@@ -2606,12 +2594,12 @@ const VendorProfile = () => {
                       <div key={num}>
                         <Label>Document {num}</Label>
                         {vendor[`document${num}` as keyof VendorData] &&
-                        typeof vendor[`document${num}` as keyof VendorData] ===
+                          typeof vendor[`document${num}` as keyof VendorData] ===
                           "string" ? (
                           <a
                             href={
                               vendor[
-                                `document${num}` as keyof VendorData
+                              `document${num}` as keyof VendorData
                               ] as string
                             }
                             target="_blank"

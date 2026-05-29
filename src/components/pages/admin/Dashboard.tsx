@@ -120,9 +120,9 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+    <div className=" md:p-8 min-h-screen">
       {/* Welcome Header */}
-      <header className="mb-10 text-center">
+      <header className="mb-5 text-center">
         <h1 className="text-xl md:text-3xl  font-extrabold text-gray-800">
           Welcome back, {""}
           <span className="text-indigo-600">
@@ -140,7 +140,7 @@ const Dashboard = () => {
       {/* --- */}
 
       {/* Dashboard Stats (Modern Card Design) */}
-      <section className="mb-16">
+      <section className="mb-5">
         <div className="flex items-center justify-center mb-6">
           <FaChartLine className="text-3xl text-indigo-600 mr-2" />
           <h2 className="text-sm md:text-2xl font-bold text-gray-800 uppercase tracking-wider">
@@ -226,7 +226,7 @@ const Dashboard = () => {
       {/* --- */}
 
       {/* Categories Overview */}
-    <section className="mb-16">
+    <section className="mb-5">
   <div className="flex items-center justify-center mb-6">
     <h2 className="text-sm md:text-2xl font-bold text-gray-800">
       Categories Overview

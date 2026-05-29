@@ -365,7 +365,7 @@ const Sidebar = () => {
           variant="ghost"
           size="sm"
           onClick={handleToggle}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 text-black rounded-lg "
         >
           {isCollapsed ? (
             <ChevronRight className="h-4 w-4" />

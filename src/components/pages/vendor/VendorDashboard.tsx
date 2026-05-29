@@ -137,7 +137,7 @@ const VendorDashboard = () => {
   }
 
   return (
-    <div className="p-4 md:p-8 bg-gray-50 min-h-screen">
+    <div className="md:ml-8 bg-gray-50 min-h-screen">
       {/* Welcome Header */}
       <header className="mb-12">
         <h1 className="text-3xl md:text-4xl font-extrabold text-gray-800">
@@ -296,9 +296,9 @@ const VendorDashboard = () => {
         </div>
       </section>
       {/* Vendor Inquiry List */}
-      <section className="mt-16">
+      {/* <section className="mt-16">
         <VendorGetInquiry />
-      </section>
+      </section> */}
     </div>
   );
 };

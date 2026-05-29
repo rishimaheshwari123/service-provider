@@ -33,7 +33,7 @@ const { LOGOUT_API } = endpoints;
 
 const VendorSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(
-    localStorage.getItem("sidebarCollapsed") === "true",
+    localStorage.getItem("sidebarCollapsed") === "true"
   );
   const dispatch = useDispatch();
   const sidebarRef = useRef(null);
@@ -56,6 +56,8 @@ const VendorSidebar = () => {
     const collapsed = !isCollapsed;
     setIsCollapsed(collapsed);
     localStorage.setItem("sidebarCollapsed", collapsed.toString());
+    // Dispatch custom event for Layout to listen
+    window.dispatchEvent(new Event("sidebarToggle"));
   };
 
   // Effect to close sidebar when clicking outside
@@ -64,12 +66,16 @@ const VendorSidebar = () => {
       if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
         setIsCollapsed(true);
         localStorage.setItem("sidebarCollapsed", "true");
+        // Dispatch custom event for Layout to listen
+        window.dispatchEvent(new Event("sidebarToggle"));
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
 
-    return () => {};
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   const allMenuItems = [
@@ -182,7 +188,7 @@ const VendorSidebar = () => {
       ref={sidebarRef}
       className={`fixed h-screen top-0 z-50 ${
         isCollapsed ? "w-20" : "w-64"
-      } bg-white border-r border-gray-200 shadow-lg transition-all duration-300 flex flex-col`}
+      } bg-white border-r border-gray-200 shadow-lg transition-all duration-300 flex flex-col overflow-hidden`}
     >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -220,9 +226,9 @@ const VendorSidebar = () => {
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
-                `flex items-center space-x-3 px-3 py-3 rounded-lg transition-all duration-200 group ${
+                `flex items-center ${isCollapsed ? 'justify-center' : 'space-x-3'} px-3 py-2.5 rounded-lg transition-all duration-200 group relative ${
                   isActive
-                    ? "bg-blue-50 border-r-4 border-blue-600 text-blue-700"
+                    ? `bg-blue-50 ${isCollapsed ? 'ring-2 ring-blue-600' : 'border-r-4 border-blue-600'} text-blue-700`
                     : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                 }`
               }
@@ -235,9 +241,9 @@ const VendorSidebar = () => {
                     } group-hover:scale-110 transition-transform`}
                   />
                   <span
-                    className={`font-medium ${
+                    className={`font-medium text-sm leading-tight ${
                       isCollapsed ? "hidden" : "block"
-                    } transition-all duration-200`}
+                    } transition-all duration-200 flex-1 min-w-0 break-words`}
                   >
                     {item.label}
                   </span>

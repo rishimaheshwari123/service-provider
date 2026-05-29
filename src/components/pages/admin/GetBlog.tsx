@@ -12,6 +12,9 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const GetBlog = () => {
   const [blog, setBlogs] = useState([]);
@@ -24,12 +27,17 @@ const GetBlog = () => {
   const [categorySearchText, setCategorySearchText] = useState("");
 
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalBlogs, setTotalBlogs] = useState(0);
   const [stats, setStats] = useState({ total: 0, published: 0 });
   const [allCategories, setAllCategories] = useState([]);
-  const limit = 9;
+
+  // Custom Pagination state
+  const [limit, setLimit] = useState(10);
+  const [showCustomPageSize, setShowCustomPageSize] = useState(false);
+  const [customPageSizeInput, setCustomPageSizeInput] = useState("");
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
@@ -61,12 +69,17 @@ const GetBlog = () => {
     }
   };
 
-  const getAllBlogs = async (targetPage = page) => {
+  const getAllBlogs = async (targetPage = page, targetLimit = limit) => {
     try {
-      setLoading(true);
+      const isInitialLoad = blog.length === 0;
+      if (isInitialLoad) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
       const params: any = {
         page: targetPage,
-        limit: limit,
+        limit: targetLimit,
       };
       if (searchTerm) params.search = searchTerm;
       if (filterCategory !== "all") params.category = filterCategory;
@@ -87,6 +100,7 @@ const GetBlog = () => {
       console.log("Something went wrong", error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -104,8 +118,8 @@ const GetBlog = () => {
 
   // Trigger paginated load when filters change (resets to page 1)
   useEffect(() => {
-    getAllBlogs(1);
-  }, [searchTerm, filterCategory, filterStatus]);
+    getAllBlogs(1, limit);
+  }, [searchTerm, filterCategory, filterStatus, limit]);
 
   // Fetch general stats and list of categories once on mount
   useEffect(() => {
@@ -149,10 +163,18 @@ const GetBlog = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full max-w-full px-1 sm:px-4 px-4 md:px-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden bg-gray-50">
+      {refreshing && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
+            <p className="text-sm text-gray-600 font-medium">Loading blogs...</p>
+          </div>
+        </div>
+      )}
+      <div className=" ">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 px-4 sm:p-6 mb-6">
 
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
 
@@ -387,12 +409,11 @@ const GetBlog = () => {
                       )}
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                      <div className="flex space-x-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-gray-100">
+                      <div className="flex flex-col sm:flex-row gap-2">
                         <button
                           onClick={() => openModal(blogItem._id)}
-                          className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                          className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                         >
                           <FaEdit className="mr-1" />
                           Edit
@@ -401,7 +422,7 @@ const GetBlog = () => {
                         {blogItem.slug && (
                           <button
                             onClick={() => window.open(`/blog/${blogItem.slug}`, '_blank')}
-                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                            className="inline-flex items-center justify-center px-3 py-1.5 border border-gray-300 text-xs font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                           >
                             <FaEye className="mr-1" />
                             View
@@ -411,7 +432,7 @@ const GetBlog = () => {
 
                       <button
                         onClick={() => handleDelete(blogItem._id)}
-                        className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                        className="inline-flex items-center justify-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                       >
                         <FaTrashAlt className="mr-1" />
                         Delete
@@ -436,68 +457,144 @@ const GetBlog = () => {
           </div>
         </div>
 
-        {/* Pagination Section */}
-        {totalPages > 1 && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div className="text-sm text-gray-500 text-center sm:text-left">
-              Showing <span className="font-semibold text-gray-900">{((page - 1) * limit) + 1}</span> to{" "}
+        {/* Pagination Controls */}
+        {!loading && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-8 pt-4 border-t px-2 bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            {/* Left Info */}
+            <p className="text-sm text-gray-600 text-center sm:text-left order-2 sm:order-1 font-medium">
+              Showing <span className="font-semibold text-gray-900">{totalBlogs > 0 ? ((page - 1) * limit) + 1 : 0}</span> to{" "}
               <span className="font-semibold text-gray-900">{Math.min(page * limit, totalBlogs)}</span> of{" "}
               <span className="font-semibold text-gray-900">{totalBlogs}</span> blogs
-            </div>
-            <div className="flex items-center justify-center space-x-1.5">
-              <button
-                onClick={() => handlePageChange(page - 1)}
-                disabled={page === 1}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${page === 1
-                    ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 active:bg-gray-100"
-                  }`}
-              >
-                Previous
-              </button>
+            </p>
 
-              {/* Pagination Numbers */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
-                if (
-                  pageNum === 1 ||
-                  pageNum === totalPages ||
-                  Math.abs(pageNum - page) <= 1
-                ) {
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => handlePageChange(pageNum)}
-                      className={`w-9 h-9 rounded-md text-sm font-semibold border transition-all ${page === pageNum
-                          ? "bg-blue-600 border-blue-600 text-white shadow-sm"
-                          : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
-                        }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                } else if (
-                  (pageNum === 2 && page > 3) ||
-                  (pageNum === totalPages - 1 && page < totalPages - 2)
-                ) {
-                  return (
-                    <span key={pageNum} className="text-gray-400 px-1">
-                      ...
-                    </span>
-                  );
-                }
-                return null;
-              })}
+            {/* Center: Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-1.5 order-1 sm:order-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(page - 1)}
+                  disabled={page === 1 || loading}
+                  className="h-8 px-2.5"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span className="hidden sm:inline ml-1">Previous</span>
+                </Button>
 
-              <button
-                onClick={() => handlePageChange(page + 1)}
-                disabled={page === totalPages}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${page === totalPages
-                    ? "bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed"
-                    : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 active:bg-gray-100"
-                  }`}
+                <div className="flex gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+                    if (totalPages > 5) {
+                      const showEllipsisBefore = pageNum === 2 && page > 3;
+                      const showEllipsisAfter = pageNum === totalPages - 1 && page < totalPages - 2;
+
+                      if (showEllipsisBefore) {
+                        return <span key="ellipsis-before" className="px-2 text-gray-400">...</span>;
+                      }
+                      if (showEllipsisAfter) {
+                        return <span key="ellipsis-after" className="px-2 text-gray-400">...</span>;
+                      }
+
+                      const isVisible = pageNum === 1 || pageNum === totalPages || Math.abs(pageNum - page) <= 1;
+                      if (!isVisible) return null;
+                    }
+
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={page === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        disabled={loading}
+                        className={`w-8 h-8 p-0 text-xs font-semibold ${page === pageNum ? "bg-blue-600 text-white hover:bg-blue-700" : ""}`}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(page + 1)}
+                  disabled={page === totalPages || loading}
+                  className="h-8 px-2.5"
+                >
+                  <span className="hidden sm:inline mr-1">Next</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+
+            {/* Right: Rows per page dropdown */}
+            <div className="flex items-center gap-2 order-3">
+              <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page:</span>
+              <Select
+                value={showCustomPageSize ? "custom" : (limit >= 99999 ? "all" : String(limit))}
+                onValueChange={(value) => {
+                  if (value === "custom") {
+                    setShowCustomPageSize(true);
+                  } else if (value === "all") {
+                    setShowCustomPageSize(false);
+                    setCustomPageSizeInput("");
+                    setLimit(99999);
+                  } else {
+                    setShowCustomPageSize(false);
+                    setCustomPageSizeInput("");
+                    const size = parseInt(value);
+                    if (limit !== size) {
+                      setLimit(size);
+                    }
+                  }
+                }}
               >
-                Next
-              </button>
+                <SelectTrigger className="w-[90px] h-8 text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-200 shadow-md rounded-md z-[200]">
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="20">20</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
+              {showCustomPageSize && (
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    type="number"
+                    min="1"
+                    max="500"
+                    placeholder="e.g. 25"
+                    value={customPageSizeInput}
+                    onChange={(e) => setCustomPageSizeInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const val = parseInt(customPageSizeInput);
+                        if (val && val > 0 && val <= 500) {
+                          setLimit(val);
+                          setShowCustomPageSize(false);
+                        }
+                      }
+                    }}
+                    className="h-8 w-20 text-sm"
+                  />
+                  <Button
+                    size="sm"
+                    className="h-8 px-3 text-xs"
+                    onClick={() => {
+                      const val = parseInt(customPageSizeInput);
+                      if (val && val > 0 && val <= 500) {
+                        setLimit(val);
+                        setShowCustomPageSize(false);
+                      }
+                    }}
+                  >
+                    Go
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}

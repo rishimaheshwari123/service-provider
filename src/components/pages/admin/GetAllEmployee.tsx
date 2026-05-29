@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { X, Edit, Key, ChevronLeft, ChevronRight, Loader2, Phone, CheckCircle, XCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   getAllUsersAPI,
   editPermissionAPI,
@@ -52,15 +55,18 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
   const [message, setMessage] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [typeLoading, setTypeLoading] = useState<string | null>(null);
-  
+  const [refreshing, setRefreshing] = useState(false);
+
   // Get user from Redux for token
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalEmployees, setTotalEmployees] = useState(0);
-  const [limit] = useState(10);
+  const [limit, setLimit] = useState(10);
+  const [showCustomPageSize, setShowCustomPageSize] = useState(false);
+  const [customPageSizeInput, setCustomPageSizeInput] = useState("");
 
   const initialEditFormData = {
     name: "",
@@ -99,12 +105,17 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
     { id: "isLogs", label: "Manage Logs" },
   ];
 
-  const fetchEmployees = async (page = 1, search = "") => {
-    setMessage("Loading employees...");
+  const fetchEmployees = async (page = 1, search = "", pageLimit = limit) => {
+    const isInitialLoad = employees.length === 0;
+    if (isInitialLoad) {
+      setMessage("Loading employees...");
+    } else {
+      setRefreshing(true);
+    }
     setIsSuccess(false);
     try {
       const token = (user as any)?.token;
-      const response = await getAllUsersAPI(page, limit, search, token);
+      const response = await getAllUsersAPI(page, pageLimit, search, token);
       if (response) {
         // Handle new response format with pagination
         const employeesData = response.users || response;
@@ -120,6 +131,8 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
     } catch (error) {
       console.error("Error fetching employees:", error);
       setMessage("An error occurred while loading employees.");
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -129,7 +142,7 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
 
     // Filter by role
     if (roleFilter !== "all") {
-      filtered = filtered.filter(employee => 
+      filtered = filtered.filter(employee =>
         employee.role?.toLowerCase() === roleFilter.toLowerCase()
       );
     }
@@ -267,7 +280,7 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
 
   const handleResetPasswordSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!resetPasswordEmployee) return;
 
     // Validation
@@ -322,14 +335,22 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4 font-inter ">
+    <div className="w-full max-w-full flex flex-col md:ml-6 font-inter">
+      {/* Loading overlay spinner */}
+      {refreshing && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 animate-spin text-purple-600" />
+            <p className="text-sm text-gray-600 font-medium">Loading employees...</p>
+          </div>
+        </div>
+      )}
       {message && (
         <div
-          className={`p-4 mb-6 rounded-xl text-center ${
-            isSuccess
-              ? "bg-green-100 text-green-800 border-green-200"
-              : "bg-red-100 text-red-800 border-red-200"
-          } shadow-md animate-fade-in w-full max-w-lg`}
+          className={`p-4 mb-6 rounded-xl text-center ${isSuccess
+            ? "bg-green-100 text-green-800 border-green-200"
+            : "bg-red-100 text-red-800 border-red-200"
+            } shadow-md animate-fade-in w-full max-w-lg`}
         >
           {message}
         </div>
@@ -611,41 +632,38 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
       </Modal>
 
       {/* Employee Table */}
-      <div className="w-full max-w-7xl bg-white p-8 rounded-3xl shadow-3xl border border-gray-200">
-        <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
-          <h2 className="text-4xl font-bold text-gray-800 text-center sm:text-left">
+      <div className="   overflow-hidden mb-6">
+        <div className="flex flex-col gap-4 mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl md:text-4xl font-bold text-gray-800 text-center sm:text-left">
             Employee Management Portal
           </h2>
-          
+
           {/* Role Filter Buttons */}
-          <div className="flex gap-2 mt-4 sm:mt-0">
+          <div className="flex flex-wrap gap-2">
             <button
               onClick={() => filterEmployeesByRole("all")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                roleFilter === "all"
-                  ? "bg-purple-600 text-white shadow-lg"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm font-medium transition-all duration-200 ${roleFilter === "all"
+                ? "bg-purple-600 text-white shadow-lg"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               All ({employees.length})
             </button>
             <button
               onClick={() => filterEmployeesByRole("admin")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                roleFilter === "admin"
-                  ? "bg-purple-600 text-white shadow-lg"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm font-medium transition-all duration-200 ${roleFilter === "admin"
+                ? "bg-purple-600 text-white shadow-lg"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               Admin ({employees.filter(emp => emp.role?.toLowerCase() === "admin").length})
             </button>
             <button
               onClick={() => filterEmployeesByRole("user")}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                roleFilter === "user"
-                  ? "bg-purple-600 text-white shadow-lg"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-sm font-medium transition-all duration-200 ${roleFilter === "user"
+                ? "bg-purple-600 text-white shadow-lg"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
             >
               User ({employees.filter(emp => emp.role?.toLowerCase() === "user").length})
             </button>
@@ -654,7 +672,7 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
 
         {/* Search Bar */}
         <div className="mb-6">
-          <div className="flex gap-2 max-w-2xl">
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -670,24 +688,26 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                 className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
               />
             </div>
-            <button
-              onClick={handleSearch}
-              className="px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all duration-200 flex items-center gap-2"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              Search
-            </button>
-            {searchQuery && (
+            <div className="flex gap-2">
               <button
-                onClick={handleClearSearch}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-all duration-200 flex items-center gap-2"
+                onClick={handleSearch}
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-purple-600 text-white rounded-lg font-medium hover:bg-purple-700 transition-all duration-200 flex items-center justify-center gap-2 text-sm"
               >
-                <X className="h-4 w-4" />
-                Clear
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Search
               </button>
-            )}
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-all duration-200 flex items-center gap-2 text-sm"
+                >
+                  <X className="h-4 w-4" />
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -719,49 +739,49 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              {searchQuery 
-                ? `No employees found matching "${searchQuery}"` 
-                : roleFilter === "all" 
-                ? "No employees found" 
-                : `No ${roleFilter} employees found`
+              {searchQuery
+                ? `No employees found matching "${searchQuery}"`
+                : roleFilter === "all"
+                  ? "No employees found"
+                  : `No ${roleFilter} employees found`
               }
             </h3>
             <p className="text-gray-500">
               {searchQuery
                 ? "Try adjusting your search terms or clear the search to see all employees."
-                : roleFilter === "all" 
-                ? "Add some employees to get started!" 
-                : `Try selecting a different role filter or add ${roleFilter} employees.`
+                : roleFilter === "all"
+                  ? "Add some employees to get started!"
+                  : `Try selecting a different role filter or add ${roleFilter} employees.`
               }
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="w-full overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
                     Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Phone
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Verified
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Change Type
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-3 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Permissions
                   </th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
+                  <th className="px-3 sm:px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
                     Actions
                   </th>
                 </tr>
@@ -772,21 +792,21 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                     key={employee._id}
                     className="hover:bg-gray-50 transition-colors duration-150"
                   >
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                       {employee.name}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600">
                       {employee.email}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600">
                       <div className="flex items-center gap-2">
                         <Phone className="w-4 h-4 text-gray-400" />
                         <span>{employee?.phone || "—"}</span>
                       </div>
                     </td>
-                    
+
                     {/* Phone Verification Status */}
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                       {employee?.phone ? (
                         employee?.phoneVerified ? (
                           <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
@@ -812,20 +832,19 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                         {employee.type}
                       </span>
                     </td> */}
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        employee.role === 'admin' 
-                          ? 'bg-purple-100 text-purple-800' 
-                          : employee.role === 'user'
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm text-gray-600">
+                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${employee.role === 'admin'
+                        ? 'bg-purple-100 text-purple-800'
+                        : employee.role === 'user'
                           ? 'bg-blue-100 text-blue-800'
                           : 'bg-gray-100 text-gray-800'
-                      }`}>
+                        }`}>
                         {employee.role}
                       </span>
                     </td>
 
                     {/* Change Type Dropdown */}
-                    <td className="px-6 py-4 text-center">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 text-center">
                       <select
                         onChange={(e) =>
                           handleChangeType(employee._id, e.target.value)
@@ -842,14 +861,14 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                       )}
                     </td>
 
-                    <td className="px-6 py-4 whitespace-normal text-sm text-gray-700">
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-normal text-sm text-gray-700">
                       <div className="flex flex-wrap gap-2">
                         {(() => {
                           // Get all active permissions
                           const activePermissions = permissionFields.filter(
                             (perm) => employee[perm.id]
                           );
-                          
+
                           if (activePermissions.length === 0) {
                             return (
                               <span className="px-2 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-600">
@@ -857,11 +876,11 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                               </span>
                             );
                           }
-                          
+
                           // Show first permission
                           const firstPermission = activePermissions[0];
                           const remainingCount = activePermissions.length - 1;
-                          
+
                           return (
                             <>
                               <span className="px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800">
@@ -877,14 +896,15 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                         })()}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-4">
-                      
-                       <button
+                    <td className="px-3 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end gap-2 sm:gap-4">
+
+                      <button
                         onClick={() => handleResetPasswordClick(employee)}
-                        className="px-4 py-2 bg-green-600 text-white text-sm font-semibold rounded-lg hover:bg-green-700 transition-all duration-200"
+                        className="px-2 sm:px-4 py-1.5 sm:py-2 bg-green-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:bg-green-700 transition-all duration-200"
                         title="Reset Password"
                       >
-                        Reset Password
+                        <span className="hidden sm:inline">Reset Password</span>
+                        <Key className="w-4 h-4 sm:hidden" />
                       </button>
                       <button
                         onClick={() => handleEditClick(employee)}
@@ -893,7 +913,7 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                       >
                         <Edit className="h-5 w-5" />
                       </button>
-                     
+
                       <button
                         onClick={() => handleDelete(employee._id)}
                         className="text-red-600 hover:text-red-900 transition-colors duration-200 transform hover:scale-110"
@@ -910,28 +930,23 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
         )}
 
         {/* Pagination Controls */}
-        {totalPages > 1 && (
-          <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t pt-4">
-            <div className="text-sm text-gray-600">
-              Showing <span className="font-semibold">{(currentPage - 1) * limit + 1}</span> to{" "}
-              <span className="font-semibold">
-                {Math.min(currentPage * limit, totalEmployees)}
-              </span>{" "}
-              of <span className="font-semibold">{totalEmployees}</span> employees
-            </div>
+        <div className="mt-6 flex flex-col sm:flex-row items-center justify-between gap-3 border-t pt-4">
+          <div className="text-sm text-gray-600 order-2 sm:order-1">
+            Page {currentPage} of {totalPages} &bull; {totalEmployees} total employees
+          </div>
 
-            <div className="flex items-center gap-2">
-              <button
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5 order-1 sm:order-2">
+              <Button
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className={`px-3 py-2 rounded-lg border ${
-                  currentPage === 1
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
+                variant="outline"
+                size="sm"
+                className="h-8 px-2.5"
               >
                 <ChevronLeft className="w-4 h-4" />
-              </button>
+                <span className="hidden sm:inline ml-1">Previous</span>
+              </Button>
 
               {/* Page Numbers */}
               <div className="flex gap-1">
@@ -948,35 +963,114 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
                   }
 
                   return (
-                    <button
+                    <Button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`px-3 py-2 rounded-lg border text-sm font-medium ${
-                        currentPage === pageNum
-                          ? "bg-purple-600 text-white border-purple-600"
-                          : "bg-white text-gray-700 hover:bg-gray-50"
-                      }`}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className={`w-8 h-8 p-0 text-xs ${currentPage === pageNum
+                        ? "bg-purple-600 text-white"
+                        : ""
+                        }`}
                     >
                       {pageNum}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
 
-              <button
+              <Button
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className={`px-3 py-2 rounded-lg border ${
-                  currentPage === totalPages
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                    : "bg-white text-gray-700 hover:bg-gray-50"
-                }`}
+                variant="outline"
+                size="sm"
+                className="h-8 px-2.5"
               >
+                <span className="hidden sm:inline mr-1">Next</span>
                 <ChevronRight className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
+          )}
+
+          {/* Rows per page dropdown */}
+          <div className="flex items-center gap-2 order-3">
+            <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page:</span>
+            <Select
+              value={showCustomPageSize ? "custom" : (limit >= 99999 ? "all" : String(limit))}
+              onValueChange={(value) => {
+                if (value === "custom") {
+                  setShowCustomPageSize(true);
+                } else if (value === "all") {
+                  setShowCustomPageSize(false);
+                  setCustomPageSizeInput("");
+                  setLimit(99999);
+                  setCurrentPage(1);
+                  fetchEmployees(1, searchQuery, 99999);
+                } else {
+                  setShowCustomPageSize(false);
+                  setCustomPageSizeInput("");
+                  const size = parseInt(value);
+                  if (limit !== size) {
+                    setLimit(size);
+                    setCurrentPage(1);
+                    fetchEmployees(1, searchQuery, size);
+                  }
+                }
+              }}
+            >
+              <SelectTrigger className="w-[90px] h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+            {showCustomPageSize && (
+              <div className="flex items-center gap-1.5">
+                <Input
+                  type="number"
+                  min="1"
+                  max="500"
+                  placeholder="e.g. 25"
+                  value={customPageSizeInput}
+                  onChange={(e) => setCustomPageSizeInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = parseInt(customPageSizeInput);
+                      if (val && val > 0 && val <= 500) {
+                        setLimit(val);
+                        setCurrentPage(1);
+                        setShowCustomPageSize(false);
+                        fetchEmployees(1, searchQuery, val);
+                      }
+                    }
+                  }}
+                  className="h-8 w-20 text-sm"
+                />
+                <Button
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => {
+                    const val = parseInt(customPageSizeInput);
+                    if (val && val > 0 && val <= 500) {
+                      setLimit(val);
+                      setCurrentPage(1);
+                      setShowCustomPageSize(false);
+                      fetchEmployees(1, searchQuery, val);
+                    }
+                  }}
+                >
+                  Go
+                </Button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       <style>{`
