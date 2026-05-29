@@ -3044,7 +3044,6 @@ const VendorManagement = () => {
               Search
             </Button>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-gray-500" />
               <select
                 value={statusFilter}
                 onChange={(e) => handleStatusChange(e.target.value)}

@@ -246,26 +246,38 @@ const VendorDashboard = () => {
             {filteredAvailable.length === 0 ? (
               <p className="text-gray-500">No categories available.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                {filteredAvailable.map((c) => (
-                  <div
-                    key={c._id}
-                    className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-gray-800">
-                        {c.name}
-                      </h3>
-                      <span className="text-sm text-gray-600">₹{c.price}</span>
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                  {filteredAvailable.slice(0, 9).map((c) => (
+                    <div
+                      key={c._id}
+                      className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+                    >
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-gray-800">
+                          {c.name}
+                        </h3>
+                        <span className="text-sm text-gray-600">₹{c.price}</span>
+                      </div>
+                      <button
+                        className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md"
+                        onClick={() => navigate("/vendor/purchase-categories")}
+                      >
+                        Purchase
+                      </button>
                     </div>
+                  ))}
+                </div>
+                {filteredAvailable.length > 9 && (
+                  <div className="flex justify-center mt-4">
                     <button
-                      className="mt-4 px-4 py-2 bg-emerald-600 text-white rounded-md"
+                      className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-md transition duration-200"
                       onClick={() => navigate("/vendor/purchase-categories")}
                     >
-                      Purchase
+                      View All Categories
                     </button>
                   </div>
-                ))}
+                )}
               </div>
             )}
           </TabsContent>

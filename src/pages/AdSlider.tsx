@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { FaExternalLinkAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import { BASE_URL } from "@/service/apis";
+import { getActiveAds } from "@/service/operations/ads";
 
 function AdSlider() {
   const [ads, setAds] = useState([]);
@@ -13,10 +12,8 @@ function AdSlider() {
   const getAllAds = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BASE_URL}/ads/getAll`);
-      if (response?.data?.success && response.data.ads) {
-        setAds(response.data.ads);
-      }
+      const adsList = await getActiveAds();
+      setAds(adsList);
     } catch (error) {
       console.error("Failed to fetch ads:", error);
     } finally {

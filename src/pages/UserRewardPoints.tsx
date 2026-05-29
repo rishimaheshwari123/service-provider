@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { BASE_URL } from "@/service/apis";
+import { generateReferralCodeAPI } from "@/service/operations/auth";
 
 const UserRewardPoints = () => {
   const { token, user } = useSelector((state: any) => state.auth);
@@ -127,29 +127,14 @@ const UserRewardPoints = () => {
   const handleGenerateReferralCode = async () => {
     try {
       setLoading(true);
-      // Call backend API to generate referral code for existing user
-      const response = await fetch(`${BASE_URL}/auth/generate-referral-code`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          userId: user._id, // Send user ID from redux
-        }),
-      });
+      // Call backend API to generate referral code for existing user via service operation
+      const data = await generateReferralCodeAPI(user._id, token);
       
-      const data = await response.json();
-      
-      if (data.success) {
-        toast.success("Referral code generated successfully!");
+      if (data && data.success) {
         fetchRewardPoints(); // Refresh data
-      } else {
-        toast.error(data.message || "Failed to generate referral code");
       }
     } catch (error) {
       console.error("Error generating referral code:", error);
-      toast.error("Failed to generate referral code");
     } finally {
       setLoading(false);
     }

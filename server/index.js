@@ -8,6 +8,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 const compression = require("compression");
 const swaggerUi = require('swagger-ui-express');
+const allowOnlyAppOrWebsite = require('./middleware/accessControl');
 
 dotenv.config();
 
@@ -43,7 +44,9 @@ app.use(cookieParser());
 
 s3Connect();
 
-//Swagger API Documentation for dev environment
+
+app.use('/api', allowOnlyAppOrWebsite);
+
 if (process.env.NODE_DEV === 'development') {
   const swaggerOutput = require('./swagger-output.json');
 
@@ -53,9 +56,9 @@ if (process.env.NODE_DEV === 'development') {
     swaggerUi.setup(swaggerOutput,{
       explorer: true,
       swaggerOptions: {
-        persistAuthorization: true,   // keeps JWT across page refreshes
-        displayRequestDuration: true, // shows response time in UI
-        filter: true,                 // enables tag/endpoint search bar
+        persistAuthorization: true,   
+        displayRequestDuration: true, 
+        filter: true,               
         tryItOutEnabled: true,
       },
       customSiteTitle: 'Mera Ghar Sansar API Docs',

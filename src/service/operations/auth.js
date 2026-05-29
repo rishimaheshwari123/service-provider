@@ -5,7 +5,8 @@ import { endpoints, vendor } from "../apis";
 import Swal from "sweetalert2";
 const {
   LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER,
-  FORGOT_PASSWORD_API, VERIFY_RESET_OTP_API, RESET_PASSWORD_API, SEND_PHONE_VERIFICATION_OTP_API, VERIFY_PHONE_OTP_API
+  FORGOT_PASSWORD_API, VERIFY_RESET_OTP_API, RESET_PASSWORD_API, SEND_PHONE_VERIFICATION_OTP_API, VERIFY_PHONE_OTP_API,
+  CHANGE_PASSWORD_API, GENERATE_REFERRAL_CODE_API
 } = endpoints;
 
 export async function login(phone, password, dispatch) {
@@ -425,3 +426,63 @@ export const verifyPhoneOTP = async (userId, otp) => {
     toast.dismiss(toastId);
   }
 };
+
+export const updateUserProfileAPI = async (id, dataToUpdate) => {
+  const toastId = toast.loading("Updating profile...");
+  try {
+    const response = await apiConnector("PUT", `${EDIT_USER_PERMISSION_API}/${id}`, dataToUpdate);
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to update profile");
+    }
+    toast.success(response?.data?.message || "Profile updated successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("UPDATE USER PROFILE API ERROR............", error);
+    toast.error(error?.response?.data?.message || "Failed to update profile");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const changePasswordAPI = async (id, data) => {
+  const toastId = toast.loading("Changing password...");
+  try {
+    const response = await apiConnector("PUT", `${CHANGE_PASSWORD_API}/${id}`, data);
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to change password");
+    }
+    toast.success(response?.data?.message || "Password changed successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("CHANGE PASSWORD API ERROR............", error);
+    toast.error(error?.response?.data?.message || "Failed to change password");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+
+export const generateReferralCodeAPI = async (userId, token) => {
+  const toastId = toast.loading("Generating referral code...");
+  try {
+    const response = await apiConnector(
+      "POST",
+      GENERATE_REFERRAL_CODE_API,
+      { userId },
+      { Authorization: `Bearer ${token}` }
+    );
+    if (!response?.data?.success) {
+      throw new Error(response?.data?.message || "Failed to generate referral code");
+    }
+    toast.success(response?.data?.message || "Referral code generated successfully!");
+    return response?.data;
+  } catch (error) {
+    console.error("GENERATE REFERRAL CODE API ERROR............", error);
+    toast.error(error?.response?.data?.message || "Failed to generate referral code");
+    throw error;
+  } finally {
+    toast.dismiss(toastId);
+  }
+};
+

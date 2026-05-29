@@ -28,6 +28,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
 import {
   MoreHorizontal,
@@ -337,7 +342,7 @@ const AdminServices = () => {
   }
 
   return (
-    <div className="w-full max-w-full px-1 sm:px-4 py-4 md:p-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden">
+    <div className="w-full max-w-full px-1 sm:px-4 py-0 md:pr-6 md:ml-4 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden">
       {refreshing && (
         <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
           <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
@@ -505,32 +510,55 @@ const AdminServices = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleEditService(service)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={service.status === 'active' ? 'destructive' : 'default'}
-                          onClick={() => handleStatusToggle(service._id, service.status || 'active')}
-                          className={service.status === 'active' ? '' : 'bg-green-600 hover:bg-green-700'}
-                        >
-                          {service.status === 'active' ? (
-                            <XCircle className="w-4 h-4" />
-                          ) : (
-                            <CheckCircle className="w-4 h-4" />
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleDeleteService(service)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleEditService(service)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Edit Service</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant={service.status === 'active' ? 'destructive' : 'default'}
+                              onClick={() => handleStatusToggle(service._id, service.status || 'active')}
+                              className={service.status === 'active' ? '' : 'bg-green-600 hover:bg-green-700'}
+                            >
+                              {service.status === 'active' ? (
+                                <XCircle className="w-4 h-4" />
+                              ) : (
+                                <CheckCircle className="w-4 h-4" />
+                              )}
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>{service.status === 'active' ? 'Deactivate Service' : 'Activate Service'}</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteService(service)}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Delete Service</p>
+                          </TooltipContent>
+                        </Tooltip>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">

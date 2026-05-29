@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  getPendingServiceUpdateRequestsAPI, 
-  approveServiceUpdateRequestAPI, 
-  rejectServiceUpdateRequestAPI 
+import {
+  getPendingServiceUpdateRequestsAPI,
+  approveServiceUpdateRequestAPI,
+  rejectServiceUpdateRequestAPI
 } from '../../../service/operations/serviceUpdateRequest';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../redux/store';
@@ -55,7 +55,7 @@ interface ServiceUpdateRequest {
   status: 'pending' | 'approved' | 'rejected';
   reason: string;
   createdAt: string;
-} 
+}
 
 const ServiceUpdateRequests: React.FC = () => {
   const [requests, setRequests] = useState<ServiceUpdateRequest[]>([]);
@@ -101,7 +101,7 @@ const ServiceUpdateRequests: React.FC = () => {
       } else {
         await rejectServiceUpdateRequestAPI(selectedRequest._id, user._id, adminMessage, token);
       }
-      
+
       // Refresh the list
       await fetchPendingRequests();
       setShowModal(false);
@@ -115,15 +115,15 @@ const ServiceUpdateRequests: React.FC = () => {
   const renderChanges = (current: any, proposed: any, field: string) => {
     const currentValue = current?.[field];
     const proposedValue = proposed?.[field];
-    
+
     if (field === 'category') {
       const currentName = currentValue?.name || 'N/A';
       const proposedName = proposedValue?.name || 'N/A';
-      
+
       if (currentName === proposedName) {
         return <span className="text-gray-600">{currentName}</span>;
       }
-      
+
       return (
         <div className="flex items-center gap-2">
           <span className="text-red-500 line-through">{currentName}</span>
@@ -132,11 +132,11 @@ const ServiceUpdateRequests: React.FC = () => {
         </div>
       );
     }
-    
+
     if (field === 'images') {
       const hasCurrentImages = currentValue && Array.isArray(currentValue) && currentValue.length > 0;
       const hasProposedImages = proposedValue && Array.isArray(proposedValue) && proposedValue.length > 0;
-      
+
       return (
         <div className="space-y-4">
           <div>
@@ -145,15 +145,15 @@ const ServiceUpdateRequests: React.FC = () => {
               {hasCurrentImages ? (
                 currentValue.map((img: any, idx: number) => (
                   <div key={idx} className="relative w-24 h-24">
-                    <img 
-                      src={img.url} 
-                      alt={`Current ${idx + 1}`} 
-                      className="w-24 h-24 object-cover rounded border-2 border-red-300" 
+                    <img
+                      src={img.url}
+                      alt={`Current ${idx + 1}`}
+                      className="w-24 h-24 object-cover rounded border-2 border-red-300"
                     />
-                    <a 
-                      href={img.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <a
+                      href={img.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="absolute top-1 right-1 bg-black bg-opacity-75 hover:bg-black text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow transition-colors"
                     >
                       View
@@ -171,15 +171,15 @@ const ServiceUpdateRequests: React.FC = () => {
               {hasProposedImages ? (
                 proposedValue.map((img: any, idx: number) => (
                   <div key={idx} className="relative w-24 h-24">
-                    <img 
-                      src={img.url} 
-                      alt={`Proposed ${idx + 1}`} 
-                      className="w-24 h-24 object-cover rounded border-2 border-green-300" 
+                    <img
+                      src={img.url}
+                      alt={`Proposed ${idx + 1}`}
+                      className="w-24 h-24 object-cover rounded border-2 border-green-300"
                     />
-                    <a 
-                      href={img.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
+                    <a
+                      href={img.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="absolute top-1 right-1 bg-black bg-opacity-75 hover:bg-black text-white text-[10px] font-semibold px-1.5 py-0.5 rounded shadow transition-colors"
                     >
                       View
@@ -194,15 +194,15 @@ const ServiceUpdateRequests: React.FC = () => {
         </div>
       );
     }
-    
+
     // Handle null/undefined values
     const displayCurrent = currentValue || 'N/A';
     const displayProposed = proposedValue || 'N/A';
-    
+
     if (displayCurrent === displayProposed) {
       return <span className="text-gray-600">{displayCurrent}</span>;
     }
-    
+
     return (
       <div className="flex items-center gap-2">
         <span className="text-red-500 line-through">{displayCurrent}</span>
@@ -229,7 +229,7 @@ const ServiceUpdateRequests: React.FC = () => {
   }
 
   return (
-    <div className="md:p-6">
+    <div className="md:ml-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Service Update Requests</h1>
         <p className="text-gray-600 mt-2">
@@ -289,27 +289,27 @@ const ServiceUpdateRequests: React.FC = () => {
                     <h4 className="font-semibold text-gray-700 mb-2">Title</h4>
                     {renderChanges(request.currentValues, request.proposedChanges, 'title')}
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-2">Price</h4>
                     {renderChanges(request.currentValues, request.proposedChanges, 'price')}
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-2">Location</h4>
                     {renderChanges(request.currentValues, request.proposedChanges, 'location')}
                   </div>
-                  
+
                   <div>
                     <h4 className="font-semibold text-gray-700 mb-2">Category</h4>
                     {renderChanges(request.currentValues, request.proposedChanges, 'category')}
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <h4 className="font-semibold text-gray-700 mb-2">Description</h4>
                     {renderChanges(request.currentValues, request.proposedChanges, 'description')}
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <h4 className="font-semibold text-gray-700 mb-2">Images</h4>
                     {renderChanges(request.currentValues, request.proposedChanges, 'images')}
@@ -328,11 +328,11 @@ const ServiceUpdateRequests: React.FC = () => {
             <h3 className="text-lg font-semibold mb-4">
               {actionType === 'approve' ? 'Approve' : 'Reject'} Request
             </h3>
-            
+
             <p className="text-gray-600 mb-4">
               Are you sure you want to {actionType} this service update request for "{selectedRequest.property?.title || 'Property Deleted'}"?
             </p>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Message (Optional)
@@ -345,7 +345,7 @@ const ServiceUpdateRequests: React.FC = () => {
                 placeholder={`Add a message for the ${actionType} action...`}
               />
             </div>
-            
+
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => setShowModal(false)}
@@ -355,11 +355,10 @@ const ServiceUpdateRequests: React.FC = () => {
               </button>
               <button
                 onClick={confirmAction}
-                className={`px-4 py-2 text-white rounded-md ${
-                  actionType === 'approve' 
-                    ? 'bg-green-600 hover:bg-green-700' 
-                    : 'bg-red-600 hover:bg-red-700'
-                }`}
+                className={`px-4 py-2 text-white rounded-md ${actionType === 'approve'
+                  ? 'bg-green-600 hover:bg-green-700'
+                  : 'bg-red-600 hover:bg-red-700'
+                  }`}
               >
                 {actionType === 'approve' ? 'Approve' : 'Reject'}
               </button>

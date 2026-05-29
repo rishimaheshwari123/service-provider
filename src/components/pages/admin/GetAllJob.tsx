@@ -223,7 +223,7 @@ export default function GetAllJob() {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Jobs List");
-    
+
     // Auto-size columns
     const maxWidth = 25;
     const colWidths = Object.keys(data[0] || {}).map(() => ({ wch: maxWidth }));
@@ -328,13 +328,13 @@ export default function GetAllJob() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
+    <div className="min-h-screen bg-gray-50 ">
+      <div className="md:ml-6">
+
         {/* Responsive Header */}
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
-            
+
             {/* Left Content */}
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-900 tracking-tight flex items-center">
@@ -356,7 +356,7 @@ export default function GetAllJob() {
                 <RefreshCw className="h-4 w-4 text-gray-500" />
                 Refresh
               </Button>
-              
+
               <Button
                 variant="outline"
                 onClick={downloadExcel}
@@ -431,7 +431,7 @@ export default function GetAllJob() {
         <Card className="shadow-sm border border-gray-200">
           <CardContent className="p-5">
             <div className="flex flex-col lg:flex-row gap-4">
-              
+
               {/* Search Block */}
               <div className="flex-1">
                 <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
@@ -516,7 +516,7 @@ export default function GetAllJob() {
         {/* Jobs List Grid */}
         <Card className="shadow-sm border border-gray-200 overflow-hidden">
           <CardContent className="p-0 sm:p-6">
-            
+
             {/* Desktop Table View (hidden on small viewports) */}
             <div className="hidden md:block border border-gray-200 rounded-xl overflow-hidden">
               <Table>
@@ -627,8 +627,8 @@ export default function GetAllJob() {
                 </div>
               ) : (
                 currentJobs.map((job) => (
-                  <div 
-                    key={job._id} 
+                  <div
+                    key={job._id}
                     className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 hover:border-indigo-100 space-y-3"
                   >
                     <div className="flex items-start justify-between">
@@ -663,7 +663,7 @@ export default function GetAllJob() {
                           Deadline: {formatDate(job.deadline)}
                         </span>
                       </div>
-                      
+
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-gray-100">
@@ -707,7 +707,7 @@ export default function GetAllJob() {
                     <ChevronLeft className="w-4 h-4 text-gray-500" />
                     <span className="hidden sm:inline">Previous</span>
                   </Button>
-                  
+
                   <div className="flex flex-wrap items-center justify-center gap-1.5">
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                       <Button
@@ -715,11 +715,10 @@ export default function GetAllJob() {
                         variant={currentPage === pageNum ? "default" : "outline"}
                         size="sm"
                         onClick={() => handlePageChange(pageNum)}
-                        className={`w-9 h-9 p-0 font-bold ${
-                          currentPage === pageNum
-                            ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                            : ""
-                        }`}
+                        className={`w-9 h-9 p-0 font-bold ${currentPage === pageNum
+                          ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                          : ""
+                          }`}
                       >
                         {pageNum}
                       </Button>

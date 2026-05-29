@@ -227,6 +227,7 @@ exports.getAllBookingsCtrl = async (req, res) => {
             const skip = (page - 1) * limit;
             const total = await Booking.countDocuments(filterConditions);
             const bookings = await Booking.find(filterConditions)
+                .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
                 .populate({
@@ -249,6 +250,7 @@ exports.getAllBookingsCtrl = async (req, res) => {
             });
         } else {
             const bookings = await Booking.find(filterConditions)
+                .sort({ createdAt: -1 })
                 .populate({
                     path: "service", // Property model
                     populate: { path: "vendor", model: "Vendor" }, // optional if vendor inside property
@@ -292,6 +294,7 @@ exports.getBookingsByVendorCtrl = async (req, res) => {
 
         // 🔹 Get all bookings where service is one of vendor's properties
         const bookings = await Booking.find({ service: { $in: propertyIds } })
+            .sort({ createdAt: -1 })
             .populate({
                 path: "service",
                 select: "title price location images vendor",
@@ -329,16 +332,7 @@ exports.getBookingsByVendorCtrl = async (req, res) => {
 exports.updateBookingStatusCtrl = async (req, res) => {
     try {
         const { bookingId } = req.params;
-        const { status } = req.body;
-
-        // 🔹 Validate status
-        const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
-        if (!status || !allowedStatuses.includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: `Invalid status. Allowed: ${allowedStatuses.join(", ")}`,
-            });
-        }
+        const { status, paymentStatus } = req.body;
 
         // 🔹 Find booking
         const booking = await Booking.findById(bookingId);
@@ -349,26 +343,50 @@ exports.updateBookingStatusCtrl = async (req, res) => {
             });
         }
 
-        // 🔹 Update status
-        booking.status = status;
+        // 🔹 Update status if provided
+        if (status) {
+            const allowedStatuses = ["pending", "confirmed", "completed", "cancelled"];
+            if (!allowedStatuses.includes(status)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid status. Allowed: ${allowedStatuses.join(", ")}`,
+                });
+            }
+            booking.status = status;
 
-        // 🔹 If completed, update payment
-        if (status === "completed") {
-            booking.payment.paymentStatus = "success";
-            booking.payment.paymentType = "cash";
+            // 🔹 If completed, update payment
+            if (status === "completed") {
+                booking.payment.paymentStatus = "success";
+                booking.payment.paymentType = "cash";
+            }
         }
 
-        await booking.save();
+        // 🔹 Update paymentStatus if provided
+        if (paymentStatus) {
+            const allowedPaymentStatuses = ["pending", "success", "failed"];
+            if (!allowedPaymentStatuses.includes(paymentStatus)) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Invalid payment status. Allowed: ${allowedPaymentStatuses.join(", ")}`,
+                });
+            }
+            booking.payment.paymentStatus = paymentStatus;
+            if (paymentStatus === "success" && !booking.payment.paymentType) {
+                booking.payment.paymentType = "cash";
+            }
+        }
+
+        await booking.save({ validateBeforeSave: false });
 
         res.status(200).json({
             success: true,
-            message: "Booking status updated successfully",
+            message: "Booking updated successfully",
             booking,
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: "Error updating booking status",
+            message: "Error updating booking",
             error: error.message,
         });
     }

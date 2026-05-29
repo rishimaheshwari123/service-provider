@@ -77,18 +77,21 @@ const Dashboard = () => {
       value: data.users,
       icon: FaUsers,
       color: "bg-gradient-to-r from-blue-500 to-blue-600",
+      path: "/admin/users",
     },
     {
       name: "Vendors",
       value: data.vendors,
       icon: FaUserTie,
       color: "bg-gradient-to-r from-green-500 to-green-600",
+      path: "/admin/vendors",
     },
     {
       name: "Services",
       value: data.services,
       icon: FaClipboardList,
       color: "bg-gradient-to-r from-purple-500 to-purple-600",
+      path: "/admin/services",
     },
     // {
     //   name: "Inquiries",
@@ -120,7 +123,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className=" md:p-8 min-h-screen">
+    <div className=" md:px-8 min-h-screen">
       {/* Welcome Header */}
       <header className="mb-5 text-center">
         <h1 className="text-xl md:text-3xl  font-extrabold text-gray-800">
@@ -165,6 +168,7 @@ const Dashboard = () => {
               return (
                 <div
                   key={index}
+                  onClick={() => stat.path && navigate(stat.path)}
                   className={`${stat.color} text-white rounded-xl shadow-2xl p-6 transition duration-300 transform hover:scale-[1.02] cursor-pointer relative overflow-hidden`}
                 >
                   {/* Background subtle icon */}
@@ -226,49 +230,49 @@ const Dashboard = () => {
       {/* --- */}
 
       {/* Categories Overview */}
-    <section className="mb-5">
-  <div className="flex items-center justify-center mb-6">
-    <h2 className="text-sm md:text-2xl font-bold text-gray-800">
-      Categories Overview
-    </h2>
-  </div>
+      <section className="mb-5">
+        <div className="flex items-center justify-center mb-6">
+          <h2 className="text-sm md:text-2xl font-bold text-gray-800">
+            Categories Overview
+          </h2>
+        </div>
 
-  {categories.length === 0 ? (
-    <p className="text-gray-500 text-center">
-      No categories created yet.
-    </p>
-  ) : (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {categories.slice(0, 6).map((c) => (
-          <div
-            key={c._id}
-            className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-gray-800">
-                {c.name}
-              </h3>
-              <span className="text-sm text-gray-600">
-                ₹{c.price}
-              </span>
+        {categories.length === 0 ? (
+          <p className="text-gray-500 text-center">
+            No categories created yet.
+          </p>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {categories.slice(0, 6).map((c) => (
+                <div
+                  key={c._id}
+                  className="bg-white rounded-xl p-6 shadow-lg border border-gray-100"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-bold text-gray-800">
+                      {c.name}
+                    </h3>
+                    <span className="text-sm text-gray-600">
+                      ₹{c.price}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    Active: {c.active ? "Yes" : "No"}
+                  </p>
+                </div>
+              ))}
             </div>
 
-            <p className="text-xs text-gray-500 mt-2">
-              Active: {c.active ? "Yes" : "No"}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      <div className="flex justify-center mt-8">
-        <Button onClick={() => navigate("/admin/categories")}>
-          View All Categories
-        </Button>
-      </div>
-    </>
-  )}
-</section>
+            <div className="flex justify-center mt-8">
+              <Button onClick={() => navigate("/admin/categories")}>
+                View All Categories
+              </Button>
+            </div>
+          </>
+        )}
+      </section>
 
       {/* All Users Component */}
       {/* <section className="mt-16">
