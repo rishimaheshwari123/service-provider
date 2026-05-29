@@ -6,7 +6,7 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 
 export default function CommunicationLogs() {
-    const { user } = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const [logs, setLogs] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -41,7 +41,7 @@ export default function CommunicationLogs() {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.data && response.data.logs) {
         setLogs(response.data.logs || []);
         setPagination(response.data.pagination || { total: 0, page: 1, pages: 1 });
@@ -71,7 +71,7 @@ export default function CommunicationLogs() {
           Authorization: `Bearer ${token}`,
         },
       });
-      
+
       if (response.data && response.data.stats) {
         setStats(response.data.stats);
       }
@@ -142,7 +142,7 @@ export default function CommunicationLogs() {
       </span>
     );
   };
-  
+
   if (!user?.isLogs) {
     return (
       <div className="text-red-600 text-center p-4 font-semibold">
@@ -152,17 +152,20 @@ export default function CommunicationLogs() {
   }
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="max-w-7xl mx-auto">
+    <div className="p-3 md:ml-6 min-h-screen">
+      <div className="">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Communication Logs</h1>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+            Communication Logs
+          </h1>
+
           <button
             onClick={downloadExcel}
-            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
           >
             <FaDownload />
-            Download Excel
+            <span>Download Excel</span>
           </button>
         </div>
 
@@ -295,7 +298,7 @@ export default function CommunicationLogs() {
                         </div>
                       </td>
                       <td className="px-4 py-3 text-sm text-gray-600">{log.purpose}</td>
-                     
+
                       <td className="px-4 py-3 text-sm text-gray-600">
                         {log.recipient?.phone || log.vendorId?.phone || "-"}
                       </td>

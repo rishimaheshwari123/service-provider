@@ -318,8 +318,8 @@ function CreateAdd() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-1 sm:p-4 md:p-8 font-sans">
-      <div className="w-full mx-auto max-w-7xl">
+    <div className="min-h-screen ">
+      <div className="md:ml-8">
 
         {/* Sleek Premium Page Header */}
         <header className="mb-8 bg-indigo-900 text-white p-6 rounded-2xl shadow-md relative overflow-hidden">
@@ -403,8 +403,8 @@ function CreateAdd() {
                     setStatusFilter("all");
                   }}
                   className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === "admin"
-                      ? "bg-white text-indigo-600 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                 >
                   <Globe className="w-4 h-4" />
@@ -418,8 +418,8 @@ function CreateAdd() {
                     setStatusFilter("all");
                   }}
                   className={`w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${activeTab === "vendor"
-                      ? "bg-white text-indigo-600 shadow-sm"
-                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                    ? "bg-white text-indigo-600 shadow-sm"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                     }`}
                 >
                   <User className="w-4 h-4" />

@@ -2,18 +2,18 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { getAuditLogsAPI, addAdminCommentAPI } from "@/service/operations/audit";
-import { 
-  Loader2, 
-  ClipboardList, 
-  Users, 
-  Building2, 
-  Clock, 
-  Phone, 
+import {
+  Loader2,
+  ClipboardList,
+  Users,
+  Building2,
+  Clock,
+  Phone,
   Mail,
   MessageSquare,
-  Send, 
-  FileDown, 
-  Search, 
+  Send,
+  FileDown,
+  Search,
   Building,
   RotateCcw
 } from "lucide-react";
@@ -51,7 +51,7 @@ const AdminAuditLogs = () => {
   const limit = 50;
   const [commentText, setCommentText] = useState<Record<string, string>>({});
   const [addingComment, setAddingComment] = useState<string | null>(null);
-  
+
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
   const fetchLogs = async (nextPage = 1, activeSearch = searchTerm) => {
@@ -60,7 +60,7 @@ const AdminAuditLogs = () => {
       const token = (user as any)?.token;
       const data = await getAuditLogsAPI(nextPage, activeSearch ? limit : limit, activeSearch, token);
       console.log("Audit Logs Response:", data);
-      
+
       if (nextPage === 1) setLogs(data.logs || []);
       else setLogs((prev) => [...prev, ...(data.logs || [])]);
 
@@ -90,7 +90,7 @@ const AdminAuditLogs = () => {
 
   const handleAddComment = async (logId: string) => {
     const comment = commentText[logId];
-    
+
     if (!comment || !comment.trim()) {
       return;
     }
@@ -99,10 +99,10 @@ const AdminAuditLogs = () => {
       setAddingComment(logId);
       const token = (user as any)?.token;
       const response = await addAdminCommentAPI(logId, comment.trim(), user._id, token);
-      
+
       if (response?.success) {
         // Update local state with new comment
-        setLogs(logs.map(log => 
+        setLogs(logs.map(log =>
           log._id === logId ? response.data : log
         ));
         // Clear comment text
@@ -141,7 +141,7 @@ const AdminAuditLogs = () => {
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Audit Logs");
-    
+
     // Auto-size columns
     const maxWidth = 30;
     const colWidths = Object.keys(data[0] || {}).map(() => ({ wch: maxWidth }));
@@ -156,9 +156,9 @@ const AdminAuditLogs = () => {
   const uniquePropertiesClicked = new Set(logs.map(log => log.propertyId?._id).filter(Boolean)).size;
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto space-y-6">
-        
+    <div className="min-h-screen  sm:px-6 ">
+      <div className="">
+
         {/* Modern Header Section */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
@@ -184,7 +184,7 @@ const AdminAuditLogs = () => {
 
         {/* Dynamic Metric Summaries */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          
+
           <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm flex items-center space-x-4 hover:shadow-md transition-shadow duration-200">
             <div className="p-3 bg-indigo-50 rounded-lg text-indigo-600">
               <ClipboardList className="w-6 h-6" />
@@ -278,22 +278,21 @@ const AdminAuditLogs = () => {
                   className="bg-white rounded-xl border border-gray-200 hover:border-indigo-200 hover:shadow-md transition-all duration-300 p-5 group shadow-sm"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                    
+
                     {/* Primary Activity Info */}
                     <div className="space-y-3 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${
-                          log.type?.toLowerCase().includes('call') 
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
-                            : log.type?.toLowerCase().includes('email')
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${log.type?.toLowerCase().includes('call')
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-100'
+                          : log.type?.toLowerCase().includes('email')
                             ? 'bg-blue-50 text-blue-700 border-blue-100'
                             : 'bg-indigo-50 text-indigo-700 border-indigo-100'
-                        }`}>
+                          }`}>
                           {log.type || "Platform Interaction"}
                         </span>
-                        
+
                         <span className="text-gray-300">•</span>
-                        
+
                         <div className="flex items-center text-xs text-gray-500 font-medium">
                           <Clock className="w-3.5 h-3.5 mr-1 text-gray-400" />
                           {new Date(log.createdAt).toLocaleString()}
@@ -302,7 +301,7 @@ const AdminAuditLogs = () => {
 
                       {/* Info Cards Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-                        
+
                         {/* User Profile */}
                         <div className="space-y-1.5 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
                           <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">User Information</div>
@@ -411,39 +410,38 @@ const AdminAuditLogs = () => {
                     )}
 
                     {/* Add New Comment - Full Width */}
-                  <div className="bg-gray-50 p-4 rounded-xl border-2 border-dashed border-gray-300">
-  <div className="flex flex-col sm:flex-row gap-3">
-    <input
-      type="text"
-      value={commentText[log._id] || ""}
-      onChange={(e) => handleCommentChange(log._id, e.target.value)}
-      placeholder="Add your admin comment here..."
-      disabled={addingComment === log._id}
-      className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium bg-white transition-all"
-    />
+                    <div className="bg-gray-50 p-4 rounded-xl border-2 border-dashed border-gray-300">
+                      <div className="flex flex-col sm:flex-row gap-3">
+                        <input
+                          type="text"
+                          value={commentText[log._id] || ""}
+                          onChange={(e) => handleCommentChange(log._id, e.target.value)}
+                          placeholder="Add your admin comment here..."
+                          disabled={addingComment === log._id}
+                          className="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm font-medium bg-white transition-all"
+                        />
 
-    <button
-      onClick={() => handleAddComment(log._id)}
-      disabled={addingComment === log._id || !commentText[log._id]?.trim()}
-      className={`px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-md ${
-        addingComment === log._id || !commentText[log._id]?.trim()
-          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-          : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg transform hover:-translate-y-0.5"
-      }`}
-    >
-      {addingComment === log._id ? (
-        <>
-          <Loader2 className="w-4 h-4 animate-spin" />
-          Adding...
-        </>
-      ) : (
-        <>
-          Add Comment
-        </>
-      )}
-    </button>
-  </div>
-</div>
+                        <button
+                          onClick={() => handleAddComment(log._id)}
+                          disabled={addingComment === log._id || !commentText[log._id]?.trim()}
+                          className={`px-6 py-3 rounded-lg text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-md ${addingComment === log._id || !commentText[log._id]?.trim()
+                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            : "bg-indigo-600 text-white hover:bg-indigo-700 hover:shadow-lg transform hover:-translate-y-0.5"
+                            }`}
+                        >
+                          {addingComment === log._id ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              Adding...
+                            </>
+                          ) : (
+                            <>
+                              Add Comment
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                 </div>
@@ -471,7 +469,7 @@ const AdminAuditLogs = () => {
             </button>
           </div>
         )}
-        
+
       </div>
     </div>
   );

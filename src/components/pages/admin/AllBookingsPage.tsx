@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { getAllBookingAPI } from "@/service/operations/booking";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import jsPDF from "jspdf";
@@ -59,10 +60,15 @@ interface Booking {
 const AllBookingsPage: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalBookings, setTotalBookings] = useState<number>(0);
-  const limit = 9; // Grid display friendly
+  
+  // Custom Pagination state
+  const [limit, setLimit] = useState<number>(10);
+  const [showCustomPageSize, setShowCustomPageSize] = useState<boolean>(false);
+  const [customPageSizeInput, setCustomPageSizeInput] = useState<string>("");
 
   // Search & Filter States
   const [searchInput, setSearchInput] = useState<string>("");
@@ -108,7 +114,12 @@ const AllBookingsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchBookings = async () => {
-      setLoading(true);
+      const isInitialLoad = bookings.length === 0;
+      if (isInitialLoad) {
+        setLoading(true);
+      } else {
+        setRefreshing(true);
+      }
       try {
         const token = (user as any)?.token;
         const response = await getAllBookingAPI(
@@ -133,11 +144,12 @@ const AllBookingsPage: React.FC = () => {
         toast.error("Failed to load bookings.");
       } finally {
         setLoading(false);
+        setRefreshing(false);
       }
     };
 
     fetchBookings();
-  }, [currentPage, activeSearch, selectedStatus, selectedPaymentStatus]);
+  }, [currentPage, activeSearch, selectedStatus, selectedPaymentStatus, limit]);
 
   const downloadBookingsPDF = async () => {
     const toastId = toast.loading("Generating PDF Report...");
@@ -233,7 +245,15 @@ const AllBookingsPage: React.FC = () => {
     );
   }
   return (
-    <div className="max-w-7xl mx-auto p-6">
+    <div className="w-full max-w-full px-1 sm:px-4 py-4 md:p-6 space-y-6 min-h-screen flex flex-col font-inter overflow-x-hidden">
+      {refreshing && (
+        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
+            <Loader2 className="w-10 h-10 animate-spin text-indigo-600" />
+            <p className="text-sm text-gray-600 font-medium">Loading bookings...</p>
+          </div>
+        </div>
+      )}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between border-b pb-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">All Bookings</h1>
@@ -451,76 +471,146 @@ const AllBookingsPage: React.FC = () => {
       )}
 
       {/* Pagination Controls */}
-      {!loading && totalPages > 1 && (
-        <div className="mt-8 flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage > 1) setCurrentPage(currentPage - 1);
-                  }}
-                  className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
-                />
-              </PaginationItem>
+      {!loading && (
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-8 pt-4 border-t px-2">
+          {/* Left Info */}
+          <p className="text-sm text-gray-600 text-center sm:text-left order-2 sm:order-1">
+            Page {currentPage} of {totalPages} &bull; {totalBookings} total bookings
+          </p>
 
-              {/* Generate Page Numbers */}
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                if (totalPages > 5) {
-                  // Only show page 1, page totalPages, and page near currentPage
-                  const showEllipsisBefore = page === 2 && currentPage > 3;
-                  const showEllipsisAfter = page === totalPages - 1 && currentPage < totalPages - 2;
+          {/* Center: Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-1.5 order-1 sm:order-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => currentPage > 1 && setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 1 || loading}
+                className="h-8 px-2.5"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span className="hidden sm:inline ml-1">Previous</span>
+              </Button>
 
-                  if (showEllipsisBefore) {
-                    return (
-                      <PaginationItem key="ellipsis-before">
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    );
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                  if (totalPages > 5) {
+                    const showEllipsisBefore = page === 2 && currentPage > 3;
+                    const showEllipsisAfter = page === totalPages - 1 && currentPage < totalPages - 2;
+
+                    if (showEllipsisBefore) {
+                      return <span key="ellipsis-before" className="px-2 text-gray-400">...</span>;
+                    }
+                    if (showEllipsisAfter) {
+                      return <span key="ellipsis-after" className="px-2 text-gray-400">...</span>;
+                    }
+
+                    const isVisible = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                    if (!isVisible) return null;
                   }
-                  if (showEllipsisAfter) {
-                    return (
-                      <PaginationItem key="ellipsis-after">
-                        <PaginationEllipsis />
-                      </PaginationItem>
-                    );
-                  }
 
-                  const isVisible = page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
-                  if (!isVisible) return null;
-                }
-
-                return (
-                  <PaginationItem key={page}>
-                    <PaginationLink
-                      href="#"
-                      isActive={currentPage === page}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(page);
-                      }}
-                      className="cursor-pointer"
+                  return (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(page)}
+                      disabled={loading}
+                      className={`w-8 h-8 p-0 text-xs ${currentPage === page ? "bg-indigo-600 text-white" : ""}`}
                     >
                       {page}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
+                    </Button>
+                  );
+                })}
+              </div>
 
-              <PaginationItem>
-                <PaginationNext
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => currentPage < totalPages && setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages || loading}
+                className="h-8 px-2.5"
+              >
+                <span className="hidden sm:inline mr-1">Next</span>
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Right: Rows per page dropdown */}
+          <div className="flex items-center gap-2 order-3">
+            <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page:</span>
+            <Select
+              value={showCustomPageSize ? "custom" : (limit >= 99999 ? "all" : String(limit))}
+              onValueChange={(value) => {
+                if (value === "custom") {
+                  setShowCustomPageSize(true);
+                } else if (value === "all") {
+                  setShowCustomPageSize(false);
+                  setCustomPageSizeInput("");
+                  setLimit(99999);
+                  setCurrentPage(1);
+                } else {
+                  setShowCustomPageSize(false);
+                  setCustomPageSizeInput("");
+                  const size = parseInt(value);
+                  if (limit !== size) {
+                    setLimit(size);
+                    setCurrentPage(1);
+                  }
+                }
+              }}
+            >
+              <SelectTrigger className="w-[90px] h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="custom">Custom</SelectItem>
+              </SelectContent>
+            </Select>
+            {showCustomPageSize && (
+              <div className="flex items-center gap-1.5">
+                <Input
+                  type="number"
+                  min="1"
+                  max="500"
+                  placeholder="e.g. 25"
+                  value={customPageSizeInput}
+                  onChange={(e) => setCustomPageSizeInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = parseInt(customPageSizeInput);
+                      if (val && val > 0 && val <= 500) {
+                        setLimit(val);
+                        setCurrentPage(1);
+                        setShowCustomPageSize(false);
+                      }
+                    }
                   }}
-                  className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                  className="h-8 w-20 text-sm"
                 />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+                <Button
+                  size="sm"
+                  className="h-8 px-3 text-xs"
+                  onClick={() => {
+                    const val = parseInt(customPageSizeInput);
+                    if (val && val > 0 && val <= 500) {
+                      setLimit(val);
+                      setCurrentPage(1);
+                      setShowCustomPageSize(false);
+                    }
+                  }}
+                >
+                  Go
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

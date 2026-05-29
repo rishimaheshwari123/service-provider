@@ -115,7 +115,7 @@ const VendoreServiceImagesUpload = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:ml-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div className="text-center md:text-left">
           <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
@@ -171,11 +171,10 @@ const VendoreServiceImagesUpload = () => {
                     className="w-full h-full object-cover"
                   />
                   <Badge
-                    className={`absolute top-2 right-2 ${
-                      service.status === "active"
+                    className={`absolute top-2 right-2 ${service.status === "active"
                         ? "bg-green-100 text-green-800"
                         : "bg-red-100 text-red-800"
-                    }`}
+                      }`}
                   >
                     {service.status === "active" ? "Active" : "Inactive"}
                   </Badge>

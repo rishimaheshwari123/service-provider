@@ -162,7 +162,7 @@ const GetCustomerSupport = () => {
   }
 
   return (
-    <div className="min-h-screen font-inter antialiased text-gray-800">
+    <div className="min-h-screen md:ml-6 font-inter antialiased text-gray-800">
       {/* Main Content Section */}
       <main className=" mb-4">
         <h2 className="text-xl md:text-4xl font-extrabold text-blue-700 mb-4 md:mb-8 rounded-md text-center">

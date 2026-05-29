@@ -15,20 +15,19 @@ function Layout() {
 
     // Listen for custom sidebar toggle event
     window.addEventListener("sidebarToggle", handleSidebarToggle);
-    
+
     return () => {
       window.removeEventListener("sidebarToggle", handleSidebarToggle);
     };
   }, []);
 
   return (
-    <div className="">
+    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-gray-50">
       <Sidebar />
 
-      <div 
-        className={`mx-5 mt-3 min-h-screen transition-all duration-300 ${
-          isCollapsed ? "ml-24" : "ml-72"
-        }`}
+      <div
+        className={`mr-2 sm:mr-5 mt-3 min-h-screen transition-all duration-300 overflow-x-hidden ${isCollapsed ? "ml-[85px] md:ml-16" : "ml-24 md:ml-[240px]"
+          }`}
       >
         <Outlet />
       </div>

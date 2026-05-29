@@ -212,7 +212,7 @@ const VendorAddService = () => {
       </div> */}
 
       <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="md:ml-8">
           <div className="flex justify-between items-center py-6">
             <h1 className=" text-sm md:text-3xl font-bold text-gray-900">
               Add New Service
@@ -233,7 +233,7 @@ const VendorAddService = () => {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px0 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto py-2">
         <Card>
           <CardHeader>
             <CardTitle>Service Details</CardTitle>
@@ -401,25 +401,25 @@ const VendorAddService = () => {
                         (cat) =>
                           !myCategories.some((myCat) => myCat._id === cat._id),
                       ).length > 5 && (
-                        <span className="text-xs text-gray-500 self-center">
-                          +
-                          {allCategories.filter(
-                            (cat) =>
-                              !myCategories.some(
-                                (myCat) => myCat._id === cat._id,
-                              ),
-                          ).length - 5}{" "}
-                          more...
-                        </span>
-                      )}
+                          <span className="text-xs text-gray-500 self-center">
+                            +
+                            {allCategories.filter(
+                              (cat) =>
+                                !myCategories.some(
+                                  (myCat) => myCat._id === cat._id,
+                                ),
+                            ).length - 5}{" "}
+                            more...
+                          </span>
+                        )}
                       {allCategories.filter(
                         (cat) =>
                           !myCategories.some((myCat) => myCat._id === cat._id),
                       ).length === 0 && (
-                        <span className="text-xs text-gray-500">
-                          All categories already purchased!
-                        </span>
-                      )}
+                          <span className="text-xs text-gray-500">
+                            All categories already purchased!
+                          </span>
+                        )}
                     </div>
                   </div>
                 )}

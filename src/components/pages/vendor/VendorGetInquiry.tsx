@@ -199,7 +199,7 @@ const VendorGetInquiry = () => {
   }
 
   return (
-    <div className="">
+    <div className="md:ml-8">
       {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div className="text-center md:text-left">
