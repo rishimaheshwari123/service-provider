@@ -301,9 +301,39 @@ const vendorUpdatePropertyRequestCtrl = async (req, res) => {
 }
 
 
+// Helper function to normalize text for comparison
+const normalizeText = (text) => {
+    if (!text) return '';
+    return text
+        .toString()
+        .toLowerCase()
+        .replace(/[.\-_\s]+/g, '') // Remove dots, hyphens, underscores, and spaces
+        .trim();
+};
+
+// Helper function to check if location matches vendor's service locations
+const matchesServiceLocation = (vendorServiceLocation, searchLocation) => {
+    if (!vendorServiceLocation || !searchLocation) return false;
+    
+    // Normalize the search location
+    const normalizedSearch = normalizeText(searchLocation);
+    
+    // Split vendor's service locations by comma and normalize each
+    const vendorLocations = vendorServiceLocation
+        .split(',')
+        .map(loc => normalizeText(loc.trim()))
+        .filter(loc => loc.length > 0);
+    
+    // Check if search term matches any of the vendor's service locations
+    // Using partial matching - if search is contained in any location
+    return vendorLocations.some(loc => 
+        loc.includes(normalizedSearch) || normalizedSearch.includes(loc)
+    );
+};
+
 const getPropertiesCtrl = async (req, res) => {
     try {
-        const { category, includeInactive, search, page, limit } = req.query;
+        const { category, includeInactive, search, page, limit, serviceLocation } = req.query;
 
         // Parse pagination params
         const pageNum = Math.max(1, parseInt(page) || 1);
@@ -323,14 +353,18 @@ const getPropertiesCtrl = async (req, res) => {
                 // Convert to ObjectId for proper type matching
                 query.category = new mongoose.Types.ObjectId(category);
             } else {
-                // If not ObjectId, treat as category name (backward compatibility)
+                // If not ObjectId, treat as category name with normalized matching
                 const Category = require('../models/categoryModel');
-                const categoryDoc = await Category.findOne({ 
-                    name: { $regex: new RegExp(`^${category}$`, 'i') }
-                });
+                const normalizedCategory = normalizeText(category);
                 
-                if (categoryDoc) {
-                    query.category = categoryDoc._id;
+                // Get all categories and find match by normalized name
+                const allCategories = await Category.find({});
+                const matchedCategory = allCategories.find(cat => 
+                    normalizeText(cat.name) === normalizedCategory
+                );
+                
+                if (matchedCategory) {
+                    query.category = matchedCategory._id;
                 } else {
                     // Category not found, return empty results
                     return res.status(200).json({
@@ -348,9 +382,23 @@ const getPropertiesCtrl = async (req, res) => {
             .populate('review')
             .populate('category', 'name');
 
-        // Server-side search across populated fields
+        // Filter by service location if provided (for mobile app)
+        if (serviceLocation && serviceLocation.trim()) {
+            properties = properties.filter(prop => {
+                // Check if vendor exists and has serviceLocation
+                if (!prop.vendor || !prop.vendor.serviceLocation) {
+                    return false;
+                }
+                
+                return matchesServiceLocation(prop.vendor.serviceLocation, serviceLocation);
+            });
+        }
+
+        // Server-side search across populated fields with normalized matching
         if (search && search.trim()) {
             const searchTerm = search.trim().toLowerCase();
+            const normalizedSearch = normalizeText(search);
+            
             properties = properties.filter(prop => {
                 const fields = [
                     prop.title,
@@ -373,7 +421,14 @@ const getPropertiesCtrl = async (req, res) => {
                     prop.vendor?.serviceLocation,
                     prop.vendor?.phone,
                 ];
-                return fields.some(f => f && f.toString().toLowerCase().includes(searchTerm));
+                
+                // Check both regular and normalized matching
+                return fields.some(f => {
+                    if (!f) return false;
+                    const fieldStr = f.toString().toLowerCase();
+                    const normalizedField = normalizeText(f);
+                    return fieldStr.includes(searchTerm) || normalizedField.includes(normalizedSearch);
+                });
             });
         }
 
