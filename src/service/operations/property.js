@@ -76,6 +76,9 @@ export const getAllPropertyAPI = async (filters = {}) => {
     if (filters.includeInactive) {
       params.append('includeInactive', 'true');
     }
+    if (filters.serviceLocation && filters.serviceLocation.trim()) {
+      params.append('serviceLocation', filters.serviceLocation.trim());
+    }
     
     const url = params.toString() ? `${GET_ALL_PROPERTY_API}?${params.toString()}` : GET_ALL_PROPERTY_API;
     const response = await apiConnector("GET", url);
