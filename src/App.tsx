@@ -62,6 +62,7 @@ import VendorApplyRedeemCode from "./components/pages/vendor/VendorApplyRedeemCo
 import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminServices from "./components/pages/admin/AdminServices";
+import SendNotifications from "./components/pages/admin/SendNotifications";
 import CategoriesPage from "./pages/CategoriesPage";
 import ScrollToTop from "./pages/ScrollToTop";
 import VendoreServiceImagesUpload from "./components/pages/vendor/VendoreServiceImagesUpload";
@@ -150,6 +151,7 @@ const App = () => {
                 <Route path="coupons" element={<CouponManagement />} />
                 <Route path="reward-settings" element={<RewardSettings />} />
                 <Route path="reward-applications" element={<RewardApplications />} />
+                <Route path="send-notifications" element={<SendNotifications />} />
                 <Route path="add-service/:id" element={<VendorAddService />} />
               </Route>
             )}

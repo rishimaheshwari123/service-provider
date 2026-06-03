@@ -218,3 +218,10 @@ export const razorpay = {
   VERIFY_PAYMENT_API: BASE_URL + "/razorpay/verifyPayment",
 }
 
+export const notification = {
+  REGISTER_DEVICE_API: BASE_URL + "/notification/register-device",
+  SEND_NOTIFICATION_API: BASE_URL + "/notification/send",
+  GET_STATS_API: BASE_URL + "/notification/stats",
+  GET_LOGS_API: BASE_URL + "/notification/logs",
+}
+

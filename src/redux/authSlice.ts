@@ -10,9 +10,7 @@ interface AuthState {
 // Initial state with type
 const initialState: AuthState = {
   loading: false,
-  token: localStorage.getItem("token")
-    ? JSON.parse(localStorage.getItem("token") as string)
-    : null,
+  token: localStorage.getItem("token") || null,
   user: localStorage.getItem("user")
     ? JSON.parse(localStorage.getItem("user") as string)
     : null,
@@ -29,7 +27,11 @@ const authSlice = createSlice({
     // ✅ Type for setToken
     setToken(state, action: PayloadAction<string | null>) {
       state.token = action.payload;
-      localStorage.setItem("token", JSON.stringify(action.payload));
+      if (action.payload) {
+        localStorage.setItem("token", action.payload);
+      } else {
+        localStorage.removeItem("token");
+      }
     },
     // ✅ Type for setUser
     setUser(state, action: PayloadAction<Record<string, any> | null>) {

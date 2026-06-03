@@ -4,7 +4,7 @@ const communicationLogsSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ["SMS", "WhatsApp", "Email"],
+      enum: ["SMS", "WhatsApp", "Email", "PushNotification"],
       required: true,
     },
     purpose: {

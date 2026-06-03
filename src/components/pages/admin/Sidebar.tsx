@@ -27,7 +27,7 @@ import {
   Award,
   Settings,
 } from "lucide-react";
-import { FilePlus2, Files } from "lucide-react";
+import { FilePlus2, Files, BellRing } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { setToken, setUser } from "@/redux/authSlice";
 import { toast } from "react-toastify";
@@ -248,6 +248,13 @@ const Sidebar = () => {
       icon: Search,
       label: "Search Logs",
       color: "text-purple-600",
+      section: "system",
+    },
+    {
+      to: "/admin/send-notifications",
+      icon: BellRing,
+      label: "Push Notifications",
+      color: "text-red-500",
       section: "system",
     },
     {

@@ -27,3 +27,7 @@ server/.env
 *.njsproj
 *.sln
 *.sw?
+
+# Firebase credentials
+server/config/firebase-service-account.json
+
