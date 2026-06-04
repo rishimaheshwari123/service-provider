@@ -26,6 +26,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ReviewModal from "@/components/ReviewModal";
 import ReviewsList from "@/components/ReviewsList";
+import SEO from "@/components/common/SEO";
+import StructuredData, { generateBreadcrumbSchema } from "@/components/common/StructuredData";
+import { seoConfig } from "@/utils/seoConfig";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 
@@ -35,6 +38,12 @@ const MIN_PRICE_LIMIT = 0;
 const ServicesPage = () => {
   const { t, i18n } = useTranslation();
   const { token } = useSelector((state: RootState) => state.auth);
+  
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: "Home", url: "https://www.meragharsansaar.com/" },
+    { name: "Services", url: "https://www.meragharsansaar.com/services" }
+  ]);
+  
   const [services, setServices] = useState([]);
   const [filteredServices, setFilteredServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -463,6 +472,18 @@ const ServicesPage = () => {
 
   return (
     <>
+      {/* SEO Meta Tags */}
+      <SEO
+        title={seoConfig.services.title}
+        description={seoConfig.services.description}
+        keywords={seoConfig.services.keywords}
+        canonical={seoConfig.services.canonical}
+        ogImage={seoConfig.services.ogImage}
+      />
+      
+      {/* Structured Data */}
+      <StructuredData data={breadcrumb} />
+      
       <Navbar />
       <section className="">
         {/* Header - Sticky Filter & Search */}
