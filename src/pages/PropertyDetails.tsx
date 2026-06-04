@@ -35,6 +35,8 @@ import DisplayRating from "./DisplayRating";
 import BookNowModal from "./BookNowModal";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/common/SEO";
+import StructuredData, { generateBreadcrumbSchema, generateServiceSchema } from "@/components/common/StructuredData";
 
 const toPascalCase = (text) => {
   if (!text) return "";
@@ -239,8 +241,40 @@ const PropertyDetails = () => {
   const reviewCount = property.review?.length || 0;
   const vendorPhone = property.vendor?.phone || "+91 78798 84363";
 
+  // Dynamic SEO based on service data
+  const serviceName = property?.title || "Service";
+  const serviceDescription = property?.description || `Professional ${serviceName} services from Mera Ghar Sansaar. Book verified service providers for your home needs.`;
+  const serviceImage = property?.images?.[0]?.url || property?.image || "https://www.meragharsansaar.com/logo.png";
+  const serviceCategory = property?.category?.name || "Home Services";
+  
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: "Home", url: "https://www.meragharsansaar.com/" },
+    { name: "Services", url: "https://www.meragharsansaar.com/services" },
+    { name: serviceName, url: `https://www.meragharsansaar.com/service/${id}` }
+  ]);
+
+  const serviceSchema = generateServiceSchema({
+    name: serviceName,
+    description: serviceDescription,
+    image: serviceImage,
+    url: `https://www.meragharsansaar.com/service/${id}`
+  });
+
   return (
     <>
+      {/* Dynamic SEO for Service Detail */}
+      <SEO
+        title={`${serviceName} | ${serviceCategory} | Mera Ghar Sansaar`}
+        description={serviceDescription}
+        keywords={[serviceName, serviceCategory, "Home Services", "Service Provider", "Book Now"]}
+        canonical={`https://www.meragharsansaar.com/service/${id}`}
+        ogImage="https://www.meragharsansaar.com/logo.png"
+      />
+      
+      {/* Structured Data */}
+      <StructuredData data={breadcrumb} />
+      <StructuredData data={serviceSchema} />
+      
       <Navbar />
       <div className="bg-gray-100 min-h-screen">
         {/* Breadcrumb */}
