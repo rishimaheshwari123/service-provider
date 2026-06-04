@@ -49,6 +49,25 @@ export const vendor = {
   UPDATE_REWARD_SETTINGS_API: BASE_URL + "/vendor/update-reward-settings",
 }
 
+// 🔥 Notification APIs
+export const notification = {
+  // Public Routes
+  REGISTER_DEVICE: BASE_URL + "/notification/register-device",
+  
+  // User/Vendor Routes - Matching Frontend API Structure
+  GET_NOTIFICATIONS: BASE_URL + "/notification", // GET with params: userId, vendorId, isGuest
+  MARK_AS_READ: BASE_URL + "/notification", // POST /:id/read
+  MARK_ALL_AS_READ: BASE_URL + "/notification/mark-all-read", // POST with body
+  GET_UNREAD_COUNT: BASE_URL + "/notification/unread-count", // GET with params
+  DELETE_NOTIFICATION: BASE_URL + "/notification", // DELETE /:id
+  DELETE_ALL: BASE_URL + "/notification/delete-all", // POST with body
+  
+  // Admin Routes
+  GET_STATS: BASE_URL + "/notification/stats",
+  SEND_PUSH: BASE_URL + "/notification/send",
+  GET_LOGS: BASE_URL + "/notification/logs",
+}
+
 export const property = {
   CREATE_PROPERTY_API: BASE_URL + "/property/create",
   GET_VENDOR_PROPERTY_API: BASE_URL + "/property/get-vendor-property",
@@ -217,11 +236,3 @@ export const razorpay = {
   CAPTURE_PAYMENT_API: BASE_URL + "/razorpay/capturePayment",
   VERIFY_PAYMENT_API: BASE_URL + "/razorpay/verifyPayment",
 }
-
-export const notification = {
-  REGISTER_DEVICE_API: BASE_URL + "/notification/register-device",
-  SEND_NOTIFICATION_API: BASE_URL + "/notification/send",
-  GET_STATS_API: BASE_URL + "/notification/stats",
-  GET_LOGS_API: BASE_URL + "/notification/logs",
-}
-
