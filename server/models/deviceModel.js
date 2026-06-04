@@ -27,6 +27,10 @@ const deviceSchema = new mongoose.Schema({
   platform: {
     type: String,
     default: "android"
+  },
+  topics: {
+    type: [String],
+    default: []
   }
 }, { timestamps: true });
 
