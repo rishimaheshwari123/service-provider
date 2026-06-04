@@ -20,9 +20,18 @@ import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import TopBar from "@/components/TopBar";
 import AnimatedBackground from "@/components/AnimatedBackground";
+import SEO from "@/components/common/SEO";
+import StructuredData, { generateBreadcrumbSchema } from "@/components/common/StructuredData";
+import { seoConfig } from "@/utils/seoConfig";
 
 const CustomerSupport = () => {
   const { t } = useTranslation();
+  
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: "Home", url: "https://www.meragharsansaar.com/" },
+    { name: "Customer Support", url: "https://www.meragharsansaar.com/customer-support" }
+  ]);
+  
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -121,8 +130,21 @@ const CustomerSupport = () => {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
-      {/* Animated Background */}
+    <>
+      {/* SEO Meta Tags */}
+      <SEO
+        title={seoConfig.customerSupport.title}
+        description={seoConfig.customerSupport.description}
+        keywords={seoConfig.customerSupport.keywords}
+        canonical={seoConfig.customerSupport.canonical}
+        ogImage={seoConfig.customerSupport.ogImage}
+      />
+      
+      {/* Structured Data */}
+      <StructuredData data={breadcrumb} />
+      
+      <div className="min-h-screen relative overflow-x-hidden">
+        {/* Animated Background */}
       <div className="fixed inset-0 -z-10">
         <motion.div
           className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-rose-50"
@@ -479,6 +501,7 @@ const CustomerSupport = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import TopBar from "@/components/TopBar";
+import SEO from "@/components/common/SEO";
+import StructuredData, { generateBreadcrumbSchema } from "@/components/common/StructuredData";
+import { seoConfig } from "@/utils/seoConfig";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +25,12 @@ import { createGeneralContactAPI } from "@/service/operations/contact";
 
 const Contact = () => {
   const { t } = useTranslation();
+  
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: "Home", url: "https://www.meragharsansaar.com/" },
+    { name: "Contact", url: "https://www.meragharsansaar.com/contact" }
+  ]);
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -121,8 +130,21 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
-      {/* Animated Background */}
+    <>
+      {/* SEO Meta Tags */}
+      <SEO
+        title={seoConfig.contact.title}
+        description={seoConfig.contact.description}
+        keywords={seoConfig.contact.keywords}
+        canonical={seoConfig.contact.canonical}
+        ogImage={seoConfig.contact.ogImage}
+      />
+      
+      {/* Structured Data */}
+      <StructuredData data={breadcrumb} />
+      
+      <div className="min-h-screen relative overflow-x-hidden">
+        {/* Animated Background */}
       <div className="fixed inset-0 -z-10">
         <motion.div
           className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-blue-50"
@@ -417,6 +439,7 @@ const Contact = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 
