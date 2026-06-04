@@ -1,5 +1,6 @@
 const Device = require("../models/deviceModel");
 const CommunicationLogs = require("../models/communicationLogs");
+const Notification = require("../models/notificationModel");
 const admin = require("../config/firebase");
 
 // 1. Register/Update Device FCM Token
@@ -72,10 +73,10 @@ const getNotificationStatsCtrl = async (req, res) => {
   }
 };
 
-// 3. Send Push Notification (Multicast/Targeted)
+// 3. Send Push Notification (Multicast/Targeted) + Save to DB
 const sendPushNotificationCtrl = async (req, res) => {
   try {
-    const { title, body, imageUrl, targetType, targetIds } = req.body;
+    const { title, body, imageUrl, targetType, targetIds, type, data } = req.body;
 
     if (!title || !body) {
       return res.status(400).json({
@@ -127,9 +128,9 @@ const sendPushNotificationCtrl = async (req, res) => {
     }
 
     // Find registered devices matching query
-    const devices = await Device.find(query, "fcmToken");
+    const devices = await Device.find(query, "fcmToken userId vendorId isGuest");
     
-    // Extact and de-duplicate tokens
+    // Extract and de-duplicate tokens
     const tokens = [...new Set(devices.map(d => d.fcmToken).filter(Boolean))];
 
     if (tokens.length === 0) {
@@ -139,6 +140,52 @@ const sendPushNotificationCtrl = async (req, res) => {
       });
     }
 
+    // 🔥 STEP 1: SAVE NOTIFICATIONS TO DATABASE
+    const notificationsToSave = [];
+    
+    if (selectedTarget === "guests") {
+      // For guests, create one notification marked as isForGuest
+      notificationsToSave.push({
+        title,
+        body,
+        type,
+        data,
+        isForGuest: true
+      });
+    } else {
+      // For users/vendors/specific, create individual notification records
+      const uniqueRecipients = new Map();
+      
+      devices.forEach(device => {
+        if (device.userId) {
+          uniqueRecipients.set(device.userId.toString(), { userId: device.userId });
+        } else if (device.vendorId) {
+          uniqueRecipients.set(device.vendorId.toString(), { vendorId: device.vendorId });
+        }
+      });
+      
+      uniqueRecipients.forEach((recipient) => {
+        notificationsToSave.push({
+          title,
+          body,
+          type,
+          data,
+          ...recipient
+        });
+      });
+    }
+
+    // Bulk insert notifications to DB
+    let savedNotifications = [];
+    try {
+      savedNotifications = await Notification.insertMany(notificationsToSave);
+      console.log(`✅ Saved ${savedNotifications.length} notification(s) to database.`);
+    } catch (dbError) {
+      console.error("❌ Failed to save notifications to DB:", dbError);
+      // Continue with FCM sending even if DB save fails
+    }
+
+    // 🔥 STEP 2: SEND VIA FCM
     let overallSuccessCount = 0;
     let overallFailureCount = 0;
     const errors = [];
@@ -152,13 +199,13 @@ const sendPushNotificationCtrl = async (req, res) => {
         notification: {
           title,
           body,
-          ...(imageUrl && { imageUrl }) // base notification image (some platforms)
+          ...(imageUrl && { imageUrl })
         },
         android: {
           notification: {
             title,
             body,
-            ...(imageUrl && { imageUrl }), // Android rich notification image
+            ...(imageUrl && { imageUrl }),
             sound: "default"
           }
         },
@@ -167,12 +214,12 @@ const sendPushNotificationCtrl = async (req, res) => {
             aps: {
               alert: { title, body },
               sound: "default",
-              "mutable-content": 1 // Required for iOS to download image
+              "mutable-content": 1
             }
           },
           ...(imageUrl && {
             fcm_options: {
-              image: imageUrl // iOS FCM image
+              image: imageUrl
             }
           })
         },
@@ -180,7 +227,9 @@ const sendPushNotificationCtrl = async (req, res) => {
           click_action: "FLUTTER_NOTIFICATION_CLICK",
           title,
           body,
-          ...(imageUrl && { imageUrl })
+          ...(type && { type }),
+          ...(imageUrl && { imageUrl }),
+          ...(data && typeof data === 'object' ? data : {})
         },
         tokens: tokenChunk
       };
@@ -242,7 +291,8 @@ const sendPushNotificationCtrl = async (req, res) => {
           totalDevicesTargeted: tokens.length,
           successCount: overallSuccessCount,
           failureCount: overallFailureCount,
-          errors: errors.slice(0, 10) // Limit to top 10 logged errors to save document size
+          notificationsSaved: savedNotifications.length,
+          errors: errors.slice(0, 10)
         }
       });
       await logEntry.save();
@@ -257,6 +307,7 @@ const sendPushNotificationCtrl = async (req, res) => {
         totalTargeted: tokens.length,
         successCount: overallSuccessCount,
         failureCount: overallFailureCount,
+        notificationsSaved: savedNotifications.length,
         errors: errors.slice(0, 20)
       }
     });
@@ -291,9 +342,240 @@ const getNotificationLogsCtrl = async (req, res) => {
   }
 };
 
+// 🔥 5. Get User/Vendor Notifications (with pagination)
+const getUserNotificationsCtrl = async (req, res) => {
+  try {
+    const { userId, vendorId, isGuest } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skip = (page - 1) * limit;
+
+    let query = {};
+
+    // Determine target
+    if (isGuest === "true") {
+      query.isForGuest = true;
+    } else if (userId) {
+      query.userId = userId;
+    } else if (vendorId) {
+      query.vendorId = vendorId;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "userId, vendorId, or isGuest parameter required."
+      });
+    }
+
+    const total = await Notification.countDocuments(query);
+    const notifications = await Notification.find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    // Get unread count
+    const unreadCount = await Notification.countDocuments({
+      ...query,
+      isRead: false
+    });
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        notifications,
+        pagination: {
+          currentPage: page,
+          totalPages: Math.ceil(total / limit),
+          totalItems: total,
+          itemsPerPage: limit,
+          hasNextPage: page < Math.ceil(total / limit),
+          hasPrevPage: page > 1
+        },
+        unreadCount
+      }
+    });
+  } catch (error) {
+    console.error("Get User Notifications Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching notifications.",
+      error: error.message
+    });
+  }
+};
+
+// 🔥 6. Mark Single Notification as Read
+const markNotificationAsReadCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const notification = await Notification.findByIdAndUpdate(
+      id,
+      { isRead: true },
+      { new: true }
+    );
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification marked as read.",
+      data: notification
+    });
+  } catch (error) {
+    console.error("Mark Notification as Read Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while marking notification as read.",
+      error: error.message
+    });
+  }
+};
+
+// 🔥 7. Mark All Notifications as Read
+const markAllNotificationsAsReadCtrl = async (req, res) => {
+  try {
+    const { userId, vendorId } = req.body;
+
+    if (!userId && !vendorId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId or vendorId is required."
+      });
+    }
+
+    const query = { isRead: false };
+    if (userId) query.userId = userId;
+    if (vendorId) query.vendorId = vendorId;
+
+    const result = await Notification.updateMany(query, { isRead: true });
+
+    return res.status(200).json({
+      success: true,
+      message: `Marked ${result.modifiedCount} notification(s) as read.`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    console.error("Mark All Notifications as Read Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while marking all notifications as read.",
+      error: error.message
+    });
+  }
+};
+
+// 🔥 8. Get Unread Notification Count
+const getUnreadCountCtrl = async (req, res) => {
+  try {
+    const { userId, vendorId, isGuest } = req.query;
+
+    let query = { isRead: false };
+
+    if (isGuest === "true") {
+      query.isForGuest = true;
+    } else if (userId) {
+      query.userId = userId;
+    } else if (vendorId) {
+      query.vendorId = vendorId;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: "userId, vendorId, or isGuest parameter required."
+      });
+    }
+
+    const count = await Notification.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      unreadCount: count
+    });
+  } catch (error) {
+    console.error("Get Unread Count Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while fetching unread count.",
+      error: error.message
+    });
+  }
+};
+
+// 🔥 9. Delete Notification
+const deleteNotificationCtrl = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const notification = await Notification.findByIdAndDelete(id);
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        message: "Notification not found."
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Notification deleted successfully."
+    });
+  } catch (error) {
+    console.error("Delete Notification Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while deleting notification.",
+      error: error.message
+    });
+  }
+};
+
+// 🔥 10. Delete All Notifications for User/Vendor
+const deleteAllNotificationsCtrl = async (req, res) => {
+  try {
+    const { userId, vendorId } = req.body;
+
+    if (!userId && !vendorId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId or vendorId is required."
+      });
+    }
+
+    const query = {};
+    if (userId) query.userId = userId;
+    if (vendorId) query.vendorId = vendorId;
+
+    const result = await Notification.deleteMany(query);
+
+    return res.status(200).json({
+      success: true,
+      message: `Deleted ${result.deletedCount} notification(s).`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    console.error("Delete All Notifications Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error while deleting notifications.",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   registerDeviceCtrl,
   getNotificationStatsCtrl,
   sendPushNotificationCtrl,
-  getNotificationLogsCtrl
+  getNotificationLogsCtrl,
+  getUserNotificationsCtrl,
+  markNotificationAsReadCtrl,
+  markAllNotificationsAsReadCtrl,
+  getUnreadCountCtrl,
+  deleteNotificationCtrl,
+  deleteAllNotificationsCtrl
 };
