@@ -10,7 +10,14 @@ const {
   markAllNotificationsAsReadCtrl,
   getUnreadCountCtrl,
   deleteNotificationCtrl,
-  deleteAllNotificationsCtrl
+  deleteAllNotificationsCtrl,
+  getTopicsCtrl,
+  createTopicCtrl,
+  updateTopicCtrl,
+  deleteTopicCtrl,
+  subscribeToTopicCtrl,
+  unsubscribeFromTopicCtrl,
+  getDevicesCtrl
 } = require("../controllers/notificationCtrl");
 const { verifyToken, isAdmin } = require("../utils/verifyToken");
 
@@ -20,6 +27,10 @@ const { verifyToken, isAdmin } = require("../utils/verifyToken");
 
 // Device Registration (both guests and logged-in users/vendors)
 router.post("/register-device", registerDeviceCtrl);
+
+// Topic manual subscribe/unsubscribe (Accessible by client apps)
+router.post("/topics/subscribe", subscribeToTopicCtrl);
+router.post("/topics/unsubscribe", unsubscribeFromTopicCtrl);
 
 // ========================================
 // USER/VENDOR ROUTES (Public - query params se identify hoga)
@@ -50,10 +61,19 @@ router.post("/delete-all", deleteAllNotificationsCtrl);
 // Get device statistics
 router.get("/stats", verifyToken, isAdmin, getNotificationStatsCtrl);
 
+// Get all registered devices
+router.get("/devices", verifyToken, isAdmin, getDevicesCtrl);
+
 // Send push notification
 router.post("/send", verifyToken, isAdmin, sendPushNotificationCtrl);
 
 // Get notification logs
 router.get("/logs", verifyToken, isAdmin, getNotificationLogsCtrl);
+
+// Topic management (Admin)
+router.get("/topics", verifyToken, isAdmin, getTopicsCtrl);
+router.post("/topics", verifyToken, isAdmin, createTopicCtrl);
+router.put("/topics/:id", verifyToken, isAdmin, updateTopicCtrl);
+router.delete("/topics/:id", verifyToken, isAdmin, deleteTopicCtrl);
 
 module.exports = router;

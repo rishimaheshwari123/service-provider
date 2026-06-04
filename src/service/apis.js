@@ -25,6 +25,7 @@ export const endpoints = {
 
 export const image = {
   IMAGE_UPLOAD: BASE_URL + "/image/multi",
+  UPLOAD_SINGLE_IMAGE: BASE_URL + "/image/upload",
 }
 export const vendor = {
   LOGIN_API: BASE_URL + "/vendor/login",
@@ -53,7 +54,7 @@ export const vendor = {
 export const notification = {
   // Public Routes
   REGISTER_DEVICE: BASE_URL + "/notification/register-device",
-  
+ 
   // User/Vendor Routes - Matching Frontend API Structure
   GET_NOTIFICATIONS: BASE_URL + "/notification", // GET with params: userId, vendorId, isGuest
   MARK_AS_READ: BASE_URL + "/notification", // POST /:id/read
@@ -66,6 +67,20 @@ export const notification = {
   GET_STATS: BASE_URL + "/notification/stats",
   SEND_PUSH: BASE_URL + "/notification/send",
   GET_LOGS: BASE_URL + "/notification/logs",
+  GET_DEVICES: BASE_URL + "/notification/devices",
+  
+  // Topic CRUD
+  GET_TOPICS: BASE_URL + "/notification/topics",
+  CREATE_TOPIC: BASE_URL + "/notification/topics",
+  UPDATE_TOPIC: BASE_URL + "/notification/topics",
+  DELETE_TOPIC: BASE_URL + "/notification/topics",
+  SUBSCRIBE_TO_TOPIC: BASE_URL + "/notification/topics/subscribe",
+  UNSUBSCRIBE_FROM_TOPIC: BASE_URL + "/notification/topics/unsubscribe",
+
+  REGISTER_DEVICE_API: BASE_URL + "/notification/register-device",
+  SEND_NOTIFICATION_API: BASE_URL + "/notification/send",
+  GET_STATS_API: BASE_URL + "/notification/stats",
+  GET_LOGS_API: BASE_URL + "/notification/logs",
 }
 
 export const property = {
