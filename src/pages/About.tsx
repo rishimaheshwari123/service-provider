@@ -2,6 +2,9 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SEO from "@/components/common/SEO";
+import StructuredData, { generateBreadcrumbSchema } from "@/components/common/StructuredData";
+import { seoConfig } from "@/utils/seoConfig";
 import {
   Globe,
   Smartphone,
@@ -16,6 +19,11 @@ import AnimatedBackground from "@/components/AnimatedBackground";
 
 const About = () => {
   const { t } = useTranslation();
+
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: "Home", url: "https://www.meragharsansaar.com/" },
+    { name: "About", url: "https://www.meragharsansaar.com/about" }
+  ]);
 
   const offerings = [
     {
@@ -56,25 +64,38 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 -z-10">
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-rose-50"
-          animate={{
-            background: [
-              "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fef7ff 100%)",
-              "linear-gradient(135deg, #fef7ff 0%, #ffffff 50%, #fff7ed 100%)",
-              "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fef7ff 100%)",
-            ],
-          }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-        />
-      </div>
+    <>
+      {/* SEO Meta Tags */}
+      <SEO
+        title={seoConfig.about.title}
+        description={seoConfig.about.description}
+        keywords={seoConfig.about.keywords}
+        canonical={seoConfig.about.canonical}
+        ogImage={seoConfig.about.ogImage}
+      />
+      
+      {/* Structured Data */}
+      <StructuredData data={breadcrumb} />
+      
+      <div className="min-h-screen relative overflow-x-hidden">
+        {/* Animated Background */}
+        <div className="fixed inset-0 -z-10">
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-rose-50"
+            animate={{
+              background: [
+                "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fef7ff 100%)",
+                "linear-gradient(135deg, #fef7ff 0%, #ffffff 50%, #fff7ed 100%)",
+                "linear-gradient(135deg, #fff7ed 0%, #ffffff 50%, #fef7ff 100%)",
+              ],
+            }}
+            transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </div>
 
-      <Navbar />
+        <Navbar />
 
-      <main className="relative z-10">
+        <main className="relative z-10">
         {/* Hero Section */}
         <motion.section
           initial={{ opacity: 0 }}
@@ -324,6 +345,7 @@ const About = () => {
 
       <Footer />
     </div>
+    </>
   );
 };
 

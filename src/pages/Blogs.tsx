@@ -18,9 +18,18 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import PromoBanner from "@/components/home/PromoBanner";
+import SEO from "@/components/common/SEO";
+import StructuredData, { generateBreadcrumbSchema } from "@/components/common/StructuredData";
+import { seoConfig } from "@/utils/seoConfig";
 
 const Blogs = () => {
   const navigate = useNavigate();
+  
+  const breadcrumb = generateBreadcrumbSchema([
+    { name: "Home", url: "https://www.meragharsansaar.com/" },
+    { name: "Blog", url: "https://www.meragharsansaar.com/blogs" }
+  ]);
+  
   const [blogs, setBlogs] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -148,6 +157,18 @@ const Blogs = () => {
 
   return (
     <>
+      {/* SEO Meta Tags */}
+      <SEO
+        title={seoConfig.blogs.title}
+        description={seoConfig.blogs.description}
+        keywords={seoConfig.blogs.keywords}
+        canonical={seoConfig.blogs.canonical}
+        ogImage={seoConfig.blogs.ogImage}
+      />
+      
+      {/* Structured Data */}
+      <StructuredData data={breadcrumb} />
+      
       <Navbar />
       <PromoBanner/>
 

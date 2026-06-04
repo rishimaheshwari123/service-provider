@@ -16,6 +16,9 @@ import FloatingActionMenu from "@/components/FloatingActionMenu";
 import PageTransition from "@/components/PageTransition";
 import ScrollProgress from "@/components/ScrollProgress";
 import TypingEffect from "@/components/TypingEffect";
+import SEO from "@/components/common/SEO";
+import StructuredData, { organizationSchema, websiteSchema } from "@/components/common/StructuredData";
+import { seoConfig } from "@/utils/seoConfig";
 import logoImage from "@/assets/logo.png";
 
 // Scroll to Top Button - Blue Theme
@@ -99,6 +102,19 @@ const Index = () => {
 
   return (
     <PageTransition>
+      {/* SEO Meta Tags */}
+      <SEO
+        title={seoConfig.home.title}
+        description={seoConfig.home.description}
+        keywords={seoConfig.home.keywords}
+        canonical={seoConfig.home.canonical}
+        ogImage={seoConfig.home.ogImage}
+      />
+      
+      {/* Structured Data */}
+      <StructuredData data={organizationSchema} />
+      <StructuredData data={websiteSchema} />
+      
       <div className="min-h-screen bg-white overflow-x-hidden">
         <ScrollProgress />
 
