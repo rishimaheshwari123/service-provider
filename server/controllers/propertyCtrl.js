@@ -331,9 +331,23 @@ const matchesServiceLocation = (vendorServiceLocation, searchLocation) => {
     );
 };
 
+const matchesServiceArea = (vendor, city, state) => {
+    if (!vendor || !vendor.serviceLocation) return false;
+
+    const cityMatch = city && city.trim()
+        ? matchesServiceLocation(vendor.serviceLocation, city)
+        : false;
+
+    const stateMatch = state && state.trim()
+        ? matchesServiceLocation(vendor.serviceLocation, state)
+        : false;
+
+    return cityMatch || stateMatch;
+};
+
 const getPropertiesCtrl = async (req, res) => {
     try {
-        const { category, includeInactive, search, page, limit, serviceLocation } = req.query;
+        const { category, includeInactive, search, page, limit, serviceLocation, serviceState } = req.query;
 
         // Parse pagination params
         const pageNum = Math.max(1, parseInt(page) || 1);
@@ -382,15 +396,10 @@ const getPropertiesCtrl = async (req, res) => {
             .populate('review')
             .populate('category', 'name');
 
-        // Filter by service location if provided (for mobile app)
-        if (serviceLocation && serviceLocation.trim()) {
+        // Filter by requested city/state service area (for mobile app)
+        if ((serviceLocation && serviceLocation.trim()) || (serviceState && serviceState.trim())) {
             properties = properties.filter(prop => {
-                // Check if vendor exists and has serviceLocation
-                if (!prop.vendor || !prop.vendor.serviceLocation) {
-                    return false;
-                }
-                
-                return matchesServiceLocation(prop.vendor.serviceLocation, serviceLocation);
+                return matchesServiceArea(prop.vendor, serviceLocation, serviceState);
             });
         }
 
