@@ -4,6 +4,11 @@ const notificationSchema = new mongoose.Schema(
   {
     title: String,
     body: String,
+
+    imageUrl: {
+      type: String,
+      default: ""
+    },
     
     userId: {
       type: mongoose.Schema.Types.ObjectId,
