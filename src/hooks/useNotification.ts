@@ -3,9 +3,9 @@ import { requestNotificationPermission, onMessageListener } from '@/lib/firebase
 import { toast } from 'react-toastify';
 import { saveFCMToken } from '@/service/notificationApi';
 
-// Replace this with your actual VAPID key from Firebase Console
-// Go to: Project Settings > Cloud Messaging > Web Push certificates
-const VAPID_KEY = 'YOUR_VAPID_KEY_HERE';
+// VAPID key from Firebase Console - Web Push certificates
+// Project: mgsa-a4899
+const VAPID_KEY = 'BMNAxWYCoC3ulxGY9PNVbAGDtijS2IK5ex9MC_FBAlTDd53bUpdgMiQMeDAilHZwzvwmf92Y7JXwoWLcQpeRsn0';
 
 interface NotificationPayload {
   notification?: {
