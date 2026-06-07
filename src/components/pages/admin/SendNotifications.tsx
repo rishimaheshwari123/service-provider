@@ -50,6 +50,14 @@ interface NotificationStats {
 
 interface NotificationLog {
   _id: string;
+  title?: string;
+  body?: string;
+  imageUrl?: string;
+  type?: string;
+  data?: Record<string, unknown>;
+  userId?: string | null;
+  vendorId?: string | null;
+  isForGuest?: boolean;
   recipient: {
     name: string;
     email: string;
@@ -60,6 +68,16 @@ interface NotificationLog {
     totalDevicesTargeted?: number;
     successCount?: number;
     failureCount?: number;
+    formData?: {
+      title?: string;
+      body?: string;
+      imageUrl?: string;
+      targetType?: string;
+      targetIds?: string;
+      link?: string;
+      type?: string;
+      data?: Record<string, unknown>;
+    };
   };
   createdAt: string;
 }
@@ -502,6 +520,37 @@ const SendNotifications: React.FC = () => {
 
   // Quick Resend
   const handleResend = (log: NotificationLog) => {
+    const directLink = typeof log.data?.link === "string" ? log.data.link : "";
+    const formData = log.title || log.body || log.imageUrl
+      ? {
+          title: log.title,
+          body: log.body,
+          imageUrl: log.imageUrl,
+          link: directLink,
+          type: log.type,
+          data: log.data,
+          targetType: log.isForGuest ? "guests" : log.vendorId ? "vendors" : log.userId ? "users" : "all"
+        }
+      : log.response?.formData;
+
+    if (formData) {
+      setTitle(formData.title || "");
+      setBody(formData.body || "");
+      setImageUrl(formData.imageUrl || "");
+      setLink(formData.link || "");
+
+      if (formData.targetType === "topic" && formData.targetIds) {
+        setTargetType(`topic_${formData.targetIds}`);
+      } else {
+        const t = (formData.targetType || "all").toLowerCase();
+        setTargetType(["all", "users", "vendors", "guests"].includes(t) ? t : "all");
+      }
+
+      toast.info("Notification parameters loaded into form.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+
     const messageText = log.message;
     const linkMatch = messageText.match(/\(Link: (.*?)\)$/);
     let cleanMessage = messageText;
@@ -521,6 +570,7 @@ const SendNotifications: React.FC = () => {
       setBody(cleanMessage);
     }
     setLink(loggedLink);
+    setImageUrl("");
 
     // Attempt to parse target
     const targetName = log.recipient.name;
@@ -998,7 +1048,18 @@ const SendNotifications: React.FC = () => {
                         </td>
                         
                         <td className="px-6 py-4 max-w-xs md:max-w-md truncate">
-                          <span className="text-gray-900 font-semibold text-xs md:text-sm">{log.message}</span>
+                          <div className="flex items-center gap-3 min-w-0">
+                            {(log.imageUrl || log.response?.formData?.imageUrl) && (
+                              <img
+                                src={log.imageUrl || log.response?.formData?.imageUrl}
+                                alt=""
+                                className="w-9 h-9 object-cover rounded-md border border-gray-100 flex-shrink-0"
+                              />
+                            )}
+                            <span className="text-gray-900 font-semibold text-xs md:text-sm truncate">
+                              {log.title ? `[${log.title}] ${log.body || ""}` : log.message}
+                            </span>
+                          </div>
                         </td>
                         
                         <td className="px-6 py-4 whitespace-nowrap text-center">
