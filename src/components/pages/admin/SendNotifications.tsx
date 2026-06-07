@@ -198,7 +198,7 @@ const SendNotifications: React.FC = () => {
   // Fetch Categories
   const fetchCategories = async () => {
     try {
-      const response = await apiConnector("GET", "http://localhost:8000/api/v1/category/getAll");
+      const response = await apiConnector("GET", "https://api.meragharsansaar.com/api/v1/category/getAll");
       if (response?.data?.success) {
         setCategories(response.data.categories || response.data.data || []);
       }
@@ -254,7 +254,7 @@ const SendNotifications: React.FC = () => {
     try {
       const response = await apiConnector(
         "POST", 
-        "http://localhost:8000/api/v1/image/upload", 
+        "https://api.meragharsansaar.com/api/v1/image/upload", 
         formData,
         { "Content-Type": "multipart/form-data" }
       );
