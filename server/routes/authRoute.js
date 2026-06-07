@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl, generateReferralCodeCtrl, sendPhoneVerificationOTPCtrl, verifyPhoneOTPCtrl } = require("../controllers/authCtrl")
+const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl, generateReferralCodeCtrl, sendPhoneVerificationOTPCtrl, verifyPhoneOTPCtrl, saveFCMToken, removeFCMToken, getNotificationPreferences, updateNotificationPreferences } = require("../controllers/authCtrl")
 const { verifyToken, isAdmin } = require("../utils/verifyToken")
 const router = express.Router()
 
@@ -23,6 +23,14 @@ router.delete("/delete/:id", deleteAuthCtrl)
 router.get("/my-profile/:id", getUserInquiries)
 router.put("/change-type/:id", changeUserTypeCtrl);
 router.put("/change-password/:id", changePasswordCtrl);
+
+// FCM Token Management Routes
+router.post("/save-fcm-token", verifyToken, saveFCMToken);
+router.delete("/remove-fcm-token", verifyToken, removeFCMToken);
+
+// Notification Preferences Routes
+router.get("/notification-preferences", verifyToken, getNotificationPreferences);
+router.put("/notification-preferences", verifyToken, updateNotificationPreferences);
 
 
 

@@ -824,3 +824,169 @@ module.exports = {
   sendPhoneVerificationOTPCtrl,
   verifyPhoneOTPCtrl,
 };
+
+
+// FCM Token Management
+
+/**
+ * Save FCM token for a user
+ */
+const saveFCMToken = async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    const userId = req.user._id;
+
+    if (!fcmToken) {
+      return res.status(400).json({
+        success: false,
+        message: "FCM token is required",
+      });
+    }
+
+    const user = await authModel.findByIdAndUpdate(
+      userId,
+      { fcmToken },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "FCM token saved successfully",
+    });
+  } catch (error) {
+    console.error("Error saving FCM token:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error saving FCM token",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Remove FCM token for a user (on logout)
+ */
+const removeFCMToken = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await authModel.findByIdAndUpdate(
+      userId,
+      { fcmToken: null },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "FCM token removed successfully",
+    });
+  } catch (error) {
+    console.error("Error removing FCM token:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error removing FCM token",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Get user notification preferences
+ */
+const getNotificationPreferences = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const user = await authModel.findById(userId).select("notificationPreferences");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: user.notificationPreferences || {
+        bookingUpdates: true,
+        promotions: true,
+        reminders: true,
+        general: true,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching notification preferences:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching notification preferences",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * Update user notification preferences
+ */
+const updateNotificationPreferences = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { bookingUpdates, promotions, reminders, general } = req.body;
+
+    const updateData = {};
+    if (typeof bookingUpdates === "boolean")
+      updateData["notificationPreferences.bookingUpdates"] = bookingUpdates;
+    if (typeof promotions === "boolean")
+      updateData["notificationPreferences.promotions"] = promotions;
+    if (typeof reminders === "boolean")
+      updateData["notificationPreferences.reminders"] = reminders;
+    if (typeof general === "boolean")
+      updateData["notificationPreferences.general"] = general;
+
+    const user = await authModel.findByIdAndUpdate(userId, updateData, {
+      new: true,
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Notification preferences updated successfully",
+      data: user.notificationPreferences,
+    });
+  } catch (error) {
+    console.error("Error updating notification preferences:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating notification preferences",
+      error: error.message,
+    });
+  }
+};
+
+module.exports = {
+  ...module.exports,
+  saveFCMToken,
+  removeFCMToken,
+  getNotificationPreferences,
+  updateNotificationPreferences,
+};

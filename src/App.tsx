@@ -67,6 +67,8 @@ import CategoriesPage from "./pages/CategoriesPage";
 import ScrollToTop from "./pages/ScrollToTop";
 import VendoreServiceImagesUpload from "./components/pages/vendor/VendoreServiceImagesUpload";
 import AppDownloadFloat from "./components/AppDownloadFloat";
+import { NotificationPrompt } from "./components/NotificationPrompt";
+import { NotificationSetup } from "./components/NotificationSetup";
 const queryClient = new QueryClient();
 
 // Loading component for Suspense fallback
@@ -87,6 +89,8 @@ const App = () => {
           <BrowserRouter>
           <ScrollToTop/>
           <AppDownloadFloat />
+          <NotificationSetup />
+          <NotificationPrompt />
 
             <Routes>
             <Route path="/" element={<Index />} />
