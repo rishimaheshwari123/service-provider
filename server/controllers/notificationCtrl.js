@@ -230,7 +230,8 @@ const sendPushNotificationCtrl = async (req, res) => {
     }
 
     let query = {};
-    const selectedTarget = targetType || "all";
+    const normalizedTargetType = String(targetType || "all").toLowerCase();
+    const selectedTarget = normalizedTargetType === "guest" ? "guests" : normalizedTargetType;
     let topicName = null;
     let topicDisplayName = "";
 
@@ -297,6 +298,7 @@ const sendPushNotificationCtrl = async (req, res) => {
 
     // 🔥 STEP 1: SAVE NOTIFICATIONS TO DATABASE
     const notificationsToSave = [];
+    const hasGuestDevices = devices.some(device => device.isGuest || (!device.userId && !device.vendorId));
     
     if (selectedTarget === "guests") {
       // For guests, create one notification marked as isForGuest
@@ -328,12 +330,25 @@ const sendPushNotificationCtrl = async (req, res) => {
           ...recipient
         });
       });
+
+      // Keep a guest inbox record when the selected devices include guest devices.
+      if (hasGuestDevices) {
+        notificationsToSave.push({
+          title,
+          body,
+          type,
+          data: enrichedData,
+          isForGuest: true
+        });
+      }
     }
 
     // Bulk insert notifications to DB
     let savedNotifications = [];
     try {
-      savedNotifications = await Notification.insertMany(notificationsToSave);
+      if (notificationsToSave.length > 0) {
+        savedNotifications = await Notification.insertMany(notificationsToSave);
+      }
       console.log(`✅ Saved ${savedNotifications.length} notification(s) to database.`);
     } catch (dbError) {
       console.error("❌ Failed to save notifications to DB:", dbError);
