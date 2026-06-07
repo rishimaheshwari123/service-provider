@@ -305,6 +305,7 @@ const sendPushNotificationCtrl = async (req, res) => {
       notificationsToSave.push({
         title,
         body,
+        ...(imageUrl && { imageUrl }),
         type,
         data: enrichedData,
         isForGuest: true
@@ -325,6 +326,7 @@ const sendPushNotificationCtrl = async (req, res) => {
         notificationsToSave.push({
           title,
           body,
+          ...(imageUrl && { imageUrl }),
           type,
           data: enrichedData,
           ...recipient
@@ -336,6 +338,7 @@ const sendPushNotificationCtrl = async (req, res) => {
         notificationsToSave.push({
           title,
           body,
+          ...(imageUrl && { imageUrl }),
           type,
           data: enrichedData,
           isForGuest: true
@@ -524,6 +527,16 @@ const sendPushNotificationCtrl = async (req, res) => {
           successCount: overallSuccessCount,
           failureCount: overallFailureCount,
           notificationsSaved: savedNotifications.length,
+          formData: {
+            title,
+            body,
+            imageUrl: imageUrl || "",
+            targetType: selectedTarget,
+            targetIds: selectedTarget === "topic" ? targetIds : undefined,
+            link: link || "",
+            type: type || "",
+            data: enrichedData
+          },
           errors: errors.slice(0, 10)
         }
       });
@@ -555,12 +568,45 @@ const sendPushNotificationCtrl = async (req, res) => {
   }
 };
 
-// 4. Get recent Push Notification logs
+// 4. Get recent saved Push Notifications for admin history/load form
 const getNotificationLogsCtrl = async (req, res) => {
   try {
-    const logs = await CommunicationLogs.find({ type: "PushNotification" })
+    const notifications = await Notification.find({})
       .sort({ createdAt: -1 })
-      .limit(50); // get last 50 notification runs
+      .limit(50)
+      .lean();
+
+    const logs = notifications.map((notification) => {
+      const link = notification.data?.link || "";
+      const targetType = notification.isForGuest
+        ? "guests"
+        : notification.vendorId
+          ? "vendors"
+          : notification.userId
+            ? "users"
+            : "all";
+
+      return {
+        ...notification,
+        recipient: {
+          name: `Target: ${targetType.toUpperCase()}`,
+          email: "Saved Notification"
+        },
+        message: `[${notification.title || ""}] ${notification.body || ""}`,
+        status: "Success",
+        response: {
+          formData: {
+            title: notification.title || "",
+            body: notification.body || "",
+            imageUrl: notification.imageUrl || "",
+            targetType,
+            link,
+            type: notification.type || "",
+            data: notification.data || {}
+          }
+        }
+      };
+    });
 
     return res.status(200).json({
       success: true,
