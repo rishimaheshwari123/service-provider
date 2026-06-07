@@ -125,6 +125,32 @@ const authSchema = new mongoose.Schema(
         referredByCode: {
             type: String,
         },
+
+        // Firebase Cloud Messaging Token
+        fcmToken: {
+            type: String,
+            default: null,
+        },
+
+        // Notification Preferences
+        notificationPreferences: {
+            bookingUpdates: {
+                type: Boolean,
+                default: true,
+            },
+            promotions: {
+                type: Boolean,
+                default: true,
+            },
+            reminders: {
+                type: Boolean,
+                default: true,
+            },
+            general: {
+                type: Boolean,
+                default: true,
+            },
+        },
     },
     { timestamps: true }
 );
