@@ -28,6 +28,15 @@ axiosInstance.interceptors.request.use(
       }
     }
     
+    // Remove Content-Type for FormData - let browser set it with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers["Content-Type"];
+    }
+    // Remove Content-Type for requests without body (GET, DELETE without data)
+    else if (!config.data || (config.method && ['get', 'delete'].includes(config.method.toLowerCase()))) {
+      delete config.headers["Content-Type"];
+    }
+    
     return config;
   },
   (error) => {
@@ -47,11 +56,18 @@ axiosInstance.interceptors.response.use(
 );
 
 export const apiConnector = (method, url, bodyData, headers, params) => {
-  return axiosInstance({
+  const config = {
     method: method,
     url: url,
     data: bodyData ? bodyData : null,
-    headers: headers ? { ...headers } : undefined, // Merge with interceptor headers
+    headers: headers ? { ...headers } : undefined,
     params: params ? params : null,
-  });
+  };
+
+  // For DELETE requests without body, don't set data field at all
+  if (method === 'DELETE' && !bodyData) {
+    delete config.data;
+  }
+
+  return axiosInstance(config);
 };
