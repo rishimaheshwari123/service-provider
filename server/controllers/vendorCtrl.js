@@ -114,6 +114,21 @@ const vendorRegisterCtrl = async (req, res) => {
       alternatePhone: normalizePhone(alternatePhone),
     };
 
+    // ✅ CRITICAL: Check if OTP was verified before allowing registration
+    // The number used for OTP verification should match the registered number
+    const numberUsedForOTP = whatsappNumber || phone;
+    const normalizedOTPNumber = normalizePhone(numberUsedForOTP);
+    
+    // Check if OTP exists in the OTP model (it should have been deleted after verification)
+    // If OTP still exists, it means the number was not verified
+    const pendingOTP = await otpModel.findOne({ number: normalizedOTPNumber });
+    if (pendingOTP) {
+      return res.status(400).json({
+        success: false,
+        message: "Please verify your phone number with OTP before registering",
+      });
+    }
+
     const existingUser = await findVendorByAnyNumber(
       [inputNumbers.phone, inputNumbers.whatsappNumber, inputNumbers.alternatePhone]
     );
