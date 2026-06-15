@@ -131,6 +131,7 @@ const VendorManagement = () => {
     vendor: null,
     action: "",
   });
+  const [holdReason, setHoldReason] = useState("");
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
     vendor: null,
@@ -973,14 +974,24 @@ const VendorManagement = () => {
 
   const handleVendorAction = async (vendorId, action) => {
     try {
+      // Validate hold reason if action is "hold"
+      if (action === "hold" && (!holdReason || holdReason.trim() === "")) {
+        toast({
+          title: "Error",
+          description: "Please provide a reason for holding this vendor",
+          variant: "destructive",
+        });
+        return;
+      }
+
       setSubmitting(true);
-      const response = await updateVendorStatusAPI(vendorId, action);
+      const response = await updateVendorStatusAPI(vendorId, action, holdReason);
 
       if (response?.success) {
         // Update local state
         setVendors(
           vendors.map((vendor) =>
-            vendor._id === vendorId ? { ...vendor, status: action } : vendor
+            vendor._id === vendorId ? { ...vendor, status: action, holdReason: action === "hold" ? holdReason : "" } : vendor
           )
         );
         toast({
@@ -1000,6 +1011,7 @@ const VendorManagement = () => {
     } finally {
       setSubmitting(false);
       setAlertDialog({ open: false, vendor: null, action: "" });
+      setHoldReason(""); // Reset hold reason
     }
   };
 
@@ -1485,6 +1497,13 @@ const VendorManagement = () => {
           <Badge className="bg-red-100 text-red-800 border-red-200">
             <X className="w-3 h-3 mr-1" />
             Rejected
+          </Badge>
+        );
+      case "hold":
+        return (
+          <Badge className="bg-orange-100 text-orange-800 border-orange-200">
+            <Clock className="w-3 h-3 mr-1" />
+            On Hold
           </Badge>
         );
       default:
@@ -3053,6 +3072,7 @@ const VendorManagement = () => {
                 <option value="approved">Approved</option>
                 <option value="pending">Pending</option>
                 <option value="rejected">Rejected</option>
+                <option value="hold">On Hold</option>
               </select>
             </div>
             {(searchTerm || statusFilter !== "all") && (
@@ -3162,6 +3182,12 @@ const VendorManagement = () => {
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           {getStatusBadge(vendor.status)}
+                          {vendor.status === "hold" && vendor.holdReason && (
+                            <div className="flex items-center gap-1 text-xs text-orange-600 mt-1 cursor-help" title={vendor.holdReason}>
+                              <Clock className="w-3 h-3" />
+                              <span className="truncate max-w-[150px]">{vendor.holdReason}</span>
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -3315,37 +3341,110 @@ const VendorManagement = () => {
                                   <X className="w-4 h-4 mr-2" />
                                   Reject
                                 </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setAlertDialog({
+                                      open: true,
+                                      vendor,
+                                      action: "hold",
+                                    })
+                                  }
+                                  className="text-orange-600"
+                                >
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  Hold
+                                </DropdownMenuItem>
                               </>
                             )}
                             {vendor.status === "approved" && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setAlertDialog({
-                                    open: true,
-                                    vendor,
-                                    action: "rejected",
-                                  })
-                                }
-                                className="text-red-600"
-                              >
-                                <X className="w-4 h-4 mr-2" />
-                                Revoke Access
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setAlertDialog({
+                                      open: true,
+                                      vendor,
+                                      action: "rejected",
+                                    })
+                                  }
+                                  className="text-red-600"
+                                >
+                                  <X className="w-4 h-4 mr-2" />
+                                  Revoke Access
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setAlertDialog({
+                                      open: true,
+                                      vendor,
+                                      action: "hold",
+                                    })
+                                  }
+                                  className="text-orange-600"
+                                >
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  Hold
+                                </DropdownMenuItem>
+                              </>
                             )}
                             {vendor.status === "rejected" && (
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  setAlertDialog({
-                                    open: true,
-                                    vendor,
-                                    action: "approved",
-                                  })
-                                }
-                                className="text-green-600"
-                              >
-                                <Check className="w-4 h-4 mr-2" />
-                                Approve
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setAlertDialog({
+                                      open: true,
+                                      vendor,
+                                      action: "approved",
+                                    })
+                                  }
+                                  className="text-green-600"
+                                >
+                                  <Check className="w-4 h-4 mr-2" />
+                                  Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setAlertDialog({
+                                      open: true,
+                                      vendor,
+                                      action: "hold",
+                                    })
+                                  }
+                                  className="text-orange-600"
+                                >
+                                  <Clock className="w-4 h-4 mr-2" />
+                                  Hold
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {vendor.status === "hold" && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setAlertDialog({
+                                      open: true,
+                                      vendor,
+                                      action: "approved",
+                                    })
+                                  }
+                                  className="text-green-600"
+                                >
+                                  <Check className="w-4 h-4 mr-2" />
+                                  Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    setAlertDialog({
+                                      open: true,
+                                      vendor,
+                                      action: "rejected",
+                                    })
+                                  }
+                                  className="text-red-600"
+                                >
+                                  <X className="w-4 h-4 mr-2" />
+                                  Reject
+                                </DropdownMenuItem>
+                              </>
                             )}
                             <DropdownMenuItem
                               onClick={() =>
@@ -3595,6 +3694,15 @@ const VendorManagement = () => {
                       <span className="font-medium">Status:</span>
                       {getStatusBadge(selectedVendor.status)}
                     </div>
+                    {selectedVendor.status === "hold" && selectedVendor.holdReason && (
+                      <div className="flex items-start gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                        <Clock className="w-4 h-4 text-orange-600 mt-0.5" />
+                        <div className="flex-1">
+                          <span className="font-medium text-orange-800">Hold Reason:</span>
+                          <p className="text-sm text-orange-700 mt-1">{selectedVendor.holdReason}</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Registered:</span>
@@ -4175,7 +4283,10 @@ const VendorManagement = () => {
       {/* Confirmation Alert Dialog */}
       <AlertDialog
         open={alertDialog.open}
-        onOpenChange={(open) => setAlertDialog({ ...alertDialog, open })}
+        onOpenChange={(open) => {
+          setAlertDialog({ ...alertDialog, open });
+          if (!open) setHoldReason(""); // Reset hold reason when dialog closes
+        }}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -4186,6 +4297,27 @@ const VendorManagement = () => {
               status.
             </AlertDialogDescription>
           </AlertDialogHeader>
+          
+          {/* Hold Reason Input - Only show when action is "hold" */}
+          {alertDialog.action === "hold" && (
+            <div className="space-y-2 py-4">
+              <Label htmlFor="holdReason" className="text-sm font-medium">
+                Hold Reason <span className="text-red-500">*</span>
+              </Label>
+              <Textarea
+                id="holdReason"
+                placeholder="Please provide a reason for holding this vendor..."
+                value={holdReason}
+                onChange={(e) => setHoldReason(e.target.value)}
+                rows={3}
+                className="resize-none"
+              />
+              {holdReason.trim() === "" && (
+                <p className="text-xs text-red-500">Hold reason is required</p>
+              )}
+            </div>
+          )}
+
           <AlertDialogFooter>
             <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
             <AlertDialogAction
@@ -4196,13 +4328,19 @@ const VendorManagement = () => {
               className={
                 alertDialog.action === "approved"
                   ? "bg-green-600 hover:bg-green-700"
+                  : alertDialog.action === "hold"
+                  ? "bg-orange-600 hover:bg-orange-700"
                   : "bg-red-600 hover:bg-red-700"
               }
             >
               {submitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
-              {alertDialog.action === "approved" ? "Approve" : "Reject"}
+              {alertDialog.action === "approved" 
+                ? "Approve" 
+                : alertDialog.action === "hold"
+                ? "Hold"
+                : "Reject"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

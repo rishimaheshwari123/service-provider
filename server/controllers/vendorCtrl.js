@@ -550,12 +550,20 @@ const getAllVendorPaginatedCtrl = async (req, res) => {
 
 const updateVendorStatusCtrl = async (req, res) => {
   try {
-    const { status } = req.body;
+    const { status, holdReason } = req.body;
     const { id } = req.params;
     if (!status) {
       return res.status(400).json({
         success: false,
         message: "Status is required",
+      });
+    }
+
+    // Validate holdReason if status is "hold"
+    if (status === "hold" && (!holdReason || holdReason.trim() === "")) {
+      return res.status(400).json({
+        success: false,
+        message: "Hold reason is required when status is hold",
       });
     }
 
@@ -568,9 +576,18 @@ const updateVendorStatusCtrl = async (req, res) => {
       });
     }
 
+    // Prepare update data
+    const updateData = { status };
+    if (status === "hold") {
+      updateData.holdReason = holdReason;
+    } else {
+      // Clear holdReason if status is not "hold"
+      updateData.holdReason = "";
+    }
+
     const updatedVendor = await vendorModel.findByIdAndUpdate(
       id,
-      { status },
+      updateData,
       { new: true }
     );
 
