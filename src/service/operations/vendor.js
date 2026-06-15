@@ -247,12 +247,19 @@ export const getVendorByIdAPI = async (id) => {
 };
 
 
-export const updateVendorStatusAPI = async (id, action) => {
+export const updateVendorStatusAPI = async (id, action, holdReason = "") => {
 
   const toastId = toast.loading("Loading...");
 
   try {
-    const response = await apiConnector("PUT", `${UPDATE_VENDOR}/${id}`, { status: action });
+    const payload = { status: action };
+    
+    // Add holdReason only if action is "hold"
+    if (action === "hold" && holdReason) {
+      payload.holdReason = holdReason;
+    }
+
+    const response = await apiConnector("PUT", `${UPDATE_VENDOR}/${id}`, payload);
 
 
     if (!response?.data?.success) {

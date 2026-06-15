@@ -116,6 +116,10 @@ const vendorSchema = new mongoose.Schema(
         status: {
             type: String,
         },
+        holdReason: {
+            type: String,
+            trim: true,
+        },
         percentage: {
             type: String,
         },
