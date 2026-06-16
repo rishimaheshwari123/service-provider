@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { FaDownload, FaFilter, FaSearch, FaHome, FaList } from "react-icons/fa";
 import axios from "axios";
+import { apiConnector } from "../../../service/apiConnector";
 import { searchLogs } from "../../../service/apis";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
@@ -36,11 +37,14 @@ export default function SearchLogs() {
       });
 
       const token = (user as any)?.token;
-      const response = await axios.get(`${searchLogs.GET_ALL_LOGS_API}?${params}`, {
-        headers: {
+      const response = await apiConnector(
+        "GET",
+        `${searchLogs.GET_ALL_LOGS_API}?${params}`,
+        null,
+        {
           Authorization: `Bearer ${token}`,
-        },
-      });
+        }
+      );
 
       if (response.data && response.data.logs) {
         setLogs(response.data.logs || []);
@@ -66,11 +70,14 @@ export default function SearchLogs() {
       if (filters.endDate) params.append("endDate", filters.endDate);
 
       const token = (user as any)?.token;
-      const response = await axios.get(`${searchLogs.GET_STATS_API}?${params}`, {
-        headers: {
+      const response = await apiConnector(
+        "GET",
+        `${searchLogs.GET_STATS_API}?${params}`,
+        null,
+        {
           Authorization: `Bearer ${token}`,
-        },
-      });
+        }
+      );
 
       if (response.data && response.data.stats) {
         setStats(response.data.stats);
@@ -81,7 +88,7 @@ export default function SearchLogs() {
     }
   };
 
-  // Download Excel
+  // Download Excel (using axios directly for blob response)
   const downloadExcel = async () => {
     try {
       const params = new URLSearchParams();
