@@ -51,6 +51,11 @@ const AdminAuditLogs = () => {
   const limit = 50;
   const [commentText, setCommentText] = useState<Record<string, string>>({});
   const [addingComment, setAddingComment] = useState<string | null>(null);
+  
+  // Stats from backend
+  const [totalInteractionsFromDB, setTotalInteractionsFromDB] = useState(0);
+  const [uniqueActiveUsersFromDB, setUniqueActiveUsersFromDB] = useState(0);
+  const [uniquePropertiesClickedFromDB, setUniquePropertiesClickedFromDB] = useState(0);
 
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
 
@@ -66,6 +71,23 @@ const AdminAuditLogs = () => {
 
       setPage(nextPage);
       setTotalPages(data.totalPages || 1);
+      
+      // Update stats from backend summary (only on first page to avoid duplication)
+      if (nextPage === 1) {
+        if (data.summary) {
+          setTotalInteractionsFromDB(data.summary.logsWithValidUsers || 0);
+          setUniqueActiveUsersFromDB(data.summary.uniqueActiveUsers || 0);
+          setUniquePropertiesClickedFromDB(data.summary.uniquePropertiesClicked || 0);
+        } else {
+          setTotalInteractionsFromDB(data.total || 0);
+          // Fallback to calculating from loaded logs if no summary
+          const uniqueUsers = new Set(data.logs?.map((log: any) => log.userId?.email).filter(Boolean)).size;
+          const uniqueProperties = new Set(data.logs?.map((log: any) => log.propertyId?._id).filter(Boolean)).size;
+          setUniqueActiveUsersFromDB(uniqueUsers);
+          setUniquePropertiesClickedFromDB(uniqueProperties);
+        }
+      }
+      
     } catch (error) {
       console.error(error);
     } finally {
@@ -151,9 +173,10 @@ const AdminAuditLogs = () => {
   };
 
   // Derive simple real-time stats from the loaded logs list
-  const totalInteractions = logs.length;
-  const uniqueActiveUsers = new Set(logs.map(log => log.userId?.email).filter(Boolean)).size;
-  const uniquePropertiesClicked = new Set(logs.map(log => log.propertyId?._id).filter(Boolean)).size;
+  // Use backend stats if available, otherwise fall back to loaded logs
+  const totalInteractions = totalInteractionsFromDB || logs.length;
+  const uniqueActiveUsers = uniqueActiveUsersFromDB || new Set(logs.map(log => log.userId?.email).filter(Boolean)).size;
+  const uniquePropertiesClicked = uniquePropertiesClickedFromDB || new Set(logs.map(log => log.propertyId?._id).filter(Boolean)).size;
 
   return (
     <div className="min-h-screen  sm:px-6 ">
