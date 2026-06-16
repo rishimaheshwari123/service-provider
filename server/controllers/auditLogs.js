@@ -110,6 +110,7 @@ const getAuditLogsCtrl = async (req, res) => {
             filter.propertyId = { $in: propertyIds };
         }
 
+        // First fetch logs
         const logs = await AuditLogs.find(filter)
             .populate("userId", "name email phone")
             .populate({
@@ -125,9 +126,34 @@ const getAuditLogsCtrl = async (req, res) => {
             .skip(skip)
             .limit(limit);
 
-        const total = await AuditLogs.countDocuments(filter);
+        // Filter out logs where userId doesn't exist (user has been deleted)
+        const validLogs = logs.filter(log => {
+            // Keep general_contact logs even without userId
+            if (log.type === "general_contact") {
+                return true;
+            }
+            // For other types, only keep if user still exists
+            return log.userId !== null;
+        });
 
-        // Get counts by type for dashboard
+        // Get all valid userIds from the database to ensure accurate count
+        const allLogs = await AuditLogs.find(filter).select("userId type propertyId");
+        const userIds = allLogs
+            .filter(log => log.userId !== null)
+            .map(log => log.userId);
+        
+        // Check which users still exist
+        const existingUsers = await Auth.find({ _id: { $in: userIds } }).select("_id");
+        const existingUserIds = new Set(existingUsers.map(user => user._id.toString()));
+        
+        // Count only logs with existing users
+        const validLogsCount = allLogs.filter(log => {
+            if (log.type === "general_contact") return true;
+            if (!log.userId) return false;
+            return existingUserIds.has(log.userId.toString());
+        }).length;
+
+        // Get counts by type for dashboard - only for existing users
         const aggregateMatch = {
             type: { $ne: "general_contact" }
         };
@@ -140,26 +166,49 @@ const getAuditLogsCtrl = async (req, res) => {
             };
         }
 
-        const typeCounts = await AuditLogs.aggregate([
-            { $match: aggregateMatch },
-            {
-                $group: {
-                    _id: "$type",
-                    count: { $sum: 1 }
-                }
+        const allTypeCountsLogs = await AuditLogs.find(aggregateMatch).select("userId type");
+        const typeCountsMap = {};
+        
+        for (const log of allTypeCountsLogs) {
+            if (log.userId && existingUserIds.has(log.userId.toString())) {
+                typeCountsMap[log.type] = (typeCountsMap[log.type] || 0) + 1;
             }
-        ]);
+        }
+
+        // Total logs in DB (without any user validation)
+        const totalLogsInDB = await AuditLogs.countDocuments(filter);
+
+        // Calculate unique users and properties from valid logs
+        const uniqueUserIds = new Set(
+            allLogs
+                .filter(log => log.userId && existingUserIds.has(log.userId.toString()))
+                .map(log => log.userId.toString())
+        );
+
+        const uniquePropertyIds = new Set(
+            allLogs
+                .filter(log => log.userId && existingUserIds.has(log.userId.toString()))
+                .map(log => log.propertyId?.toString())
+                .filter(Boolean)
+        );
 
         res.status(200).json({
             success: true,
-            logs,
-            total,
+            logs: validLogs,
+            total: validLogsCount, // Valid logs count (users exist)
+            totalInDB: totalLogsInDB, // Total logs in database
+            deletedUserLogs: totalLogsInDB - validLogsCount, // Logs with deleted users
             page,
-            totalPages: Math.ceil(total / limit),
-            typeCounts: typeCounts.reduce((acc, item) => {
-                acc[item._id] = item.count;
-                return acc;
-            }, {})
+            totalPages: Math.ceil(validLogsCount / limit),
+            typeCounts: typeCountsMap,
+            summary: {
+                totalLogsInDatabase: totalLogsInDB,
+                logsWithValidUsers: validLogsCount,
+                logsWithDeletedUsers: totalLogsInDB - validLogsCount,
+                uniqueActiveUsers: uniqueUserIds.size,
+                uniquePropertiesClicked: uniquePropertyIds.size,
+                percentageValid: totalLogsInDB > 0 ? ((validLogsCount / totalLogsInDB) * 100).toFixed(2) + '%' : '0%'
+            }
         });
 
     } catch (error) {
