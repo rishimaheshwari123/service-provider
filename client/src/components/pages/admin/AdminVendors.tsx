@@ -14,7 +14,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
@@ -72,7 +78,10 @@ import {
   Key,
 } from "lucide-react";
 import { signUp } from "@/service/operations/vendor";
-import { getAllCategoriesAPI, purchaseCategoryAPI } from "@/service/operations/category";
+import {
+  getAllCategoriesAPI,
+  purchaseCategoryAPI,
+} from "@/service/operations/category";
 import { sendOTP, verifyOTP } from "@/service/operations/otp";
 import { imageUpload } from "@/service/operations/image";
 import { vendor } from "@/service/apis";
@@ -106,14 +115,21 @@ import {
   requestForTheUpdateProfileAPI,
   deleteVendorAPI,
 } from "@/service/operations/vendor";
-import { getVendorPendingCategoryPurchasesAPI, getPurchasedCategoriesAPI } from "@/service/operations/category";
-import { updatePropertyStatusAPI, getVendorPropertyAPI, deletePropertyAPI } from "@/service/operations/property";
+import {
+  getVendorPendingCategoryPurchasesAPI,
+  getPurchasedCategoriesAPI,
+} from "@/service/operations/category";
+import {
+  updatePropertyStatusAPI,
+  getVendorPropertyAPI,
+  deletePropertyAPI,
+} from "@/service/operations/property";
 import { AdminEditServiceModal } from "./AdminEditServiceModal.tsx";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
-import AllBooking from "./AllBooking";
-import VendorProfileMangeByAdmin from "./VendorProfileMangeByAdmin";
-import VendorProfileUpdateNotifications from "./VendorProfileUpdateNotifications";
+import AllBooking from "./AllBooking.tsx";
+import VendorProfileMangeByAdmin from "./VendorProfileMangeByAdmin.tsx";
+import VendorProfileUpdateNotifications from "./VendorProfileUpdateNotifications.tsx";
 import { useNavigate, Link } from "react-router-dom";
 const VendorManagement = () => {
   const [vendors, setVendors] = useState([]);
@@ -151,18 +167,24 @@ const VendorManagement = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [showCustomPageSize, setShowCustomPageSize] = useState(false);
   const [customPageSizeInput, setCustomPageSizeInput] = useState("");
-  const [loading, setLoading] = useState(true);   // full-page spinner — only on initial load
+  const [loading, setLoading] = useState(true); // full-page spinner — only on initial load
   const [refreshing, setRefreshing] = useState(false); // button spinner — on refresh/search
   const [submitting, setSubmitting] = useState(false);
   const [loadingProperties, setLoadingProperties] = useState(false);
-  const [deletingServiceId, setDeletingServiceId] = useState<string | null>(null);
+  const [deletingServiceId, setDeletingServiceId] = useState<string | null>(
+    null,
+  );
   const [deleteServiceModalOpen, setDeleteServiceModalOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<any | null>(null);
   const [editServiceModalOpen, setEditServiceModalOpen] = useState(false);
   const [serviceToEdit, setServiceToEdit] = useState<any | null>(null);
   const [updatingPercentage, setUpdatingPercentage] = useState({});
-  const [vendorPendingPayments, setVendorPendingPayments] = useState<Record<string, boolean>>({});
-  const [vendorPurchasedCategories, setVendorPurchasedCategories] = useState<Record<string, boolean>>({});
+  const [vendorPendingPayments, setVendorPendingPayments] = useState<
+    Record<string, boolean>
+  >({});
+  const [vendorPurchasedCategories, setVendorPurchasedCategories] = useState<
+    Record<string, boolean>
+  >({});
   const [paymentStatusLoading, setPaymentStatusLoading] = useState(false);
   const user = useSelector((state: RootState) => state.auth?.user ?? null);
   const [accepted, setAccepted] = useState(false);
@@ -182,7 +204,15 @@ const VendorManagement = () => {
   const [workingTime, setWorkingTime] = useState("9 AM - 7 PM");
   const [hasWhatsApp, setHasWhatsApp] = useState<boolean | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<"bank" | "upi">("bank");
-  const [selectedDocumentType, setSelectedDocumentType] = useState<"aadhaar" | "pan" | "gst" | "tradeLicense" | "voterId" | "drivingLicence" | "">("");
+  const [selectedDocumentType, setSelectedDocumentType] = useState<
+    | "aadhaar"
+    | "pan"
+    | "gst"
+    | "tradeLicense"
+    | "voterId"
+    | "drivingLicence"
+    | ""
+  >("");
   const [voterIdNumber, setVoterIdNumber] = useState("");
   const [drivingLicenceNumber, setDrivingLicenceNumber] = useState("");
   const [businessDocuments, setBusinessDocuments] = useState<{
@@ -207,14 +237,16 @@ const VendorManagement = () => {
     drivingLicenceBack: null,
   });
   const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
-  const [portfolioImages, setPortfolioImages] = useState<Array<{ public_id: string; url: string }>>([]);
+  const [portfolioImages, setPortfolioImages] = useState<
+    Array<{ public_id: string; url: string }>
+  >([]);
   const [portfolioUploading, setPortfolioUploading] = useState(false);
 
   // OTP Verification States
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
   const [verifiedNumber, setVerifiedNumber] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -269,10 +301,17 @@ const VendorManagement = () => {
     status: "approved",
   });
 
-  const isCurrentVerified = isPhoneVerified && verifiedNumber === (hasWhatsApp ? formData.whatsappNumber : formData.phone);
+  const isCurrentVerified =
+    isPhoneVerified &&
+    verifiedNumber === (hasWhatsApp ? formData.whatsappNumber : formData.phone);
 
   // Fetch vendors using the new paginated API
-  const fetchVendors = async (page = currentPage, search = searchTerm, status = statusFilter, limit = itemsPerPage) => {
+  const fetchVendors = async (
+    page = currentPage,
+    search = searchTerm,
+    status = statusFilter,
+    limit = itemsPerPage,
+  ) => {
     const isInitialLoad = vendors.length === 0;
     if (isInitialLoad) {
       setLoading(true);
@@ -282,7 +321,13 @@ const VendorManagement = () => {
 
     try {
       const token = (user as any)?.token;
-      const result = await getAllVendorPaginatedAPI({ page, limit, search, status, token });
+      const result = await getAllVendorPaginatedAPI({
+        page,
+        limit,
+        search,
+        status,
+        token,
+      });
 
       if (result && result.vendors) {
         setVendors(result.vendors);
@@ -312,8 +357,6 @@ const VendorManagement = () => {
     }
   };
 
-
-
   // Check pending payments for all vendors
   const checkPendingPayments = async (vendorsList) => {
     setPaymentStatusLoading(true);
@@ -324,25 +367,30 @@ const VendorManagement = () => {
           try {
             const [pendingPurchases, purchasedCategories] = await Promise.all([
               getVendorPendingCategoryPurchasesAPI(vendor._id),
-              getPurchasedCategoriesAPI(vendor._id)
+              getPurchasedCategoriesAPI(vendor._id),
             ]);
 
             return {
               vendorId: vendor._id,
               hasPending: pendingPurchases && pendingPurchases.length > 0,
-              hasPurchased: purchasedCategories && purchasedCategories.length > 0,
+              hasPurchased:
+                purchasedCategories && purchasedCategories.length > 0,
             };
           } catch {
-            return { vendorId: vendor._id, hasPending: false, hasPurchased: false };
+            return {
+              vendorId: vendor._id,
+              hasPending: false,
+              hasPurchased: false,
+            };
           }
-        })
+        }),
       );
 
       const pendingMap = {};
       const purchasedMap = {};
 
       results.forEach((result) => {
-        if (result.status === 'fulfilled') {
+        if (result.status === "fulfilled") {
           const data = result.value;
           pendingMap[data.vendorId] = data.hasPending;
           purchasedMap[data.vendorId] = data.hasPurchased;
@@ -359,7 +407,6 @@ const VendorManagement = () => {
       setPaymentStatusLoading(false);
     }
   };
-
 
   // Initial load only
   useEffect(() => {
@@ -379,7 +426,6 @@ const VendorManagement = () => {
     fetchVendors(1, searchTerm, statusFilter);
   };
 
-
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
@@ -392,7 +438,10 @@ const VendorManagement = () => {
     const selectedDays = Object.entries(workingDays)
       .filter(([, v]) => v)
       .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
-    setFormData(prev => ({ ...prev, workingDays: `${selectedDays.join(", ")} | ${workingTime}` }));
+    setFormData((prev) => ({
+      ...prev,
+      workingDays: `${selectedDays.join(", ")} | ${workingTime}`,
+    }));
   }, []);
 
   // Check verification status when phone/whatsapp numbers change
@@ -400,12 +449,15 @@ const VendorManagement = () => {
     const activeNumber = hasWhatsApp ? formData.whatsappNumber : formData.phone;
     if (activeNumber !== verifiedNumber) {
       setOtpSent(false);
-      setOtp('');
+      setOtp("");
     }
   }, [formData.phone, formData.whatsappNumber, hasWhatsApp, verifiedNumber]);
 
-  const handleBusinessDocumentChange = (docKey: keyof typeof businessDocuments, file: File | null) => {
-    setBusinessDocuments(prev => ({ ...prev, [docKey]: file }));
+  const handleBusinessDocumentChange = (
+    docKey: keyof typeof businessDocuments,
+    file: File | null,
+  ) => {
+    setBusinessDocuments((prev) => ({ ...prev, [docKey]: file }));
   };
 
   const handlePortfolioImagesChange = async (files: FileList | null) => {
@@ -430,10 +482,10 @@ const VendorManagement = () => {
       if (uploadedImages && uploadedImages.length > 0) {
         const formattedImages = uploadedImages.map((img: any) => ({
           public_id: img.asset_id || img.public_id,
-          url: img.url
+          url: img.url,
         }));
 
-        setPortfolioImages(prev => [...prev, ...formattedImages]);
+        setPortfolioImages((prev) => [...prev, ...formattedImages]);
         toast({
           title: "Success",
           description: `${uploadedImages.length} image(s) uploaded successfully!`,
@@ -452,7 +504,9 @@ const VendorManagement = () => {
   };
 
   const removePortfolioImage = (publicId: string) => {
-    setPortfolioImages(prev => prev.filter(img => img.public_id !== publicId));
+    setPortfolioImages((prev) =>
+      prev.filter((img) => img.public_id !== publicId),
+    );
   };
 
   const nextStep = () => {
@@ -461,7 +515,8 @@ const VendorManagement = () => {
       if (!formData.company || formData.company.trim().length < 2) {
         toast({
           title: "Validation Error",
-          description: "Service Provider / Business Name is required (minimum 2 characters)",
+          description:
+            "Service Provider / Business Name is required (minimum 2 characters)",
           variant: "destructive",
         });
         return;
@@ -477,7 +532,8 @@ const VendorManagement = () => {
       if (!formData.description || formData.description.trim().length < 10) {
         toast({
           title: "Validation Error",
-          description: "Service description is required (minimum 10 characters)",
+          description:
+            "Service description is required (minimum 10 characters)",
           variant: "destructive",
         });
         return;
@@ -501,7 +557,8 @@ const VendorManagement = () => {
       if (!formData.name || formData.name.trim().length < 2) {
         toast({
           title: "Validation Error",
-          description: "Owner / Authorized Person Name is required (minimum 2 characters)",
+          description:
+            "Owner / Authorized Person Name is required (minimum 2 characters)",
           variant: "destructive",
         });
         return;
@@ -513,15 +570,20 @@ const VendorManagement = () => {
       if (!formData.address || formData.address.trim().length < 5) {
         toast({
           title: "Validation Error",
-          description: "Registered Office / Home Address is required (minimum 5 characters)",
+          description:
+            "Registered Office / Home Address is required (minimum 5 characters)",
           variant: "destructive",
         });
         return;
       }
-      if (!formData.serviceLocation || formData.serviceLocation.trim().length < 2) {
+      if (
+        !formData.serviceLocation ||
+        formData.serviceLocation.trim().length < 2
+      ) {
         toast({
           title: "Validation Error",
-          description: "Service Location / Area Covered is required (minimum 2 characters)",
+          description:
+            "Service Location / Area Covered is required (minimum 2 characters)",
           variant: "destructive",
         });
         return;
@@ -534,10 +596,14 @@ const VendorManagement = () => {
         });
         return;
       }
-      if (formData.alternatePhone && !/^[1-9]\d{9}$/.test(formData.alternatePhone)) {
+      if (
+        formData.alternatePhone &&
+        !/^[1-9]\d{9}$/.test(formData.alternatePhone)
+      ) {
         toast({
           title: "Validation Error",
-          description: "Alternate Contact Number must be a valid 10-digit number if provided",
+          description:
+            "Alternate Contact Number must be a valid 10-digit number if provided",
           variant: "destructive",
         });
         return;
@@ -551,7 +617,10 @@ const VendorManagement = () => {
         return;
       }
       if (hasWhatsApp) {
-        if (!formData.whatsappNumber || !/^[1-9]\d{9}$/.test(formData.whatsappNumber)) {
+        if (
+          !formData.whatsappNumber ||
+          !/^[1-9]\d{9}$/.test(formData.whatsappNumber)
+        ) {
           toast({
             title: "Validation Error",
             description: "WhatsApp Number must be a valid 10-digit number",
@@ -564,7 +633,8 @@ const VendorManagement = () => {
       if (!isCurrentVerified) {
         toast({
           title: "Validation Error",
-          description: "Please verify the phone number / WhatsApp number with OTP before proceeding",
+          description:
+            "Please verify the phone number / WhatsApp number with OTP before proceeding",
           variant: "destructive",
         });
         return;
@@ -608,7 +678,10 @@ const VendorManagement = () => {
           return;
         }
       } else if (selectedDocumentType === "pan") {
-        if (!formData.pan || !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.pan)) {
+        if (
+          !formData.pan ||
+          !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(formData.pan)
+        ) {
           toast({
             title: "Validation Error",
             description: "Please enter a valid PAN number (e.g. ABCDE1234F)",
@@ -645,7 +718,8 @@ const VendorManagement = () => {
         if (!formData.tradeLicense || !formData.tradeLicense.trim()) {
           toast({
             title: "Validation Error",
-            description: "Please enter your Trade License / Shop Act Registration number",
+            description:
+              "Please enter your Trade License / Shop Act Registration number",
             variant: "destructive",
           });
           return;
@@ -684,7 +758,10 @@ const VendorManagement = () => {
           });
           return;
         }
-        if (!businessDocuments.drivingLicenceFront || !businessDocuments.drivingLicenceBack) {
+        if (
+          !businessDocuments.drivingLicenceFront ||
+          !businessDocuments.drivingLicenceBack
+        ) {
           toast({
             title: "Validation Error",
             description: "Please upload both front and back of Driving Licence",
@@ -697,7 +774,7 @@ const VendorManagement = () => {
 
     // Validate Step 5 - Experience & working timings
     if (currentStep === 5) {
-      const hasAnyWorkingDay = Object.values(workingDays).some(v => v);
+      const hasAnyWorkingDay = Object.values(workingDays).some((v) => v);
       if (!hasAnyWorkingDay) {
         toast({
           title: "Validation Error",
@@ -738,7 +815,7 @@ const VendorManagement = () => {
 
     if (hasWhatsApp) {
       numberToVerify = whatsappNumber;
-      preferredMethod = 'whatsapp';
+      preferredMethod = "whatsapp";
 
       if (!whatsappNumber || whatsappNumber.length !== 10) {
         toast({
@@ -750,7 +827,7 @@ const VendorManagement = () => {
       }
     } else {
       numberToVerify = phoneNumber;
-      preferredMethod = 'sms';
+      preferredMethod = "sms";
 
       if (!phoneNumber || phoneNumber.length !== 10) {
         toast({
@@ -767,7 +844,7 @@ const VendorManagement = () => {
     const otpData = {
       phone: numberToVerify,
       preferredMethod: preferredMethod,
-      forceResend: true
+      forceResend: true,
     };
 
     if (hasWhatsApp && whatsappNumber) {
@@ -781,7 +858,7 @@ const VendorManagement = () => {
       setOtpSent(true);
       setIsPhoneVerified(false);
       // Clear the OTP input when resending
-      setOtp('');
+      setOtp("");
 
       toast({
         title: "Success",
@@ -811,7 +888,7 @@ const VendorManagement = () => {
 
     const result = await verifyOTP({
       phone: numberToVerify,
-      otp: otp
+      otp: otp,
     });
 
     setOtpLoading(false);
@@ -820,7 +897,7 @@ const VendorManagement = () => {
       setIsPhoneVerified(true);
       setVerifiedNumber(numberToVerify);
       setOtpSent(false);
-      setOtp('');
+      setOtp("");
 
       toast({
         title: "Success",
@@ -858,8 +935,8 @@ const VendorManagement = () => {
           vendors.map((vendor) =>
             vendor._id === id
               ? { ...vendor, percentage: Number.parseInt(percentage) }
-              : vendor
-          )
+              : vendor,
+          ),
         );
         toast({
           title: "Success",
@@ -903,7 +980,7 @@ const VendorManagement = () => {
   };
 
   const handleDeleteService = async (serviceId: string) => {
-    const service = vendorProperties.find(s => s._id === serviceId);
+    const service = vendorProperties.find((s) => s._id === serviceId);
     setServiceToDelete(service);
     setDeleteServiceModalOpen(true);
   };
@@ -915,25 +992,32 @@ const VendorManagement = () => {
 
   const handleSaveService = (updatedService: any) => {
     setVendorProperties(
-      vendorProperties.map((s) => (s._id === updatedService._id ? updatedService : s))
+      vendorProperties.map((s) =>
+        s._id === updatedService._id ? updatedService : s,
+      ),
     );
   };
 
-  const handleServiceStatusToggle = async (serviceId: string, currentStatus: string) => {
-    const newStatus = currentStatus === 'active' ? 'inactive' : 'active';
+  const handleServiceStatusToggle = async (
+    serviceId: string,
+    currentStatus: string,
+  ) => {
+    const newStatus = currentStatus === "active" ? "inactive" : "active";
 
     try {
       const result = await updatePropertyStatusAPI(serviceId, newStatus);
       if (result) {
         // Update local state
-        setVendorProperties(vendorProperties.map(service =>
-          service._id === serviceId
-            ? { ...service, status: newStatus }
-            : service
-        ));
+        setVendorProperties(
+          vendorProperties.map((service) =>
+            service._id === serviceId
+              ? { ...service, status: newStatus }
+              : service,
+          ),
+        );
         toast({
           title: "Success",
-          description: `Service ${newStatus === 'active' ? 'activated' : 'deactivated'} successfully!`,
+          description: `Service ${newStatus === "active" ? "activated" : "deactivated"} successfully!`,
         });
       }
     } catch (error) {
@@ -953,7 +1037,11 @@ const VendorManagement = () => {
     try {
       await deletePropertyAPI(serviceToDelete._id);
       // Remove the deleted service from the local state
-      setVendorProperties(vendorProperties.filter(service => service._id !== serviceToDelete._id));
+      setVendorProperties(
+        vendorProperties.filter(
+          (service) => service._id !== serviceToDelete._id,
+        ),
+      );
       toast({
         title: "Success",
         description: "Service deleted successfully",
@@ -985,14 +1073,24 @@ const VendorManagement = () => {
       }
 
       setSubmitting(true);
-      const response = await updateVendorStatusAPI(vendorId, action, holdReason);
+      const response = await updateVendorStatusAPI(
+        vendorId,
+        action,
+        holdReason,
+      );
 
       if (response?.success) {
         // Update local state
         setVendors(
           vendors.map((vendor) =>
-            vendor._id === vendorId ? { ...vendor, status: action, holdReason: action === "hold" ? holdReason : "" } : vendor
-          )
+            vendor._id === vendorId
+              ? {
+                  ...vendor,
+                  status: action,
+                  holdReason: action === "hold" ? holdReason : "",
+                }
+              : vendor,
+          ),
         );
         toast({
           title: "Success",
@@ -1023,7 +1121,7 @@ const VendorManagement = () => {
       await deleteVendorAPI(vendorId);
 
       // Remove vendor from local state
-      setVendors(vendors.filter(v => v._id !== vendorId));
+      setVendors(vendors.filter((v) => v._id !== vendorId));
 
       // Close the delete dialog
       setDeleteDialog({ open: false, vendor: null });
@@ -1036,7 +1134,8 @@ const VendorManagement = () => {
 
       toast({
         title: "Success",
-        description: "Partner and all their services have been deleted successfully",
+        description:
+          "Partner and all their services have been deleted successfully",
       });
     } catch (error) {
       toast({
@@ -1099,7 +1198,9 @@ const VendorManagement = () => {
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Server error response:", errorText);
-        throw new Error(`Server error: ${response.status} - ${errorText || 'Unknown error'}`);
+        throw new Error(
+          `Server error: ${response.status} - ${errorText || "Unknown error"}`,
+        );
       }
 
       // Try to parse JSON
@@ -1108,7 +1209,9 @@ const VendorManagement = () => {
         data = await response.json();
       } catch (jsonError) {
         console.error("Failed to parse JSON response:", jsonError);
-        throw new Error("Invalid response from server. Please check server logs.");
+        throw new Error(
+          "Invalid response from server. Please check server logs.",
+        );
       }
 
       if (data.success) {
@@ -1125,7 +1228,8 @@ const VendorManagement = () => {
       console.error("Error resetting password:", error);
       toast({
         title: "Error",
-        description: error.message || "Failed to reset password. Please try again.",
+        description:
+          error.message || "Failed to reset password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -1187,19 +1291,14 @@ const VendorManagement = () => {
     }
 
     // Validate required fields
-    const requiredFields = [
-      "name",
-      "company",
-      "phone",
-      "password",
-    ];
+    const requiredFields = ["name", "company", "phone", "password"];
     const missingFields = requiredFields.filter((field) => !formData[field]);
 
     if (missingFields.length > 0) {
       toast({
         title: "Error",
         description: `Please fill in all required fields: ${missingFields.join(
-          ", "
+          ", ",
         )}`,
         variant: "destructive",
       });
@@ -1216,10 +1315,25 @@ const VendorManagement = () => {
       const submitFormData = new FormData();
 
       // Add basic form fields (skip fields that will be added separately)
-      const fieldsToSkip = ['accountNumber', 'ifscCode', 'accountHolderName', 'bankName', 'totalYears', 'servicesOffered', 'paymentMethod', 'upiId', 'numberOfStaff'];
+      const fieldsToSkip = [
+        "accountNumber",
+        "ifscCode",
+        "accountHolderName",
+        "bankName",
+        "totalYears",
+        "servicesOffered",
+        "paymentMethod",
+        "upiId",
+        "numberOfStaff",
+      ];
 
       Object.entries(vendorData).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "" && !fieldsToSkip.includes(key)) {
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== "" &&
+          !fieldsToSkip.includes(key)
+        ) {
           submitFormData.append(key, value.toString());
         }
       });
@@ -1232,31 +1346,48 @@ const VendorManagement = () => {
       submitFormData.append("isAdmin", "true");
 
       // Add numberOfStaff
-      const staffCount = vendorData.numberOfStaff ? parseInt(vendorData.numberOfStaff).toString() : "0";
+      const staffCount = vendorData.numberOfStaff
+        ? parseInt(vendorData.numberOfStaff).toString()
+        : "0";
       submitFormData.append("numberOfStaff", staffCount);
 
       // Payment details - Bank or UPI
       submitFormData.append("paymentMethod", vendorData.paymentMethod);
 
       if (vendorData.paymentMethod === "bank") {
-        if (vendorData.accountNumber) submitFormData.append("bankDetail[accountNumber]", vendorData.accountNumber);
-        if (vendorData.ifscCode) submitFormData.append("bankDetail[IFSC]", vendorData.ifscCode);
-        if (vendorData.accountHolderName) submitFormData.append("bankDetail[accountHolderName]", vendorData.accountHolderName);
-        if (vendorData.bankName) submitFormData.append("bankDetail[branch]", vendorData.bankName);
+        if (vendorData.accountNumber)
+          submitFormData.append(
+            "bankDetail[accountNumber]",
+            vendorData.accountNumber,
+          );
+        if (vendorData.ifscCode)
+          submitFormData.append("bankDetail[IFSC]", vendorData.ifscCode);
+        if (vendorData.accountHolderName)
+          submitFormData.append(
+            "bankDetail[accountHolderName]",
+            vendorData.accountHolderName,
+          );
+        if (vendorData.bankName)
+          submitFormData.append("bankDetail[branch]", vendorData.bankName);
       } else if (vendorData.paymentMethod === "upi") {
         if (vendorData.upiId) submitFormData.append("upiId", vendorData.upiId);
       }
 
       // Experience
       if (vendorData.totalYears) {
-        submitFormData.append("experience[totalYears]", parseInt(vendorData.totalYears).toString());
+        submitFormData.append(
+          "experience[totalYears]",
+          parseInt(vendorData.totalYears).toString(),
+        );
       } else {
         submitFormData.append("experience[totalYears]", "0");
       }
 
       if (vendorData.servicesOffered) {
-        const services = vendorData.servicesOffered.split(",").map(s => s.trim());
-        services.forEach(service => {
+        const services = vendorData.servicesOffered
+          .split(",")
+          .map((s) => s.trim());
+        services.forEach((service) => {
           submitFormData.append("experience[fields]", service);
         });
       }
@@ -1272,52 +1403,89 @@ const VendorManagement = () => {
       if (selectedDocumentType === "aadhaar") {
         if (businessDocuments.aadhaarFront) {
           submitFormData.append("document1", businessDocuments.aadhaarFront);
-          console.log("📄 Adding document1 (Aadhaar Front):", businessDocuments.aadhaarFront.name);
+          console.log(
+            "📄 Adding document1 (Aadhaar Front):",
+            businessDocuments.aadhaarFront.name,
+          );
         }
         if (businessDocuments.aadhaarBack) {
           submitFormData.append("document2", businessDocuments.aadhaarBack);
-          console.log("📄 Adding document2 (Aadhaar Back):", businessDocuments.aadhaarBack.name);
+          console.log(
+            "📄 Adding document2 (Aadhaar Back):",
+            businessDocuments.aadhaarBack.name,
+          );
         }
       } else if (selectedDocumentType === "pan") {
         if (businessDocuments.panCard) {
           submitFormData.append("document1", businessDocuments.panCard);
-          console.log("📄 Adding document1 (PAN Card):", businessDocuments.panCard.name);
+          console.log(
+            "📄 Adding document1 (PAN Card):",
+            businessDocuments.panCard.name,
+          );
         }
       } else if (selectedDocumentType === "gst") {
         if (businessDocuments.gstCertificate) {
           submitFormData.append("document1", businessDocuments.gstCertificate);
-          console.log("📄 Adding document1 (GST Certificate):", businessDocuments.gstCertificate.name);
+          console.log(
+            "📄 Adding document1 (GST Certificate):",
+            businessDocuments.gstCertificate.name,
+          );
         }
       } else if (selectedDocumentType === "tradeLicense") {
         if (businessDocuments.tradeLicenseDoc) {
           submitFormData.append("document1", businessDocuments.tradeLicenseDoc);
-          console.log("📄 Adding document1 (Trade License):", businessDocuments.tradeLicenseDoc.name);
+          console.log(
+            "📄 Adding document1 (Trade License):",
+            businessDocuments.tradeLicenseDoc.name,
+          );
         }
       } else if (selectedDocumentType === "voterId") {
         if (voterIdNumber) submitFormData.append("voterId", voterIdNumber);
         if (businessDocuments.voterIdFront) {
           submitFormData.append("document1", businessDocuments.voterIdFront);
-          console.log("📄 Adding document1 (Voter ID Front):", businessDocuments.voterIdFront.name);
+          console.log(
+            "📄 Adding document1 (Voter ID Front):",
+            businessDocuments.voterIdFront.name,
+          );
         }
         if (businessDocuments.voterIdBack) {
           submitFormData.append("document2", businessDocuments.voterIdBack);
-          console.log("📄 Adding document2 (Voter ID Back):", businessDocuments.voterIdBack.name);
+          console.log(
+            "📄 Adding document2 (Voter ID Back):",
+            businessDocuments.voterIdBack.name,
+          );
         }
       } else if (selectedDocumentType === "drivingLicence") {
-        if (drivingLicenceNumber) submitFormData.append("drivingLicence", drivingLicenceNumber);
+        if (drivingLicenceNumber)
+          submitFormData.append("drivingLicence", drivingLicenceNumber);
         if (businessDocuments.drivingLicenceFront) {
-          submitFormData.append("document1", businessDocuments.drivingLicenceFront);
-          console.log("📄 Adding document1 (DL Front):", businessDocuments.drivingLicenceFront.name);
+          submitFormData.append(
+            "document1",
+            businessDocuments.drivingLicenceFront,
+          );
+          console.log(
+            "📄 Adding document1 (DL Front):",
+            businessDocuments.drivingLicenceFront.name,
+          );
         }
         if (businessDocuments.drivingLicenceBack) {
-          submitFormData.append("document2", businessDocuments.drivingLicenceBack);
-          console.log("📄 Adding document2 (DL Back):", businessDocuments.drivingLicenceBack.name);
+          submitFormData.append(
+            "document2",
+            businessDocuments.drivingLicenceBack,
+          );
+          console.log(
+            "📄 Adding document2 (DL Back):",
+            businessDocuments.drivingLicenceBack.name,
+          );
         }
       }
 
       // Add portfolio images URLs (already uploaded to server)
       if (portfolioImages.length > 0) {
-        submitFormData.append("portfolioImages", JSON.stringify(portfolioImages));
+        submitFormData.append(
+          "portfolioImages",
+          JSON.stringify(portfolioImages),
+        );
       }
 
       const response = await signUp(submitFormData);
@@ -1349,7 +1517,9 @@ const VendorManagement = () => {
           // Navigate to category purchase page
           navigate(`/category-purchase?${params.toString()}`);
         } else {
-          console.log("⚠️ No category selected or no user ID, staying on admin page");
+          console.log(
+            "⚠️ No category selected or no user ID, staying on admin page",
+          );
           toast({
             title: "Success",
             description: "Vendor registered successfully",
@@ -1442,14 +1612,14 @@ const VendorManagement = () => {
       const { workingHours, ...vendorDataToUpdate } = editingVendor;
       const response = await updateVendorProfileAPI(
         editingVendor._id,
-        vendorDataToUpdate
+        vendorDataToUpdate,
       );
 
       // For now, just update local state
       setVendors(
         vendors.map((vendor) =>
-          vendor._id === editingVendor._id ? editingVendor : vendor
-        )
+          vendor._id === editingVendor._id ? editingVendor : vendor,
+        ),
       );
 
       toast({
@@ -1519,17 +1689,17 @@ const VendorManagement = () => {
       "Business/Company Name": vendor.company || "",
       "Type of Service": vendor.typeOfService || "",
       "Service Description": vendor.description || "",
-      "Category": vendor.category?.name || vendor.category || "",
+      Category: vendor.category?.name || vendor.category || "",
       "Sub Category": vendor.subCategory || "",
       "Year of Establishment": vendor.yearOfEstablishment || "",
 
       // Step 2: Contact Details
-      "Address": vendor.address || "",
+      Address: vendor.address || "",
       "Service Location": vendor.serviceLocation || "",
       "Primary Phone": vendor.phone || "",
       "Alternate Phone": vendor.alternatePhone || "",
       "WhatsApp Number": vendor.whatsappNumber || "",
-      "Email": vendor.email || "",
+      Email: vendor.email || "",
 
       // Step 3: Business & Legal
       "Business Type": vendor.businessType || "",
@@ -1555,10 +1725,14 @@ const VendorManagement = () => {
       "Referral Name": vendor.referralName || "",
 
       // System Info
-      "Status": vendor.status || "",
+      Status: vendor.status || "",
       "Commission %": vendor.percentage || "",
-      "Registration Date": vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : "",
-      "Last Updated": vendor.updatedAt ? new Date(vendor.updatedAt).toLocaleDateString() : "",
+      "Registration Date": vendor.createdAt
+        ? new Date(vendor.createdAt).toLocaleDateString()
+        : "",
+      "Last Updated": vendor.updatedAt
+        ? new Date(vendor.updatedAt).toLocaleDateString()
+        : "",
     }));
 
     // Create workbook and worksheet
@@ -1601,20 +1775,19 @@ const VendorManagement = () => {
       { wch: 15 }, // Last Updated
     ];
 
-    worksheet['!cols'] = columnWidths;
+    worksheet["!cols"] = columnWidths;
 
     // Add worksheet to workbook
     XLSX.utils.book_append_sheet(workbook, worksheet, "Vendors");
 
     // Generate filename with current date
-    const currentDate = new Date().toISOString().split('T')[0];
+    const currentDate = new Date().toISOString().split("T")[0];
     const filename = `Vendors_Complete_Details_${currentDate}.xlsx`;
 
     // Save the file
     XLSX.writeFile(workbook, filename);
   };
   const filteredVendors = vendors; // server-side filtered
-
 
   if (loading) {
     return (
@@ -1666,7 +1839,9 @@ const VendorManagement = () => {
             disabled={refreshing || loading}
             className="flex items-center justify-center gap-2 w-full sm:w-auto"
           >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+            />
             Refresh
           </Button>
 
@@ -1696,21 +1871,33 @@ const VendorManagement = () => {
                   {STEPS.map((step) => (
                     <div
                       key={step.id}
-                      className={`flex flex-col items-center min-w-[60px] cursor-pointer ${currentStep >= step.id ? "text-blue-600" : "text-gray-400"
-                        }`}
-                      onClick={() => step.id < currentStep && setCurrentStep(step.id)}
+                      className={`flex flex-col items-center min-w-[60px] cursor-pointer ${
+                        currentStep >= step.id
+                          ? "text-blue-600"
+                          : "text-gray-400"
+                      }`}
+                      onClick={() =>
+                        step.id < currentStep && setCurrentStep(step.id)
+                      }
                     >
                       <div
-                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm mb-1 ${currentStep > step.id
-                          ? "bg-green-500 text-white"
-                          : currentStep === step.id
-                            ? "bg-blue-500 text-white"
-                            : "bg-gray-200"
-                          }`}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-sm mb-1 ${
+                          currentStep > step.id
+                            ? "bg-green-500 text-white"
+                            : currentStep === step.id
+                              ? "bg-blue-500 text-white"
+                              : "bg-gray-200"
+                        }`}
                       >
-                        {currentStep > step.id ? <Check size={16} /> : step.icon}
+                        {currentStep > step.id ? (
+                          <Check size={16} />
+                        ) : (
+                          step.icon
+                        )}
                       </div>
-                      <span className="text-xs font-medium hidden sm:block">{step.title}</span>
+                      <span className="text-xs font-medium hidden sm:block">
+                        {step.title}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -1722,7 +1909,10 @@ const VendorManagement = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Service Provider / Business Name <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Service Provider / Business Name{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           name="company"
                           placeholder="Enter business name"
@@ -1731,7 +1921,10 @@ const VendorManagement = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Type of Service <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Type of Service{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           name="typeOfService"
                           placeholder="e.g., Plumbing, Electrical"
@@ -1742,7 +1935,10 @@ const VendorManagement = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Service Description <span className="text-red-500">*</span></Label>
+                      <Label>
+                        Service Description{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
                       <Textarea
                         name="description"
                         placeholder="Describe your services in detail"
@@ -1755,7 +1951,8 @@ const VendorManagement = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>
-                          Category (Service) <span className="text-red-500">*</span>
+                          Category (Service){" "}
+                          <span className="text-red-500">*</span>
                         </Label>
 
                         <Select
@@ -1764,7 +1961,9 @@ const VendorManagement = () => {
                             setSelectedCategory(val);
                             setFormData((prev) => ({ ...prev, category: val }));
 
-                            const selectedCat = categories.find((c) => c._id === val);
+                            const selectedCat = categories.find(
+                              (c) => c._id === val,
+                            );
 
                             if (selectedCat?.autoFilled) {
                               setSelectedAutoFilled(selectedCat.autoFilled);
@@ -1774,7 +1973,10 @@ const VendorManagement = () => {
                               }));
                             } else {
                               setSelectedAutoFilled("");
-                              setFormData((prev) => ({ ...prev, subCategory: "" }));
+                              setFormData((prev) => ({
+                                ...prev,
+                                subCategory: "",
+                              }));
                             }
                           }}
                         >
@@ -1828,7 +2030,10 @@ const VendorManagement = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Owner / Authorized Person Name <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Owner / Authorized Person Name{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           name="name"
                           placeholder="Enter owner name"
@@ -1844,7 +2049,10 @@ const VendorManagement = () => {
                 {currentStep === 2 && (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label>Registered Office / Home Address <span className="text-red-500">*</span></Label>
+                      <Label>
+                        Registered Office / Home Address{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
                       <Textarea
                         name="address"
                         placeholder="Enter complete address"
@@ -1866,15 +2074,18 @@ const VendorManagement = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Service Location / Area Covered <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Service Location / Area Covered{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <LocationAutocomplete
                           value={formData.serviceLocation || ""}
                           onChange={(value) => {
                             const event = {
                               target: {
                                 name: "serviceLocation",
-                                value: value
-                              }
+                                value: value,
+                              },
                             };
                             handleFormChange(event as any);
                           }}
@@ -1885,8 +2096,14 @@ const VendorManagement = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Primary Contact Number <span className="text-red-500">*</span>
-                          {hasWhatsApp === false && isCurrentVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                        <Label>
+                          Primary Contact Number{" "}
+                          <span className="text-red-500">*</span>
+                          {hasWhatsApp === false && isCurrentVerified && (
+                            <span className="text-green-600 ml-2">
+                              ✓ Verified
+                            </span>
+                          )}
                         </Label>
                         <div className="flex gap-2">
                           <Input
@@ -1894,21 +2111,35 @@ const VendorManagement = () => {
                             placeholder="10-digit number"
                             value={formData.phone}
                             onChange={handleFormChange}
-                            className={hasWhatsApp === false && isCurrentVerified ? "bg-green-50 border-green-200" : ""}
+                            className={
+                              hasWhatsApp === false && isCurrentVerified
+                                ? "bg-green-50 border-green-200"
+                                : ""
+                            }
                           />
                           {hasWhatsApp === false && (
                             <Button
                               type="button"
                               onClick={handleSendOTP}
-                              disabled={otpLoading || !formData.phone || formData.phone.length !== 10}
+                              disabled={
+                                otpLoading ||
+                                !formData.phone ||
+                                formData.phone.length !== 10
+                              }
                               variant="outline"
                             >
-                              {otpLoading ? "Sending..." : isCurrentVerified ? "Resend" : "Verify"}
+                              {otpLoading
+                                ? "Sending..."
+                                : isCurrentVerified
+                                  ? "Resend"
+                                  : "Verify"}
                             </Button>
                           )}
                         </div>
                         {hasWhatsApp === false && isCurrentVerified && (
-                          <p className="text-xs text-green-600">Phone number verified! ✓</p>
+                          <p className="text-xs text-green-600">
+                            Phone number verified! ✓
+                          </p>
                         )}
                       </div>
                       <div className="space-y-2">
@@ -1924,32 +2155,63 @@ const VendorManagement = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Do you have WhatsApp? <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Do you have WhatsApp?{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <RadioGroup
-                          value={hasWhatsApp === null ? "" : hasWhatsApp ? "yes" : "no"}
+                          value={
+                            hasWhatsApp === null
+                              ? ""
+                              : hasWhatsApp
+                                ? "yes"
+                                : "no"
+                          }
                           onValueChange={(val) => {
                             const hasWA = val === "yes";
                             setHasWhatsApp(hasWA);
                             if (!hasWA) {
-                              setFormData(prev => ({ ...prev, whatsappNumber: "" }));
+                              setFormData((prev) => ({
+                                ...prev,
+                                whatsappNumber: "",
+                              }));
                             }
                           }}
                           className="flex gap-4"
                         >
                           <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="yes" id="admin-whatsapp-yes" />
-                            <Label htmlFor="admin-whatsapp-yes" className="cursor-pointer">Yes</Label>
+                            <RadioGroupItem
+                              value="yes"
+                              id="admin-whatsapp-yes"
+                            />
+                            <Label
+                              htmlFor="admin-whatsapp-yes"
+                              className="cursor-pointer"
+                            >
+                              Yes
+                            </Label>
                           </div>
                           <div className="flex items-center space-x-2">
                             <RadioGroupItem value="no" id="admin-whatsapp-no" />
-                            <Label htmlFor="admin-whatsapp-no" className="cursor-pointer">No</Label>
+                            <Label
+                              htmlFor="admin-whatsapp-no"
+                              className="cursor-pointer"
+                            >
+                              No
+                            </Label>
                           </div>
                         </RadioGroup>
                       </div>
                       {hasWhatsApp && (
                         <div className="space-y-2">
-                          <Label>WhatsApp Number <span className="text-red-500">*</span>
-                            {isCurrentVerified && <span className="text-green-600 ml-2">✓ Verified</span>}
+                          <Label>
+                            WhatsApp Number{" "}
+                            <span className="text-red-500">*</span>
+                            {isCurrentVerified && (
+                              <span className="text-green-600 ml-2">
+                                ✓ Verified
+                              </span>
+                            )}
                           </Label>
                           <div className="flex gap-2">
                             <Input
@@ -1957,19 +2219,33 @@ const VendorManagement = () => {
                               placeholder="10-digit WhatsApp number"
                               value={formData.whatsappNumber}
                               onChange={handleFormChange}
-                              className={isCurrentVerified ? "bg-green-50 border-green-200" : ""}
+                              className={
+                                isCurrentVerified
+                                  ? "bg-green-50 border-green-200"
+                                  : ""
+                              }
                             />
                             <Button
                               type="button"
                               onClick={handleSendOTP}
-                              disabled={otpLoading || !formData.whatsappNumber || formData.whatsappNumber.length !== 10}
+                              disabled={
+                                otpLoading ||
+                                !formData.whatsappNumber ||
+                                formData.whatsappNumber.length !== 10
+                              }
                               variant="outline"
                             >
-                              {otpLoading ? "Sending..." : isCurrentVerified ? "Resend" : "Verify"}
+                              {otpLoading
+                                ? "Sending..."
+                                : isCurrentVerified
+                                  ? "Resend"
+                                  : "Verify"}
                             </Button>
                           </div>
                           {isCurrentVerified && (
-                            <p className="text-xs text-green-600">WhatsApp number verified! ✓</p>
+                            <p className="text-xs text-green-600">
+                              WhatsApp number verified! ✓
+                            </p>
                           )}
                         </div>
                       )}
@@ -1980,13 +2256,22 @@ const VendorManagement = () => {
                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
                         <div className="text-center">
                           <p className="text-blue-800 font-medium">
-                            OTP sent to your {hasWhatsApp ? 'WhatsApp' : 'phone'}:
-                            <span className="font-bold"> {hasWhatsApp ? formData.whatsappNumber : formData.phone}</span>
+                            OTP sent to your{" "}
+                            {hasWhatsApp ? "WhatsApp" : "phone"}:
+                            <span className="font-bold">
+                              {" "}
+                              {hasWhatsApp
+                                ? formData.whatsappNumber
+                                : formData.phone}
+                            </span>
                           </p>
-                          <p className="text-blue-600 text-sm">Enter the 6-digit code below</p>
+                          <p className="text-blue-600 text-sm">
+                            Enter the 6-digit code below
+                          </p>
                           {hasWhatsApp && (
                             <p className="text-green-600 text-xs mt-1">
-                              💬 WhatsApp OTP sent! Check your WhatsApp messages.
+                              💬 WhatsApp OTP sent! Check your WhatsApp
+                              messages.
                             </p>
                           )}
                         </div>
@@ -1994,7 +2279,9 @@ const VendorManagement = () => {
                           <Input
                             value={otp}
                             onChange={(e) => {
-                              const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                              const value = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 6);
                               setOtp(value);
                             }}
                             placeholder="Enter 6-digit OTP"
@@ -2042,8 +2329,16 @@ const VendorManagement = () => {
                       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-r-lg">
                         <div className="flex items-start">
                           <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            <svg
+                              className="h-5 w-5 text-yellow-400"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </div>
                           <div className="ml-3">
@@ -2051,7 +2346,9 @@ const VendorManagement = () => {
                               ⚠️ OTP Verification Required
                             </p>
                             <p className="text-sm text-yellow-600 mt-1">
-                              Please verify the {hasWhatsApp ? 'WhatsApp number' : 'phone number'} with OTP before proceeding to the next step.
+                              Please verify the{" "}
+                              {hasWhatsApp ? "WhatsApp number" : "phone number"}{" "}
+                              with OTP before proceeding to the next step.
                             </p>
                           </div>
                         </div>
@@ -2062,8 +2359,16 @@ const VendorManagement = () => {
                       <div className="bg-green-50 border-l-4 border-green-400 p-4 rounded-r-lg">
                         <div className="flex items-start">
                           <div className="flex-shrink-0">
-                            <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            <svg
+                              className="h-5 w-5 text-green-400"
+                              viewBox="0 0 20 20"
+                              fill="currentColor"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </div>
                           <div className="ml-3">
@@ -2084,16 +2389,37 @@ const VendorManagement = () => {
                 {currentStep === 3 && (
                   <div className="space-y-4">
                     <div className="space-y-3">
-                      <Label>Business Type <span className="text-red-500">*</span></Label>
+                      <Label>
+                        Business Type <span className="text-red-500">*</span>
+                      </Label>
                       <RadioGroup
                         value={formData.businessType}
-                        onValueChange={(val) => setFormData(prev => ({ ...prev, businessType: val }))}
+                        onValueChange={(val) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            businessType: val,
+                          }))
+                        }
                         className="grid grid-cols-2 md:grid-cols-3 gap-3"
                       >
-                        {["Proprietorship", "Partnership", "LLP", "Private Limited", "Other"].map((type) => (
-                          <div key={type} className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50">
+                        {[
+                          "Proprietorship",
+                          "Partnership",
+                          "LLP",
+                          "Private Limited",
+                          "Other",
+                        ].map((type) => (
+                          <div
+                            key={type}
+                            className="flex items-center space-x-2 border rounded-lg p-3 hover:bg-gray-50"
+                          >
                             <RadioGroupItem value={type} id={`admin-${type}`} />
-                            <Label htmlFor={`admin-${type}`} className="cursor-pointer">{type}</Label>
+                            <Label
+                              htmlFor={`admin-${type}`}
+                              className="cursor-pointer"
+                            >
+                              {type}
+                            </Label>
                           </div>
                         ))}
                       </RadioGroup>
@@ -2104,30 +2430,46 @@ const VendorManagement = () => {
                       <div className="flex items-start gap-2">
                         <div className="text-blue-600 mt-1">📄</div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-blue-900 mb-1">Business Document Upload</h4>
+                          <h4 className="font-semibold text-blue-900 mb-1">
+                            Business Document Upload
+                          </h4>
                           <p className="text-sm text-blue-700">
-                            Please select one document type and upload the required files. This is mandatory for verification.
+                            Please select one document type and upload the
+                            required files. This is mandatory for verification.
                           </p>
                         </div>
                       </div>
 
                       {/* Document Type Selection */}
                       <div className="space-y-2">
-                        <Label>Select Document Type <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Select Document Type{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <Select
                           value={selectedDocumentType}
-                          onValueChange={(val: any) => setSelectedDocumentType(val)}
+                          onValueChange={(val: any) =>
+                            setSelectedDocumentType(val)
+                          }
                         >
                           <SelectTrigger className="bg-white">
                             <SelectValue placeholder="Choose document to upload" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="aadhaar">Aadhaar Card (Front & Back)</SelectItem>
+                            <SelectItem value="aadhaar">
+                              Aadhaar Card (Front & Back)
+                            </SelectItem>
                             <SelectItem value="pan">PAN Card</SelectItem>
                             <SelectItem value="gst">GST Certificate</SelectItem>
-                            <SelectItem value="tradeLicense">Trade License</SelectItem>
-                            <SelectItem value="voterId">Voter ID Card (Front & Back)</SelectItem>
-                            <SelectItem value="drivingLicence">Driving Licence (Front & Back)</SelectItem>
+                            <SelectItem value="tradeLicense">
+                              Trade License
+                            </SelectItem>
+                            <SelectItem value="voterId">
+                              Voter ID Card (Front & Back)
+                            </SelectItem>
+                            <SelectItem value="drivingLicence">
+                              Driving Licence (Front & Back)
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -2136,12 +2478,16 @@ const VendorManagement = () => {
                       {selectedDocumentType === "aadhaar" && (
                         <div className="space-y-3">
                           <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
-                            📸 Please upload both front and back images of Aadhaar card
+                            📸 Please upload both front and back images of
+                            Aadhaar card
                           </p>
 
                           {/* Aadhaar Number Input */}
                           <div className="space-y-2">
-                            <Label>Aadhaar Number <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Aadhaar Number{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                               name="adhar"
                               placeholder="Enter 12-digit Aadhaar number"
@@ -2153,11 +2499,19 @@ const VendorManagement = () => {
 
                           {/* Aadhaar Front */}
                           <div className="space-y-2">
-                            <Label>Aadhaar Card - Front Side <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Aadhaar Card - Front Side{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                  }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.aadhaarFront
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.aadhaarFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -2176,7 +2530,12 @@ const VendorManagement = () => {
                                   type="file"
                                   className="hidden"
                                   accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('aadhaarFront', e.target.files?.[0] || null)}
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarFront",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
                                 />
                               </label>
                               {businessDocuments.aadhaarFront && (
@@ -2184,7 +2543,12 @@ const VendorManagement = () => {
                                   type="button"
                                   variant="outline"
                                   size="icon"
-                                  onClick={() => handleBusinessDocumentChange('aadhaarFront', null)}
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarFront",
+                                      null,
+                                    )
+                                  }
                                 >
                                   <X size={16} />
                                 </Button>
@@ -2194,11 +2558,19 @@ const VendorManagement = () => {
 
                           {/* Aadhaar Back */}
                           <div className="space-y-2">
-                            <Label>Aadhaar Card - Back Side <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Aadhaar Card - Back Side{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.aadhaarBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                  }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.aadhaarBack
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.aadhaarBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
@@ -2217,7 +2589,12 @@ const VendorManagement = () => {
                                   type="file"
                                   className="hidden"
                                   accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('aadhaarBack', e.target.files?.[0] || null)}
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarBack",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
                                 />
                               </label>
                               {businessDocuments.aadhaarBack && (
@@ -2225,7 +2602,12 @@ const VendorManagement = () => {
                                   type="button"
                                   variant="outline"
                                   size="icon"
-                                  onClick={() => handleBusinessDocumentChange('aadhaarBack', null)}
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "aadhaarBack",
+                                      null,
+                                    )
+                                  }
                                 >
                                   <X size={16} />
                                 </Button>
@@ -2239,7 +2621,9 @@ const VendorManagement = () => {
                         <div className="space-y-2">
                           {/* PAN Number Input */}
                           <div className="space-y-2">
-                            <Label>PAN Number <span className="text-red-500">*</span></Label>
+                            <Label>
+                              PAN Number <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                               name="pan"
                               placeholder="Enter 10-character PAN (e.g. ABCDE1234F)"
@@ -2251,11 +2635,18 @@ const VendorManagement = () => {
                           </div>
 
                           {/* PAN Card Upload */}
-                          <Label>PAN Card <span className="text-red-500">*</span></Label>
+                          <Label>
+                            PAN Card <span className="text-red-500">*</span>
+                          </Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.panCard ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                              <div
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.panCard
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                }`}
+                              >
                                 {businessDocuments.panCard ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -2274,7 +2665,12 @@ const VendorManagement = () => {
                                 type="file"
                                 className="hidden"
                                 accept="image/*,.pdf"
-                                onChange={(e) => handleBusinessDocumentChange('panCard', e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  handleBusinessDocumentChange(
+                                    "panCard",
+                                    e.target.files?.[0] || null,
+                                  )
+                                }
                               />
                             </label>
                             {businessDocuments.panCard && (
@@ -2282,7 +2678,9 @@ const VendorManagement = () => {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleBusinessDocumentChange('panCard', null)}
+                                onClick={() =>
+                                  handleBusinessDocumentChange("panCard", null)
+                                }
                               >
                                 <X size={16} />
                               </Button>
@@ -2295,7 +2693,9 @@ const VendorManagement = () => {
                         <div className="space-y-2">
                           {/* GST Number Input */}
                           <div className="space-y-2">
-                            <Label>GST Number <span className="text-red-500">*</span></Label>
+                            <Label>
+                              GST Number <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                               name="gstNumber"
                               placeholder="Enter GST number"
@@ -2305,11 +2705,19 @@ const VendorManagement = () => {
                           </div>
 
                           {/* GST Certificate Upload */}
-                          <Label>GST Certificate <span className="text-red-500">*</span></Label>
+                          <Label>
+                            GST Certificate{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.gstCertificate ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                              <div
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.gstCertificate
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                }`}
+                              >
                                 {businessDocuments.gstCertificate ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -2328,7 +2736,12 @@ const VendorManagement = () => {
                                 type="file"
                                 className="hidden"
                                 accept="image/*,.pdf"
-                                onChange={(e) => handleBusinessDocumentChange('gstCertificate', e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  handleBusinessDocumentChange(
+                                    "gstCertificate",
+                                    e.target.files?.[0] || null,
+                                  )
+                                }
                               />
                             </label>
                             {businessDocuments.gstCertificate && (
@@ -2336,7 +2749,12 @@ const VendorManagement = () => {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleBusinessDocumentChange('gstCertificate', null)}
+                                onClick={() =>
+                                  handleBusinessDocumentChange(
+                                    "gstCertificate",
+                                    null,
+                                  )
+                                }
                               >
                                 <X size={16} />
                               </Button>
@@ -2349,7 +2767,10 @@ const VendorManagement = () => {
                         <div className="space-y-2">
                           {/* Trade License Number Input */}
                           <div className="space-y-2">
-                            <Label>Trade License / Shop Act Registration No. <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Trade License / Shop Act Registration No.{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                               name="tradeLicense"
                               placeholder="Enter license number"
@@ -2359,11 +2780,19 @@ const VendorManagement = () => {
                           </div>
 
                           {/* Trade License Upload */}
-                          <Label>Trade License <span className="text-red-500">*</span></Label>
+                          <Label>
+                            Trade License{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
                           <div className="flex items-center gap-3">
                             <label className="flex-1 cursor-pointer">
-                              <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.tradeLicenseDoc ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                }`}>
+                              <div
+                                className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                  !businessDocuments.tradeLicenseDoc
+                                    ? "border-gray-300 bg-white"
+                                    : "border-green-500 bg-green-50"
+                                }`}
+                              >
                                 {businessDocuments.tradeLicenseDoc ? (
                                   <div className="flex items-center justify-center gap-2 text-green-600">
                                     <Check size={20} />
@@ -2382,7 +2811,12 @@ const VendorManagement = () => {
                                 type="file"
                                 className="hidden"
                                 accept="image/*,.pdf"
-                                onChange={(e) => handleBusinessDocumentChange('tradeLicenseDoc', e.target.files?.[0] || null)}
+                                onChange={(e) =>
+                                  handleBusinessDocumentChange(
+                                    "tradeLicenseDoc",
+                                    e.target.files?.[0] || null,
+                                  )
+                                }
                               />
                             </label>
                             {businessDocuments.tradeLicenseDoc && (
@@ -2390,7 +2824,12 @@ const VendorManagement = () => {
                                 type="button"
                                 variant="outline"
                                 size="icon"
-                                onClick={() => handleBusinessDocumentChange('tradeLicenseDoc', null)}
+                                onClick={() =>
+                                  handleBusinessDocumentChange(
+                                    "tradeLicenseDoc",
+                                    null,
+                                  )
+                                }
                               >
                                 <X size={16} />
                               </Button>
@@ -2403,27 +2842,43 @@ const VendorManagement = () => {
                       {selectedDocumentType === "voterId" && (
                         <div className="space-y-3">
                           <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
-                            📸 Please upload both front and back images of Voter ID card
+                            📸 Please upload both front and back images of Voter
+                            ID card
                           </p>
                           <div className="space-y-2">
-                            <Label>Voter ID Number <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Voter ID Number{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                               value={voterIdNumber}
-                              onChange={(e) => setVoterIdNumber(e.target.value.toUpperCase())}
+                              onChange={(e) =>
+                                setVoterIdNumber(e.target.value.toUpperCase())
+                              }
                               placeholder="Enter Voter ID number (e.g., ABC1234567)"
                             />
                           </div>
                           {/* Voter ID Front */}
                           <div className="space-y-2">
-                            <Label>Voter ID - Front Side <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Voter ID - Front Side{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.voterIdFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                  }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.voterIdFront
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.voterIdFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
-                                      <span className="truncate max-w-[200px]">{businessDocuments.voterIdFront.name}</span>
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.voterIdFront.name}
+                                      </span>
                                     </div>
                                   ) : (
                                     <div className="flex items-center justify-center gap-2 text-gray-500">
@@ -2432,26 +2887,56 @@ const VendorManagement = () => {
                                     </div>
                                   )}
                                 </div>
-                                <input type="file" className="hidden" accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('voterIdFront', e.target.files?.[0] || null)} />
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdFront",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
                               </label>
                               {businessDocuments.voterIdFront && (
-                                <Button type="button" variant="outline" size="icon"
-                                  onClick={() => handleBusinessDocumentChange('voterIdFront', null)}><X size={16} /></Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdFront",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
                               )}
                             </div>
                           </div>
                           {/* Voter ID Back */}
                           <div className="space-y-2">
-                            <Label>Voter ID - Back Side <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Voter ID - Back Side{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.voterIdBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                  }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.voterIdBack
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.voterIdBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
-                                      <span className="truncate max-w-[200px]">{businessDocuments.voterIdBack.name}</span>
+                                      <span className="truncate max-w-[200px]">
+                                        {businessDocuments.voterIdBack.name}
+                                      </span>
                                     </div>
                                   ) : (
                                     <div className="flex items-center justify-center gap-2 text-gray-500">
@@ -2460,12 +2945,32 @@ const VendorManagement = () => {
                                     </div>
                                   )}
                                 </div>
-                                <input type="file" className="hidden" accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('voterIdBack', e.target.files?.[0] || null)} />
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdBack",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
                               </label>
                               {businessDocuments.voterIdBack && (
-                                <Button type="button" variant="outline" size="icon"
-                                  onClick={() => handleBusinessDocumentChange('voterIdBack', null)}><X size={16} /></Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "voterIdBack",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -2476,27 +2981,48 @@ const VendorManagement = () => {
                       {selectedDocumentType === "drivingLicence" && (
                         <div className="space-y-3">
                           <p className="text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-200">
-                            📸 Please upload both front and back images of Driving Licence
+                            📸 Please upload both front and back images of
+                            Driving Licence
                           </p>
                           <div className="space-y-2">
-                            <Label>Driving Licence Number <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Driving Licence Number{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <Input
                               value={drivingLicenceNumber}
-                              onChange={(e) => setDrivingLicenceNumber(e.target.value.toUpperCase())}
+                              onChange={(e) =>
+                                setDrivingLicenceNumber(
+                                  e.target.value.toUpperCase(),
+                                )
+                              }
                               placeholder="e.g., MP07-2020-0012345"
                             />
                           </div>
                           {/* DL Front */}
                           <div className="space-y-2">
-                            <Label>Driving Licence - Front Side <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Driving Licence - Front Side{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.drivingLicenceFront ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                  }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.drivingLicenceFront
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.drivingLicenceFront ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
-                                      <span className="truncate max-w-[200px]">{businessDocuments.drivingLicenceFront.name}</span>
+                                      <span className="truncate max-w-[200px]">
+                                        {
+                                          businessDocuments.drivingLicenceFront
+                                            .name
+                                        }
+                                      </span>
                                     </div>
                                   ) : (
                                     <div className="flex items-center justify-center gap-2 text-gray-500">
@@ -2505,26 +3031,59 @@ const VendorManagement = () => {
                                     </div>
                                   )}
                                 </div>
-                                <input type="file" className="hidden" accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('drivingLicenceFront', e.target.files?.[0] || null)} />
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceFront",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
                               </label>
                               {businessDocuments.drivingLicenceFront && (
-                                <Button type="button" variant="outline" size="icon"
-                                  onClick={() => handleBusinessDocumentChange('drivingLicenceFront', null)}><X size={16} /></Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceFront",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
                               )}
                             </div>
                           </div>
                           {/* DL Back */}
                           <div className="space-y-2">
-                            <Label>Driving Licence - Back Side <span className="text-red-500">*</span></Label>
+                            <Label>
+                              Driving Licence - Back Side{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
                             <div className="flex items-center gap-3">
                               <label className="flex-1 cursor-pointer">
-                                <div className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${!businessDocuments.drivingLicenceBack ? 'border-gray-300 bg-white' : 'border-green-500 bg-green-50'
-                                  }`}>
+                                <div
+                                  className={`border-2 border-dashed rounded-lg p-4 text-center hover:border-blue-500 transition-colors ${
+                                    !businessDocuments.drivingLicenceBack
+                                      ? "border-gray-300 bg-white"
+                                      : "border-green-500 bg-green-50"
+                                  }`}
+                                >
                                   {businessDocuments.drivingLicenceBack ? (
                                     <div className="flex items-center justify-center gap-2 text-green-600">
                                       <Check size={20} />
-                                      <span className="truncate max-w-[200px]">{businessDocuments.drivingLicenceBack.name}</span>
+                                      <span className="truncate max-w-[200px]">
+                                        {
+                                          businessDocuments.drivingLicenceBack
+                                            .name
+                                        }
+                                      </span>
                                     </div>
                                   ) : (
                                     <div className="flex items-center justify-center gap-2 text-gray-500">
@@ -2533,12 +3092,32 @@ const VendorManagement = () => {
                                     </div>
                                   )}
                                 </div>
-                                <input type="file" className="hidden" accept="image/*,.pdf"
-                                  onChange={(e) => handleBusinessDocumentChange('drivingLicenceBack', e.target.files?.[0] || null)} />
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  accept="image/*,.pdf"
+                                  onChange={(e) =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceBack",
+                                      e.target.files?.[0] || null,
+                                    )
+                                  }
+                                />
                               </label>
                               {businessDocuments.drivingLicenceBack && (
-                                <Button type="button" variant="outline" size="icon"
-                                  onClick={() => handleBusinessDocumentChange('drivingLicenceBack', null)}><X size={16} /></Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="icon"
+                                  onClick={() =>
+                                    handleBusinessDocumentChange(
+                                      "drivingLicenceBack",
+                                      null,
+                                    )
+                                  }
+                                >
+                                  <X size={16} />
+                                </Button>
                               )}
                             </div>
                           </div>
@@ -2547,7 +3126,10 @@ const VendorManagement = () => {
 
                       {!selectedDocumentType && (
                         <div className="text-center py-6 text-gray-400">
-                          <p className="text-sm">Please select a document type from the dropdown above</p>
+                          <p className="text-sm">
+                            Please select a document type from the dropdown
+                            above
+                          </p>
                         </div>
                       )}
                     </div>
@@ -2558,7 +3140,8 @@ const VendorManagement = () => {
                 {currentStep === 4 && (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                      💡 Payment details are optional but recommended for faster payment processing.
+                      💡 Payment details are optional but recommended for faster
+                      payment processing.
                     </p>
 
                     {/* Payment Method Selection */}
@@ -2572,17 +3155,30 @@ const VendorManagement = () => {
                         className="flex gap-4"
                       >
                         <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
-                          <RadioGroupItem value="bank" id="admin-payment-bank" />
-                          <Label htmlFor="admin-payment-bank" className="cursor-pointer flex-1">
+                          <RadioGroupItem
+                            value="bank"
+                            id="admin-payment-bank"
+                          />
+                          <Label
+                            htmlFor="admin-payment-bank"
+                            className="cursor-pointer flex-1"
+                          >
                             <div className="font-semibold">Bank Account</div>
-                            <div className="text-xs text-gray-500">Enter bank details</div>
+                            <div className="text-xs text-gray-500">
+                              Enter bank details
+                            </div>
                           </Label>
                         </div>
                         <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50 flex-1">
                           <RadioGroupItem value="upi" id="admin-payment-upi" />
-                          <Label htmlFor="admin-payment-upi" className="cursor-pointer flex-1">
+                          <Label
+                            htmlFor="admin-payment-upi"
+                            className="cursor-pointer flex-1"
+                          >
                             <div className="font-semibold">UPI ID</div>
-                            <div className="text-xs text-gray-500">Enter UPI ID</div>
+                            <div className="text-xs text-gray-500">
+                              Enter UPI ID
+                            </div>
                           </Label>
                         </div>
                       </RadioGroup>
@@ -2646,7 +3242,8 @@ const VendorManagement = () => {
                           onChange={handleFormChange}
                         />
                         <p className="text-xs text-gray-500">
-                          💡 Enter UPI ID from any UPI app (PhonePe, Google Pay, Paytm, etc.)
+                          💡 Enter UPI ID from any UPI app (PhonePe, Google Pay,
+                          Paytm, etc.)
                         </p>
                       </div>
                     )}
@@ -2691,7 +3288,9 @@ const VendorManagement = () => {
                     </div>
 
                     <div className="space-y-3">
-                      <Label>Working Days <span className="text-red-500">*</span></Label>
+                      <Label>
+                        Working Days <span className="text-red-500">*</span>
+                      </Label>
                       <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
                         {[
                           { key: "monday", label: "Mon" },
@@ -2704,28 +3303,42 @@ const VendorManagement = () => {
                         ].map((day) => (
                           <label
                             key={day.key}
-                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${workingDays[day.key as keyof typeof workingDays]
-                              ? "bg-blue-100 border-blue-500 text-blue-700"
-                              : "bg-gray-50 border-gray-200 text-gray-500"
-                              }`}
+                            className={`flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${
+                              workingDays[day.key as keyof typeof workingDays]
+                                ? "bg-blue-100 border-blue-500 text-blue-700"
+                                : "bg-gray-50 border-gray-200 text-gray-500"
+                            }`}
                           >
                             <input
                               type="checkbox"
-                              checked={workingDays[day.key as keyof typeof workingDays]}
+                              checked={
+                                workingDays[day.key as keyof typeof workingDays]
+                              }
                               onChange={(e) => {
-                                const newDays = { ...workingDays, [day.key]: e.target.checked };
+                                const newDays = {
+                                  ...workingDays,
+                                  [day.key]: e.target.checked,
+                                };
                                 setWorkingDays(newDays);
                                 const selectedDays = Object.entries(newDays)
                                   .filter(([, v]) => v)
-                                  .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
-                                setFormData(prev => ({ ...prev, workingDays: `${selectedDays.join(", ")} | ${workingTime}` }));
+                                  .map(
+                                    ([k]) =>
+                                      k.charAt(0).toUpperCase() + k.slice(1, 3),
+                                  );
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  workingDays: `${selectedDays.join(", ")} | ${workingTime}`,
+                                }));
                               }}
                               className="sr-only"
                             />
-                            <span className="text-sm font-medium">{day.label}</span>
-                            {workingDays[day.key as keyof typeof workingDays] && (
-                              <Check size={14} className="text-blue-600" />
-                            )}
+                            <span className="text-sm font-medium">
+                              {day.label}
+                            </span>
+                            {workingDays[
+                              day.key as keyof typeof workingDays
+                            ] && <Check size={14} className="text-blue-600" />}
                           </label>
                         ))}
                       </div>
@@ -2739,8 +3352,14 @@ const VendorManagement = () => {
                           setWorkingTime(e.target.value);
                           const selectedDays = Object.entries(workingDays)
                             .filter(([, v]) => v)
-                            .map(([k]) => k.charAt(0).toUpperCase() + k.slice(1, 3));
-                          setFormData(prev => ({ ...prev, workingDays: `${selectedDays.join(", ")} | ${e.target.value}` }));
+                            .map(
+                              ([k]) =>
+                                k.charAt(0).toUpperCase() + k.slice(1, 3),
+                            );
+                          setFormData((prev) => ({
+                            ...prev,
+                            workingDays: `${selectedDays.join(", ")} | ${e.target.value}`,
+                          }));
                         }}
                         placeholder="e.g., 9 AM - 7 PM"
                       />
@@ -2752,12 +3371,16 @@ const VendorManagement = () => {
                 {currentStep === 6 && (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                      📸 Upload vendor's profile photo (optional but recommended). This will be displayed on their vendor profile.
+                      📸 Upload vendor's profile photo (optional but
+                      recommended). This will be displayed on their vendor
+                      profile.
                     </p>
 
                     {/* Profile Photo Section */}
                     <div className="space-y-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
-                      <Label className="text-yellow-800 font-semibold">Profile Photo (Recommended)</Label>
+                      <Label className="text-yellow-800 font-semibold">
+                        Profile Photo (Recommended)
+                      </Label>
                       <div className="flex items-center gap-3">
                         <label className="flex-1 cursor-pointer">
                           <div className="border-2 border-dashed border-yellow-300 rounded-lg p-6 text-center hover:border-yellow-500 transition-colors bg-white">
@@ -2782,8 +3405,12 @@ const VendorManagement = () => {
                                 <div className="w-32 h-32 rounded-full bg-yellow-100 flex items-center justify-center border-4 border-yellow-300">
                                   <Upload size={40} />
                                 </div>
-                                <span className="font-medium">Click to upload profile photo</span>
-                                <span className="text-sm text-gray-500">JPG, PNG or JPEG (Max 5MB)</span>
+                                <span className="font-medium">
+                                  Click to upload profile photo
+                                </span>
+                                <span className="text-sm text-gray-500">
+                                  JPG, PNG or JPEG (Max 5MB)
+                                </span>
                               </div>
                             )}
                           </div>
@@ -2791,7 +3418,9 @@ const VendorManagement = () => {
                             type="file"
                             className="hidden"
                             accept="image/*"
-                            onChange={(e) => setProfilePhoto(e.target.files?.[0] || null)}
+                            onChange={(e) =>
+                              setProfilePhoto(e.target.files?.[0] || null)
+                            }
                           />
                         </label>
                         {profilePhoto && (
@@ -2810,8 +3439,6 @@ const VendorManagement = () => {
                         💡 A professional photo helps build trust with customers
                       </p>
                     </div>
-
-
                   </div>
                 )}
 
@@ -2819,7 +3446,9 @@ const VendorManagement = () => {
                 {currentStep === 7 && (
                   <div className="space-y-4">
                     <p className="text-sm text-gray-500 bg-purple-50 p-3 rounded-lg border border-purple-200">
-                      🖼️ Upload vendor's business/service images (optional but recommended). You can upload up to 10 images showcasing their previous work.
+                      🖼️ Upload vendor's business/service images (optional but
+                      recommended). You can upload up to 10 images showcasing
+                      their previous work.
                     </p>
 
                     {/* Business/Service Images Upload */}
@@ -2833,12 +3462,16 @@ const VendorManagement = () => {
 
                       {/* Upload Button */}
                       {portfolioImages.length < 10 && (
-                        <label className={`cursor-pointer ${portfolioUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                        <label
+                          className={`cursor-pointer ${portfolioUploading ? "opacity-50 pointer-events-none" : ""}`}
+                        >
                           <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 text-center hover:border-purple-500 transition-colors bg-white">
                             <div className="flex flex-col items-center gap-2 text-purple-600">
                               <Upload size={32} />
                               <span className="font-medium">
-                                {portfolioUploading ? "Uploading..." : "Click to upload business/service images"}
+                                {portfolioUploading
+                                  ? "Uploading..."
+                                  : "Click to upload business/service images"}
                               </span>
                               <span className="text-sm text-gray-500">
                                 Select multiple images (JPG, PNG, JPEG)
@@ -2851,7 +3484,9 @@ const VendorManagement = () => {
                             accept="image/*"
                             multiple
                             disabled={portfolioUploading}
-                            onChange={(e) => handlePortfolioImagesChange(e.target.files)}
+                            onChange={(e) =>
+                              handlePortfolioImagesChange(e.target.files)
+                            }
                           />
                         </label>
                       )}
@@ -2860,7 +3495,10 @@ const VendorManagement = () => {
                       {portfolioImages.length > 0 && (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
                           {portfolioImages.map((image, index) => (
-                            <div key={image.public_id} className="relative group">
+                            <div
+                              key={image.public_id}
+                              className="relative group"
+                            >
                               <div className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200">
                                 <img
                                   src={image.url}
@@ -2873,7 +3511,9 @@ const VendorManagement = () => {
                                 variant="destructive"
                                 size="icon"
                                 className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                onClick={() => removePortfolioImage(image.public_id)}
+                                onClick={() =>
+                                  removePortfolioImage(image.public_id)
+                                }
                               >
                                 <X size={14} />
                               </Button>
@@ -2888,7 +3528,9 @@ const VendorManagement = () => {
                       {portfolioImages.length === 0 && (
                         <div className="text-center py-8 text-gray-400">
                           <p className="text-sm">No images uploaded yet</p>
-                          <p className="text-xs mt-1">Upload images to showcase vendor's work</p>
+                          <p className="text-xs mt-1">
+                            Upload images to showcase vendor's work
+                          </p>
                         </div>
                       )}
                     </div>
@@ -2900,7 +3542,9 @@ const VendorManagement = () => {
                   <div className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label>Password <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Password <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           name="password"
                           type="password"
@@ -2910,7 +3554,10 @@ const VendorManagement = () => {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label>Confirm Password <span className="text-red-500">*</span></Label>
+                        <Label>
+                          Confirm Password{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                           name="confirmPassword"
                           type="password"
@@ -2943,11 +3590,19 @@ const VendorManagement = () => {
                     </div>
 
                     <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                      <h4 className="font-semibold text-gray-800">Declaration & Undertaking</h4>
+                      <h4 className="font-semibold text-gray-800">
+                        Declaration & Undertaking
+                      </h4>
                       <p className="text-sm text-gray-600">
-                        I, <span className="font-semibold text-gray-800">{formData.company || "_______________"}</span>, hereby declare that the information provided above is true, correct, and complete.
-                        I understand that Niyati Solutions reserves the right to verify the details and take
-                        necessary action, including suspension or removal of listing, in case of false information.
+                        I,{" "}
+                        <span className="font-semibold text-gray-800">
+                          {formData.company || "_______________"}
+                        </span>
+                        , hereby declare that the information provided above is
+                        true, correct, and complete. I understand that Niyati
+                        Solutions reserves the right to verify the details and
+                        take necessary action, including suspension or removal
+                        of listing, in case of false information.
                       </p>
                     </div>
 
@@ -2962,11 +3617,19 @@ const VendorManagement = () => {
                       />
                       <label htmlFor="terms" className="text-sm text-gray-700">
                         I agree to the{" "}
-                        <Link to="/terms" target="_blank" className="text-blue-600 hover:underline">
+                        <Link
+                          to="/terms"
+                          target="_blank"
+                          className="text-blue-600 hover:underline"
+                        >
                           Terms & Conditions
-                        </Link>
-                        {" "}and{" "}
-                        <Link to="/privacy-policy" target="_blank" className="text-blue-600 hover:underline">
+                        </Link>{" "}
+                        and{" "}
+                        <Link
+                          to="/privacy-policy"
+                          target="_blank"
+                          className="text-blue-600 hover:underline"
+                        >
                           Privacy Policy
                         </Link>
                       </label>
@@ -3119,7 +3782,9 @@ const VendorManagement = () => {
                 <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center">
                   <div className="bg-white rounded-xl shadow-lg px-8 py-6 flex flex-col items-center gap-3">
                     <Loader2 className="w-10 h-10 animate-spin text-primary" />
-                    <p className="text-sm text-gray-600 font-medium">Loading vendors...</p>
+                    <p className="text-sm text-gray-600 font-medium">
+                      Loading vendors...
+                    </p>
                   </div>
                 </div>
               )}
@@ -3183,9 +3848,14 @@ const VendorManagement = () => {
                         <div className="flex flex-col gap-1">
                           {getStatusBadge(vendor.status)}
                           {vendor.status === "hold" && vendor.holdReason && (
-                            <div className="flex items-center gap-1 text-xs text-orange-600 mt-1 cursor-help" title={vendor.holdReason}>
+                            <div
+                              className="flex items-center gap-1 text-xs text-orange-600 mt-1 cursor-help"
+                              title={vendor.holdReason}
+                            >
                               <Clock className="w-3 h-3" />
-                              <span className="truncate max-w-[150px]">{vendor.holdReason}</span>
+                              <span className="truncate max-w-[150px]">
+                                {vendor.holdReason}
+                              </span>
                             </div>
                           )}
                         </div>
@@ -3253,7 +3923,7 @@ const VendorManagement = () => {
                               onChange={(e) =>
                                 handlePercentageChange(
                                   vendor._id,
-                                  e.target.value
+                                  e.target.value,
                                 )
                               }
                               className="w-20 pl-7 text-sm"
@@ -3266,7 +3936,7 @@ const VendorManagement = () => {
                               e.stopPropagation();
                               handlePercentageSubmit(
                                 vendor._id,
-                                percentages[vendor._id]
+                                percentages[vendor._id],
                               );
                             }}
                             disabled={updatingPercentage[vendor._id]}
@@ -3289,7 +3959,7 @@ const VendorManagement = () => {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
-                            }
+                            },
                           )}
                         </div>
                       </TableCell>
@@ -3485,7 +4155,8 @@ const VendorManagement = () => {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
               {/* Left: Page info */}
               <p className="text-sm text-gray-500 whitespace-nowrap order-2 sm:order-1">
-                Page {currentPage} of {totalPages} &bull; {totalVendors} total vendors
+                Page {currentPage} of {totalPages} &bull; {totalVendors} total
+                vendors
               </p>
 
               {/* Center: Page navigation */}
@@ -3522,7 +4193,9 @@ const VendorManagement = () => {
                       return (
                         <Button
                           key={pageNum}
-                          variant={currentPage === pageNum ? "default" : "outline"}
+                          variant={
+                            currentPage === pageNum ? "default" : "outline"
+                          }
                           size="sm"
                           onClick={() => {
                             setCurrentPage(pageNum);
@@ -3556,9 +4229,17 @@ const VendorManagement = () => {
 
               {/* Right: Rows per page dropdown */}
               <div className="flex items-center gap-2 order-3">
-                <span className="text-sm text-gray-500 whitespace-nowrap">Rows per page:</span>
+                <span className="text-sm text-gray-500 whitespace-nowrap">
+                  Rows per page:
+                </span>
                 <Select
-                  value={showCustomPageSize ? "custom" : (itemsPerPage >= 99999 ? "all" : String(itemsPerPage))}
+                  value={
+                    showCustomPageSize
+                      ? "custom"
+                      : itemsPerPage >= 99999
+                        ? "all"
+                        : String(itemsPerPage)
+                  }
                   onValueChange={(value) => {
                     if (value === "custom") {
                       setShowCustomPageSize(true);
@@ -3602,7 +4283,7 @@ const VendorManagement = () => {
                       value={customPageSizeInput}
                       onChange={(e) => setCustomPageSizeInput(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
+                        if (e.key === "Enter") {
                           const val = parseInt(customPageSizeInput);
                           if (val && val > 0 && val <= 500) {
                             setItemsPerPage(val);
@@ -3679,36 +4360,49 @@ const VendorManagement = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Category:</span>
-                      <span>{selectedVendor?.category?.name || selectedVendor?.subCategory || "Not Added"}</span>
+                      <span>
+                        {selectedVendor?.category?.name ||
+                          selectedVendor?.subCategory ||
+                          "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Year Established:</span>
-                      <span>{selectedVendor.yearOfEstablishment || "Not Added"}</span>
+                      <span>
+                        {selectedVendor.yearOfEstablishment || "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <span className="font-medium">Description:</span>
-                      <span className="text-sm">{selectedVendor.description || "Not Added"}</span>
+                      <span className="text-sm">
+                        {selectedVendor.description || "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="font-medium">Status:</span>
                       {getStatusBadge(selectedVendor.status)}
                     </div>
-                    {selectedVendor.status === "hold" && selectedVendor.holdReason && (
-                      <div className="flex items-start gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                        <Clock className="w-4 h-4 text-orange-600 mt-0.5" />
-                        <div className="flex-1">
-                          <span className="font-medium text-orange-800">Hold Reason:</span>
-                          <p className="text-sm text-orange-700 mt-1">{selectedVendor.holdReason}</p>
+                    {selectedVendor.status === "hold" &&
+                      selectedVendor.holdReason && (
+                        <div className="flex items-start gap-2 p-3 bg-orange-50 rounded-lg border border-orange-200">
+                          <Clock className="w-4 h-4 text-orange-600 mt-0.5" />
+                          <div className="flex-1">
+                            <span className="font-medium text-orange-800">
+                              Hold Reason:
+                            </span>
+                            <p className="text-sm text-orange-700 mt-1">
+                              {selectedVendor.holdReason}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Registered:</span>
                       <span>
                         {new Date(
-                          selectedVendor.createdAt
+                          selectedVendor.createdAt,
                         ).toLocaleDateString()}
                       </span>
                     </div>
@@ -3727,12 +4421,16 @@ const VendorManagement = () => {
                     <div className="flex items-start gap-2">
                       <MapPin className="w-4 h-4 text-gray-400 mt-0.5" />
                       <span className="font-medium">Address:</span>
-                      <span className="text-sm">{selectedVendor.address || "Not Added"}</span>
+                      <span className="text-sm">
+                        {selectedVendor.address || "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Service Location:</span>
-                      <span>{selectedVendor.serviceLocation || "Not Added"}</span>
+                      <span>
+                        {selectedVendor.serviceLocation || "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" />
@@ -3742,12 +4440,16 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Alternate Phone:</span>
-                      <span>{selectedVendor.alternatePhone || "Not Added"}</span>
+                      <span>
+                        {selectedVendor.alternatePhone || "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">WhatsApp:</span>
-                      <span>{selectedVendor.whatsappNumber || "Not Added"}</span>
+                      <span>
+                        {selectedVendor.whatsappNumber || "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="w-4 h-4 text-gray-400" />
@@ -3769,7 +4471,9 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <Building2 className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Business Type:</span>
-                      <span>{selectedVendor.businessType || "Proprietorship"}</span>
+                      <span>
+                        {selectedVendor.businessType || "Proprietorship"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <IdCard className="w-4 h-4 text-gray-400" />
@@ -3789,7 +4493,9 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Driving Licence:</span>
-                      <span>{selectedVendor.drivingLicence || "Not Added"}</span>
+                      <span>
+                        {selectedVendor.drivingLicence || "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-gray-400" />
@@ -3804,7 +4510,11 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Admin Commission:</span>
-                      <span>{selectedVendor.percentage ? `${selectedVendor.percentage}%` : "Not Set"}</span>
+                      <span>
+                        {selectedVendor.percentage
+                          ? `${selectedVendor.percentage}%`
+                          : "Not Set"}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -3822,31 +4532,44 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Payment Method:</span>
-                      <span className="capitalize">{selectedVendor.paymentMethod || "Bank"}</span>
+                      <span className="capitalize">
+                        {selectedVendor.paymentMethod || "Bank"}
+                      </span>
                     </div>
 
                     {/* Bank Details */}
-                    {(!selectedVendor.paymentMethod || selectedVendor.paymentMethod === "bank") && (
+                    {(!selectedVendor.paymentMethod ||
+                      selectedVendor.paymentMethod === "bank") && (
                       <>
                         <div className="flex items-center gap-2">
                           <Building2 className="w-4 h-4 text-gray-400" />
                           <span className="font-medium">Bank Name:</span>
-                          <span>{selectedVendor.bankDetail?.branch || "Not Added"}</span>
+                          <span>
+                            {selectedVendor.bankDetail?.branch || "Not Added"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <User className="w-4 h-4 text-gray-400" />
                           <span className="font-medium">Account Holder:</span>
-                          <span>{selectedVendor.bankDetail?.accountHolderName || "Not Added"}</span>
+                          <span>
+                            {selectedVendor.bankDetail?.accountHolderName ||
+                              "Not Added"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <CreditCard className="w-4 h-4 text-gray-400" />
                           <span className="font-medium">Account Number:</span>
-                          <span>{selectedVendor.bankDetail?.accountNumber || "Not Added"}</span>
+                          <span>
+                            {selectedVendor.bankDetail?.accountNumber ||
+                              "Not Added"}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
                           <CreditCard className="w-4 h-4 text-gray-400" />
                           <span className="font-medium">IFSC Code:</span>
-                          <span>{selectedVendor.bankDetail?.IFSC || "Not Added"}</span>
+                          <span>
+                            {selectedVendor.bankDetail?.IFSC || "Not Added"}
+                          </span>
                         </div>
                       </>
                     )}
@@ -3874,7 +4597,11 @@ const VendorManagement = () => {
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-gray-400" />
                       <span className="font-medium">Experience:</span>
-                      <span>{selectedVendor.experience?.totalYears ? `${selectedVendor.experience.totalYears} Years` : "Not Added"}</span>
+                      <span>
+                        {selectedVendor.experience?.totalYears
+                          ? `${selectedVendor.experience.totalYears} Years`
+                          : "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4 text-gray-400" />
@@ -3884,12 +4611,18 @@ const VendorManagement = () => {
                     <div className="flex items-start gap-2">
                       <FileText className="w-4 h-4 text-gray-400 mt-0.5" />
                       <span className="font-medium">Services Offered:</span>
-                      <span className="text-sm">{selectedVendor.experience?.fields?.length > 0 ? selectedVendor.experience.fields.join(", ") : "Not Added"}</span>
+                      <span className="text-sm">
+                        {selectedVendor.experience?.fields?.length > 0
+                          ? selectedVendor.experience.fields.join(", ")
+                          : "Not Added"}
+                      </span>
                     </div>
                     <div className="flex items-start gap-2">
                       <Calendar className="w-4 h-4 text-gray-400 mt-0.5" />
                       <span className="font-medium">Working Days & Hours:</span>
-                      <span className="text-sm">{selectedVendor.workingDaysTimings || "Not Added"}</span>
+                      <span className="text-sm">
+                        {selectedVendor.workingDaysTimings || "Not Added"}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
@@ -3906,21 +4639,23 @@ const VendorManagement = () => {
                     <div className="space-y-2">
                       <span className="font-medium">Documents:</span>
                       <div className="grid grid-cols-1 gap-2 text-sm">
-                        {selectedVendor.profilePhoto && typeof selectedVendor.profilePhoto === 'string' && (
-                          <a
-                            href={selectedVendor.profilePhoto}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline flex items-center gap-1"
-                          >
-                            <FileText className="w-3 h-3" />
-                            Profile Photo
-                          </a>
-                        )}
+                        {selectedVendor.profilePhoto &&
+                          typeof selectedVendor.profilePhoto === "string" && (
+                            <a
+                              href={selectedVendor.profilePhoto}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 underline flex items-center gap-1"
+                            >
+                              <FileText className="w-3 h-3" />
+                              Profile Photo
+                            </a>
+                          )}
                         {[1, 2, 3, 4, 5].map((num) => {
-                          const docField = `document${num}` as keyof typeof selectedVendor;
+                          const docField =
+                            `document${num}` as keyof typeof selectedVendor;
                           const doc = selectedVendor[docField];
-                          return doc && typeof doc === 'string' ? (
+                          return doc && typeof doc === "string" ? (
                             <a
                               key={num}
                               href={doc}
@@ -4006,12 +4741,15 @@ const VendorManagement = () => {
 
                               <div className="flex items-center gap-2">
                                 <Badge
-                                  className={`${property.status === 'active'
-                                    ? 'bg-green-100 text-green-800'
-                                    : 'bg-red-100 text-red-800'
-                                    }`}
+                                  className={`${
+                                    property.status === "active"
+                                      ? "bg-green-100 text-green-800"
+                                      : "bg-red-100 text-red-800"
+                                  }`}
                                 >
-                                  {property.status === 'active' ? 'Active' : 'Inactive'}
+                                  {property.status === "active"
+                                    ? "Active"
+                                    : "Inactive"}
                                 </Badge>
                               </div>
                             </div>
@@ -4026,11 +4764,24 @@ const VendorManagement = () => {
                                 </Button>
                                 <Button
                                   size="sm"
-                                  variant={property.status === 'active' ? 'destructive' : 'default'}
-                                  onClick={() => handleServiceStatusToggle(property._id, property.status || 'active')}
-                                  className={property.status === 'active' ? '' : 'bg-green-600 hover:bg-green-700'}
+                                  variant={
+                                    property.status === "active"
+                                      ? "destructive"
+                                      : "default"
+                                  }
+                                  onClick={() =>
+                                    handleServiceStatusToggle(
+                                      property._id,
+                                      property.status || "active",
+                                    )
+                                  }
+                                  className={
+                                    property.status === "active"
+                                      ? ""
+                                      : "bg-green-600 hover:bg-green-700"
+                                  }
                                 >
-                                  {property.status === 'active' ? (
+                                  {property.status === "active" ? (
                                     <XCircle className="w-3 h-3" />
                                   ) : (
                                     <CheckCircle className="w-3 h-3" />
@@ -4038,7 +4789,9 @@ const VendorManagement = () => {
                                 </Button>
                               </div>
                               <button
-                                onClick={() => handleDeleteService(property._id)}
+                                onClick={() =>
+                                  handleDeleteService(property._id)
+                                }
                                 disabled={deletingServiceId === property._id}
                                 className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                               >
@@ -4297,7 +5050,7 @@ const VendorManagement = () => {
               status.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
+
           {/* Hold Reason Input - Only show when action is "hold" */}
           {alertDialog.action === "hold" && (
             <div className="space-y-2 py-4">
@@ -4329,18 +5082,18 @@ const VendorManagement = () => {
                 alertDialog.action === "approved"
                   ? "bg-green-600 hover:bg-green-700"
                   : alertDialog.action === "hold"
-                  ? "bg-orange-600 hover:bg-orange-700"
-                  : "bg-red-600 hover:bg-red-700"
+                    ? "bg-orange-600 hover:bg-orange-700"
+                    : "bg-red-600 hover:bg-red-700"
               }
             >
               {submitting ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : null}
-              {alertDialog.action === "approved" 
-                ? "Approve" 
+              {alertDialog.action === "approved"
+                ? "Approve"
                 : alertDialog.action === "hold"
-                ? "Hold"
-                : "Reject"}
+                  ? "Hold"
+                  : "Reject"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -4358,8 +5111,9 @@ const VendorManagement = () => {
               Delete Service
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the service "{serviceToDelete?.title}"?
-              This action cannot be undone and will permanently remove the service from the system.
+              Are you sure you want to delete the service "
+              {serviceToDelete?.title}"? This action cannot be undone and will
+              permanently remove the service from the system.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -4405,10 +5159,12 @@ const VendorManagement = () => {
               Delete Partner
             </AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the partner "{deleteDialog.vendor?.name}"?
+              Are you sure you want to delete the partner "
+              {deleteDialog.vendor?.name}"?
               <br />
               <strong className="text-red-600">
-                This action cannot be undone and will permanently delete the partner and ALL their services from the system.
+                This action cannot be undone and will permanently delete the
+                partner and ALL their services from the system.
               </strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -4469,7 +5225,12 @@ const VendorManagement = () => {
                 type="password"
                 placeholder="Enter new password"
                 value={resetPasswordData.newPassword}
-                onChange={(e) => setResetPasswordData({ ...resetPasswordData, newPassword: e.target.value })}
+                onChange={(e) =>
+                  setResetPasswordData({
+                    ...resetPasswordData,
+                    newPassword: e.target.value,
+                  })
+                }
               />
             </div>
 
@@ -4480,7 +5241,12 @@ const VendorManagement = () => {
                 type="password"
                 placeholder="Confirm new password"
                 value={resetPasswordData.confirmPassword}
-                onChange={(e) => setResetPasswordData({ ...resetPasswordData, confirmPassword: e.target.value })}
+                onChange={(e) =>
+                  setResetPasswordData({
+                    ...resetPasswordData,
+                    confirmPassword: e.target.value,
+                  })
+                }
               />
             </div>
           </div>

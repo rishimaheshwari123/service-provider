@@ -1,7 +1,6 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
+import { getAnalytics, Analytics } from "firebase/analytics";
+import { getMessaging, getToken, onMessage, Messaging } from "firebase/messaging";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -19,13 +18,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize Analytics (only in browser)
-let analytics = null;
+let analytics: Analytics | null = null;
 if (typeof window !== 'undefined') {
   analytics = getAnalytics(app);
 }
 
 // Initialize Firebase Cloud Messaging
-let messaging = null;
+let messaging: Messaging | null = null;
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   messaging = getMessaging(app);
 }

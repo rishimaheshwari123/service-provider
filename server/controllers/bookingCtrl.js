@@ -25,6 +25,30 @@ exports.createBookingCtrl = async (req, res) => {
             });
         }
 
+        const bookingDate = new Date(date);
+        const currentDate = new Date();
+
+        // Normalize both dates to start of day to compare just the date part
+        const normalizeDate = (d) => {
+            const dateOnly = new Date(d);
+            dateOnly.setHours(0, 0, 0, 0);
+            return dateOnly;
+        };
+
+        const normalizedBookingDate = normalizeDate(bookingDate);
+        const normalizedCurrentDate = normalizeDate(currentDate);
+
+        const isDateInPast = normalizedBookingDate < normalizedCurrentDate;
+        console.log("is date in past", isDateInPast);
+
+        if (isDateInPast) {
+            return res.status(400).json({
+                success: false,
+                message: "Booking date cannot be in the past.",
+            });
+        }
+
+
         const booking = await Booking.create({
             service,
             user,
