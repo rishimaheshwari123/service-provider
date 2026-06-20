@@ -58,6 +58,7 @@ const Sidebar = () => {
     users: true,
     services: true,
     content: false,
+    rewards: false,
     system: false,
   });
 
@@ -108,7 +109,7 @@ const Sidebar = () => {
       services: ["/admin/services", "/admin/service-update-requests", "/admin/bookings", "/admin/categories", "/admin/coupons"],
       content: ["/admin/add-blog", "/admin/get-blog", "/admin/add-job", "/admin/get-jobs", "/admin/ads"],
       rewards: ["/admin/reward-settings", "/admin/reward-applications", "/admin/vendor-reward-settings"],
-      system: ["/admin/logs", "/admin/communication-logs", "/admin/search-logs"],
+      system: ["/admin/logs", "/admin/communication-logs", "/admin/search-logs", "/admin/system-audit-logs"],
     };
 
     const matchedSection = Object.entries(sectionByPath).find(([, paths]) =>
@@ -248,6 +249,13 @@ const Sidebar = () => {
       icon: Search,
       label: "Search Logs",
       color: "text-purple-600",
+      section: "system",
+    },
+    {
+      to: "/admin/system-audit-logs",
+      icon: FileSearch,
+      label: "System Audit Logs",
+      color: "text-blue-600",
       section: "system",
     },
     {

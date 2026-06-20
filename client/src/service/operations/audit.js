@@ -2,10 +2,7 @@ import { toast } from "react-toastify";
 import { apiConnector } from "../apiConnector";
 import { audit } from "../apis";
 
-
 const { ADD_AUDIT_API, GET_ALL_AUDIT_API, ADD_ADMIN_COMMENT_API } = audit;
-
-
 
 export const createAuditForPropertyCallAndEmailAPI = async (id, userId, type) => {
   try {
@@ -25,8 +22,6 @@ export const createAuditForPropertyCallAndEmailAPI = async (id, userId, type) =>
     return [];
   }
 };
-
-
 
 export const getAuditLogsAPI = async (page = 1, limit = 50, vendorId = "", token) => {
   try {

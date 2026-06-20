@@ -54,6 +54,7 @@ import AuditLogsPage from "./components/pages/vendor/AuditLogs";
 import AdminAuditLogs from "./components/pages/admin/AdminAuditLogs";
 import CommunicationLogs from "./components/pages/admin/CommunicationLogs";
 import SearchLogs from "./components/pages/admin/SearchLogs";
+import SystemAuditLogs from "./components/pages/admin/SystemAuditLogs";
 import CouponManagement from "./components/pages/admin/CouponManagement";
 import RewardSettings from "./components/pages/admin/RewardSettings";
 import RewardApplications from "./components/pages/admin/RewardApplications";
@@ -152,6 +153,7 @@ const App = () => {
                 <Route path="logs" element={<AdminAuditLogs />} />
                 <Route path="communication-logs" element={<CommunicationLogs />} />
                 <Route path="search-logs" element={<SearchLogs />} />
+                <Route path="system-audit-logs" element={<SystemAuditLogs />} />
                 <Route path="coupons" element={<CouponManagement />} />
                 <Route path="reward-settings" element={<RewardSettings />} />
                 <Route path="reward-applications" element={<RewardApplications />} />

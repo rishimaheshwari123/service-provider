@@ -6,6 +6,7 @@ export const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 export const endpoints = {
   LOGIN_API: BASE_URL + "/auth/login",
   SIGNUP_API_API: BASE_URL + "/auth/register",
+  SIGNUP_API_ADMIN_API: BASE_URL + "/auth/create-user",
   GET_ALL_USER_API: BASE_URL + "/auth/getAll",
   MY_PROFILE: BASE_URL + "/auth/my-profile",
   CHANGE_USER_TYPE: BASE_URL + "/auth/change-type",
@@ -249,3 +250,7 @@ export const razorpay = {
   CAPTURE_PAYMENT_API: BASE_URL + "/razorpay/capturePayment",
   VERIFY_PAYMENT_API: BASE_URL + "/razorpay/verifyPayment",
 }
+
+export const systemAuditLog = {
+  GET_SYSTEM_AUDIT_LOGS_API: BASE_URL + "/system-audit-logs",
+};

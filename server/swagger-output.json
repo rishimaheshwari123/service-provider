@@ -489,6 +489,111 @@
         ]
       }
     },
+    "/api/v1/auth/create-user": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "example": "any"
+                  },
+                  "name": {
+                    "example": "any"
+                  },
+                  "email": {
+                    "example": "any"
+                  },
+                  "password": {
+                    "example": "any"
+                  },
+                  "phone": {
+                    "example": "any"
+                  },
+                  "type": {
+                    "example": "any"
+                  },
+                  "role": {
+                    "example": "any"
+                  },
+                  "referralCode": {
+                    "example": "any"
+                  },
+                  "isVendor": {
+                    "example": "any"
+                  },
+                  "isBlog": {
+                    "example": "any"
+                  },
+                  "isUser": {
+                    "example": "any"
+                  },
+                  "isSupport": {
+                    "example": "any"
+                  },
+                  "isLogs": {
+                    "example": "any"
+                  },
+                  "isJob": {
+                    "example": "any"
+                  },
+                  "isAds": {
+                    "example": "any"
+                  },
+                  "isBooking": {
+                    "example": "any"
+                  },
+                  "isEmpManage": {
+                    "example": "any"
+                  },
+                  "isCoupen": {
+                    "example": "any"
+                  },
+                  "isCategoryManage": {
+                    "example": "any"
+                  },
+                  "isManageService": {
+                    "example": "any"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/v1/auth/update/{id}": {
       "put": {
         "description": "",
@@ -7650,6 +7755,48 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v1/system-audit-logs/": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "403": {
+            "description": "Forbidden"
+          },
+          "500": {
+            "description": "Internal Server Error"
           }
         }
       }

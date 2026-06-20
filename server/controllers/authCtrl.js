@@ -2,9 +2,7 @@ const bcrypt = require("bcryptjs");
 const authModel = require("../models/authModel");
 const jwt = require("jsonwebtoken");
 const Contact = require("../models/contactModel");
-
-
-
+const createSystemLog = require("../utils/auditLogger");
 
 const registerCtrl = async (req, res) => {
   try {
@@ -13,7 +11,7 @@ const registerCtrl = async (req, res) => {
       email,
       password,
       phone,
-      type = 'active',
+      type = "active",
       role = "user",
       referralCode,
       isVendor,
@@ -50,7 +48,9 @@ const registerCtrl = async (req, res) => {
     // Handle referral code if provided
     let referrerId = null;
     if (referralCode) {
-      const referrer = await authModel.findOne({ referralCode: referralCode.toUpperCase() });
+      const referrer = await authModel.findOne({
+        referralCode: referralCode.toUpperCase(),
+      });
       if (referrer) {
         referrerId = referrer._id;
       }
@@ -84,6 +84,17 @@ const registerCtrl = async (req, res) => {
       isManageService: isManageService || false,
     });
 
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "CREATE",
+      description: `User ${user.name} registered`,
+      newData: user.toObject(),
+      req,
+    });
+
     // Process referral rewards if user was referred
     if (referrerId) {
       const { processReferralReward } = require("../utils/rewardHelper");
@@ -97,7 +108,7 @@ const registerCtrl = async (req, res) => {
 
     const token = jwt.sign(
       { email: user.email, id: user._id, role: user.role },
-      process.env.JWT_SECRET
+      process.env.JWT_SECRET,
     );
 
     const options = {
@@ -122,6 +133,137 @@ const registerCtrl = async (req, res) => {
   }
 };
 
+const createUserCtrl = async (req, res) => {
+   try {
+     const {
+       name,
+       email,
+       password,
+       phone,
+       type = "active",
+       role = "user",
+       referralCode,
+       isVendor,
+       isBlog,
+       isUser,
+       isSupport,
+       isLogs,
+       isJob,
+       isAds,
+       isBooking,
+       isEmpManage,
+       isCoupen,
+       isCategoryManage,
+       isManageService,
+     } = req.body;
+
+     if (!name || !phone || !password || !type || !role) {
+       return res.status(403).json({
+         success: false,
+         message: "All required fields must be filled",
+       });
+     }
+
+     const existingUser = await authModel.findOne({ phone });
+     if (existingUser) {
+       return res.status(400).json({
+         success: false,
+         message: "User already exists. Please sign in to continue.",
+       });
+     }
+
+     const hashedPassword = await bcrypt.hash(password, 10);
+
+     // Handle referral code if provided
+     let referrerId = null;
+     if (referralCode) {
+       const referrer = await authModel.findOne({
+         referralCode: referralCode.toUpperCase(),
+       });
+       if (referrer) {
+         referrerId = referrer._id;
+       }
+     }
+
+     // Generate unique referral code for new user
+     const { generateReferralCode } = require("../utils/rewardHelper");
+     const newUserReferralCode = await generateReferralCode();
+
+     const user = await authModel.create({
+       name,
+       email,
+       password: hashedPassword,
+       type,
+       phone,
+       role,
+       referralCode: newUserReferralCode,
+       referredBy: referrerId,
+       referredByCode: referralCode ? referralCode.toUpperCase() : null,
+       isVendor: isVendor || false,
+       isLogs: isLogs || false,
+       isBlog: isBlog || false,
+       isUser: isUser || false,
+       isSupport: isSupport || false,
+       isJob: isJob || false,
+       isAds: isAds || false,
+       isBooking: isBooking || false,
+       isEmpManage: isEmpManage || false,
+       isCategoryManage: isCategoryManage || false,
+       isCoupen: isCoupen || false,
+       isManageService: isManageService || false,
+     });
+
+     const actorId = req.user._id || req.user.id
+
+     await createSystemLog({
+       actorId: actorId,
+       actorModel: "auth",
+       entityId: user._id,
+       entityModel: "auth",
+       action: "CREATE",
+       description: `User ${user.name} registered.`,
+       newData: user.toObject(),
+       req,
+     });
+
+     // Process referral rewards if user was referred
+     if (referrerId) {
+       const { processReferralReward } = require("../utils/rewardHelper");
+       try {
+         await processReferralReward(referrerId, user._id);
+       } catch (error) {
+         console.error("Error processing referral reward:", error);
+         // Don't fail registration if reward processing fails
+       }
+     }
+
+     const token = jwt.sign(
+       { email: user.email, id: user._id, role: user.role },
+       process.env.JWT_SECRET,
+     );
+
+     const options = {
+       expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+       httpOnly: true,
+     };
+
+     res.cookie("token", token, options);
+
+     return res.status(200).json({
+       success: true,
+       token,
+       user,
+       message: "User registered successfully",
+     });
+   } catch (error) {
+     console.error("Registration error:", error);
+     return res.status(500).json({
+       success: false,
+       message: "User cannot be registered. Please try again.",
+     });
+   }
+}
+
 const loginCtrl = async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -145,7 +287,7 @@ const loginCtrl = async (req, res) => {
     if (await bcrypt.compare(password, user.password)) {
       const token = jwt.sign(
         { email: user.email, id: user._id, role: user.role },
-        process.env.JWT_SECRET
+        process.env.JWT_SECRET,
       );
 
       user.token = token;
@@ -174,11 +316,10 @@ const loginCtrl = async (req, res) => {
   }
 };
 
-
 const getAllUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search = '' } = req.query;
-    
+    const { page = 1, limit = 10, search = "" } = req.query;
+
     // Convert to numbers
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
@@ -186,26 +327,26 @@ const getAllUsers = async (req, res) => {
 
     // Build search query
     let searchQuery = {};
-    if (search && search.trim() !== '') {
+    if (search && search.trim() !== "") {
       searchQuery = {
         $or: [
-          { name: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } },
-          { phone: { $regex: search, $options: 'i' } }
-        ]
+          { name: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { phone: { $regex: search, $options: "i" } },
+        ],
       };
     }
 
     // Get total count for pagination
     const totalUsers = await authModel.countDocuments(searchQuery);
-    
+
     // Get paginated users
     const users = await authModel
       .find(searchQuery)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
-      .select('-password'); // Don't send password
+      .select("-password"); // Don't send password
 
     res.status(200).json({
       success: true,
@@ -216,15 +357,14 @@ const getAllUsers = async (req, res) => {
         totalUsers,
         limit: limitNum,
         hasNextPage: pageNum < Math.ceil(totalUsers / limitNum),
-        hasPrevPage: pageNum > 1
-      }
+        hasPrevPage: pageNum > 1,
+      },
     });
   } catch (error) {
     console.error("Error fetching users:", error);
     res.status(500).json({ success: false, message: "Server error." });
   }
 };
-
 
 const deleteAuthCtrl = async (req, res) => {
   try {
@@ -233,7 +373,9 @@ const deleteAuthCtrl = async (req, res) => {
     const deletedUser = await authModel.findByIdAndDelete(id);
 
     if (!deletedUser) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     res.status(200).json({
@@ -311,7 +453,6 @@ const editPermissionCtrl = async (req, res) => {
   }
 };
 
-
 const getUserInquiries = async (req, res) => {
   try {
     const { id } = req.params;
@@ -349,16 +490,18 @@ const getUserInquiries = async (req, res) => {
 
 const changeUserTypeCtrl = async (req, res) => {
   try {
-    const { id } = req.params;       // user id from URL
-    const { type } = req.body;       // new type from body
-    console.log(req.body)
+    const { id } = req.params; // user id from URL
+    const { type } = req.body; // new type from body
+    console.log(req.body);
     if (!id || !type) {
       return res.status(400).json({ message: "User ID and type are required" });
     }
 
     const user = await authModel.findById(id);
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     user.type = type;
@@ -371,11 +514,11 @@ const changeUserTypeCtrl = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating user type:", error);
-    return res.status(500).json({ success: false, message: "Internal server error" });
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
   }
 };
-
-
 
 const changePasswordCtrl = async (req, res) => {
   try {
@@ -398,7 +541,10 @@ const changePasswordCtrl = async (req, res) => {
     }
 
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -427,7 +573,7 @@ const changePasswordCtrl = async (req, res) => {
 // Forgot Password - Send OTP
 const forgotPasswordCtrl = async (req, res) => {
   try {
-    const { phone, otpMethod = 'sms' } = req.body;
+    const { phone, otpMethod = "sms" } = req.body;
 
     if (!phone) {
       return res.status(400).json({
@@ -446,7 +592,11 @@ const forgotPasswordCtrl = async (req, res) => {
     }
 
     // Generate OTP
-    const { generateOTP, sendSMSOTP, sendWhatsAppOTP } = require('../utils/otpService');
+    const {
+      generateOTP,
+      sendSMSOTP,
+      sendWhatsAppOTP,
+    } = require("../utils/otpService");
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
@@ -457,7 +607,7 @@ const forgotPasswordCtrl = async (req, res) => {
 
     // Send OTP based on method
     let otpResult;
-    if (otpMethod === 'whatsapp') {
+    if (otpMethod === "whatsapp") {
       otpResult = await sendWhatsAppOTP(phone, otp, null, user._id, user.name);
     } else {
       otpResult = await sendSMSOTP(phone, otp, null, user._id, user.name);
@@ -528,9 +678,9 @@ const verifyResetOTPCtrl = async (req, res) => {
 
     // OTP is valid - generate a temporary token for password reset
     const resetToken = jwt.sign(
-      { userId: user._id, purpose: 'password_reset' },
+      { userId: user._id, purpose: "password_reset" },
       process.env.JWT_SECRET,
-      { expiresIn: '15m' }
+      { expiresIn: "15m" },
     );
 
     // Clear OTP fields
@@ -575,7 +725,7 @@ const resetPasswordCtrl = async (req, res) => {
       });
     }
 
-    if (decoded.purpose !== 'password_reset') {
+    if (decoded.purpose !== "password_reset") {
       return res.status(400).json({
         success: false,
         message: "Invalid reset token",
@@ -663,7 +813,7 @@ const generateReferralCodeCtrl = async (req, res) => {
 // Send Phone Verification OTP
 const sendPhoneVerificationOTPCtrl = async (req, res) => {
   try {
-    const { userId, otpMethod = 'whatsapp' } = req.body;
+    const { userId, otpMethod = "whatsapp" } = req.body;
 
     if (!userId) {
       return res.status(400).json({
@@ -696,7 +846,11 @@ const sendPhoneVerificationOTPCtrl = async (req, res) => {
     }
 
     // Generate OTP
-    const { generateOTP, sendSMSOTP, sendWhatsAppOTP } = require('../utils/otpService');
+    const {
+      generateOTP,
+      sendSMSOTP,
+      sendWhatsAppOTP,
+    } = require("../utils/otpService");
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
     // Save OTP to user
@@ -706,8 +860,14 @@ const sendPhoneVerificationOTPCtrl = async (req, res) => {
 
     // Send OTP based on method
     let otpResult;
-    if (otpMethod === 'whatsapp') {
-      otpResult = await sendWhatsAppOTP(user.phone, otp, null, user._id, user.name);
+    if (otpMethod === "whatsapp") {
+      otpResult = await sendWhatsAppOTP(
+        user.phone,
+        otp,
+        null,
+        user._id,
+        user.name,
+      );
     } else {
       otpResult = await sendSMSOTP(user.phone, otp, null, user._id, user.name);
     }
@@ -810,6 +970,7 @@ const verifyPhoneOTPCtrl = async (req, res) => {
 
 module.exports = {
   registerCtrl,
+  createUserCtrl,
   loginCtrl,
   getAllUsers,
   editPermissionCtrl,
@@ -824,7 +985,6 @@ module.exports = {
   sendPhoneVerificationOTPCtrl,
   verifyPhoneOTPCtrl,
 };
-
 
 // FCM Token Management
 
@@ -846,7 +1006,7 @@ const saveFCMToken = async (req, res) => {
     const user = await authModel.findByIdAndUpdate(
       userId,
       { fcmToken },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
@@ -880,7 +1040,7 @@ const removeFCMToken = async (req, res) => {
     const user = await authModel.findByIdAndUpdate(
       userId,
       { fcmToken: null },
-      { new: true }
+      { new: true },
     );
 
     if (!user) {
@@ -911,7 +1071,9 @@ const getNotificationPreferences = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const user = await authModel.findById(userId).select("notificationPreferences");
+    const user = await authModel
+      .findById(userId)
+      .select("notificationPreferences");
 
     if (!user) {
       return res.status(404).json({

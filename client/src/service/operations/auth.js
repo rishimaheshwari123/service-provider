@@ -4,7 +4,7 @@ import { apiConnector } from "../apiConnector";
 import { endpoints, vendor } from "../apis";
 import Swal from "sweetalert2";
 const {
-  LOGIN_API, SIGNUP_API_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER,
+  LOGIN_API, SIGNUP_API_API, SIGNUP_API_ADMIN_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER,
   FORGOT_PASSWORD_API, VERIFY_RESET_OTP_API, RESET_PASSWORD_API, SEND_PHONE_VERIFICATION_OTP_API, VERIFY_PHONE_OTP_API,
   CHANGE_PASSWORD_API, GENERATE_REFERRAL_CODE_API
 } = endpoints;
@@ -55,6 +55,49 @@ export async function login(phone, password, dispatch) {
   }
 }
 export async function signUp(formData) {
+  Swal.fire({
+    title: "Loading",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    allowEnterKey: false,
+    showConfirmButton: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const response = await apiConnector("POST", SIGNUP_API_ADMIN_API, formData);
+    Swal.close();
+    if (!response?.data?.success) {
+      await Swal.fire({
+        title: "Registration Failed",
+        text: response.data.message,
+        icon: "error",
+      });
+      throw new Error(response.data.message);
+    }
+
+    Swal.fire({
+      title: `Account created successfully!`,
+      text: `Welcome to MeraGharSansaar!`,
+      icon: "success",
+    });
+
+    return response?.data;
+  } catch (error) {
+    console.log("sign  API ERROR............", error);
+    Swal.fire({
+      title: "Register Failed",
+      text:
+        error.response?.data?.message ||
+        "Something went wrong, please try again later",
+      icon: "error",
+    });
+    return null;
+  }
+}
+export async function signUpByAdmin(formData) {
   Swal.fire({
     title: "Loading",
     allowOutsideClick: false,

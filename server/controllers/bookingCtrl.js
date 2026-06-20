@@ -10,10 +10,10 @@ exports.createBookingCtrl = async (req, res) => {
     try {
         const { service, user, date, time, notes, address, payment } = req.body;
 
-        if (!service || !user || !date) {
+        if (!service || !user || !date || !time) {
             return res.status(400).json({
                 success: false,
-                message: "Service, user, and date are required.",
+                message: "Service, user, date, and time are required.",
             });
         }
 
@@ -25,21 +25,11 @@ exports.createBookingCtrl = async (req, res) => {
             });
         }
 
-        const bookingDate = new Date(date);
-        const currentDate = new Date();
+        // Combine date (YYYY-MM-DD) and time (HH:mm) into a single valid Date string
+        const bookingDateAndTime = new Date(`${date}T${time}`);
+        const currentDateAndTime = new Date();
 
-        // Normalize both dates to start of day to compare just the date part
-        const normalizeDate = (d) => {
-            const dateOnly = new Date(d);
-            dateOnly.setHours(0, 0, 0, 0);
-            return dateOnly;
-        };
-
-        const normalizedBookingDate = normalizeDate(bookingDate);
-        const normalizedCurrentDate = normalizeDate(currentDate);
-
-        const isDateInPast = normalizedBookingDate < normalizedCurrentDate;
-        console.log("is date in past", isDateInPast);
+        const isDateInPast = bookingDateAndTime < currentDateAndTime;
 
         if (isDateInPast) {
             return res.status(400).json({
@@ -47,7 +37,6 @@ exports.createBookingCtrl = async (req, res) => {
                 message: "Booking date cannot be in the past.",
             });
         }
-
 
         const booking = await Booking.create({
             service,

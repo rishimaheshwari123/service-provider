@@ -5,7 +5,7 @@ import { saveFCMToken } from '@/service/notificationApi';
 
 // VAPID key from Firebase Console - Web Push certificates
 // Project: mgsa-a4899
-const VAPID_KEY = 'BMNAxWYCoC3ulxGY9PNVbAGDtijS2IK5ex9MC_FBAlTDd53bUpdgMiQMeDAilHZwzvwmf92Y7JXwoWLcQpeRsn0';
+const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY;
 
 interface NotificationPayload {
   notification?: {
