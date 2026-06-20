@@ -21,7 +21,7 @@ router.get("/getAll", verifyToken, isAdmin, getAllUsers)
 router.post("/create-user", verifyToken, isAdmin, createUserCtrl)
 
 router.put("/update/:id", editPermissionCtrl)
-router.delete("/delete/:id", deleteAuthCtrl)
+router.delete("/delete/:id", verifyToken, isAdmin, deleteAuthCtrl)
 router.get("/my-profile/:id", getUserInquiries)
 router.put("/change-type/:id", changeUserTypeCtrl);
 router.put("/change-password/:id", changePasswordCtrl);

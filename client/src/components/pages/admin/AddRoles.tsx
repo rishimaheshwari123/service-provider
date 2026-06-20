@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Plus, X } from "lucide-react";
-import { signUp } from "@/service/operations/auth";
 import { GetAllEmployee } from "./GetAllEmployee";
 import { RootState } from "@/redux/store";
 import { useSelector } from "react-redux";
+import { signUpByAdmin } from "@/service/operations/auth";
 
 export const AddRoles = () => {
   const [showForm, setShowForm] = useState(false);
@@ -44,7 +44,7 @@ export const AddRoles = () => {
     setIsSuccess(false);
 
     try {
-      const response = await signUp(formData);
+      const response = await signUpByAdmin(formData);
       if (response.success) {
         setIsSuccess(true);
         setFormData({

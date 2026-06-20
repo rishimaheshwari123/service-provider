@@ -11,15 +11,28 @@ const getAllSystemAuditLogsCtrl = async (req, res) => {
         .populate("entityId", "name email")
         .sort({ createdAt: -1 })
         .skip((page - 1) * limit)
-        .limit(limit),
+        .limit(Number(limit))
+        .lean(),
       SystemAuditLog.countDocuments(),
     ]);
 
-    const totalPages = Math.ceil(total / limit);
+    const sanitizedData = data.map((log) => {
+      if (log.changes) {
+        if (log.changes.oldData && log.changes.oldData.password) {
+          delete log.changes.oldData.password;
+        }
+        if (log.changes.newData && log.changes.newData.password) {
+          delete log.changes.newData.password;
+        }
+      }
+      return log;
+    });
+
+    const totalPages = Math.ceil(total / Number(limit));
 
     res.status(200).json({
       success: true,
-      data,
+      data: sanitizedData,
       pagination: {
         total,
         page,

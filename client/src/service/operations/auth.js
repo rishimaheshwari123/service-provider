@@ -4,7 +4,7 @@ import { apiConnector } from "../apiConnector";
 import { endpoints, vendor } from "../apis";
 import Swal from "sweetalert2";
 const {
-  LOGIN_API, SIGNUP_API_API, SIGNUP_API_ADMIN_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER,
+  LOGIN_API, SIGNUP_API, SIGNUP_ADMIN_API, GET_ALL_USER_API, MY_PROFILE, CHANGE_USER_TYPE, EDIT_USER_PERMISSION_API, DELETE_USER,
   FORGOT_PASSWORD_API, VERIFY_RESET_OTP_API, RESET_PASSWORD_API, SEND_PHONE_VERIFICATION_OTP_API, VERIFY_PHONE_OTP_API,
   CHANGE_PASSWORD_API, GENERATE_REFERRAL_CODE_API
 } = endpoints;
@@ -67,7 +67,7 @@ export async function signUp(formData) {
   });
 
   try {
-    const response = await apiConnector("POST", SIGNUP_API_ADMIN_API, formData);
+    const response = await apiConnector("POST", SIGNUP_API, formData);
     Swal.close();
     if (!response?.data?.success) {
       await Swal.fire({
@@ -110,7 +110,7 @@ export async function signUpByAdmin(formData) {
   });
 
   try {
-    const response = await apiConnector("POST", SIGNUP_API_API, formData);
+    const response = await apiConnector("POST", SIGNUP_ADMIN_API, formData);
     Swal.close();
     if (!response?.data?.success) {
       await Swal.fire({
