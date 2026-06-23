@@ -24,7 +24,7 @@ async function setupRewardSystem() {
     console.log('🚀 Starting Reward System Setup...\n');
 
     // Connect to database
-    await mongoose.connect(process.env.MONGODB_URI);
+    await mongoose.connect(process.env.MONGODB_URL);
     console.log('✅ Connected to MongoDB\n');
 
     // Step 1: Create default reward settings

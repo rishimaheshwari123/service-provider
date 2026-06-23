@@ -132,6 +132,11 @@ const authSchema = new mongoose.Schema(
             default: null,
         },
 
+        isDeleted: {
+            type: Boolean,
+            default: false,
+        },
+
         // Notification Preferences
         notificationPreferences: {
             bookingUpdates: {

@@ -3,6 +3,7 @@ const authModel = require("../models/authModel");
 const jwt = require("jsonwebtoken");
 const Contact = require("../models/contactModel");
 const createSystemLog = require("../utils/auditLogger");
+const { sanitizeAuditData } = require("../utils/sanitizeAuditData");
 
 const registerCtrl = async (req, res) => {
   try {
@@ -107,7 +108,7 @@ const registerCtrl = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { email: user.email, id: user._id, role: user.role },
+      { name: user.name, email: user.email, id: user._id, role: user.role },
       process.env.JWT_SECRET,
     );
 
@@ -134,135 +135,188 @@ const registerCtrl = async (req, res) => {
 };
 
 const createUserCtrl = async (req, res) => {
-   try {
-     const {
-       name,
-       email,
-       password,
-       phone,
-       type = "active",
-       role = "user",
-       referralCode,
-       isVendor,
-       isBlog,
-       isUser,
-       isSupport,
-       isLogs,
-       isJob,
-       isAds,
-       isBooking,
-       isEmpManage,
-       isCoupen,
-       isCategoryManage,
-       isManageService,
-     } = req.body;
+  try {
+    const {
+      name,
+      email,
+      password,
+      phone,
+      type = "active",
+      role = "user",
+      referralCode,
+      isVendor,
+      isBlog,
+      isUser,
+      isSupport,
+      isLogs,
+      isJob,
+      isAds,
+      isBooking,
+      isEmpManage,
+      isCoupen,
+      isCategoryManage,
+      isManageService,
+    } = req.body;
 
-     if (!name || !phone || !password || !type || !role) {
-       return res.status(403).json({
-         success: false,
-         message: "All required fields must be filled",
-       });
-     }
+    if (!name || !phone || !password || !type || !role) {
+      return res.status(403).json({
+        success: false,
+        message: "All required fields must be filled",
+      });
+    }
 
-     const existingUser = await authModel.findOne({ phone });
-     if (existingUser) {
-       return res.status(400).json({
-         success: false,
-         message: "User already exists. Please sign in to continue.",
-       });
-     }
+    const existingUser = await authModel.findOne({ phone });
+    if (existingUser && !existingUser.isDeleted) {
+      return res.status(400).json({
+        success: false,
+        message: "User already exists. Please sign in to continue.",
+      });
+    }
 
-     const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-     // Handle referral code if provided
-     let referrerId = null;
-     if (referralCode) {
-       const referrer = await authModel.findOne({
-         referralCode: referralCode.toUpperCase(),
-       });
-       if (referrer) {
-         referrerId = referrer._id;
-       }
-     }
+    // Handle referral code if provided
+    let referrerId = null;
+    if (referralCode) {
+      const referrer = await authModel.findOne({
+        referralCode: referralCode.toUpperCase(),
+      });
+      if (referrer) {
+        referrerId = referrer._id;
+      }
+    }
 
-     // Generate unique referral code for new user
-     const { generateReferralCode } = require("../utils/rewardHelper");
-     const newUserReferralCode = await generateReferralCode();
+    // Generate unique referral code for new user
+    const { generateReferralCode } = require("../utils/rewardHelper");
+    const newUserReferralCode = await generateReferralCode();
 
-     const user = await authModel.create({
-       name,
-       email,
-       password: hashedPassword,
-       type,
-       phone,
-       role,
-       referralCode: newUserReferralCode,
-       referredBy: referrerId,
-       referredByCode: referralCode ? referralCode.toUpperCase() : null,
-       isVendor: isVendor || false,
-       isLogs: isLogs || false,
-       isBlog: isBlog || false,
-       isUser: isUser || false,
-       isSupport: isSupport || false,
-       isJob: isJob || false,
-       isAds: isAds || false,
-       isBooking: isBooking || false,
-       isEmpManage: isEmpManage || false,
-       isCategoryManage: isCategoryManage || false,
-       isCoupen: isCoupen || false,
-       isManageService: isManageService || false,
-     });
+    // =====================================
+    // RESTORE SOFT DELETED USER
+    // =====================================
+    if (existingUser && existingUser.isDeleted) {
+      const oldData = {
+        isDeleted: existingUser.isDeleted,
+      };
 
-     const actorId = req.user._id || req.user.id
+      existingUser.name = name;
+      existingUser.email = email;
+      existingUser.phone = phone;
+      existingUser.password = hashedPassword;
+      existingUser.type = type;
+      existingUser.role = role;
 
-     await createSystemLog({
-       actorId: actorId,
-       actorModel: "auth",
-       entityId: user._id,
-       entityModel: "auth",
-       action: "CREATE",
-       description: `User ${user.name} registered.`,
-       newData: user.toObject(),
-       req,
-     });
+      existingUser.isDeleted = false;
 
-     // Process referral rewards if user was referred
-     if (referrerId) {
-       const { processReferralReward } = require("../utils/rewardHelper");
-       try {
-         await processReferralReward(referrerId, user._id);
-       } catch (error) {
-         console.error("Error processing referral reward:", error);
-         // Don't fail registration if reward processing fails
-       }
-     }
+      existingUser.isVendor = isVendor || false;
+      existingUser.isLogs = isLogs || false;
+      existingUser.isBlog = isBlog || false;
+      existingUser.isUser = isUser || false;
+      existingUser.isSupport = isSupport || false;
+      existingUser.isJob = isJob || false;
+      existingUser.isAds = isAds || false;
+      existingUser.isBooking = isBooking || false;
+      existingUser.isEmpManage = isEmpManage || false;
+      existingUser.isCategoryManage = isCategoryManage || false;
+      existingUser.isCoupen = isCoupen || false;
+      existingUser.isManageService = isManageService || false;
 
-     const token = jwt.sign(
-       { email: user.email, id: user._id, role: user.role },
-       process.env.JWT_SECRET,
-     );
+      await existingUser.save();
 
-     const options = {
-       expires: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-       httpOnly: true,
-     };
+      const auditUser = existingUser.toObject();
 
-     res.cookie("token", token, options);
+      delete auditUser.password;
+      delete auditUser.token;
+      delete auditUser.resetPasswordOTP;
+      delete auditUser.phoneVerificationOTP;
 
-     return res.status(200).json({
-       success: true,
-       token,
-       user,
-       message: "User registered successfully",
-     });
-   } catch (error) {
-     console.error("Registration error:", error);
-     return res.status(500).json({
-       success: false,
-       message: "User cannot be registered. Please try again.",
-     });
-   }
-}
+      await createSystemLog({
+        actorId: req.user._id || req.user.id,
+        actorModel: "auth",
+
+        entityId: existingUser._id,
+        entityModel: "auth",
+
+        action: "UPDATE",
+
+        description: `Admin ${req.user.name} restored deleted user ${existingUser.name}`,
+
+        oldData,
+
+        newData: {
+          isDeleted: false,
+        },
+
+        req,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Deleted user restored successfully.",
+        user: existingUser,
+      });
+    }
+
+    const user = await authModel.create({
+      name,
+      email,
+      password: hashedPassword,
+      type,
+      phone,
+      role,
+      referralCode: newUserReferralCode,
+      referredBy: referrerId,
+      referredByCode: referralCode ? referralCode.toUpperCase() : null,
+      isVendor: isVendor || false,
+      isLogs: isLogs || false,
+      isBlog: isBlog || false,
+      isUser: isUser || false,
+      isSupport: isSupport || false,
+      isJob: isJob || false,
+      isAds: isAds || false,
+      isBooking: isBooking || false,
+      isEmpManage: isEmpManage || false,
+      isCategoryManage: isCategoryManage || false,
+      isCoupen: isCoupen || false,
+      isManageService: isManageService || false,
+    });
+
+    const actorId = req.user._id || req.user.id;
+
+    await createSystemLog({
+      actorId: actorId,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "CREATE",
+      description: `User ${user.name} registered.`,
+      newData: user.toObject(),
+      req,
+    });
+
+    // Process referral rewards if user was referred
+    if (referrerId) {
+      const { processReferralReward } = require("../utils/rewardHelper");
+      try {
+        await processReferralReward(referrerId, user._id);
+      } catch (error) {
+        console.error("Error processing referral reward:", error);
+        // Don't fail registration if reward processing fails
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      user,
+      message: "User registered successfully",
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "User cannot be registered. Please try again.",
+    });
+  }
+};
 
 const loginCtrl = async (req, res) => {
   try {
@@ -286,15 +340,29 @@ const loginCtrl = async (req, res) => {
 
     if (await bcrypt.compare(password, user.password)) {
       const token = jwt.sign(
-        { email: user.email, id: user._id, role: user.role },
+        { name: user.name, email: user.email, id: user._id, role: user.role },
         process.env.JWT_SECRET,
       );
+
+      await createSystemLog({
+        actorId: user._id,
+        actorModel: "auth",
+        entityId: user._id,
+        entityModel: "auth",
+        action: "UPDATE",
+        description: `User ${user.name} logged in`,
+        newData: {
+          loginAt: new Date(),
+        },
+        req,
+      });
 
       user.token = token;
       user.password = undefined;
       const options = {
         httpOnly: true,
       };
+
       res.cookie("token", token, options).status(200).json({
         success: true,
         token,
@@ -342,11 +410,15 @@ const getAllUsers = async (req, res) => {
 
     // Get paginated users
     const users = await authModel
-      .find(searchQuery)
+      .find({
+        ...searchQuery,
+        isDeleted: false,
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum)
-      .select("-password"); // Don't send password
+      .select("-password")
+      .lean();
 
     res.status(200).json({
       success: true,
@@ -370,13 +442,34 @@ const deleteAuthCtrl = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const deletedUser = await authModel.findByIdAndDelete(id);
+    const deletedUser = await authModel.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          isDeleted: true,
+        },
+      },
+      {
+        new: true,
+      },
+    );
 
     if (!deletedUser) {
       return res
         .status(404)
         .json({ success: false, message: "User not found" });
     }
+
+    await createSystemLog({
+      actorId: req.user?._id || req.user?.id,
+      actorModel: "auth",
+      entityId: deletedUser._id,
+      entityModel: "auth",
+      action: "DELETE",
+      description: `${req.user.name} deleted user ${deletedUser.name}.`,
+      oldData: sanitizeAuditData(deletedUser),
+      req,
+    });
 
     res.status(200).json({
       success: true,
@@ -419,6 +512,8 @@ const editPermissionCtrl = async (req, res) => {
       });
     }
 
+    const oldUser = user.toObject();
+
     // ✅ Update all permissions safely using nullish coalescing (??)
     user.name = name ?? user.name;
     user.email = email ?? user.email;
@@ -438,6 +533,20 @@ const editPermissionCtrl = async (req, res) => {
     user.isManageService = isManageService ?? user.isManageService;
 
     await user.save();
+
+    const newUser = user.toObject();
+
+    await createSystemLog({
+      actorId: req.user._id || req.user.id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `Admin ${req.user.name} updated permissions for ${user.name}`,
+      oldData: sanitizeAuditData(oldUser),
+      newData: sanitizeAuditData(newUser),
+      req,
+    });
 
     return res.status(200).json({
       success: true,
@@ -490,9 +599,9 @@ const getUserInquiries = async (req, res) => {
 
 const changeUserTypeCtrl = async (req, res) => {
   try {
-    const { id } = req.params; // user id from URL
-    const { type } = req.body; // new type from body
-    console.log(req.body);
+    const { id } = req.params;
+    const { type } = req.body;
+
     if (!id || !type) {
       return res.status(400).json({ message: "User ID and type are required" });
     }
@@ -503,9 +612,25 @@ const changeUserTypeCtrl = async (req, res) => {
         .status(404)
         .json({ success: false, message: "User not found" });
     }
-
+    const oldType = user.type;
     user.type = type;
     await user.save();
+
+    await createSystemLog({
+      actorId: req.user._id || req.user.id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `Admin ${req.user.name} changed user type for ${user.name} from ${oldType} to ${type}`,
+      oldData: {
+        type: oldType,
+      },
+      newData: {
+        type: type,
+      },
+      req,
+    });
 
     return res.status(200).json({
       success: true,
@@ -556,6 +681,19 @@ const changePasswordCtrl = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
     await user.save();
+
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `${user.name} changed password`,
+      newData: {
+        passwordChanged: true,
+      },
+      req,
+    });
 
     return res.status(200).json({
       success: true,
@@ -614,6 +752,19 @@ const forgotPasswordCtrl = async (req, res) => {
     }
 
     if (otpResult.success) {
+      await createSystemLog({
+        actorId: user._id,
+        actorModel: "auth",
+        entityId: user._id,
+        entityModel: "auth",
+        action: "UPDATE",
+        description: `${user.name} requested password reset OTP`,
+        newData: {
+          otpMethod,
+        },
+        req,
+      });
+
       return res.status(200).json({
         success: true,
         message: `Password reset OTP sent via ${otpMethod.toUpperCase()}`,
@@ -968,6 +1119,76 @@ const verifyPhoneOTPCtrl = async (req, res) => {
   }
 };
 
+// Admin Reset User Password (No OTP Required)
+const adminResetUserPasswordCtrl = async (req, res) => {
+  try {
+    const { userId, newPassword, confirmPassword } = req.body;
+
+    // Validate input
+    if (!userId || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID, new password, and confirm password are required",
+      });
+    }
+
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    // Validate password length
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    // Find user
+    const user = await authModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Update password
+    user.password = hashedPassword;
+    await user.save();
+
+    await createSystemLog({
+      actorId: req.user._id || req.user.id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `Admin ${req.user.name} reset password for user ${user.name}`,
+      oldData: {},
+      newData: { passwordReset: true },
+      req,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "User password reset successfully by admin",
+    });
+  } catch (error) {
+    console.error("Admin reset user password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+    });
+  }
+};
+
 module.exports = {
   registerCtrl,
   createUserCtrl,
@@ -984,6 +1205,7 @@ module.exports = {
   generateReferralCodeCtrl,
   sendPhoneVerificationOTPCtrl,
   verifyPhoneOTPCtrl,
+  adminResetUserPasswordCtrl,
 };
 
 // FCM Token Management

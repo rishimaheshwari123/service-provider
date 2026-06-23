@@ -300,10 +300,12 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
     setIsSuccess(false);
 
     try {
+      const token = (user as any)?.token;
       const response = await fetch(endpoints.ADMIN_RESET_USER_PASSWORD_API, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify({
           userId: resetPasswordEmployee._id,

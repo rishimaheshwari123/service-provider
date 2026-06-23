@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl, generateReferralCodeCtrl, sendPhoneVerificationOTPCtrl, verifyPhoneOTPCtrl, saveFCMToken, removeFCMToken, getNotificationPreferences, updateNotificationPreferences, createUserCtrl } = require("../controllers/authCtrl")
+const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl, generateReferralCodeCtrl, sendPhoneVerificationOTPCtrl, verifyPhoneOTPCtrl, saveFCMToken, removeFCMToken, getNotificationPreferences, updateNotificationPreferences, createUserCtrl, adminResetUserPasswordCtrl } = require("../controllers/authCtrl")
 const { verifyToken, isAdmin } = require("../utils/verifyToken")
 const router = express.Router()
 
@@ -19,12 +19,13 @@ router.post("/verify-phone-otp", verifyPhoneOTPCtrl)
 router.get("/getAll", verifyToken, isAdmin, getAllUsers)
 // Protected Admin Route - Only Admin can create new user
 router.post("/create-user", verifyToken, isAdmin, createUserCtrl)
+router.post("/admin-reset-password", verifyToken, isAdmin, adminResetUserPasswordCtrl)
 
-router.put("/update/:id", editPermissionCtrl)
-router.delete("/delete/:id", verifyToken, isAdmin, deleteAuthCtrl)
-router.get("/my-profile/:id", getUserInquiries)
-router.put("/change-type/:id", changeUserTypeCtrl);
-router.put("/change-password/:id", changePasswordCtrl);
+router.put("/update/:id", verifyToken, editPermissionCtrl)
+router.delete("/delete/:id", verifyToken, deleteAuthCtrl)
+router.get("/my-profile/:id", verifyToken, getUserInquiries)
+router.put("/change-type/:id", verifyToken, changeUserTypeCtrl);
+router.put("/change-password/:id", verifyToken, changePasswordCtrl);
 
 // FCM Token Management Routes
 router.post("/save-fcm-token", verifyToken, saveFCMToken);
