@@ -11,7 +11,7 @@ const systemAuditLogSchema = new mongoose.Schema(
     actorModel: {
       type: String,
       required: true,
-      enum: ["auth", "Vendor"], // Action kon le raha hai (Admin/User ya Vendor)
+      enum: ["auth", "Vendor", "Admin"], // Action kon le raha hai (Admin/User ya Vendor)
     },
 
     // 2. KIS ENTITY PAR ACTION HUA (Target/Entity)
@@ -23,7 +23,7 @@ const systemAuditLogSchema = new mongoose.Schema(
     entityModel: {
       type: String,
       required: true,
-      enum: ["auth", "Vendor", "Category", "Property", "System"], // Kis model me change hua
+      enum: ["auth", "Vendor", "Category", "Property", "System", "Ads"], // Kis model me change hua
     },
 
     // 3. KYA ACTION HUA

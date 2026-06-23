@@ -1,5 +1,6 @@
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const adsModel = require("../models/adsModel");
+const createSystemLog = require("../utils/auditLogger");
 
 let legacyAdsMigrated = false;
 
@@ -23,7 +24,7 @@ const migrateLegacyAdsAsAdmin = async () => {
       $setOnInsert: {
         adminId: null,
       },
-    }
+    },
   );
 
   legacyAdsMigrated = true;
@@ -41,7 +42,10 @@ const createAdminAdCtrl = async (req, res) => {
       });
     }
 
-    const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+    const thumbnailImage = await uploadImageToCloudinary(
+      image,
+      process.env.FOLDER_NAME,
+    );
 
     const ad = await adsModel.create({
       image: thumbnailImage.secure_url,
@@ -53,6 +57,23 @@ const createAdminAdCtrl = async (req, res) => {
       approvedBy: adminId || null,
       approvedAt: new Date(),
       rejectionReason: "",
+    });
+
+    await createSystemLog({
+      actorId: req.user._id || req.user.id,
+      actorModel: "auth",
+      entityId: ad._id,
+      entityModel: "Ads",
+      action: "CREATE",
+      description: `Admin ${req.user.name} created advertisement`,
+      newData: {
+        url: ad.url,
+        image: ad.image,
+        createdByType: ad.createdByType,
+        approvalStatus: ad.approvalStatus,
+        isActive: ad.isActive,
+      },
+      req,
     });
 
     return res.status(201).json({
@@ -81,7 +102,10 @@ const createVendorAdCtrl = async (req, res) => {
       });
     }
 
-    const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+    const thumbnailImage = await uploadImageToCloudinary(
+      image,
+      process.env.FOLDER_NAME,
+    );
 
     const ad = await adsModel.create({
       image: thumbnailImage.secure_url,
@@ -141,7 +165,10 @@ const getManageAds = async (req, res) => {
       filter.createdByType = createdByType;
     }
 
-    if (approvalStatus && ["pending", "approved", "rejected"].includes(approvalStatus)) {
+    if (
+      approvalStatus &&
+      ["pending", "approved", "rejected"].includes(approvalStatus)
+    ) {
       filter.approvalStatus = approvalStatus;
     }
 
@@ -341,11 +368,16 @@ const updateAddCtrl = async (req, res) => {
     if (url) updateData.url = url;
 
     if (image) {
-      const thumbnailImage = await uploadImageToCloudinary(image, process.env.FOLDER_NAME);
+      const thumbnailImage = await uploadImageToCloudinary(
+        image,
+        process.env.FOLDER_NAME,
+      );
       updateData.image = thumbnailImage.secure_url;
     }
 
-    const updatedAd = await adsModel.findByIdAndUpdate(id, updateData, { new: true });
+    const updatedAd = await adsModel.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     return res.status(200).json({
       success: true,

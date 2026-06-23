@@ -827,6 +827,19 @@ const verifyResetOTPCtrl = async (req, res) => {
       });
     }
 
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `${user.name} verified password reset OTP`,
+      newData: {
+        otpVerified: true,
+      },
+      req,
+    });
+
     // OTP is valid - generate a temporary token for password reset
     const resetToken = jwt.sign(
       { userId: user._id, purpose: "password_reset" },
@@ -896,6 +909,19 @@ const resetPasswordCtrl = async (req, res) => {
     user.password = hashedPassword;
     await user.save();
 
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `${user.name} reset password`,
+      newData: {
+        passwordReset: true,
+      },
+      req,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Password reset successfully",
@@ -945,6 +971,19 @@ const generateReferralCodeCtrl = async (req, res) => {
 
     user.referralCode = referralCode;
     await user.save();
+
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `${user.name} generated referral code`,
+      newData: {
+        referralCode,
+      },
+      req,
+    });
 
     return res.status(200).json({
       success: true,
@@ -1024,6 +1063,16 @@ const sendPhoneVerificationOTPCtrl = async (req, res) => {
     }
 
     if (otpResult.success) {
+      await createSystemLog({
+        actorId: user._id,
+        actorModel: "auth",
+        entityId: user._id,
+        entityModel: "auth",
+        action: "UPDATE",
+        description: `${user.name} requested phone verification OTP via ${otpMethod || otpMethod}`,
+        req,
+      });
+
       return res.status(200).json({
         success: true,
         message: `Verification OTP sent via ${otpResult.method || otpMethod}`,
@@ -1100,6 +1149,22 @@ const verifyPhoneOTPCtrl = async (req, res) => {
     user.phoneVerificationOTPExpiry = undefined;
     await user.save();
 
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `${user.name} verified phone number`,
+      oldData: {
+        phoneVerified: false,
+      },
+      newData: {
+        phoneVerified: true,
+      },
+      req,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Phone number verified successfully",
@@ -1171,7 +1236,6 @@ const adminResetUserPasswordCtrl = async (req, res) => {
       entityModel: "auth",
       action: "UPDATE",
       description: `Admin ${req.user.name} reset password for user ${user.name}`,
-      oldData: {},
       newData: { passwordReset: true },
       req,
     });
@@ -1238,6 +1302,16 @@ const saveFCMToken = async (req, res) => {
       });
     }
 
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `${user.name} updated FCM token`,
+      req,
+    });
+
     res.status(200).json({
       success: true,
       message: "FCM token saved successfully",
@@ -1271,6 +1345,16 @@ const removeFCMToken = async (req, res) => {
         message: "User not found",
       });
     }
+
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "auth",
+      entityId: user._id,
+      entityModel: "auth",
+      action: "UPDATE",
+      description: `${user.name} removed FCM token`,
+      req,
+    });
 
     res.status(200).json({
       success: true,

@@ -11,10 +11,11 @@ const {
   deleteAddCtrl,
   updateAddCtrl,
 } = require("../controllers/adsCtrl")
+const { verifyToken } = require("../utils/verifyToken")
 const router = express.Router()
 
 
-router.post("/admin/create", createAdminAdCtrl)
+router.post("/admin/create", verifyToken, createAdminAdCtrl)
 router.post("/vendor/create", createVendorAdCtrl)
 router.get("/getAll", getAllAds)
 router.get("/manage", getManageAds)
