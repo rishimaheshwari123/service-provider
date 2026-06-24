@@ -1,12 +1,13 @@
 const express = require("express");
 const { createBlogsCtrl, getAllBlogsCtrl, deleteBlogCtrl, getSingleBlogsCtrl, getBlogBySlugCtrl, updateBlogCtrl } = require("../controllers/blogCtrl");
+const { verifyToken } = require("../utils/verifyToken");
 const router = express.Router();
 
-router.post("/create", createBlogsCtrl)
-router.get("/getAll", getAllBlogsCtrl)
-router.get("/get/:id", getSingleBlogsCtrl)
-router.get("/slug/:slug", getBlogBySlugCtrl) // New slug-based route
-router.delete("/delete/:id", deleteBlogCtrl)
-router.put("/:blogId", updateBlogCtrl)
+router.post("/create", verifyToken, createBlogsCtrl)
+router.get("/getAll", verifyToken, getAllBlogsCtrl)
+router.get("/get/:id", verifyToken, getSingleBlogsCtrl)
+router.get("/slug/:slug", verifyToken, getBlogBySlugCtrl) // New slug-based route
+router.delete("/delete/:id", verifyToken, deleteBlogCtrl)
+router.put("/:blogId", verifyToken, updateBlogCtrl)
 
 module.exports = router

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
 import { apiConnector } from "@/service/apiConnector";
-import { notification } from "@/service/apis";
+import { notification, category, image } from "@/service/apis";
 import { toast } from "react-toastify";
 import {
   BellRing,
@@ -216,7 +216,10 @@ const SendNotifications: React.FC = () => {
   // Fetch Categories
   const fetchCategories = async () => {
     try {
-      const response = await apiConnector("GET", "https://api.meragharsansaar.com/api/v1/category/getAll");
+      const response = await apiConnector(
+        "GET",
+        category.GET_ALL_CATEGORY_API,
+      );
       if (response?.data?.success) {
         setCategories(response.data.categories || response.data.data || []);
       }
@@ -272,7 +275,7 @@ const SendNotifications: React.FC = () => {
     try {
       const response = await apiConnector(
         "POST", 
-        "https://api.meragharsansaar.com/api/v1/image/upload", 
+        image.UPLOAD_SINGLE_IMAGE,
         formData,
         { "Content-Type": "multipart/form-data" }
       );

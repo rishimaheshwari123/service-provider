@@ -1,5 +1,7 @@
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const blogModel = require("../models/blogModel");
+const createSystemLog = require("../utils/auditLogger");
+const { sanitizeAuditData } = require("../utils/sanitizeAuditData");
 
 // Helper function to generate slug from title
 const generateSlug = (title) => {
@@ -91,6 +93,22 @@ const createBlogsCtrl = async (req, res) => {
 
     const blog = await blogModel.create(blogData);
 
+    await createSystemLog({
+      actorId: req.user.id || req.user._id,
+      actorModel: "auth",
+      entityId: blog._id,
+      entityModel: "Blog",
+      action: "CREATE",
+      description: `Admin ${req.user.name} created blog "${blog.title}"`,
+      newData: {
+        title: blog.title,
+        slug: blog.slug,
+        category: blog.category,
+        published: blog.published,
+      },
+      req,
+    });
+
     return res.status(201).json({
       success: true,
       message: "Blog created successfully!",
@@ -165,6 +183,8 @@ const updateBlogCtrl = async (req, res) => {
       ogImageUrl = uploadedOgImage.secure_url;
     }
 
+    const oldBlog = blog.toObject();
+
     // Update the blog in the database
     const updatedBlog = await blogModel.findByIdAndUpdate(
       blogId,
@@ -186,6 +206,18 @@ const updateBlogCtrl = async (req, res) => {
       },
       { new: true }
     );
+
+    await createSystemLog({
+      actorId: req.user.id || req.user._id,
+      actorModel: "auth",
+      entityId: updatedBlog._id,
+      entityModel: "Blog",
+      action: "UPDATE",
+      description: `Admin ${req.user.name} updated blog "${updatedBlog.title}"`,
+      oldData: sanitizeAuditData(oldBlog),
+      newData: sanitizeAuditData(updatedBlog),
+      req,
+    });
 
     return res.status(200).json({
       success: true,
@@ -343,6 +375,22 @@ const deleteBlogCtrl = async (req, res) => {
     }
     
     await blogModel.findByIdAndDelete(id);
+
+    await createSystemLog({
+      actorId: req.user.id || req.user._id,
+      actorModel: "auth",
+
+      entityId: blog._id,
+      entityModel: "Blog",
+
+      action: "DELETE",
+
+      description: `Admin ${req.user.name} deleted blog "${blog.title}"`,
+
+      oldData: sanitizeAuditData(blog.toObject()),
+
+      req,
+    });
     
     return res.status(200).json({
       success: true,
