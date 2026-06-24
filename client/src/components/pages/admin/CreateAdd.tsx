@@ -228,7 +228,7 @@ function CreateAdd() {
   };
 
   const handleApprove = async (id: string) => {
-    await approveVendorAd(id, user?._id, token)();
+    await approveVendorAd(id, token)();
     fetchAds();
   };
 
@@ -244,7 +244,7 @@ function CreateAdd() {
     });
 
     if (!result.isConfirmed) return;
-    await rejectVendorAd(id, user?._id, String(result.value || ""), token)();
+    await rejectVendorAd(id, String(result.value || ""), token)();
     fetchAds();
   };
 

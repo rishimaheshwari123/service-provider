@@ -99,13 +99,12 @@ export function getVendorAds(vendorId) {
   };
 }
 
-export function approveVendorAd(adId, adminId, token) {
+export function approveVendorAd(adId, token) {
   return async () => {
     try {
       const response = await apiConnector(
         "PUT",
         `${APPROVE_VENDOR_AD_API}/${adId}`,
-        { adminId },
         { Authorization: `Bearer ${token}` }
       );
       if (!response?.data?.success) {
@@ -121,13 +120,13 @@ export function approveVendorAd(adId, adminId, token) {
   };
 }
 
-export function rejectVendorAd(adId, adminId, reason, token) {
+export function rejectVendorAd(adId, reason, token) {
   return async () => {
     try {
       const response = await apiConnector(
         "PUT",
         `${REJECT_VENDOR_AD_API}/${adId}`,
-        { adminId, reason },
+        { reason },
         { Authorization: `Bearer ${token}` }
       );
       if (!response?.data?.success) {

@@ -15,9 +15,7 @@ router.post("/generate-referral-code", generateReferralCodeCtrl)
 router.post("/send-phone-verification-otp", sendPhoneVerificationOTPCtrl)
 router.post("/verify-phone-otp", verifyPhoneOTPCtrl)
 
-// Protected Admin Route - Only Admin can get all users
 router.get("/getAll", verifyToken, isAdmin, getAllUsers)
-// Protected Admin Route - Only Admin can create new user
 router.post("/create-user", verifyToken, isAdmin, createUserCtrl)
 router.post("/admin-reset-password", verifyToken, isAdmin, adminResetUserPasswordCtrl)
 

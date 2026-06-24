@@ -309,7 +309,7 @@ export default function SystemAuditLogs() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="font-medium text-gray-800">
-                          {log.entityId?.name}
+                          {log.entityId?.name || log.entityModel}
                         </div>
                         <div className="text-xs text-gray-500 font-mono">
                           {log.entityId?._id || "-"}

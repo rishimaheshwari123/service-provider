@@ -32,7 +32,8 @@ const migrateLegacyAdsAsAdmin = async () => {
 
 const createAdminAdCtrl = async (req, res) => {
   try {
-    const { url, adminId } = req.body;
+    const { url } = req.body;
+    const adminId = req.user.id || req.user._id;
     const image = req.files?.image;
 
     if (!url || !image) {
@@ -51,16 +52,16 @@ const createAdminAdCtrl = async (req, res) => {
       image: thumbnailImage.secure_url,
       url,
       createdByType: "admin",
-      adminId: adminId || null,
+      adminId: adminId,
       approvalStatus: "approved",
       isActive: true,
-      approvedBy: adminId || null,
+      approvedBy: adminId,
       approvedAt: new Date(),
       rejectionReason: "",
     });
 
     await createSystemLog({
-      actorId: req.user._id || req.user.id,
+      actorId: req.user.id,
       actorModel: "auth",
       entityId: ad._id,
       entityModel: "Ads",
@@ -92,8 +93,9 @@ const createAdminAdCtrl = async (req, res) => {
 
 const createVendorAdCtrl = async (req, res) => {
   try {
-    const { url, vendorId } = req.body;
+    const { url } = req.body;
     const image = req.files?.image;
+    const vendorId = req.user.id;
 
     if (!url || !image || !vendorId) {
       return res.status(400).json({
@@ -117,6 +119,21 @@ const createVendorAdCtrl = async (req, res) => {
       approvedBy: null,
       approvedAt: null,
       rejectionReason: "",
+    });
+
+    await createSystemLog({
+      actorId: vendorId,
+      actorModel: "Vendor",
+      entityId: ad._id,
+      entityModel: "Ads",
+      action: "CREATE",
+      description: `Vendor submitted advertisement for approval`,
+      newData: {
+        url: ad.url,
+        image: ad.image,
+        approvalStatus: ad.approvalStatus,
+      },
+      req,
     });
 
     return res.status(201).json({
@@ -224,7 +241,7 @@ const getVendorAds = async (req, res) => {
 const approveVendorAdCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const { adminId } = req.body;
+    const adminId = req.user._id || req.user.id;
 
     const ad = await adsModel.findById(id);
     if (!ad) {
@@ -243,10 +260,28 @@ const approveVendorAdCtrl = async (req, res) => {
 
     ad.approvalStatus = "approved";
     ad.isActive = true;
-    ad.approvedBy = adminId || null;
+    ad.approvedBy = adminId;
     ad.approvedAt = new Date();
     ad.rejectionReason = "";
     await ad.save();
+
+    await createSystemLog({
+      actorId: adminId,
+      actorModel: "Vendor",
+      entityId: ad._id,
+      entityModel: "Ads",
+      action: "APPROVE",
+      description: `Admin ${req.user.name} approved ad`,
+      oldData: {
+        approvalStatus: "pending",
+        isActive: false,
+      },
+      newData: {
+        approvalStatus: "approved",
+        isActive: true,
+      },
+      req,
+    });
 
     return res.status(200).json({
       success: true,
@@ -265,7 +300,8 @@ const approveVendorAdCtrl = async (req, res) => {
 const rejectVendorAdCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const { adminId, reason } = req.body;
+    const { reason } = req.body;
+    const adminId = req.user._id || req.user.id;
 
     const ad = await adsModel.findById(id);
     if (!ad) {
@@ -288,6 +324,23 @@ const rejectVendorAdCtrl = async (req, res) => {
     ad.approvedAt = new Date();
     ad.rejectionReason = reason || "Rejected by admin";
     await ad.save();
+
+    await createSystemLog({
+      actorId: adminId,
+      actorModel: "Vendor",
+      entityId: ad._id,
+      entityModel: "Ads",
+      action: "REJECT",
+      description: `Admin ${req.user.name} rejected ad`,
+      oldData: {
+        approvalStatus: "pending",
+      },
+      newData: {
+        approvalStatus: "rejected",
+        rejectionReason: reason,
+      },
+      req,
+    });
 
     return res.status(200).json({
       success: true,
@@ -319,6 +372,22 @@ const toggleAdStatusCtrl = async (req, res) => {
     ad.isActive = Boolean(isActive);
     await ad.save();
 
+    await createSystemLog({
+      actorId: req.user._id || req.user.id,
+      actorModel: "Vendor",
+      entityId: ad._id,
+      entityModel: "Ads",
+      action: "STATUS_CHANGE",
+      description: `Admin ${req.user.name} ${ad.isActive ? "activated" : "deactivated"} ad`,
+      oldData: {
+        isActive: !ad.isActive,
+      },
+      newData: {
+        isActive: ad.isActive,
+      },
+      req,
+    });
+
     return res.status(200).json({
       success: true,
       message: `Ad ${ad.isActive ? "activated" : "deactivated"} successfully`,
@@ -336,7 +405,37 @@ const toggleAdStatusCtrl = async (req, res) => {
 const deleteAddCtrl = async (req, res) => {
   try {
     const { id } = req.params;
+    const ad = await adsModel.findById(id);
+
+    if (!ad) {
+      return res.status(404).json({
+        success: false,
+        message: "Ad not found",
+      });
+    }
+
+    await createSystemLog({
+      actorId: req.user.id,
+      actorModel: "auth",
+      entityId: ad._id,
+      entityModel: "Ads",
+
+      action: "DELETE",
+
+      description: `Advertisement deleted`,
+
+      oldData: {
+        url: ad.url,
+        image: ad.image,
+        approvalStatus: ad.approvalStatus,
+        isActive: ad.isActive,
+      },
+
+      req,
+    });
+
     await adsModel.findByIdAndDelete(id);
+
     return res.status(200).json({
       success: true,
       message: "Ad deleted successfully!",
@@ -364,6 +463,8 @@ const updateAddCtrl = async (req, res) => {
       });
     }
 
+    const oldAd = ad.toObject();
+
     const updateData = {};
     if (url) updateData.url = url;
 
@@ -377,6 +478,24 @@ const updateAddCtrl = async (req, res) => {
 
     const updatedAd = await adsModel.findByIdAndUpdate(id, updateData, {
       new: true,
+    });
+
+    await createSystemLog({
+      actorId: req.user.id,
+      actorModel: "auth",
+      entityId: ad._id,
+      entityModel: "Ads",
+      action: "UPDATE",
+      description: `Advertisement updated`,
+      oldData: {
+        url: oldAd.url,
+        image: oldAd.image,
+      },
+      newData: {
+        url: updatedAd.url,
+        image: updatedAd.image,
+      },
+      req,
     });
 
     return res.status(200).json({
