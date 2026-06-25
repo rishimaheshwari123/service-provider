@@ -1,6 +1,3 @@
-// export const BASE_URL = "https://api.meragharsansaar.com/api/v1"
-// export const BASE_URL = "https://service-provider-1-6ite.onrender.com/api/v1"
-// export const BASE_URL = "http://localhost:8000/api/v1"
 export const BASE_URL = import.meta.env.VITE_APP_BASE_URL;
 
 export const endpoints = {
@@ -49,7 +46,7 @@ export const vendor = {
   UPDATE_REWARD_SETTINGS_API: BASE_URL + "/vendor/update-reward-settings",
 }
 
-// 🔥 Notification APIs
+// Notification APIs
 export const notification = {
   // Public Routes
   REGISTER_DEVICE: BASE_URL + "/notification/register-device",

@@ -23,7 +23,7 @@ const systemAuditLogSchema = new mongoose.Schema(
     entityModel: {
       type: String,
       required: true,
-      enum: ["auth", "Vendor", "Category", "Property", "System", "Ads", "Blog"], // Kis model me change hua
+      enum: ["auth", "Vendor", "Category", "Property", "System", "Ads", "Blog", "Career"], // Kis model me change hua
     },
 
     // 3. KYA ACTION HUA

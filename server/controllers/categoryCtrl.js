@@ -1,30 +1,43 @@
 const Category = require("../models/categoryModel");
 const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
-const { sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
+const {
+  sendWelcomeSMS1,
+  sendWelcomeSMS2,
+  sendWhatsAppWelcome,
+  sendApprovalSMS,
+  sendApprovalWhatsApp,
+} = require("../utils/otpService");
+const createSystemLog = require("../utils/auditLogger");
+const Vendor = require("../models/vendorModel");
 
 const createCategoryCtrl = async (req, res) => {
   try {
-    const { name, price, premiumPrice, premiumPlusPrice, autoFilled } = req.body;
-
-    // Debug logs
-    console.log("=== CREATE CATEGORY DEBUG ===");
-    console.log("req.body:", req.body);
-    console.log("req.files:", req.files);
+    const { name, price, premiumPrice, premiumPlusPrice, autoFilled } =
+      req.body;
 
     if (!name || price === undefined) {
-      return res.status(400).json({ success: false, message: "Name and price are required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Name and price are required" });
     }
 
     const existing = await Category.findOne({ name });
     if (existing) {
-      return res.status(400).json({ success: false, message: "Category already exists" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Category already exists" });
     }
 
     let imageUrl = "";
     if (req.files && req.files.image) {
       console.log("Uploading image to S3...");
-      const result = await uploadImageToCloudinary(req.files.image, "categories", 400, 80);
+      const result = await uploadImageToCloudinary(
+        req.files.image,
+        "categories",
+        400,
+        80,
+      );
       console.log("S3 upload result:", result);
       imageUrl = result.secure_url;
     } else {
@@ -37,10 +50,32 @@ const createCategoryCtrl = async (req, res) => {
       premiumPrice: premiumPrice || 0,
       premiumPlusPrice: premiumPlusPrice || 0,
       autoFilled: autoFilled || "",
-      image: imageUrl
+      image: imageUrl,
     });
+
+    await createSystemLog({
+      actorId: req.user?._id || req.user?.id,
+      actorModel: "auth",
+      entityId: category._id,
+      entityModel: "Category",
+      action: "CREATE",
+      description: `${req.user.name} created category ${category.name}`,
+
+      newData: {
+        name: category.name,
+        price: category.price,
+        premiumPrice: category.premiumPrice,
+        premiumPlusPrice: category.premiumPlusPrice,
+        active: category.active,
+      },
+
+      req,
+    });
+
     console.log("Category created:", category);
-    return res.status(201).json({ success: true, message: "Category created", category });
+    return res
+      .status(201)
+      .json({ success: true, message: "Category created", category });
   } catch (error) {
     console.error("Error creating category:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -53,103 +88,103 @@ const getAllCategoriesCtrl = async (req, res) => {
 
     // Helper function to normalize autoFilled values - sab kuch lowercase mein convert karo
     const normalizeAutoFilled = (autoFilled) => {
-      if (!autoFilled || autoFilled.trim() === '') return null;
+      if (!autoFilled || autoFilled.trim() === "") return null;
 
       // Sab kuch lowercase mein convert karo, trim karo, aur extra spaces remove karo
-      let normalized = autoFilled.toLowerCase().trim().replace(/\s+/g, ' ');
+      let normalized = autoFilled.toLowerCase().trim().replace(/\s+/g, " ");
 
       // Common variations ko handle karo - sab lowercase mein
       const normalizations = {
         // Home Service variations
-        'home service': 'home services',
-        'home services': 'home services',
-        'homeservice': 'home services',
-        'homeservices': 'home services',
-        'home service': 'home services',
+        "home service": "home services",
+        "home services": "home services",
+        homeservice: "home services",
+        homeservices: "home services",
+        "home service": "home services",
 
         // Repairing variations
-        'repairing': 'repairing',
-        'repair': 'repairing',
-        'repairs': 'repairing',
+        repairing: "repairing",
+        repair: "repairing",
+        repairs: "repairing",
 
         // Transport variations
-        'transport': 'transport',
-        'transportation': 'transport',
-        'tranport': 'transport', // typo fix
+        transport: "transport",
+        transportation: "transport",
+        tranport: "transport", // typo fix
 
         // Event Management variations
-        'event management': 'event management',
-        'event managment': 'event management',
-        'event': 'event management',
+        "event management": "event management",
+        "event managment": "event management",
+        event: "event management",
 
         // Construction variations
-        'construction': 'construction',
+        construction: "construction",
 
         // Shop variations
-        'shop': 'shop',
-        'shops': 'shop',
+        shop: "shop",
+        shops: "shop",
 
         // Food variations
-        'food': 'food',
-        'foods': 'food',
+        food: "food",
+        foods: "food",
 
         // Education variations
-        'education': 'education',
-        'educational': 'education',
+        education: "education",
+        educational: "education",
 
         // Health Care variations
-        'health care': 'health care',
-        'healthcare': 'health care',
-        'health': 'health care',
-        'medical': 'health care',
+        "health care": "health care",
+        healthcare: "health care",
+        health: "health care",
+        medical: "health care",
 
         // Legal variations
-        'legal': 'legal',
+        legal: "legal",
 
         // Astro variations
-        'astro': 'astro',
-        'astrology': 'astro',
+        astro: "astro",
+        astrology: "astro",
 
         // Sports variations
-        'sports': 'sports',
-        'sport': 'sports',
+        sports: "sports",
+        sport: "sports",
 
         // Office/School Work variations
-        'office/ school work': 'office work',
-        'office/school work': 'office work',
-        'office work': 'office work',
-        'school work': 'office work',
-        'office/ school work': 'office work',
-        'office/school work': 'office work',
+        "office/ school work": "office work",
+        "office/school work": "office work",
+        "office work": "office work",
+        "school work": "office work",
+        "office/ school work": "office work",
+        "office/school work": "office work",
 
         // Car/Bike variations
-        'car/bike': 'car bike',
-        'car/ bike': 'car bike',
-        'car bike': 'car bike',
+        "car/bike": "car bike",
+        "car/ bike": "car bike",
+        "car bike": "car bike",
 
         // Decoration variations
-        'decoration': 'decoration',
+        decoration: "decoration",
 
         // Beauty & Spa variations
-        'beauty': 'beauty spa',
-        'beauty & spa': 'beauty spa',
-        'spa': 'beauty spa',
+        beauty: "beauty spa",
+        "beauty & spa": "beauty spa",
+        spa: "beauty spa",
 
         // Wedding variations
-        'wedding': 'wedding services',
-        'wedding services': 'wedding services',
-        'wedding planning': 'wedding services',
+        wedding: "wedding services",
+        "wedding services": "wedding services",
+        "wedding planning": "wedding services",
 
         // Fitness variations
-        'fitness': 'fitness gym',
-        'gym': 'fitness gym',
-        'fitness & gym': 'fitness gym',
+        fitness: "fitness gym",
+        gym: "fitness gym",
+        "fitness & gym": "fitness gym",
 
         // Hotels variations
-        'hotel': 'hotels accommodation',
-        'hotels': 'hotels accommodation',
-        'accommodation': 'hotels accommodation',
-        'hotels & accommodation': 'hotels accommodation'
+        hotel: "hotels accommodation",
+        hotels: "hotels accommodation",
+        accommodation: "hotels accommodation",
+        "hotels & accommodation": "hotels accommodation",
       };
 
       // Agar normalization mein hai to use karo, nahi to original lowercase return karo
@@ -159,16 +194,16 @@ const getAllCategoriesCtrl = async (req, res) => {
     // Helper function to convert to display format (Title Case)
     const toDisplayFormat = (text) => {
       return text
-        .split(' ')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
     };
 
     // Group categories by normalized autoFilled value
     const groupedCategories = {};
     const ungroupedCategories = [];
 
-    categories.forEach(category => {
+    categories.forEach((category) => {
       const normalizedAutoFilled = normalizeAutoFilled(category.autoFilled);
 
       if (normalizedAutoFilled) {
@@ -186,14 +221,19 @@ const getAllCategoriesCtrl = async (req, res) => {
     // Convert grouped object to array format and sort by title
     const autoFilledGroups = Object.keys(groupedCategories)
       .sort() // Sort group titles alphabetically
-      .map(normalizedKey => ({
+      .map((normalizedKey) => ({
         title: toDisplayFormat(normalizedKey), // Display mein Title Case
-        categories: groupedCategories[normalizedKey].sort((a, b) => a.name.localeCompare(b.name)) // Sort categories within group
+        categories: groupedCategories[normalizedKey].sort((a, b) =>
+          a.name.localeCompare(b.name),
+        ), // Sort categories within group
       }));
 
-    autoFilledGroups.forEach(group => {
+    autoFilledGroups.forEach((group) => {
       // Show first few category names for debugging
-      const categoryNames = group.categories.slice(0, 3).map(cat => cat.name).join(', ');
+      const categoryNames = group.categories
+        .slice(0, 3)
+        .map((cat) => cat.name)
+        .join(", ");
     });
 
     return res.status(200).json({
@@ -201,8 +241,10 @@ const getAllCategoriesCtrl = async (req, res) => {
       categories, // Original flat array for backward compatibility
       groupedData: {
         autoFilledGroups,
-        ungroupedCategories: ungroupedCategories.sort((a, b) => a.name.localeCompare(b.name)) // Sort ungrouped categories
-      }
+        ungroupedCategories: ungroupedCategories.sort((a, b) =>
+          a.name.localeCompare(b.name),
+        ), // Sort ungrouped categories
+      },
     });
   } catch (error) {
     console.error("Error fetching categories:", error);
@@ -228,11 +270,13 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
     // Check if property already exists for this vendor-category combination
     const existingProperty = await Property.findOne({
       vendor: vendorId,
-      category: categoryId // Now using ObjectId
+      category: categoryId, // Now using ObjectId
     });
 
     if (existingProperty) {
-      console.log("Property already exists for this vendor-category combination");
+      console.log(
+        "Property already exists for this vendor-category combination",
+      );
       return existingProperty;
     }
 
@@ -240,15 +284,22 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
     const propertyData = {
       title: category.name, // Category name as title
       price: category.price.toString(), // Category price
-      location: vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
+      location:
+        vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
       type: "service", // Default type
       category: categoryId, // Category ObjectId
-      description: vendor.description || category.autoFilled || `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
-      images: vendor.portfolioImages && vendor.portfolioImages.length > 0
-        ? vendor.portfolioImages // Use vendor's portfolio images if available
-        : category.image ? [{ url: category.image }] : [], // Fallback to category image
+      description:
+        vendor.description ||
+        category.autoFilled ||
+        `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
+      images:
+        vendor.portfolioImages && vendor.portfolioImages.length > 0
+          ? vendor.portfolioImages // Use vendor's portfolio images if available
+          : category.image
+            ? [{ url: category.image }]
+            : [], // Fallback to category image
       vendor: vendorId, // Vendor ID
-      status: "active"
+      status: "active",
     };
 
     const newProperty = await Property.create(propertyData);
@@ -263,39 +314,58 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
 // Helper function to send welcome messages to vendor on first purchase
 const sendVendorWelcomeMessages = async (vendor) => {
   try {
-    console.log('🎉 Sending welcome messages to vendor on first purchase:', vendor.name);
+    console.log(
+      "🎉 Sending welcome messages to vendor on first purchase:",
+      vendor.name,
+    );
 
     const phoneNumber = vendor.phone;
     const vendorName = vendor.name;
     const vendorId = vendor._id;
-    const supportContact = '+91 78798 84363';
+    const supportContact = "+91 78798 84363";
 
     // Send first welcome SMS (registration confirmation)
-    const welcomeSMS1Result = await sendWelcomeSMS1(phoneNumber, vendorName, vendorId);
+    const welcomeSMS1Result = await sendWelcomeSMS1(
+      phoneNumber,
+      vendorName,
+      vendorId,
+    );
     if (welcomeSMS1Result.success) {
-      console.log('✅ Welcome SMS 1 sent successfully');
+      console.log("✅ Welcome SMS 1 sent successfully");
     } else {
-      console.error('❌ Welcome SMS 1 failed:', welcomeSMS1Result.message);
+      console.error("❌ Welcome SMS 1 failed:", welcomeSMS1Result.message);
     }
 
     // Send second welcome SMS (account registered)
-    const welcomeSMS2Result = await sendWelcomeSMS2(phoneNumber, vendorName, supportContact, vendorId);
+    const welcomeSMS2Result = await sendWelcomeSMS2(
+      phoneNumber,
+      vendorName,
+      supportContact,
+      vendorId,
+    );
     if (welcomeSMS2Result.success) {
     } else {
-      console.error('❌ Welcome SMS 2 failed:', welcomeSMS2Result.message);
+      console.error("❌ Welcome SMS 2 failed:", welcomeSMS2Result.message);
     }
 
     // Send WhatsApp welcome message if user has WhatsApp verified
     if (vendor.whatsappNumber && vendor.isWhatsappVerified) {
-      const whatsappWelcomeResult = await sendWhatsAppWelcome(vendor.whatsappNumber, vendorName, supportContact, vendorId);
+      const whatsappWelcomeResult = await sendWhatsAppWelcome(
+        vendor.whatsappNumber,
+        vendorName,
+        supportContact,
+        vendorId,
+      );
       if (whatsappWelcomeResult.success) {
       } else {
-        console.error('❌ WhatsApp welcome message failed:', whatsappWelcomeResult.message);
+        console.error(
+          "❌ WhatsApp welcome message failed:",
+          whatsappWelcomeResult.message,
+        );
       }
     }
-
   } catch (welcomeError) {
-    console.error('❌ Error sending welcome messages:', welcomeError);
+    console.error("❌ Error sending welcome messages:", welcomeError);
     // Don't fail the purchase if welcome messages fail
   }
 };
@@ -317,28 +387,33 @@ const purchaseCategoryCtrl = async (req, res) => {
       // Coupon information
       couponCode,
       couponId,
-      discountAmount = 0
+      discountAmount = 0,
     } = req.body;
 
     // Support both paymentMode (old) and paymentMethod (new from admin assign)
     const finalPaymentMode = paymentMethod || paymentMode;
 
-
     if (!vendorId || !categoryId) {
-      return res.status(400).json({ success: false, message: "vendorId and categoryId are required" });
+      return res.status(400).json({
+        success: false,
+        message: "vendorId and categoryId are required",
+      });
     }
 
     // Check if vendor exists
-    const Vendor = require("../models/vendorModel");
     const vendor = await Vendor.findById(vendorId);
     if (!vendor) {
       console.log("Vendor not found:", vendorId);
-      return res.status(404).json({ success: false, message: "Vendor not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Vendor not found" });
     }
 
     const category = await Category.findById(categoryId);
     if (!category || category.active === false) {
-      return res.status(404).json({ success: false, message: "Category not found or inactive" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Category not found or inactive" });
     }
 
     // Calculate price based on tier if not provided
@@ -357,13 +432,18 @@ const purchaseCategoryCtrl = async (req, res) => {
     }
 
     // Check existing purchase
-    let purchase = await VendorCategoryPurchase.findOne({ vendor: vendorId, category: categoryId });
+    let purchase = await VendorCategoryPurchase.findOne({
+      vendor: vendorId,
+      category: categoryId,
+    });
     let shouldCreateProperty = false;
 
     if (purchase) {
       // Already exists
       if (purchase.status === "purchased") {
-        return res.status(200).json({ success: true, message: "Already purchased", purchase });
+        return res
+          .status(200)
+          .json({ success: true, message: "Already purchased", purchase });
       }
 
       // If assigned by admin or isAdmin flag is true, directly approve with "purchased" status
@@ -384,7 +464,10 @@ const purchaseCategoryCtrl = async (req, res) => {
       }
 
       // For online payments (prepaid/razorpay), create service immediately
-      else if (finalPaymentMode === "prepaid" || finalPaymentMode === "razorpay") {
+      else if (
+        finalPaymentMode === "prepaid" ||
+        finalPaymentMode === "razorpay"
+      ) {
         purchase.status = "purchased";
         purchase.transactionId = transactionId || purchase.transactionId;
         purchase.paymentMode = finalPaymentMode;
@@ -427,16 +510,20 @@ const purchaseCategoryCtrl = async (req, res) => {
       // Check if this is the vendor's first purchase attempt (any status)
       const previousPurchases = await VendorCategoryPurchase.countDocuments({
         vendor: vendorId,
-        _id: { $ne: purchase._id } // Exclude current purchase
+        _id: { $ne: purchase._id }, // Exclude current purchase
       });
 
       if (previousPurchases === 0) {
-        console.log('🎊 This is vendor\'s first purchase! Sending welcome messages...');
+        console.log(
+          "🎊 This is vendor's first purchase! Sending welcome messages...",
+        );
         await sendVendorWelcomeMessages(vendor);
       }
 
-      const msg = ((finalPaymentMode === "cash" || finalPaymentMode === "qr") && !isAdmin) ?
-        "Purchase requested and pending approval" : "Category purchased";
+      const msg =
+        (finalPaymentMode === "cash" || finalPaymentMode === "qr") && !isAdmin
+          ? "Purchase requested and pending approval"
+          : "Category purchased";
       return res.status(200).json({ success: true, message: msg, purchase });
     } else {
       // Create new purchase
@@ -471,9 +558,32 @@ const purchaseCategoryCtrl = async (req, res) => {
         finalPrice: finalPrice || calculatedPrice,
         couponCode: couponCode,
         couponId: couponId,
-        discountAmount: discountAmount
+        discountAmount: discountAmount,
       });
       purchase = await purchase.populate("category");
+
+      await createSystemLog({
+        actorId: vendorId,
+        actorModel: "Vendor",
+
+        entityId: purchase._id,
+        entityModel: "Category",
+
+        action: "CREATE",
+
+        description: `${vendor.name} purchased category ${category.name}`,
+
+        newData: {
+          vendor: vendor.name,
+          category: category.name,
+          paymentMode: purchase.paymentMode,
+          status: purchase.status,
+          priceTier: purchase.priceTier,
+          finalPrice: purchase.finalPrice,
+        },
+
+        req,
+      });
 
       // Create property automatically if conditions are met
       if (shouldCreateProperty) {
@@ -484,18 +594,23 @@ const purchaseCategoryCtrl = async (req, res) => {
       // Check if this is the vendor's first purchase attempt (any status)
       const previousPurchases = await VendorCategoryPurchase.countDocuments({
         vendor: vendorId,
-        _id: { $ne: purchase._id } // Exclude current purchase
+        _id: { $ne: purchase._id }, // Exclude current purchase
       });
 
       if (previousPurchases === 0) {
-        console.log('🎊 This is vendor\'s first purchase! Sending welcome messages...');
+        console.log(
+          "🎊 This is vendor's first purchase! Sending welcome messages...",
+        );
         await sendVendorWelcomeMessages(vendor);
       }
 
       let msg;
       if (assignedByAdmin || isAdmin) {
         msg = "Category assigned and approved";
-      } else if (finalPaymentMode === "prepaid" || finalPaymentMode === "razorpay") {
+      } else if (
+        finalPaymentMode === "prepaid" ||
+        finalPaymentMode === "razorpay"
+      ) {
         msg = "Category purchased successfully";
       } else {
         msg = "Purchase requested and pending approval";
@@ -513,11 +628,15 @@ const getPurchasedCategoriesCtrl = async (req, res) => {
   try {
     const { vendorId } = req.params;
     if (!vendorId) {
-      return res.status(400).json({ success: false, message: "vendorId is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "vendorId is required" });
     }
 
-    const purchases = await VendorCategoryPurchase.find({ vendor: vendorId, status: "purchased" })
-      .populate("category");
+    const purchases = await VendorCategoryPurchase.find({
+      vendor: vendorId,
+      status: "purchased",
+    }).populate("category");
 
     // Return full purchase information including price tier
     const purchaseData = purchases.map((purchase) => ({
@@ -528,12 +647,12 @@ const getPurchasedCategoriesCtrl = async (req, res) => {
       paymentMode: purchase.paymentMode,
       status: purchase.status,
       createdAt: purchase.createdAt,
-      transactionId: purchase.transactionId
+      transactionId: purchase.transactionId,
     }));
 
     return res.status(200).json({
       success: true,
-      categories: purchaseData // Keep the same response structure for backward compatibility
+      categories: purchaseData, // Keep the same response structure for backward compatibility
     });
   } catch (error) {
     console.error("Error fetching purchased categories:", error);
@@ -544,21 +663,23 @@ const getPurchasedCategoriesCtrl = async (req, res) => {
 const updateCategoryCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, price, premiumPrice, premiumPlusPrice, active, autoFilled } = req.body;
-
-    // Debug logs
-    console.log("=== UPDATE CATEGORY DEBUG ===");
-    console.log("req.body:", req.body);
-    console.log("req.files:", req.files);
+    const { name, price, premiumPrice, premiumPlusPrice, active, autoFilled } =
+      req.body;
 
     if (!id) {
-      return res.status(400).json({ success: false, message: "Category id is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Category id is required" });
     }
 
     const category = await Category.findById(id);
     if (!category) {
-      return res.status(404).json({ success: false, message: "Category not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Category not found" });
     }
+
+    const oldCategory = category.toObject();
 
     // Store old name for updating related services
     const oldName = category.name;
@@ -577,46 +698,78 @@ const updateCategoryCtrl = async (req, res) => {
       const titleUpdateResult = await Property.updateMany(
         {
           category: id, // Match by category ObjectId
-          title: oldName // Only update if title matches old category name
+          title: oldName, // Only update if title matches old category name
         },
         {
-          $set: { title: name }
-        }
+          $set: { title: name },
+        },
       );
 
       updatedPropertiesCount = titleUpdateResult.modifiedCount;
-
-      console.log(`Updated ${updatedPropertiesCount} properties with new category name: ${oldName} -> ${name}`);
     }
 
     if (price !== undefined) category.price = price;
     if (premiumPrice !== undefined) category.premiumPrice = premiumPrice;
-    if (premiumPlusPrice !== undefined) category.premiumPlusPrice = premiumPlusPrice;
+    if (premiumPlusPrice !== undefined)
+      category.premiumPlusPrice = premiumPlusPrice;
     if (active !== undefined) category.active = active;
     if (autoFilled !== undefined) category.autoFilled = autoFilled;
 
     // Handle image upload
     if (req.files && req.files.image) {
-      console.log("Uploading image to S3...");
-      const result = await uploadImageToCloudinary(req.files.image, "categories", 400, 80);
-      console.log("S3 upload result:", result);
+      const result = await uploadImageToCloudinary(
+        req.files.image,
+        "categories",
+        400,
+        80,
+      );
       category.image = result.secure_url;
     } else {
       console.log("No image file received in update");
     }
 
     await category.save();
-    console.log("Category updated:", category);
 
-    const responseMessage = updatedPropertiesCount > 0
-      ? `Category updated successfully. ${updatedPropertiesCount} related services also updated.`
-      : "Category updated successfully";
+    const responseMessage =
+      updatedPropertiesCount > 0
+        ? `Category updated successfully. ${updatedPropertiesCount} related services also updated.`
+        : "Category updated successfully";
+
+    await createSystemLog({
+      actorId: req.user?._id || req.user?.id,
+      actorModel: "auth",
+
+      entityId: category._id,
+      entityModel: "Category",
+
+      action: "UPDATE",
+
+      description: `${req.user.name} updated category ${category.name}`,
+
+      oldData: {
+        name: oldCategory.name,
+        price: oldCategory.price,
+        premiumPrice: oldCategory.premiumPrice,
+        premiumPlusPrice: oldCategory.premiumPlusPrice,
+        active: oldCategory.active,
+      },
+
+      newData: {
+        name: category.name,
+        price: category.price,
+        premiumPrice: category.premiumPrice,
+        premiumPlusPrice: category.premiumPlusPrice,
+        active: category.active,
+      },
+
+      req,
+    });
 
     return res.status(200).json({
       success: true,
       message: responseMessage,
       category,
-      updatedPropertiesCount
+      updatedPropertiesCount,
     });
   } catch (error) {
     console.error("Error updating category:", error);
@@ -629,25 +782,52 @@ const deleteCategoryCtrl = async (req, res) => {
     const { id } = req.params;
 
     if (!id) {
-      return res.status(400).json({ success: false, message: "Category id is required" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Category id is required" });
     }
 
     const category = await Category.findById(id);
     if (!category) {
-      return res.status(404).json({ success: false, message: "Category not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Category not found" });
     }
+
+    await createSystemLog({
+      actorId: req.user?._id || req.user?.id,
+      actorModel: "auth",
+
+      entityId: category._id,
+      entityModel: "Category",
+
+      action: "DELETE",
+
+      description: `${req.user.name} deleted category ${category.name}`,
+
+      oldData: {
+        name: category.name,
+        price: category.price,
+        premiumPrice: category.premiumPrice,
+        premiumPlusPrice: category.premiumPlusPrice,
+      },
+
+      req,
+    });
 
     // Check if category has any purchases
     // const purchases = await VendorCategoryPurchase.find({ category: id });
     // if (purchases.length > 0) {
-    //   return res.status(400).json({ 
-    //     success: false, 
-    //     message: "Cannot delete category. It has existing purchases. Please contact vendors to remove their purchases first." 
+    //   return res.status(400).json({
+    //     success: false,
+    //     message: "Cannot delete category. It has existing purchases. Please contact vendors to remove their purchases first."
     //   });
     // }
 
     await Category.findByIdAndDelete(id);
-    return res.status(200).json({ success: true, message: "Category deleted successfully" });
+    return res
+      .status(200)
+      .json({ success: true, message: "Category deleted successfully" });
   } catch (error) {
     console.error("Error deleting category:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -683,7 +863,9 @@ const getCategoryPurchasersCtrl = async (req, res) => {
       .sort({ createdAt: -1 }); // Sort by newest first
 
     // Only keep purchases where the populated vendor still exists in the database
-    const activePurchases = purchases.filter(p => p.vendor !== null && p.vendor !== undefined);
+    const activePurchases = purchases.filter(
+      (p) => p.vendor !== null && p.vendor !== undefined,
+    );
 
     // Map required fields including paymentMode and transactionId
     const purchasers = activePurchases.map((p) => ({
@@ -699,9 +881,7 @@ const getCategoryPurchasersCtrl = async (req, res) => {
     return res.status(200).json({ success: true, purchasers });
   } catch (error) {
     console.error("Error fetching category purchasers:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
@@ -717,7 +897,9 @@ const getPendingPurchasesCtrl = async (req, res) => {
       .sort({ createdAt: -1 });
 
     // Only keep pending purchases where the populated vendor still exists in the database
-    const activePending = pending.filter(p => p.vendor !== null && p.vendor !== undefined);
+    const activePending = pending.filter(
+      (p) => p.vendor !== null && p.vendor !== undefined,
+    );
 
     return res.status(200).json({ success: true, pending: activePending });
   } catch (error) {
@@ -730,8 +912,14 @@ const getPendingPurchasesCtrl = async (req, res) => {
 const getVendorPendingPurchasesCtrl = async (req, res) => {
   try {
     const { vendorId } = req.params;
-    if (!vendorId) return res.status(400).json({ success: false, message: "vendorId is required" });
-    const pending = await VendorCategoryPurchase.find({ vendor: vendorId, status: "pending" })
+    if (!vendorId)
+      return res
+        .status(400)
+        .json({ success: false, message: "vendorId is required" });
+    const pending = await VendorCategoryPurchase.find({
+      vendor: vendorId,
+      status: "pending",
+    })
       .populate({ path: "category", select: "name price" })
       .sort({ createdAt: -1 });
     return res.status(200).json({ success: true, pending });
@@ -746,12 +934,37 @@ const approvePurchaseCtrl = async (req, res) => {
   try {
     const { purchaseId } = req.params;
     const purchase = await VendorCategoryPurchase.findById(purchaseId);
-    if (!purchase) return res.status(404).json({ success: false, message: "Purchase not found" });
+    if (!purchase)
+      return res
+        .status(404)
+        .json({ success: false, message: "Purchase not found" });
 
     purchase.status = "purchased";
     purchase.paymentMode = purchase.paymentMode || "cash";
     purchase.reason = undefined; // Clear any previous rejection reason
     await purchase.save();
+
+    await createSystemLog({
+      actorId: req.user?._id || req.user?.id,
+      actorModel: "auth",
+
+      entityId: purchase._id,
+      entityModel: "Category",
+
+      action: "APPROVE",
+
+      description: `${req.user.name} approved category purchase`,
+
+      oldData: {
+        status: "pending",
+      },
+
+      newData: {
+        status: "purchased",
+      },
+
+      req,
+    });
 
     // Create property automatically when purchase is approved
     await createPropertyForCategory(purchase.vendor, purchase.category);
@@ -762,34 +975,51 @@ const approvePurchaseCtrl = async (req, res) => {
       const vendor = await Vendor.findById(purchase.vendor);
 
       if (vendor) {
-
         // Send SMS approval message
         if (vendor.phone) {
-          const smsResult = await sendApprovalSMS(vendor.phone, vendor.name, vendor._id);
+          const smsResult = await sendApprovalSMS(
+            vendor.phone,
+            vendor.name,
+            vendor._id,
+          );
           if (smsResult.success) {
           } else {
-            console.error('❌ Approval SMS failed:', smsResult.message);
+            console.error("❌ Approval SMS failed:", smsResult.message);
           }
         }
 
         // Send WhatsApp approval message if vendor has WhatsApp verified
         if (vendor.whatsappNumber && vendor.isWhatsappVerified) {
-          console.log('📱 Sending WhatsApp approval message...');
-          const whatsappResult = await sendApprovalWhatsApp(vendor.whatsappNumber, vendor.name, vendor._id);
+          console.log("📱 Sending WhatsApp approval message...");
+          const whatsappResult = await sendApprovalWhatsApp(
+            vendor.whatsappNumber,
+            vendor.name,
+            vendor._id,
+          );
           if (whatsappResult.success) {
-            console.log('✅ WhatsApp approval message sent successfully');
+            console.log("✅ WhatsApp approval message sent successfully");
           } else {
-            console.error('❌ WhatsApp approval message failed:', whatsappResult.message);
+            console.error(
+              "❌ WhatsApp approval message failed:",
+              whatsappResult.message,
+            );
           }
         }
       }
     } catch (approvalError) {
-      console.error('❌ Error sending approval messages:', approvalError);
+      console.error("❌ Error sending approval messages:", approvalError);
       // Don't fail the approval if messages fail
     }
 
-    const populated = await purchase.populate([{ path: "vendor", select: "name email" }, { path: "category", select: "name price" }]);
-    return res.status(200).json({ success: true, message: "Purchase approved", purchase: populated });
+    const populated = await purchase.populate([
+      { path: "vendor", select: "name email" },
+      { path: "category", select: "name price" },
+    ]);
+    return res.status(200).json({
+      success: true,
+      message: "Purchase approved",
+      purchase: populated,
+    });
   } catch (error) {
     console.error("Error approving purchase:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -800,7 +1030,7 @@ const approvePurchaseCtrl = async (req, res) => {
 const rejectPurchaseCtrl = async (req, res) => {
   try {
     const { purchaseId } = req.params;
-    const { reason } = req.body;  // ✅ receive reason
+    const { reason } = req.body; // ✅ receive reason
 
     if (!reason || reason.trim() === "") {
       return res
@@ -818,6 +1048,29 @@ const rejectPurchaseCtrl = async (req, res) => {
     purchase.reason = reason.trim(); // ✅ save reason
     await purchase.save();
 
+    await createSystemLog({
+      actorId: req.user?._id || req.user?.id,
+      actorModel: "auth",
+
+      entityId: purchase._id,
+      entityModel: "Category",
+
+      action: "REJECT",
+
+      description: `${req.user.name} rejected category purchase`,
+
+      oldData: {
+        status: "pending",
+      },
+
+      newData: {
+        status: "rejected",
+        reason,
+      },
+
+      req,
+    });
+
     const populated = await purchase.populate([
       { path: "vendor", select: "name email" },
       { path: "category", select: "name price" },
@@ -830,12 +1083,9 @@ const rejectPurchaseCtrl = async (req, res) => {
     });
   } catch (error) {
     console.error("Error rejecting purchase:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Server error" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
 
 module.exports.getPendingPurchasesCtrl = getPendingPurchasesCtrl;
 module.exports.getVendorPendingPurchasesCtrl = getVendorPendingPurchasesCtrl;

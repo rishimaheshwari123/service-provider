@@ -15,42 +15,43 @@ const {
 
 const { createPropertiesForExistingPurchases } = require("../utils/createPropertiesForExistingPurchases");
 const { bulkUpdateCategoryReferences } = require("../utils/updateCategoryReferences");
+const { verifyToken, isAdmin } = require("../utils/verifyToken");
 
 const router = express.Router();
 
 // Admin: create category
-router.post("/create", createCategoryCtrl);
+router.post("/create", verifyToken, createCategoryCtrl);
 
 // Admin: update category
-router.put("/update/:id", updateCategoryCtrl);
+router.put("/update/:id", verifyToken, updateCategoryCtrl);
 
 // Admin: delete category
-router.delete("/delete/:id", deleteCategoryCtrl);
+router.delete("/delete/:id", verifyToken, deleteCategoryCtrl);
 
 // Public: list categories
-router.get("/getAll", getAllCategoriesCtrl);
+router.get("/getAll", verifyToken, getAllCategoriesCtrl);
 
 // Vendor: purchase a category
-router.post("/purchase", purchaseCategoryCtrl);
+router.post("/purchase", verifyToken, purchaseCategoryCtrl);
 
 // Vendor: list purchased categories
-router.get("/purchased/:vendorId", getPurchasedCategoriesCtrl);
+router.get("/purchased/:vendorId", verifyToken, getPurchasedCategoriesCtrl);
 
 // Admin: list purchasers for a category
-router.get("/purchasers/:categoryId", getCategoryPurchasersCtrl);
+router.get("/purchasers/:categoryId", verifyToken, getCategoryPurchasersCtrl);
 
 // Admin: list all pending cash purchases
-router.get("/pending", getPendingPurchasesCtrl);
+router.get("/pending", verifyToken, getPendingPurchasesCtrl);
 
 // Vendor: list pending purchases
-router.get("/pending/:vendorId", getVendorPendingPurchasesCtrl);
+router.get("/pending/:vendorId", verifyToken, getVendorPendingPurchasesCtrl);
 
 // Admin: approve or reject a pending purchase
-router.put("/approve/:purchaseId", approvePurchaseCtrl);
-router.put("/reject/:purchaseId", rejectPurchaseCtrl);
+router.put("/approve/:purchaseId", verifyToken, isAdmin, approvePurchaseCtrl);
+router.put("/reject/:purchaseId", verifyToken, isAdmin, rejectPurchaseCtrl);
 
 // Utility: Bulk update category references
-router.post("/bulk-update-references", async (req, res) => {
+router.post("/bulk-update-references", verifyToken, async (req, res) => {
   try {
     const { updates } = req.body; // Array of {oldName, newName} objects
     
@@ -79,7 +80,7 @@ router.post("/bulk-update-references", async (req, res) => {
 });
 
 // Utility: Create properties for existing purchases (one-time use)
-router.post("/create-properties-for-existing", async (req, res) => {
+router.post("/create-properties-for-existing", verifyToken, async (req, res) => {
   try {
     const result = await createPropertiesForExistingPurchases();
     return res.status(200).json({

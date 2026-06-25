@@ -841,7 +841,7 @@ const VendorManagement = () => {
 
     setOtpLoading(true);
 
-    const otpData = {
+    const otpData: Record<string, any> = {
       phone: numberToVerify,
       preferredMethod: preferredMethod,
       forceResend: true,
@@ -1564,6 +1564,8 @@ const VendorManagement = () => {
           referralCode: "",
           referralName: "",
           status: "approved",
+          paymentMethod: "",
+          upiId: "",
         });
 
         setCurrentStep(1);

@@ -22,6 +22,6 @@ router.get("/get/:vendorId", verifyToken, isVendor, getBookingsByVendorCtrl);
 // User can see only their own bookings
 router.get("/user/:userId", verifyToken, isUser, getBookingsByUserCtrl);
 
-router.put("/update/:bookingId", updateBookingStatusCtrl);
+router.put("/update/:bookingId", verifyToken, updateBookingStatusCtrl);
 
 module.exports = router;
