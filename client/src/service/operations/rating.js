@@ -1,7 +1,6 @@
 import { toast } from "react-toastify";
 import { apiConnector } from "../apiConnector";
 import { ratingEndpoints } from "../apis";
-
 const {
   ADD_RATING_API,
 
@@ -9,9 +8,7 @@ const {
 } = ratingEndpoints;
 
 
-
 // Rating Review
-
 export const addRating = async (formData, token) => {
   console.log(formData);
   const toastId = toast.loading("Loading...");
@@ -22,7 +19,6 @@ export const addRating = async (formData, token) => {
       Authorization: `Bearer ${token}`,
     });
 
-    console.log("ADD_RATING_API API RESPONSE............", response);
 
     if (!response?.data?.success) {
       throw new Error("Could not ADD_RATING_API details");
@@ -37,19 +33,10 @@ export const addRating = async (formData, token) => {
   toast.dismiss(toastId);
 };
 
-
-
-
-
-
-
-
-
 export const getAllReatingAPI = async () => {
   try {
     console.log("Fetching all reviews from API...");
     const response = await apiConnector("GET", GETALL_RATING_API);
-    
 
     if (!response?.data?.success) {
       console.error("Rating API returned unsuccessful response:", response?.data);

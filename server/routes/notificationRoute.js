@@ -29,8 +29,8 @@ const { verifyToken, isAdmin } = require("../utils/verifyToken");
 router.post("/register-device", registerDeviceCtrl);
 
 // Topic manual subscribe/unsubscribe (Accessible by client apps)
-router.post("/topics/subscribe", subscribeToTopicCtrl);
-router.post("/topics/unsubscribe", unsubscribeFromTopicCtrl);
+router.post("/topics/subscribe", verifyToken, subscribeToTopicCtrl);
+router.post("/topics/unsubscribe", verifyToken, unsubscribeFromTopicCtrl);
 
 // ========================================
 // USER/VENDOR ROUTES (Public - query params se identify hoga)

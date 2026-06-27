@@ -29,22 +29,22 @@ router.put("/update/:id", verifyToken, updateCategoryCtrl);
 router.delete("/delete/:id", verifyToken, deleteCategoryCtrl);
 
 // Public: list categories
-router.get("/getAll", verifyToken, getAllCategoriesCtrl);
+router.get("/getAll", getAllCategoriesCtrl);
 
 // Vendor: purchase a category
 router.post("/purchase", verifyToken, purchaseCategoryCtrl);
 
 // Vendor: list purchased categories
-router.get("/purchased/:vendorId", verifyToken, getPurchasedCategoriesCtrl);
+router.get("/purchased/:vendorId", getPurchasedCategoriesCtrl);
 
 // Admin: list purchasers for a category
-router.get("/purchasers/:categoryId", verifyToken, getCategoryPurchasersCtrl);
+router.get("/purchasers/:categoryId", getCategoryPurchasersCtrl);
 
 // Admin: list all pending cash purchases
-router.get("/pending", verifyToken, getPendingPurchasesCtrl);
+router.get("/pending", getPendingPurchasesCtrl);
 
 // Vendor: list pending purchases
-router.get("/pending/:vendorId", verifyToken, getVendorPendingPurchasesCtrl);
+router.get("/pending/:vendorId", getVendorPendingPurchasesCtrl);
 
 // Admin: approve or reject a pending purchase
 router.put("/approve/:purchaseId", verifyToken, isAdmin, approvePurchaseCtrl);

@@ -1,5 +1,6 @@
 const VendorProfileUpdateRequest = require("../models/vendorProfileUpdateRequestModel");
 const vendorModel = require("../models/vendorModel");
+const createSystemLog = require("../utils/auditLogger");
 
 const numberFields = new Set(["selectedPrice", "numberOfStaff"]);
 const normalizePhone = (value) => (value || "").toString().trim();
@@ -266,6 +267,15 @@ exports.createProfileUpdateRequest = async (req, res) => {
         updateProfileRequest: "requested",
       });
 
+      await createSystemLog({
+        actorId: req.user?.id || null,
+        actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+        entityId: existingRequest._id,
+        entityModel: "VendorProfileUpdateRequest",
+        action: "UPDATE",
+        description: `Profile update request modified`,
+      });
+
       return res.status(200).json({
         success: true,
         message: "Profile update request updated successfully",
@@ -285,6 +295,15 @@ exports.createProfileUpdateRequest = async (req, res) => {
     // Update vendor status
     await vendorModel.findByIdAndUpdate(id, {
       updateProfileRequest: "requested",
+    });
+
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: updateRequest._id,
+      entityModel: "VendorProfileUpdateRequest",
+      action: "CREATE",
+      description: `Profile update request submitted`,
     });
 
     return res.status(201).json({
@@ -440,6 +459,15 @@ exports.approveUpdateRequest = async (req, res) => {
     updateRequest.reviewedAt = new Date();
     await updateRequest.save();
 
+    await createSystemLog({
+      actorId: adminId || req.user?.id || null,
+      actorModel: "auth",
+      entityId: updateRequest._id,
+      entityModel: "VendorProfileUpdateRequest",
+      action: "STATUS_CHANGE",
+      description: `Profile update request approved`,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Profile update request approved successfully",
@@ -486,6 +514,15 @@ exports.rejectUpdateRequest = async (req, res) => {
     // Reset vendor status
     await vendorModel.findByIdAndUpdate(updateRequest.vendorId, {
       updateProfileRequest: "approved", // Reset to approved so they can edit again
+    });
+
+    await createSystemLog({
+      actorId: adminId || req.user?.id || null,
+      actorModel: "auth",
+      entityId: updateRequest._id,
+      entityModel: "VendorProfileUpdateRequest",
+      action: "STATUS_CHANGE",
+      description: `Profile update request rejected`,
     });
 
     return res.status(200).json({

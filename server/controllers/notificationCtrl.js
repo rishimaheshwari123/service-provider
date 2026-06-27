@@ -5,6 +5,7 @@ const admin = require("../config/firebase");
 const Topic = require("../models/topicModel");
 const Auth = require("../models/authModel");
 const Vendor = require("../models/vendorModel");
+const createSystemLog = require("../utils/auditLogger");
 
 // Helper to evaluate criteria for a topic
 const evaluateCriteria = (criteria, user, vendor) => {
@@ -14,7 +15,8 @@ const evaluateCriteria = (criteria, user, vendor) => {
   if (criteria.role) {
     if (criteria.role === "vendor" && !vendor) return false;
     if (criteria.role === "user" && !user) return false;
-    if (criteria.role === "admin" && (!user || user.role !== "admin")) return false;
+    if (criteria.role === "admin" && (!user || user.role !== "admin"))
+      return false;
   }
 
   // isVendor filter
@@ -31,43 +33,81 @@ const evaluateCriteria = (criteria, user, vendor) => {
 
   // phoneVerified filter
   if (criteria.phoneVerified !== undefined) {
-    const verified = user ? user.phoneVerified : (vendor ? vendor.isPhoneVerified : false);
+    const verified = user
+      ? user.phoneVerified
+      : vendor
+        ? vendor.isPhoneVerified
+        : false;
     if (criteria.phoneVerified !== verified) return false;
   }
 
   // Vendor filters (only applicable if vendor exists)
   if (vendor) {
-    if (criteria.category && vendor.category && vendor.category.toString() !== criteria.category.toString()) {
+    if (
+      criteria.category &&
+      vendor.category &&
+      vendor.category.toString() !== criteria.category.toString()
+    ) {
       return false;
     }
-    if (criteria.serviceLocation && vendor.serviceLocation && !vendor.serviceLocation.toLowerCase().includes(criteria.serviceLocation.toLowerCase())) {
+    if (
+      criteria.serviceLocation &&
+      vendor.serviceLocation &&
+      !vendor.serviceLocation
+        .toLowerCase()
+        .includes(criteria.serviceLocation.toLowerCase())
+    ) {
       return false;
     }
-    if (criteria.pincode && vendor.pincode && vendor.pincode !== criteria.pincode) {
+    if (
+      criteria.pincode &&
+      vendor.pincode &&
+      vendor.pincode !== criteria.pincode
+    ) {
       return false;
     }
-    if (criteria.selectedPriceTier && vendor.selectedPriceTier && vendor.selectedPriceTier !== criteria.selectedPriceTier) {
+    if (
+      criteria.selectedPriceTier &&
+      vendor.selectedPriceTier &&
+      vendor.selectedPriceTier !== criteria.selectedPriceTier
+    ) {
       return false;
     }
   } else {
     // If vendor filters are specified, but we don't have a vendor, it's not a match
-    if (criteria.category || criteria.serviceLocation || criteria.pincode || criteria.selectedPriceTier) {
+    if (
+      criteria.category ||
+      criteria.serviceLocation ||
+      criteria.pincode ||
+      criteria.selectedPriceTier
+    ) {
       return false;
     }
   }
 
   // Common filters (createdAfter, createdBefore)
-  const createdAt = user ? new Date(user.createdAt) : (vendor ? new Date(vendor.createdAt) : null);
+  const createdAt = user
+    ? new Date(user.createdAt)
+    : vendor
+      ? new Date(vendor.createdAt)
+      : null;
   if (createdAt) {
-    if (criteria.createdAfter && createdAt < new Date(criteria.createdAfter)) return false;
-    if (criteria.createdBefore && createdAt > new Date(criteria.createdBefore)) return false;
+    if (criteria.createdAfter && createdAt < new Date(criteria.createdAfter))
+      return false;
+    if (criteria.createdBefore && createdAt > new Date(criteria.createdBefore))
+      return false;
   }
 
   return true;
 };
 
 // Helper to subscribe device to qualifying topics
-const subscribeDeviceToQualifyingTopics = async (device, fcmToken, userId, vendorId) => {
+const subscribeDeviceToQualifyingTopics = async (
+  device,
+  fcmToken,
+  userId,
+  vendorId,
+) => {
   try {
     if (!admin || !admin.apps.length) {
       console.log("Firebase not initialized. Skipping topic subscriptions.");
@@ -114,18 +154,23 @@ const subscribeDeviceToQualifyingTopics = async (device, fcmToken, userId, vendo
         for (const topicName of topicNames) {
           await admin.messaging().subscribeToTopic(fcmToken, topicName);
         }
-        console.log(`Successfully subscribed device ${device.deviceId} to topics:`, topicNames);
+        console.log(
+          `Successfully subscribed device ${device.deviceId} to topics:`,
+          topicNames,
+        );
 
         // 1. Update topics inside device model in DB
         await Device.findOneAndUpdate(
           { deviceId: device.deviceId },
-          { $addToSet: { topics: { $each: topicNames } } }
+          { $addToSet: { topics: { $each: topicNames } } },
         );
 
         // 2. Increment subscriber count for these topics in DB
         for (const topic of topicsToSubscribe) {
           // Double check subscription counts
-          await Topic.findByIdAndUpdate(topic._id, { $inc: { subscriberCount: 1 } });
+          await Topic.findByIdAndUpdate(topic._id, {
+            $inc: { subscriberCount: 1 },
+          });
         }
       } catch (fcmError) {
         console.error("Error subscribing to Firebase topics:", fcmError);
@@ -139,12 +184,13 @@ const subscribeDeviceToQualifyingTopics = async (device, fcmToken, userId, vendo
 // 1. Register/Update Device FCM Token
 const registerDeviceCtrl = async (req, res) => {
   try {
-    const { deviceId, fcmToken, userId, vendorId, isGuest, platform } = req.body;
+    const { deviceId, fcmToken, userId, vendorId, isGuest, platform } =
+      req.body;
 
     if (!deviceId || !fcmToken) {
       return res.status(400).json({
         success: false,
-        message: "deviceId and fcmToken are required."
+        message: "deviceId and fcmToken are required.",
       });
     }
 
@@ -153,16 +199,15 @@ const registerDeviceCtrl = async (req, res) => {
       fcmToken,
       platform: platform || "android",
       // If we got explicit userId/vendorId, we are no longer a guest
-      isGuest: isGuest !== undefined ? isGuest : (!userId && !vendorId),
+      isGuest: isGuest !== undefined ? isGuest : !userId && !vendorId,
       userId: userId || null,
-      vendorId: vendorId || null
+      vendorId: vendorId || null,
     };
 
-    const device = await Device.findOneAndUpdate(
-      { deviceId },
-      updateData,
-      { upsert: true, new: true }
-    );
+    const device = await Device.findOneAndUpdate({ deviceId }, updateData, {
+      upsert: true,
+      new: true,
+    });
 
     // Trigger auto-subscription
     await subscribeDeviceToQualifyingTopics(device, fcmToken, userId, vendorId);
@@ -170,14 +215,14 @@ const registerDeviceCtrl = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Device registered/updated successfully.",
-      device
+      device,
     });
   } catch (error) {
     console.error("Register Device Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while registering device.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -188,7 +233,9 @@ const getNotificationStatsCtrl = async (req, res) => {
     const totalDevices = await Device.countDocuments();
     const guestDevices = await Device.countDocuments({ isGuest: true });
     const userDevices = await Device.countDocuments({ userId: { $ne: null } });
-    const vendorDevices = await Device.countDocuments({ vendorId: { $ne: null } });
+    const vendorDevices = await Device.countDocuments({
+      vendorId: { $ne: null },
+    });
 
     return res.status(200).json({
       success: true,
@@ -196,15 +243,15 @@ const getNotificationStatsCtrl = async (req, res) => {
         totalDevices,
         guestDevices,
         userDevices,
-        vendorDevices
-      }
+        vendorDevices,
+      },
     });
   } catch (error) {
     console.error("Get Notification Stats Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while fetching stats.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -212,12 +259,13 @@ const getNotificationStatsCtrl = async (req, res) => {
 // 3. Send Push Notification (Multicast/Targeted) + Save to DB
 const sendPushNotificationCtrl = async (req, res) => {
   try {
-    const { title, body, imageUrl, targetType, targetIds, type, data, link } = req.body;
+    const { title, body, imageUrl, targetType, targetIds, type, data, link } =
+      req.body;
 
     if (!title || !body) {
       return res.status(400).json({
         success: false,
-        message: "Title and Body are required."
+        message: "Title and Body are required.",
       });
     }
 
@@ -225,13 +273,15 @@ const sendPushNotificationCtrl = async (req, res) => {
     if (!admin || !admin.apps.length) {
       return res.status(503).json({
         success: false,
-        message: "Firebase Admin is not initialized. Please verify Firebase credentials on the server."
+        message:
+          "Firebase Admin is not initialized. Please verify Firebase credentials on the server.",
       });
     }
 
     let query = {};
     const normalizedTargetType = String(targetType || "all").toLowerCase();
-    const selectedTarget = normalizedTargetType === "guest" ? "guests" : normalizedTargetType;
+    const selectedTarget =
+      normalizedTargetType === "guest" ? "guests" : normalizedTargetType;
     let topicName = null;
     let topicDisplayName = "";
 
@@ -250,28 +300,29 @@ const sendPushNotificationCtrl = async (req, res) => {
         if (!targetIds || !Array.isArray(targetIds) || targetIds.length === 0) {
           return res.status(400).json({
             success: false,
-            message: "targetIds array is required when targeting specific users."
+            message:
+              "targetIds array is required when targeting specific users.",
           });
         }
         query = {
           $or: [
             { userId: { $in: targetIds } },
-            { vendorId: { $in: targetIds } }
-          ]
+            { vendorId: { $in: targetIds } },
+          ],
         };
         break;
       case "topic":
         if (!targetIds) {
           return res.status(400).json({
             success: false,
-            message: "targetIds (Topic ID) is required when targeting a topic."
+            message: "targetIds (Topic ID) is required when targeting a topic.",
           });
         }
         const topicObj = await Topic.findById(targetIds);
         if (!topicObj) {
           return res.status(404).json({
             success: false,
-            message: "Selected topic not found."
+            message: "Selected topic not found.",
           });
         }
         topicName = topicObj.topicName;
@@ -285,21 +336,26 @@ const sendPushNotificationCtrl = async (req, res) => {
     }
 
     // Find registered devices matching query
-    const devices = await Device.find(query, "fcmToken userId vendorId isGuest");
-    
+    const devices = await Device.find(
+      query,
+      "fcmToken userId vendorId isGuest",
+    );
+
     // Extract and de-duplicate tokens
-    const tokens = [...new Set(devices.map(d => d.fcmToken).filter(Boolean))];
+    const tokens = [...new Set(devices.map((d) => d.fcmToken).filter(Boolean))];
 
     // Prepare custom data with link
     const enrichedData = {
-      ...(data && typeof data === 'object' ? data : {}),
-      ...(link && { link })
+      ...(data && typeof data === "object" ? data : {}),
+      ...(link && { link }),
     };
 
     // 🔥 STEP 1: SAVE NOTIFICATIONS TO DATABASE
     const notificationsToSave = [];
-    const hasGuestDevices = devices.some(device => device.isGuest || (!device.userId && !device.vendorId));
-    
+    const hasGuestDevices = devices.some(
+      (device) => device.isGuest || (!device.userId && !device.vendorId),
+    );
+
     if (selectedTarget === "guests") {
       // For guests, create one notification marked as isForGuest
       notificationsToSave.push({
@@ -308,20 +364,24 @@ const sendPushNotificationCtrl = async (req, res) => {
         ...(imageUrl && { imageUrl }),
         type,
         data: enrichedData,
-        isForGuest: true
+        isForGuest: true,
       });
     } else {
       // For users/vendors/specific/topics, create individual notification records
       const uniqueRecipients = new Map();
-      
-      devices.forEach(device => {
+
+      devices.forEach((device) => {
         if (device.userId) {
-          uniqueRecipients.set(device.userId.toString(), { userId: device.userId });
+          uniqueRecipients.set(device.userId.toString(), {
+            userId: device.userId,
+          });
         } else if (device.vendorId) {
-          uniqueRecipients.set(device.vendorId.toString(), { vendorId: device.vendorId });
+          uniqueRecipients.set(device.vendorId.toString(), {
+            vendorId: device.vendorId,
+          });
         }
       });
-      
+
       uniqueRecipients.forEach((recipient) => {
         notificationsToSave.push({
           title,
@@ -329,7 +389,7 @@ const sendPushNotificationCtrl = async (req, res) => {
           ...(imageUrl && { imageUrl }),
           type,
           data: enrichedData,
-          ...recipient
+          ...recipient,
         });
       });
 
@@ -341,7 +401,7 @@ const sendPushNotificationCtrl = async (req, res) => {
           ...(imageUrl && { imageUrl }),
           type,
           data: enrichedData,
-          isForGuest: true
+          isForGuest: true,
         });
       }
     }
@@ -352,7 +412,9 @@ const sendPushNotificationCtrl = async (req, res) => {
       if (notificationsToSave.length > 0) {
         savedNotifications = await Notification.insertMany(notificationsToSave);
       }
-      console.log(`✅ Saved ${savedNotifications.length} notification(s) to database.`);
+      console.log(
+        `✅ Saved ${savedNotifications.length} notification(s) to database.`,
+      );
     } catch (dbError) {
       console.error("❌ Failed to save notifications to DB:", dbError);
     }
@@ -368,29 +430,29 @@ const sendPushNotificationCtrl = async (req, res) => {
         notification: {
           title,
           body,
-          ...(imageUrl && { imageUrl })
+          ...(imageUrl && { imageUrl }),
         },
         android: {
           notification: {
             title,
             body,
             ...(imageUrl && { imageUrl }),
-            sound: "default"
-          }
+            sound: "default",
+          },
         },
         apns: {
           payload: {
             aps: {
               alert: { title, body },
               sound: "default",
-              "mutable-content": 1
-            }
+              "mutable-content": 1,
+            },
           },
           ...(imageUrl && {
             fcm_options: {
-              image: imageUrl
-            }
-          })
+              image: imageUrl,
+            },
+          }),
         },
         data: {
           click_action: "FLUTTER_NOTIFICATION_CLICK",
@@ -399,14 +461,16 @@ const sendPushNotificationCtrl = async (req, res) => {
           ...(type && { type }),
           ...(imageUrl && { imageUrl }),
           ...(link && { link }),
-          ...(data && typeof data === 'object' ? data : {})
+          ...(data && typeof data === "object" ? data : {}),
         },
-        topic: topicName
+        topic: topicName,
       };
 
       try {
         const response = await admin.messaging().send(messagePayload);
-        console.log(`✅ Topic broadcast sent successfully to: ${topicName}. Message ID: ${response}`);
+        console.log(
+          `✅ Topic broadcast sent successfully to: ${topicName}. Message ID: ${response}`,
+        );
         overallSuccessCount = tokens.length; // Approximate success as all subscribed devices
       } catch (fcmError) {
         console.error("❌ Topic sending error:", fcmError);
@@ -418,7 +482,7 @@ const sendPushNotificationCtrl = async (req, res) => {
       if (tokens.length === 0) {
         return res.status(404).json({
           success: false,
-          message: `No active device tokens found for targeting category: ${selectedTarget}`
+          message: `No active device tokens found for targeting category: ${selectedTarget}`,
         });
       }
 
@@ -431,29 +495,29 @@ const sendPushNotificationCtrl = async (req, res) => {
           notification: {
             title,
             body,
-            ...(imageUrl && { imageUrl })
+            ...(imageUrl && { imageUrl }),
           },
           android: {
             notification: {
               title,
               body,
               ...(imageUrl && { imageUrl }),
-              sound: "default"
-            }
+              sound: "default",
+            },
           },
           apns: {
             payload: {
               aps: {
                 alert: { title, body },
                 sound: "default",
-                "mutable-content": 1
-              }
+                "mutable-content": 1,
+              },
             },
             ...(imageUrl && {
               fcm_options: {
-                image: imageUrl
-              }
-            })
+                image: imageUrl,
+              },
+            }),
           },
           data: {
             click_action: "FLUTTER_NOTIFICATION_CLICK",
@@ -462,13 +526,15 @@ const sendPushNotificationCtrl = async (req, res) => {
             ...(type && { type }),
             ...(imageUrl && { imageUrl }),
             ...(link && { link }),
-            ...(data && typeof data === 'object' ? data : {})
+            ...(data && typeof data === "object" ? data : {}),
           },
-          tokens: tokenChunk
+          tokens: tokenChunk,
         };
 
         try {
-          const response = await admin.messaging().sendEachForMulticast(messagePayload);
+          const response = await admin
+            .messaging()
+            .sendEachForMulticast(messagePayload);
           overallSuccessCount += response.successCount;
           overallFailureCount += response.failureCount;
 
@@ -479,15 +545,19 @@ const sendPushNotificationCtrl = async (req, res) => {
                 const errCode = resp.error?.code || "";
                 errors.push({
                   token: tokenChunk[idx].substring(0, 15) + "...",
-                  error: resp.error ? resp.error.message : "Unknown error"
+                  error: resp.error ? resp.error.message : "Unknown error",
                 });
 
                 if (
                   errCode === "messaging/invalid-registration-token" ||
                   errCode === "messaging/registration-token-not-registered" ||
                   errCode === "messaging/sender-id-mismatch" ||
-                  (resp.error?.message || "").toLowerCase().includes("senderid mismatch") ||
-                  (resp.error?.message || "").toLowerCase().includes("not registered")
+                  (resp.error?.message || "")
+                    .toLowerCase()
+                    .includes("senderid mismatch") ||
+                  (resp.error?.message || "")
+                    .toLowerCase()
+                    .includes("not registered")
                 ) {
                   invalidTokens.push(tokenChunk[idx]);
                 }
@@ -496,7 +566,9 @@ const sendPushNotificationCtrl = async (req, res) => {
 
             if (invalidTokens.length > 0) {
               await Device.deleteMany({ fcmToken: { $in: invalidTokens } });
-              console.log(`🗑️ Removed ${invalidTokens.length} invalid FCM token(s) from DB.`);
+              console.log(
+                `🗑️ Removed ${invalidTokens.length} invalid FCM token(s) from DB.`,
+              );
             }
           }
         } catch (fcmError) {
@@ -509,16 +581,17 @@ const sendPushNotificationCtrl = async (req, res) => {
 
     // Log this notification in CommunicationLogs
     try {
-      const recipientLabel = selectedTarget === "topic" 
-        ? `Topic: ${topicDisplayName}` 
-        : `Target: ${selectedTarget.toUpperCase()}`;
+      const recipientLabel =
+        selectedTarget === "topic"
+          ? `Topic: ${topicDisplayName}`
+          : `Target: ${selectedTarget.toUpperCase()}`;
 
       const logEntry = new CommunicationLogs({
         type: "PushNotification",
         purpose: "Notification",
         recipient: {
           name: recipientLabel,
-          email: `${tokens.length} Devices Targeted`
+          email: `${tokens.length} Devices Targeted`,
         },
         message: `[${title}] ${body}${link ? ` (Link: ${link})` : ""}`,
         status: overallSuccessCount > 0 ? "Success" : "Failed",
@@ -535,39 +608,48 @@ const sendPushNotificationCtrl = async (req, res) => {
             targetIds: selectedTarget === "topic" ? targetIds : undefined,
             link: link || "",
             type: type || "",
-            data: enrichedData
+            data: enrichedData,
           },
-          errors: errors.slice(0, 10)
-        }
+          errors: errors.slice(0, 10),
+        },
       });
       await logEntry.save();
     } catch (logError) {
       console.error("Failed to write to CommunicationLogs:", logError);
     }
 
+    await createSystemLog({
+      actorId: req.user.id,
+      actorModel: "auth",
+      entityId: null,
+      entityModel: "Notification",
+      action: "CREATE",
+      description: `Push notification sent: ${title} by ${req.user.name}`,
+    });
+
     return res.status(200).json({
       success: true,
-      message: selectedTarget === "topic"
-        ? `Notification broadcasted to topic: ${topicDisplayName} successfully.`
-        : `Notification processed. Sent successfully to ${overallSuccessCount} devices out of ${tokens.length}.`,
+      message:
+        selectedTarget === "topic"
+          ? `Notification broadcasted to topic: ${topicDisplayName} successfully.`
+          : `Notification processed. Sent successfully to ${overallSuccessCount} devices out of ${tokens.length}.`,
       stats: {
         totalTargeted: tokens.length,
         successCount: overallSuccessCount,
         failureCount: overallFailureCount,
         notificationsSaved: savedNotifications.length,
-        errors: errors.slice(0, 20)
-      }
+        errors: errors.slice(0, 20),
+      },
     });
   } catch (error) {
     console.error("Send Push Notification Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while sending push notifications.",
-      error: error.message
+      error: error.message,
     });
   }
 };
-
 
 // 4. Get recent saved Push Notifications for admin history/load form
 const getNotificationLogsCtrl = async (req, res) => {
@@ -591,7 +673,7 @@ const getNotificationLogsCtrl = async (req, res) => {
         ...notification,
         recipient: {
           name: `Target: ${targetType.toUpperCase()}`,
-          email: "Saved Notification"
+          email: "Saved Notification",
         },
         message: `[${notification.title || ""}] ${notification.body || ""}`,
         status: "Success",
@@ -603,22 +685,22 @@ const getNotificationLogsCtrl = async (req, res) => {
             targetType,
             link,
             type: notification.type || "",
-            data: notification.data || {}
-          }
-        }
+            data: notification.data || {},
+          },
+        },
       };
     });
 
     return res.status(200).json({
       success: true,
-      logs
+      logs,
     });
   } catch (error) {
     console.error("Get Notification Logs Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while fetching logs.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -643,7 +725,7 @@ const getUserNotificationsCtrl = async (req, res) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: "userId, vendorId, or isGuest parameter required."
+        message: "userId, vendorId, or isGuest parameter required.",
       });
     }
 
@@ -657,7 +739,7 @@ const getUserNotificationsCtrl = async (req, res) => {
     // Get unread count
     const unreadCount = await Notification.countDocuments({
       ...query,
-      isRead: false
+      isRead: false,
     });
 
     return res.status(200).json({
@@ -670,17 +752,17 @@ const getUserNotificationsCtrl = async (req, res) => {
           totalItems: total,
           itemsPerPage: limit,
           hasNextPage: page < Math.ceil(total / limit),
-          hasPrevPage: page > 1
+          hasPrevPage: page > 1,
         },
-        unreadCount
-      }
+        unreadCount,
+      },
     });
   } catch (error) {
     console.error("Get User Notifications Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while fetching notifications.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -693,27 +775,27 @@ const markNotificationAsReadCtrl = async (req, res) => {
     const notification = await Notification.findByIdAndUpdate(
       id,
       { isRead: true },
-      { new: true }
+      { new: true },
     );
 
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message: "Notification not found."
+        message: "Notification not found.",
       });
     }
 
     return res.status(200).json({
       success: true,
       message: "Notification marked as read.",
-      data: notification
+      data: notification,
     });
   } catch (error) {
     console.error("Mark Notification as Read Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while marking notification as read.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -726,7 +808,7 @@ const markAllNotificationsAsReadCtrl = async (req, res) => {
     if (!userId && !vendorId && isGuest !== true && isGuest !== "true") {
       return res.status(400).json({
         success: false,
-        message: "userId, vendorId, or isGuest is required."
+        message: "userId, vendorId, or isGuest is required.",
       });
     }
 
@@ -744,14 +826,14 @@ const markAllNotificationsAsReadCtrl = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: `Marked ${result.modifiedCount} notification(s) as read.`,
-      modifiedCount: result.modifiedCount
+      modifiedCount: result.modifiedCount,
     });
   } catch (error) {
     console.error("Mark All Notifications as Read Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while marking all notifications as read.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -772,7 +854,7 @@ const getUnreadCountCtrl = async (req, res) => {
     } else {
       return res.status(400).json({
         success: false,
-        message: "userId, vendorId, or isGuest parameter required."
+        message: "userId, vendorId, or isGuest parameter required.",
       });
     }
 
@@ -780,14 +862,14 @@ const getUnreadCountCtrl = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      unreadCount: count
+      unreadCount: count,
     });
   } catch (error) {
     console.error("Get Unread Count Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while fetching unread count.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -802,20 +884,20 @@ const deleteNotificationCtrl = async (req, res) => {
     if (!notification) {
       return res.status(404).json({
         success: false,
-        message: "Notification not found."
+        message: "Notification not found.",
       });
     }
 
     return res.status(200).json({
       success: true,
-      message: "Notification deleted successfully."
+      message: "Notification deleted successfully.",
     });
   } catch (error) {
     console.error("Delete Notification Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while deleting notification.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -828,7 +910,7 @@ const deleteAllNotificationsCtrl = async (req, res) => {
     if (!userId && !vendorId && isGuest !== true && isGuest !== "true") {
       return res.status(400).json({
         success: false,
-        message: "userId, vendorId, or isGuest is required."
+        message: "userId, vendorId, or isGuest is required.",
       });
     }
 
@@ -843,17 +925,26 @@ const deleteAllNotificationsCtrl = async (req, res) => {
 
     const result = await Notification.deleteMany(query);
 
+    await createSystemLog({
+      actorId: req.user?.id || userId || vendorId || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: null,
+      entityModel: "Notification",
+      action: "DELETE",
+      description: `Deleted ${result.deletedCount} notification(s)`,
+    });
+
     return res.status(200).json({
       success: true,
       message: `Deleted ${result.deletedCount} notification(s).`,
-      deletedCount: result.deletedCount
+      deletedCount: result.deletedCount,
     });
   } catch (error) {
     console.error("Delete All Notifications Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while deleting notifications.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -864,26 +955,27 @@ const getTopicsCtrl = async (req, res) => {
     const topics = await Topic.find().sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
-      topics
+      topics,
     });
   } catch (error) {
     console.error("Get Topics Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while fetching topics.",
-      error: error.message
+      error: error.message,
     });
   }
 };
 
 const createTopicCtrl = async (req, res) => {
   try {
-    const { name, displayName, description, autoSubscribe, criteria } = req.body;
+    const { name, displayName, description, autoSubscribe, criteria } =
+      req.body;
 
     if (!name || !displayName) {
       return res.status(400).json({
         success: false,
-        message: "Topic name and display name are required."
+        message: "Topic name and display name are required.",
       });
     }
 
@@ -891,7 +983,7 @@ const createTopicCtrl = async (req, res) => {
     if (existing) {
       return res.status(400).json({
         success: false,
-        message: "A topic with this name already exists."
+        message: "A topic with this name already exists.",
       });
     }
 
@@ -900,7 +992,7 @@ const createTopicCtrl = async (req, res) => {
       displayName,
       description,
       autoSubscribe,
-      criteria
+      criteria,
     });
 
     await topic.save();
@@ -915,7 +1007,8 @@ const createTopicCtrl = async (req, res) => {
             let user = null;
             let vendor = null;
             if (device.userId) user = await Auth.findById(device.userId);
-            if (device.vendorId) vendor = await Vendor.findById(device.vendorId);
+            if (device.vendorId)
+              vendor = await Vendor.findById(device.vendorId);
 
             let isMatch = false;
             if (!criteria || Object.keys(criteria).length === 0) {
@@ -926,31 +1019,50 @@ const createTopicCtrl = async (req, res) => {
 
             if (isMatch && device.fcmToken) {
               if (admin && admin.apps.length) {
-                await admin.messaging().subscribeToTopic(device.fcmToken, topic.topicName);
+                await admin
+                  .messaging()
+                  .subscribeToTopic(device.fcmToken, topic.topicName);
               }
-              await Device.updateOne({ _id: device._id }, { $addToSet: { topics: topic.topicName } });
+              await Device.updateOne(
+                { _id: device._id },
+                { $addToSet: { topics: topic.topicName } },
+              );
               count++;
             }
           }
           await Topic.findByIdAndUpdate(topic._id, { subscriberCount: count });
-          console.log(`Auto-subscribed ${count} devices to new topic: ${topic.displayName}`);
+          console.log(
+            `Auto-subscribed ${count} devices to new topic: ${topic.displayName}`,
+          );
         } catch (err) {
-          console.error("Error auto-subscribing existing devices to new topic:", err);
+          console.error(
+            "Error auto-subscribing existing devices to new topic:",
+            err,
+          );
         }
       });
     }
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: topic._id,
+      entityModel: "Topic",
+      action: "CREATE",
+      description: `Topic created: ${topic.displayName || topic.topicName}`,
+    });
+
     return res.status(201).json({
       success: true,
       message: "Topic created successfully.",
-      topic
+      topic,
     });
   } catch (error) {
     console.error("Create Topic Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while creating topic.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -958,13 +1070,14 @@ const createTopicCtrl = async (req, res) => {
 const updateTopicCtrl = async (req, res) => {
   try {
     const { id } = req.params;
-    const { displayName, description, isActive, autoSubscribe, criteria } = req.body;
+    const { displayName, description, isActive, autoSubscribe, criteria } =
+      req.body;
 
     const topic = await Topic.findById(id);
     if (!topic) {
       return res.status(404).json({
         success: false,
-        message: "Topic not found."
+        message: "Topic not found.",
       });
     }
 
@@ -976,17 +1089,26 @@ const updateTopicCtrl = async (req, res) => {
 
     await topic.save();
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: topic._id,
+      entityModel: "Topic",
+      action: "UPDATE",
+      description: `Topic updated: ${topic.displayName || topic.topicName}`,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Topic updated successfully.",
-      topic
+      topic,
     });
   } catch (error) {
     console.error("Update Topic Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while updating topic.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -999,7 +1121,7 @@ const deleteTopicCtrl = async (req, res) => {
     if (!topic) {
       return res.status(404).json({
         success: false,
-        message: "Topic not found."
+        message: "Topic not found.",
       });
     }
 
@@ -1007,27 +1129,38 @@ const deleteTopicCtrl = async (req, res) => {
       const devices = await Device.find({ topics: topic.topicName });
       for (const device of devices) {
         if (device.fcmToken && admin && admin.apps.length) {
-          await admin.messaging().unsubscribeFromTopic(device.fcmToken, topic.topicName);
+          await admin
+            .messaging()
+            .unsubscribeFromTopic(device.fcmToken, topic.topicName);
         }
       }
       await Device.updateMany(
         { topics: topic.topicName },
-        { $pull: { topics: topic.topicName } }
+        { $pull: { topics: topic.topicName } },
       );
     } catch (unsubErr) {
       console.error("Error during topic deletion unsubscribe:", unsubErr);
     }
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: topic._id,
+      entityModel: "Topic",
+      action: "DELETE",
+      description: `Topic deleted: ${topic.displayName || topic.topicName}`,
+    });
+
     return res.status(200).json({
       success: true,
-      message: "Topic deleted successfully."
+      message: "Topic deleted successfully.",
     });
   } catch (error) {
     console.error("Delete Topic Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while deleting topic.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -1040,14 +1173,14 @@ const subscribeToTopicCtrl = async (req, res) => {
     if (!deviceId && !fcmToken) {
       return res.status(400).json({
         success: false,
-        message: "Either deviceId or fcmToken is required."
+        message: "Either deviceId or fcmToken is required.",
       });
     }
 
     if (!topicId && !topicName) {
       return res.status(400).json({
         success: false,
-        message: "Either topicId or topicName is required."
+        message: "Either topicId or topicName is required.",
       });
     }
 
@@ -1062,22 +1195,26 @@ const subscribeToTopicCtrl = async (req, res) => {
 
     // If device doesn't exist, we register it automatically
     if (!device) {
-      const activeDeviceId = deviceId || `dev_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+      const activeDeviceId =
+        deviceId ||
+        `dev_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
       const activeFcmToken = fcmToken || deviceId; // Fallback
       device = await Device.create({
         deviceId: activeDeviceId,
         fcmToken: activeFcmToken,
         isGuest: true,
-        topics: []
+        topics: [],
       });
-      console.log(`Auto-created device record for subscription: ${device.deviceId}`);
+      console.log(
+        `Auto-created device record for subscription: ${device.deviceId}`,
+      );
     }
 
     // Find Topic
     let topic = null;
     const mongoose = require("mongoose");
     const queryConditions = [];
-    
+
     if (topicId) {
       if (mongoose.Types.ObjectId.isValid(topicId)) {
         queryConditions.push({ _id: topicId });
@@ -1085,7 +1222,7 @@ const subscribeToTopicCtrl = async (req, res) => {
       queryConditions.push({ topicName: topicId });
       queryConditions.push({ name: topicId });
     }
-    
+
     if (topicName) {
       queryConditions.push({ topicName });
       queryConditions.push({ name: topicName });
@@ -1096,7 +1233,7 @@ const subscribeToTopicCtrl = async (req, res) => {
     if (!topic) {
       return res.status(404).json({
         success: false,
-        message: "Topic not found."
+        message: "Topic not found.",
       });
     }
 
@@ -1105,20 +1242,22 @@ const subscribeToTopicCtrl = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: `Device is already subscribed to topic: ${topic.displayName}`,
-        device
+        device,
       });
     }
 
     // Subscribe via Firebase
     if (admin && admin.apps.length && device.fcmToken) {
       try {
-        await admin.messaging().subscribeToTopic(device.fcmToken, topic.topicName);
+        await admin
+          .messaging()
+          .subscribeToTopic(device.fcmToken, topic.topicName);
       } catch (fcmError) {
         console.error("Firebase subscribeToTopic error:", fcmError);
         return res.status(502).json({
           success: false,
           message: "Firebase error subscribing token to topic.",
-          error: fcmError.message
+          error: fcmError.message,
         });
       }
     }
@@ -1131,17 +1270,26 @@ const subscribeToTopicCtrl = async (req, res) => {
     topic.subscriberCount = (topic.subscriberCount || 0) + 1;
     await topic.save();
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: device._id,
+      entityModel: "Device",
+      action: "UPDATE",
+      description: `Device subscribed to topic: ${topic.topicName}`,
+    });
+
     return res.status(200).json({
       success: true,
       message: `Device successfully subscribed to topic: ${topic.displayName}`,
-      device
+      device,
     });
   } catch (error) {
     console.error("Subscribe to Topic Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while subscribing to topic.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -1154,14 +1302,14 @@ const unsubscribeFromTopicCtrl = async (req, res) => {
     if (!deviceId && !fcmToken) {
       return res.status(400).json({
         success: false,
-        message: "Either deviceId or fcmToken is required."
+        message: "Either deviceId or fcmToken is required.",
       });
     }
 
     if (!topicId && !topicName) {
       return res.status(400).json({
         success: false,
-        message: "Either topicId or topicName is required."
+        message: "Either topicId or topicName is required.",
       });
     }
 
@@ -1177,7 +1325,7 @@ const unsubscribeFromTopicCtrl = async (req, res) => {
     if (!device) {
       return res.status(404).json({
         success: false,
-        message: "Device not found."
+        message: "Device not found.",
       });
     }
 
@@ -1185,7 +1333,7 @@ const unsubscribeFromTopicCtrl = async (req, res) => {
     let topic = null;
     const mongoose = require("mongoose");
     const queryConditions = [];
-    
+
     if (topicId) {
       if (mongoose.Types.ObjectId.isValid(topicId)) {
         queryConditions.push({ _id: topicId });
@@ -1193,7 +1341,7 @@ const unsubscribeFromTopicCtrl = async (req, res) => {
       queryConditions.push({ topicName: topicId });
       queryConditions.push({ name: topicId });
     }
-    
+
     if (topicName) {
       queryConditions.push({ topicName });
       queryConditions.push({ name: topicName });
@@ -1204,7 +1352,7 @@ const unsubscribeFromTopicCtrl = async (req, res) => {
     if (!topic) {
       return res.status(404).json({
         success: false,
-        message: "Topic not found."
+        message: "Topic not found.",
       });
     }
 
@@ -1213,20 +1361,22 @@ const unsubscribeFromTopicCtrl = async (req, res) => {
       return res.status(200).json({
         success: true,
         message: `Device is not subscribed to topic: ${topic.displayName}`,
-        device
+        device,
       });
     }
 
     // Unsubscribe via Firebase
     if (admin && admin.apps.length && device.fcmToken) {
       try {
-        await admin.messaging().unsubscribeFromTopic(device.fcmToken, topic.topicName);
+        await admin
+          .messaging()
+          .unsubscribeFromTopic(device.fcmToken, topic.topicName);
       } catch (fcmError) {
         console.error("Firebase unsubscribeFromTopic error:", fcmError);
         return res.status(502).json({
           success: false,
           message: "Firebase error unsubscribing token from topic.",
-          error: fcmError.message
+          error: fcmError.message,
         });
       }
     }
@@ -1241,17 +1391,26 @@ const unsubscribeFromTopicCtrl = async (req, res) => {
       await topic.save();
     }
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: device._id,
+      entityModel: "Device",
+      action: "UPDATE",
+      description: `Device unsubscribed from topic: ${topic.topicName}`,
+    });
+
     return res.status(200).json({
       success: true,
       message: `Device successfully unsubscribed from topic: ${topic.displayName}`,
-      device
+      device,
     });
   } catch (error) {
     console.error("Unsubscribe from Topic Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while unsubscribing from topic.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -1266,14 +1425,14 @@ const getDevicesCtrl = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      devices
+      devices,
     });
   } catch (error) {
     console.error("Get Devices Error:", error);
     return res.status(500).json({
       success: false,
       message: "Server error while fetching devices.",
-      error: error.message
+      error: error.message,
     });
   }
 };
@@ -1295,5 +1454,5 @@ module.exports = {
   deleteTopicCtrl,
   subscribeToTopicCtrl,
   unsubscribeFromTopicCtrl,
-  getDevicesCtrl
+  getDevicesCtrl,
 };

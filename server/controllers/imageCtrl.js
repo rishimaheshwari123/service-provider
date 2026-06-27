@@ -1,5 +1,6 @@
 const {uploadImageToCloudinary} = require("../config/s3Uploader")
 const fs = require('fs');
+const createSystemLog = require("../utils/auditLogger");
 
 exports.imageUpload = async(req,res)=>{
     try{
@@ -10,6 +11,19 @@ exports.imageUpload = async(req,res)=>{
         thumbnail,
         process.env.FOLDER_NAME
       )
+
+      await createSystemLog({
+        actorId: req.user?.id || null,
+        actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+        entityId: null,
+        entityModel: "System",
+        action: "CREATE",
+        description: `Image uploaded to Cloudinary`,
+        newData: {
+          image: thumbnailImage.secure_url
+        },
+        req
+      });
 
       res.status(200).json({
         success:true,
@@ -29,9 +43,6 @@ exports.imageUpload = async(req,res)=>{
       });
     }
 }
-
-
-
 
 
 exports.uploadImages = async (req, res) => {
@@ -58,6 +69,19 @@ exports.uploadImages = async (req, res) => {
         fs.unlinkSync(file.tempFilePath); // Delete the temp file
       }
     }
+
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: null,
+      entityModel: "System",
+      action: "CREATE",
+      description: `Multiple images uploaded to Cloudinary: ${urls.length} files`,
+      newData: {
+        images: urls
+      },
+      req
+    });
 
     res.status(200).json({
       success: true,

@@ -2,9 +2,9 @@ const bcrypt = require("bcryptjs");
 const vendorModel = require("../models/vendorModel");
 const categoryModel = require("../models/categoryModel");
 const jwt = require("jsonwebtoken");
-
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const { generateOTP, sendSMSOTP, sendWhatsAppOTP, sendWelcomeSMS1, sendWelcomeSMS2, sendWhatsAppWelcome, sendApprovalSMS, sendApprovalWhatsApp } = require("../utils/otpService");
+const createSystemLog = require("../utils/auditLogger");
 
 const otpModel = require("../models/otpModel");
 
@@ -365,6 +365,15 @@ const vendorRegisterCtrl = async (req, res) => {
     };
     res.cookie("token", token, options);
 
+    await createSystemLog({
+      actorId: user._id,
+      actorModel: "Vendor",
+      entityId: user._id,
+      entityModel: "Vendor",
+      action: "CREATE",
+      description: `Vendor registered: ${user.name}`,
+    });
+
     return res.status(200).json({
       success: true,
       token,
@@ -444,8 +453,6 @@ const vendorLoginCtrl = async (req, res) => {
     });
   }
 };
-
-
 
 const getAllVendorCtrl = async (req, res) => {
   try {
@@ -621,6 +628,19 @@ const updateVendorStatusCtrl = async (req, res) => {
       }
     }
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: updatedVendor._id,
+      entityModel: "Vendor",
+      action: "STATUS_CHANGE",
+      description: `Vendor status updated to ${status}`,
+      newData: {
+        status: updatedVendor.status,
+      },
+      req
+    });
+
     return res.status(200).json({
       success: true,
       message: "Vendor status updated successfully",
@@ -645,8 +665,6 @@ const updateVendorPercentageCtrl = async (req, res) => {
       });
     }
 
-
-
     const updatedVendor = await vendorModel.findByIdAndUpdate(
       id,
       { percentage },
@@ -659,6 +677,15 @@ const updateVendorPercentageCtrl = async (req, res) => {
         message: "Vendor not found",
       });
     }
+
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: updatedVendor._id,
+      entityModel: "Vendor",
+      action: "UPDATE",
+      description: `Vendor percentage updated to ${percentage}`,
+    });
 
     return res.status(200).json({
       success: true,
@@ -978,6 +1005,15 @@ updateVendorProfileCtrl = async (req, res) => {
     const vendorObj = updatedVendor.toObject();
     const transformedVendor = transformVendorForDisplay(vendorObj);
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: updatedVendor._id,
+      entityModel: "Vendor",
+      action: "UPDATE",
+      description: `Vendor profile updated`,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Vendor profile updated successfully",
@@ -1028,6 +1064,15 @@ const updateWorkingHours = async (req, res) => {
 
     await vendor.save();
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: vendor._id,
+      entityModel: "Vendor",
+      action: "UPDATE",
+      description: `Vendor working hours updated`,
+    });
+
     res.status(200).json({
       success: true,
       message: "Working hours updated successfully",
@@ -1065,6 +1110,15 @@ const requestProfileUpdateCtrl = async (req, res) => {
       });
     }
 
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: updatedVendor._id,
+      entityModel: "Vendor",
+      action: "STATUS_CHANGE",
+      description: `Vendor profile update request changed to ${updateProfileRequest}`,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Profile update request updated successfully",
@@ -1099,6 +1153,15 @@ const deleteVendorCtrl = async (req, res) => {
 
     // Delete the vendor
     await vendorModel.findByIdAndDelete(id);
+
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: vendor._id,
+      entityModel: "Vendor",
+      action: "DELETE",
+      description: `Vendor and all associated services deleted`,
+    });
 
     return res.status(200).json({
       success: true,
@@ -1421,6 +1484,15 @@ const vendorResetPasswordCtrl = async (req, res) => {
     vendor.password = hashedPassword;
     await vendor.save();
 
+    await createSystemLog({
+      actorId: vendor._id,
+      actorModel: "Vendor",
+      entityId: vendor._id,
+      entityModel: "Vendor",
+      action: "UPDATE",
+      description: `Vendor reset password`,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Password reset successfully",
@@ -1490,6 +1562,15 @@ const adminResetVendorPasswordCtrl = async (req, res) => {
     await vendor.save();
 
     console.log(`✅ Admin reset password for vendor: ${vendor.phone}`);
+
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: vendor._id,
+      entityModel: "Vendor",
+      action: "UPDATE",
+      description: `Admin reset password for vendor ${vendor.name}`,
+    });
 
     return res.status(200).json({
       success: true,

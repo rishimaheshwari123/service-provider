@@ -1,14 +1,14 @@
 const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
 const crypto = require("crypto");
 const { razorpayInstance } = require("../config/razorpay");
+const Property = require("../models/propertyModel");
+const Vendor = require("../models/vendorModel");
+const Category = require("../models/categoryModel");
+const createSystemLog = require("../utils/auditLogger");
 
 // Helper function to create property/service automatically
 const createPropertyForCategory = async (vendorId, categoryId) => {
   try {
-    const Property = require("../models/propertyModel");
-    const Vendor = require("../models/vendorModel");
-    const Category = require("../models/categoryModel");
-
     // Get vendor and category details
     const vendor = await Vendor.findById(vendorId);
     const category = await Category.findById(categoryId);
@@ -21,11 +21,13 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
     // Check if property already exists for this vendor-category combination
     const existingProperty = await Property.findOne({
       vendor: vendorId,
-      category: category.name
+      category: category.name,
     });
 
     if (existingProperty) {
-      console.log("Property already exists for this vendor-category combination");
+      console.log(
+        "Property already exists for this vendor-category combination",
+      );
       return existingProperty;
     }
 
@@ -33,13 +35,17 @@ const createPropertyForCategory = async (vendorId, categoryId) => {
     const propertyData = {
       title: category.name, // Category name as title
       price: category.price.toString(), // Category price
-      location: vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
+      location:
+        vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
       type: "service", // Default type
       category: category.name, // Category name
-      description: vendor.description || category.autoFilled || `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
+      description:
+        vendor.description ||
+        category.autoFilled ||
+        `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
       images: category.image ? [{ url: category.image }] : [], // Category image
       vendor: vendorId, // Vendor ID
-      status: "active"
+      status: "active",
     };
 
     const newProperty = await Property.create(propertyData);
@@ -67,11 +73,10 @@ const createRazorpayOrderCtrl = async (req, res) => {
     console.error("Error creating Razorpay order:", error);
     return res.status(500).json({
       success: false,
-      message: "Error in creating order"
+      message: "Error in creating order",
     });
   }
 };
-
 
 const verifyPaymentCtrl = async (req, res) => {
   try {
@@ -85,8 +90,16 @@ const verifyPaymentCtrl = async (req, res) => {
     } = req.body;
 
     // Validate request body
-    if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature || !vendorId || !categoryId) {
-      return res.status(400).json({ message: "Missing payment, vendor, or category details." });
+    if (
+      !razorpay_payment_id ||
+      !razorpay_order_id ||
+      !razorpay_signature ||
+      !vendorId ||
+      !categoryId
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Missing payment, vendor, or category details." });
     }
 
     if (!process.env.RAZORPAY_SECRET) {
@@ -118,19 +131,27 @@ const verifyPaymentCtrl = async (req, res) => {
     // Create property automatically for online Razorpay payment
     await createPropertyForCategory(vendorId, categoryId);
 
+    await createSystemLog({
+      actorId: vendorId || req.user?.id || null,
+      actorModel: "Vendor",
+      entityId: purchase._id,
+      entityModel: "VendorCategoryPurchase",
+      action: "CREATE",
+      description: `Vendor purchased category ${categoryId} via Razorpay`,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Payment verified and category purchased successfully.",
       purchase,
     });
-
   } catch (error) {
     console.error("Error in verifyPaymentCtrl:", error);
-    return res.status(500).json({ message: "Internal server error." });
+    return res.status(500).json({
+      message: error.message || "Internal server error.",
+      success: false,
+    });
   }
 };
 
-
-
-
-module.exports = { createRazorpayOrderCtrl, verifyPaymentCtrl }
+module.exports = { createRazorpayOrderCtrl, verifyPaymentCtrl };

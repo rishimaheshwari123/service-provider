@@ -1,157 +1,196 @@
 const CustomerSupport = require("../models/customerSupport");
 const Auth = require("../models/authModel");
+const createSystemLog = require("../utils/auditLogger");
 
 const createCustomerSupportCtrl = async (req, res) => {
-    try {
-        const { name, email, subject, category, message } = req.body;
+  try {
+    const { name, email, subject, category, message } = req.body;
 
-        if (!name || !email || !subject || !category || !message) {
-            return res.status(400).json({ success: false, message: "All fields are required." });
-        }
-
-        const newSupport = await CustomerSupport.create({
-            name,
-            email,
-            subject,
-            category,
-            message,
-            status: "in_progress", // Default status
-        });
-
-        return res.status(201).json({
-            success: true,
-            message: "Support request created successfully.",
-            data: newSupport,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Failed to create support request.",
-            error: error.message,
-        });
+    if (!name || !email || !subject || !category || !message) {
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required." });
     }
+
+    const newSupport = await CustomerSupport.create({
+      name,
+      email,
+      subject,
+      category,
+      message,
+      status: "in_progress",
+    });
+
+    await createSystemLog({
+      actorId: newSupport._id,
+      actorModel: "CustomerSupport",
+      entityId: newSupport._id,
+      entityModel: "CustomerSupport",
+      action: "CREATE",
+      description: `Support request created for ${name} (${email})`,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Support request created successfully.",
+      data: newSupport,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to create support request.",
+      error: error.message,
+    });
+  }
 };
 
 const getCustomerSupportCtrl = async (req, res) => {
-    try {
-        const supportRequests = await CustomerSupport.find()
-            .populate('adminRemarks.adminId', 'name email')
-            .sort({ createdAt: -1 });
+  try {
+    const supportRequests = await CustomerSupport.find()
+      .populate("adminRemarks.adminId", "name email")
+      .sort({ createdAt: -1 });
 
-        return res.status(200).json({
-            message: "Support requests fetched successfully.",
-            data: supportRequests,
-            success: true,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            message: "Failed to fetch support requests.",
-            error: error.message,
-            success: false
-        });
-    }
+    return res.status(200).json({
+      message: "Support requests fetched successfully.",
+      data: supportRequests,
+      success: true,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch support requests.",
+      error: error.message,
+      success: false,
+    });
+  }
 };
 
 const updateSupportStatusCtrl = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
-        if (!status || !["in_progress", "resolved", "rejected"].includes(status)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid status. Must be 'in_progress', 'resolved', or 'rejected'.",
-            });
-        }
-
-        const updatedRequest = await CustomerSupport.findByIdAndUpdate(
-            id,
-            { status },
-            { new: true }
-        );
-
-        if (!updatedRequest) {
-            return res.status(404).json({
-                success: false,
-                message: "Support request not found.",
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Support request status updated successfully.",
-            data: updatedRequest,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Failed to update support request status.",
-            error: error.message,
-        });
+    if (!status || !["in_progress", "resolved", "rejected"].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Invalid status. Must be 'in_progress', 'resolved', or 'rejected'.",
+      });
     }
+
+    const updatedRequest = await CustomerSupport.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true },
+    );
+
+    if (!updatedRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "Support request not found.",
+      });
+    }
+
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+      entityId: updatedRequest._id,
+      entityModel: "CustomerSupport",
+      action: "STATUS_CHANGE",
+      description: `Support request status updated to ${status}`,
+      newData: {
+        status: status,
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Support request status updated successfully.",
+      data: updatedRequest,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update support request status.",
+      error: error.message,
+    });
+  }
 };
 
 const addAdminRemarkCtrl = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { remark, adminId } = req.body;
+  try {
+    const { id } = req.params;
+    const { remark, adminId } = req.body;
 
-        if (!remark || !adminId) {
-            return res.status(400).json({
-                success: false,
-                message: "Remark and adminId are required.",
-            });
-        }
-
-        // Get admin details
-        const admin = await Auth.findById(adminId);
-        if (!admin) {
-            return res.status(404).json({
-                success: false,
-                message: "Admin not found.",
-            });
-        }
-
-        // Add remark to support request
-        const updatedRequest = await CustomerSupport.findByIdAndUpdate(
-            id,
-            {
-                $push: {
-                    adminRemarks: {
-                        remark,
-                        adminId,
-                        adminName: admin.name,
-                        createdAt: new Date(),
-                    },
-                },
-            },
-            { new: true }
-        ).populate('adminRemarks.adminId', 'name email');
-
-        if (!updatedRequest) {
-            return res.status(404).json({
-                success: false,
-                message: "Support request not found.",
-            });
-        }
-
-        return res.status(200).json({
-            success: true,
-            message: "Admin remark added successfully.",
-            data: updatedRequest,
-        });
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Failed to add admin remark.",
-            error: error.message,
-        });
+    if (!remark || !adminId) {
+      return res.status(400).json({
+        success: false,
+        message: "Remark and adminId are required.",
+      });
     }
+
+    // Get admin details
+    const admin = await Auth.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found.",
+      });
+    }
+
+    // Add remark to support request
+    const updatedRequest = await CustomerSupport.findByIdAndUpdate(
+      id,
+      {
+        $push: {
+          adminRemarks: {
+            remark,
+            adminId,
+            adminName: admin.name,
+            createdAt: new Date(),
+          },
+        },
+      },
+      { new: true },
+    ).populate("adminRemarks.adminId", "name email");
+
+    if (!updatedRequest) {
+      return res.status(404).json({
+        success: false,
+        message: "Support request not found.",
+      });
+    }
+
+    await createSystemLog({
+      actorId: adminId,
+      actorModel: "auth",
+      entityId: updatedRequest._id,
+      entityModel: "CustomerSupport",
+      action: "UPDATE",
+      description: `Admin ${admin.name} added a remark`,
+      newData: {
+        remark: remark,
+      },
+      req
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin remark added successfully.",
+      data: updatedRequest,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to add admin remark.",
+      error: error.message,
+    });
+  }
 };
 
 module.exports = {
-    createCustomerSupportCtrl,
-    getCustomerSupportCtrl,
-    updateSupportStatusCtrl,
-    addAdminRemarkCtrl,
+  createCustomerSupportCtrl,
+  getCustomerSupportCtrl,
+  updateSupportStatusCtrl,
+  addAdminRemarkCtrl,
 };
+

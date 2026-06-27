@@ -1,6 +1,7 @@
 const RatingAndReview = require("../models/RatingandReview");
 const Property = require("../models/propertyModel");
 const mongoose = require("mongoose");
+const createSystemLog = require("../utils/auditLogger");
 
 // Create a new rating and review
 exports.createRating = async (req, res) => {
@@ -50,6 +51,15 @@ exports.createRating = async (req, res) => {
       { new: true }
     );
 
+    await createSystemLog({
+      actorId: finalUserId === "guest-user-placeholder" ? null : finalUserId,
+      actorModel: finalUserId === "guest-user-placeholder" ? null : "auth",
+      entityId: ratingReview._id,
+      entityModel: "RatingAndReview",
+      action: "CREATE",
+      description: `Rating and review created for property ${property}`,
+    });
+
     return res.status(201).json({
       success: true,
       message: "Rating and review created successfully",
@@ -64,12 +74,6 @@ exports.createRating = async (req, res) => {
     });
   }
 };
-
-
-
-
-
-
 
 // Get all rating and reviews
 exports.getAllRatingReview = async (req, res) => {

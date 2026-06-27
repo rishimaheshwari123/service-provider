@@ -1,6 +1,8 @@
 const ServiceUpdateRequest = require('../models/serviceUpdateRequestModel');
 const Property = require('../models/propertyModel');
 const mongoose = require('mongoose');
+const createSystemLog = require("../utils/auditLogger");
+const Category = require("../models/categoryModel");
 
 // Create service update request (vendor submits update)
 const createServiceUpdateRequestCtrl = async (req, res) => {
@@ -51,7 +53,6 @@ const createServiceUpdateRequestCtrl = async (req, res) => {
         }
 
         if (category) {
-            const Category = require('../models/categoryModel');
             const categoryExists = await Category.findById(category);
             if (!categoryExists) {
                 return res.status(404).json({
@@ -103,6 +104,15 @@ const createServiceUpdateRequestCtrl = async (req, res) => {
         });
 
         await updateRequest.save();
+
+        await createSystemLog({
+            actorId: req.user?.id || null,
+            actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+            entityId: updateRequest._id,
+            entityModel: "ServiceUpdateRequest",
+            action: "CREATE",
+            description: `Service update request submitted`,
+        });
 
         return res.status(201).json({
             success: true,
@@ -191,6 +201,15 @@ const createImageUpdateRequestCtrl = async (req, res) => {
         });
 
         await updateRequest.save();
+
+        await createSystemLog({
+            actorId: req.user?.id || null,
+            actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+            entityId: updateRequest._id,
+            entityModel: "ServiceUpdateRequest",
+            action: "CREATE",
+            description: `Image update request submitted`,
+        });
 
         return res.status(201).json({
             success: true,
@@ -311,6 +330,15 @@ const approveServiceUpdateRequestCtrl = async (req, res) => {
 
         await updateRequest.save();
 
+        await createSystemLog({
+            actorId: adminId || req.user?.id || null,
+            actorModel: "auth",
+            entityId: updateRequest._id,
+            entityModel: "ServiceUpdateRequest",
+            action: "STATUS_CHANGE",
+            description: `Service update request approved`,
+        });
+
         return res.status(200).json({
             success: true,
             message: 'Service update request approved successfully',
@@ -357,6 +385,15 @@ const rejectServiceUpdateRequestCtrl = async (req, res) => {
         };
 
         await updateRequest.save();
+
+        await createSystemLog({
+            actorId: adminId || req.user?.id || null,
+            actorModel: "auth",
+            entityId: updateRequest._id,
+            entityModel: "ServiceUpdateRequest",
+            action: "STATUS_CHANGE",
+            description: `Service update request rejected`,
+        });
 
         return res.status(200).json({
             success: true,

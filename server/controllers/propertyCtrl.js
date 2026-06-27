@@ -2,6 +2,9 @@ const Property = require('../models/propertyModel');
 const { uploadImageToCloudinary } = require("../config/s3Uploader");
 const AuditLogs = require("../models/auditLogs");  // correct path use karna
 const mongoose = require('mongoose');
+const createSystemLog = require("../utils/auditLogger");
+const Category = require("../models/categoryModel");
+
 
 const createPropertyCtrl = async (req, res) => {
     try {
@@ -36,7 +39,6 @@ const createPropertyCtrl = async (req, res) => {
         }
 
         // Verify category exists
-        const Category = require('../models/categoryModel');
         const categoryExists = await Category.findById(category);
         if (!categoryExists) {
             return res.status(404).json({
@@ -60,6 +62,25 @@ const createPropertyCtrl = async (req, res) => {
         // Populate category for response
         await property.populate('category', 'name');
 
+        await createSystemLog({
+            actorId: req.user?.id || null,
+            actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+            entityId: property._id,
+            entityModel: "Property",
+            action: "CREATE",
+            description: `Property created: ${title}`,
+            newData: {
+                title: property.title,
+                price: property.price,
+                location: property.location,
+                type: property.type,
+                category: property.category,
+                description: property.description,
+                images: property.images,
+                vendor: property.vendor,
+            }
+        });
+
         return res.status(201).json({
             success: true,
             message: 'Property created successfully!',
@@ -73,8 +94,6 @@ const createPropertyCtrl = async (req, res) => {
         });
     }
 };
-
-
 
 const getPropertiesByVendor = async (req, res) => {
     try {
@@ -167,6 +186,15 @@ const updatePropertyCtrl = async (req, res) => {
         if (status && ['active', 'inactive'].includes(status)) property.status = status;
 
         await property.save();
+
+        await createSystemLog({
+            actorId: req.user?.id || null,
+            actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+            entityId: property._id,
+            entityModel: "Property",
+            action: "UPDATE",
+            description: `Property updated: ${property.title}`
+        });
 
         return res.status(200).json({
             success: true,
@@ -283,7 +311,44 @@ const vendorUpdatePropertyRequestCtrl = async (req, res) => {
             reason: reason || 'Service update request'
         });
 
+        const changedOldData = {};
+        const changedNewData = {};
+
+        Object.keys(updateRequest.currentValues).forEach((key) => {
+          if (
+            JSON.stringify(updateRequest.currentValues[key]) !==
+            JSON.stringify(updateRequest.proposedChanges[key])
+          ) {
+            changedOldData[key] = updateRequest.currentValues[key];
+            changedNewData[key] = updateRequest.proposedChanges[key];
+          }
+        });
+
         await updateRequest.save();
+
+       await createSystemLog({
+         actorId: req.user?.id || null,
+         actorModel:
+           req.user?.role === "admin"
+             ? "auth"
+             : req.user?.role === "vendor"
+               ? "Vendor"
+               : null,
+
+         entityId: updateRequest._id,
+         entityModel: "ServiceUpdateRequest",
+
+         action: "CREATE",
+
+         description: `Vendor submitted update request for property "${property.title}"`,
+
+         oldData: changedOldData,
+
+         newData: changedNewData,
+
+         ipAddress: req.ip,
+         userAgent: req.headers["user-agent"],
+       });
 
         return res.status(201).json({
             success: true,
@@ -496,6 +561,19 @@ const deletePropertyCtrl = async (req, res) => {
             return res.status(404).json({ success: false, message: 'Property not found' });
         }
 
+        await createSystemLog({
+            actorId: req.user?.id || null,
+            actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+            entityId: deletedProperty._id,
+            entityModel: "Property",
+            action: "DELETE",
+            description: `Property deleted: ${deletedProperty.title}`,
+            newData: {
+                isDeleted: true
+            },
+            req
+        });
+
         res.status(200).json({
             success: true,
             message: 'Property deleted successfully',
@@ -532,6 +610,18 @@ const updatePropertyStatusCtrl = async (req, res) => {
                 message: 'Property not found' 
             });
         }
+
+        await createSystemLog({
+            actorId: req.user?.id || null,
+            actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+            entityId: updatedProperty._id,
+            entityModel: "Property",
+            action: "STATUS_CHANGE",
+            description: `Property status updated to ${status}`,
+            newData: {
+                status: updatedProperty.status
+            }
+        });
 
         res.status(200).json({
             success: true,
@@ -582,6 +672,15 @@ const migrateCategoryNamesToIds = async (req, res) => {
         });
       }
     }
+
+    await createSystemLog({
+        actorId: req.user?.id || null,
+        actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+        entityId: null,
+        entityModel: "System",
+        action: "MIGRATE",
+        description: `Migrated ${migrated} properties. Failed: ${failed.length}`,
+    });
 
     res.json({
       success: true,
@@ -672,6 +771,15 @@ const uploadServiceImageRequestCtrl = async (req, res) => {
         });
 
         await updateRequest.save();
+
+        await createSystemLog({
+            actorId: req.user?.id || null,
+            actorModel: req.user?.role === "admin" ? "auth" : req.user?.role === "vendor" ? "Vendor" : null,
+            entityId: updateRequest._id,
+            entityModel: "ServiceUpdateRequest",
+            action: "CREATE",
+            description: `Vendor image update request submitted`,
+        });
 
         return res.status(201).json({
             success: true,

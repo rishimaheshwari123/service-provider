@@ -36,15 +36,16 @@ import BookNowModal from "./BookNowModal";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import SEO from "@/components/common/SEO";
-import StructuredData, { generateBreadcrumbSchema, generateServiceSchema } from "@/components/common/StructuredData";
+import StructuredData, {
+  generateBreadcrumbSchema,
+  generateServiceSchema,
+} from "@/components/common/StructuredData";
 
 const toPascalCase = (text) => {
   if (!text) return "";
   // Handle objects with name property (like category objects)
-  const str = typeof text === 'string' ? text : text.name || String(text);
-  return str
-    .toLowerCase()
-    .replace(/\b\w/g, char => char.toUpperCase());
+  const str = typeof text === "string" ? text : text.name || String(text);
+  return str.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
 const PropertyDetails = () => {
@@ -99,8 +100,12 @@ const PropertyDetails = () => {
 
   const propertyImages = getPropertyImages();
 
-  const nextImage = () => setCurrentImageIndex((prev) => (prev + 1) % propertyImages.length);
-  const prevImage = () => setCurrentImageIndex((prev) => (prev - 1 + propertyImages.length) % propertyImages.length);
+  const nextImage = () =>
+    setCurrentImageIndex((prev) => (prev + 1) % propertyImages.length);
+  const prevImage = () =>
+    setCurrentImageIndex(
+      (prev) => (prev - 1 + propertyImages.length) % propertyImages.length,
+    );
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -143,7 +148,8 @@ const PropertyDetails = () => {
       return;
     }
     try {
-      if (user?._id) await createAuditForPropertyCallAndEmailAPI(id, user._id, "phone");
+      if (user?._id)
+        await createAuditForPropertyCallAndEmailAPI(id, user._id, "phone");
       window.location.href = `tel:${property.vendor.phone}`;
     } catch (error) {
       console.error(error);
@@ -162,7 +168,11 @@ const PropertyDetails = () => {
       setIsShowingNumber(true);
       // Create audit log for show number action
       if (user?._id) {
-        await createAuditForPropertyCallAndEmailAPI(id, user._id, "show_number");
+        await createAuditForPropertyCallAndEmailAPI(
+          id,
+          user._id,
+          "show_number",
+        );
       }
       setShowPhone(true);
       toast.success(toPascalCase("Number Revealed!"));
@@ -187,7 +197,11 @@ const PropertyDetails = () => {
       setIsShowingProviderNumber(true);
       // Create audit log for show provider number action
       if (user?._id) {
-        await createAuditForPropertyCallAndEmailAPI(id, user._id, "show_provider_number");
+        await createAuditForPropertyCallAndEmailAPI(
+          id,
+          user._id,
+          "show_provider_number",
+        );
       }
       setShowProviderPhone(true);
       toast.success(toPascalCase("Provider Number Revealed!"));
@@ -228,8 +242,13 @@ const PropertyDetails = () => {
       <>
         <Navbar />
         <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
-          <h2 className="text-xl font-bold mb-4">{toPascalCase("Service Not Found")}</h2>
-          <button onClick={() => navigate("/services")} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
+          <h2 className="text-xl font-bold mb-4">
+            {toPascalCase("Service Not Found")}
+          </h2>
+          <button
+            onClick={() => navigate("/services")}
+            className="px-6 py-2 bg-blue-600 text-white rounded-lg"
+          >
             {toPascalCase("Back To Services")}
           </button>
         </div>
@@ -243,21 +262,26 @@ const PropertyDetails = () => {
 
   // Dynamic SEO based on service data
   const serviceName = property?.title || "Service";
-  const serviceDescription = property?.description || `Professional ${serviceName} services from Mera Ghar Sansaar. Book verified service providers for your home needs.`;
-  const serviceImage = property?.images?.[0]?.url || property?.image || "https://www.meragharsansaar.com/logo.png";
+  const serviceDescription =
+    property?.description ||
+    `Professional ${serviceName} services from Mera Ghar Sansaar. Book verified service providers for your home needs.`;
+  const serviceImage =
+    property?.images?.[0]?.url ||
+    property?.image ||
+    "https://www.meragharsansaar.com/logo.png";
   const serviceCategory = property?.category?.name || "Home Services";
-  
+
   const breadcrumb = generateBreadcrumbSchema([
     { name: "Home", url: "https://www.meragharsansaar.com/" },
     { name: "Services", url: "https://www.meragharsansaar.com/services" },
-    { name: serviceName, url: `https://www.meragharsansaar.com/service/${id}` }
+    { name: serviceName, url: `https://www.meragharsansaar.com/service/${id}` },
   ]);
 
   const serviceSchema = generateServiceSchema({
     name: serviceName,
     description: serviceDescription,
     image: serviceImage,
-    url: `https://www.meragharsansaar.com/service/${id}`
+    url: `https://www.meragharsansaar.com/service/${id}`,
   });
 
   return (
@@ -266,26 +290,44 @@ const PropertyDetails = () => {
       <SEO
         title={`${serviceName} | ${serviceCategory} | Mera Ghar Sansaar`}
         description={serviceDescription}
-        keywords={[serviceName, serviceCategory, "Home Services", "Service Provider", "Book Now"]}
+        keywords={[
+          serviceName,
+          serviceCategory,
+          "Home Services",
+          "Service Provider",
+          "Book Now",
+        ]}
         canonical={`https://www.meragharsansaar.com/service/${id}`}
         ogImage="https://www.meragharsansaar.com/logo.png"
       />
-      
+
       {/* Structured Data */}
       <StructuredData data={breadcrumb} />
       <StructuredData data={serviceSchema} />
-      
+
       <Navbar />
       <div className="bg-gray-100 min-h-screen">
         {/* Breadcrumb */}
         <div className="bg-white border-b">
           <div className="max-w-7xl mx-auto px-4 py-3">
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              <button onClick={() => navigate("/")} className="hover:text-blue-600">{toPascalCase("Home")}</button>
+              <button
+                onClick={() => navigate("/")}
+                className="hover:text-blue-600"
+              >
+                {toPascalCase("Home")}
+              </button>
               <span>/</span>
-              <button onClick={() => navigate("/services")} className="hover:text-blue-600">{toPascalCase("Services")}</button>
+              <button
+                onClick={() => navigate("/services")}
+                className="hover:text-blue-600"
+              >
+                {toPascalCase("Services")}
+              </button>
               <span>/</span>
-              <span className="text-gray-900 font-medium truncate">{toPascalCase(property.title)}</span>
+              <span className="text-gray-900 font-medium truncate">
+                {toPascalCase(property.title)}
+              </span>
             </div>
           </div>
         </div>
@@ -305,10 +347,16 @@ const PropertyDetails = () => {
                   />
                   {propertyImages.length > 1 && (
                     <>
-                      <button onClick={prevImage} className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white">
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white"
+                      >
                         <ChevronLeft className="w-5 h-5" />
                       </button>
-                      <button onClick={nextImage} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white">
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white"
+                      >
                         <ChevronRight className="w-5 h-5" />
                       </button>
                     </>
@@ -332,7 +380,11 @@ const PropertyDetails = () => {
                         onClick={() => setCurrentImageIndex(idx)}
                         className={`flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 ${idx === currentImageIndex ? "border-blue-600" : "border-transparent"}`}
                       >
-                        <img src={img.url} alt="" className="w-full h-full object-cover" />
+                        <img
+                          src={img.url}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
                       </button>
                     ))}
                   </div>
@@ -345,14 +397,19 @@ const PropertyDetails = () => {
                 <div className="flex-1 p-5">
                   <div className="flex items-start justify-between gap-4 mb-3">
                     <div>
-                      <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">{toPascalCase(property.title)}</h1>
+                      <h1 className="text-xl lg:text-2xl font-bold text-gray-900 mb-1">
+                        {toPascalCase(property.title)}
+                      </h1>
                       <p className="text-gray-500 flex items-center gap-1 text-sm">
                         <MapPin className="w-4 h-4" />
-                        {toPascalCase(property.location) || toPascalCase("Location Not Specified")}
+                        {toPascalCase(property.location) ||
+                          toPascalCase("Location Not Specified")}
                       </p>
                     </div>
                     {avgRating > 0 && (
-                      <div className={`${getRatingColor(avgRating)} text-white px-3 py-1.5 rounded-lg flex items-center gap-1 flex-shrink-0`}>
+                      <div
+                        className={`${getRatingColor(avgRating)} text-white px-3 py-1.5 rounded-lg flex items-center gap-1 flex-shrink-0`}
+                      >
                         <span className="font-bold text-lg">{avgRating}</span>
                         <Star className="w-4 h-4 fill-white" />
                       </div>
@@ -362,16 +419,21 @@ const PropertyDetails = () => {
                   <div className="flex items-center gap-3 mb-4">
                     {avgRating > 0 && (
                       <>
-                        <span className="text-sm text-gray-600">{reviewCount} {toPascalCase("Ratings")}</span>
+                        <span className="text-sm text-gray-600">
+                          {reviewCount} {toPascalCase("Ratings")}
+                        </span>
                         <span className="text-gray-300">|</span>
                       </>
                     )}
                     {property.category && (
-                      <span className="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded">{toPascalCase(property.category)}</span>
+                      <span className="text-sm bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+                        {toPascalCase(property.category)}
+                      </span>
                     )}
                     {property.verified && (
                       <span className="text-sm text-green-600 flex items-center gap-1">
-                        <CheckCircle className="w-4 h-4" /> {toPascalCase("Verified")}
+                        <CheckCircle className="w-4 h-4" />{" "}
+                        {toPascalCase("Verified")}
                       </span>
                     )}
                   </div>
@@ -429,7 +491,9 @@ const PropertyDetails = () => {
                       </div>
                     )}
                     <button
-                      onClick={() => token ? setIsModalOpen(true) : navigate("/login")}
+                      onClick={() =>
+                        token ? setIsModalOpen(true) : navigate("/login")
+                      }
                       className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg"
                     >
                       <MessageSquare className="w-4 h-4" />
@@ -438,7 +502,10 @@ const PropertyDetails = () => {
                   </div>
 
                   <div className="flex items-center gap-4 pt-3 border-t border-gray-100">
-                    <button onClick={handleShare} className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600">
+                    <button
+                      onClick={handleShare}
+                      className="flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600"
+                    >
                       <Share2 className="w-4 h-4" /> {toPascalCase("Share")}
                     </button>
                   </div>
@@ -446,7 +513,9 @@ const PropertyDetails = () => {
 
                 {/* Service Provider Information - Top Right */}
                 <div className="lg:w-[300px] flex-shrink-0 p-5 border-l border-gray-100">
-                  <h3 className="font-bold text-gray-900 mb-4">{toPascalCase("Service Provider Information")}</h3>
+                  <h3 className="font-bold text-gray-900 mb-4">
+                    {toPascalCase("Service Provider Information")}
+                  </h3>
                   <div className="space-y-4">
                     {/* Provider Basic Info */}
                     <div className="flex items-center gap-3">
@@ -454,8 +523,14 @@ const PropertyDetails = () => {
                         {property.vendor?.name?.charAt(0) || "S"}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-900 text-sm">{toPascalCase(property.vendor?.company) || toPascalCase("Professional Services")}</p>
-                        <p className="text-xs text-gray-500">{toPascalCase(property.vendor?.name) || toPascalCase("Service Provider")}</p>
+                        <p className="font-semibold text-gray-900 text-sm">
+                          {toPascalCase(property.vendor?.company) ||
+                            toPascalCase("Professional Services")}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {toPascalCase(property.vendor?.name) ||
+                            toPascalCase("Service Provider")}
+                        </p>
                       </div>
                     </div>
 
@@ -465,9 +540,15 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Building className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Type Of Service")}</p>
+                          <p className="text-xs font-medium text-gray-700">
+                            {toPascalCase("Type Of Service")}
+                          </p>
                           <p className="text-xs text-gray-600">
-                            {toPascalCase(property.vendor?.typeOfService) || <span className="text-gray-400 italic">{toPascalCase("Not Added")}</span>}
+                            {toPascalCase(property.vendor?.typeOfService) || (
+                              <span className="text-gray-400 italic">
+                                {toPascalCase("Not Added")}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -476,18 +557,30 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Year Of Establishment")}</p>
+                          <p className="text-xs font-medium text-gray-700">
+                            {toPascalCase("Year Of Establishment")}
+                          </p>
                           <p className="text-xs text-gray-600">
-                            {property.vendor?.yearOfEstablishment || <span className="text-gray-400 italic">{toPascalCase("Not Added")}</span>}
+                            {property.vendor?.yearOfEstablishment || (
+                              <span className="text-gray-400 italic">
+                                {toPascalCase("Not Added")}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-start gap-2">
                         <LocateIcon className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Address")}</p>
+                          <p className="text-xs font-medium text-gray-700">
+                            {toPascalCase("Address")}
+                          </p>
                           <p className="text-xs text-gray-600">
-                            {toPascalCase(property.vendor?.address) || <span className="text-gray-400 italic">{toPascalCase("Not Added")}</span>}
+                            {toPascalCase(property.vendor?.address) || (
+                              <span className="text-gray-400 italic">
+                                {toPascalCase("Not Added")}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -496,16 +589,28 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Star className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
                         <div>
-                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Experience")}</p>
+                          <p className="text-xs font-medium text-gray-700">
+                            {toPascalCase("Experience")}
+                          </p>
                           {property.vendor?.experience?.fields?.length > 0 ? (
                             <div>
-                              <p className="text-xs text-gray-600">{property.vendor.experience.fields.slice(0, 2).map(field => toPascalCase(field)).join(", ")}</p>
+                              <p className="text-xs text-gray-600">
+                                {property.vendor.experience.fields
+                                  .slice(0, 2)
+                                  .map((field) => toPascalCase(field))
+                                  .join(", ")}
+                              </p>
                               {property.vendor.experience.totalYears && (
-                                <p className="text-xs text-gray-500">{property.vendor.experience.totalYears} {toPascalCase("Years")}</p>
+                                <p className="text-xs text-gray-500">
+                                  {property.vendor.experience.totalYears}{" "}
+                                  {toPascalCase("Years")}
+                                </p>
                               )}
                             </div>
                           ) : (
-                            <p className="text-xs text-gray-400 italic">{toPascalCase("Not Added")}</p>
+                            <p className="text-xs text-gray-400 italic">
+                              {toPascalCase("Not Added")}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -514,7 +619,9 @@ const PropertyDetails = () => {
                       <div className="flex items-start gap-2">
                         <Phone className="w-4 h-4 text-gray-400 flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-700">{toPascalCase("Phone")}</p>
+                          <p className="text-xs font-medium text-gray-700">
+                            {toPascalCase("Phone")}
+                          </p>
                           {property.vendor?.phone ? (
                             !showProviderPhone ? (
                               <button
@@ -522,15 +629,23 @@ const PropertyDetails = () => {
                                 disabled={isShowingProviderNumber}
                                 className="text-xs bg-green-100 hover:bg-green-200 disabled:opacity-50 disabled:cursor-not-allowed text-green-700 px-2 py-1 rounded font-medium mt-1"
                               >
-                                {isShowingProviderNumber ? toPascalCase("Loading...") : toPascalCase("Show Number")}
+                                {isShowingProviderNumber
+                                  ? toPascalCase("Loading...")
+                                  : toPascalCase("Show Number")}
                               </button>
                             ) : (
                               <div className="flex items-center gap-1 mt-1">
-                                <p className="text-xs text-gray-600">{property.vendor.phone}</p>
+                                <p className="text-xs text-gray-600">
+                                  {property.vendor.phone}
+                                </p>
                                 <button
                                   onClick={() => {
-                                    navigator.clipboard.writeText(property.vendor.phone);
-                                    toast.success(toPascalCase("Number Copied!"));
+                                    navigator.clipboard.writeText(
+                                      property.vendor.phone,
+                                    );
+                                    toast.success(
+                                      toPascalCase("Number Copied!"),
+                                    );
                                   }}
                                   className="p-0.5 hover:bg-gray-100 rounded"
                                 >
@@ -539,7 +654,9 @@ const PropertyDetails = () => {
                               </div>
                             )
                           ) : (
-                            <p className="text-xs text-gray-400 italic">{toPascalCase("Not Added")}</p>
+                            <p className="text-xs text-gray-400 italic">
+                              {toPascalCase("Not Added")}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -548,24 +665,40 @@ const PropertyDetails = () => {
                 </div>
               </div>
             </div>
-
-
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5">
             <div className="lg:col-span-2 space-y-5">
               <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-3">{toPascalCase("About")}</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-3">
+                  {toPascalCase("About")}
+                </h2>
                 <p className="text-gray-600 text-sm leading-relaxed">
-                  {toPascalCase(property.description) || toPascalCase("Professional Service Provider Offering Quality Services At Competitive Prices.")}
+                  {toPascalCase(property.description) ||
+                    toPascalCase(
+                      "Professional Service Provider Offering Quality Services At Competitive Prices.",
+                    )}
                 </p>
               </div>
 
               <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-900 mb-3">{toPascalCase("Services Offered")}</h2>
+                <h2 className="text-lg font-bold text-gray-900 mb-3">
+                  {toPascalCase("Services Offered")}
+                </h2>
                 <div className="flex flex-wrap gap-2">
-                  {[toPascalCase("Professional Service"), toPascalCase("Home Visit"), toPascalCase("Online Consultation"), toPascalCase("24/7 Support"), toPascalCase("Affordable Pricing")].map((s, i) => (
-                    <span key={i} className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full">{s}</span>
+                  {[
+                    toPascalCase("Professional Service"),
+                    toPascalCase("Home Visit"),
+                    toPascalCase("Online Consultation"),
+                    toPascalCase("24/7 Support"),
+                    toPascalCase("Affordable Pricing"),
+                  ].map((s, i) => (
+                    <span
+                      key={i}
+                      className="text-sm bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full"
+                    >
+                      {s}
+                    </span>
                   ))}
                 </div>
               </div>
@@ -573,11 +706,13 @@ const PropertyDetails = () => {
               {/* Working Hours - Show workingDaysTimings directly */}
               <div className="bg-white rounded-lg p-5 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-blue-600" /> {toPascalCase("Working Hours")}
+                  <Calendar className="w-5 h-5 text-blue-600" />{" "}
+                  {toPascalCase("Working Hours")}
                 </h2>
                 <div className="bg-gray-50 rounded-lg p-4">
                   <p className="text-gray-700 font-medium">
-                    {toPascalCase(property.vendor?.workingDaysTimings) || "Monday - Saturday: 9:00 AM - 6:00 PM"}
+                    {toPascalCase(property.vendor?.workingDaysTimings) ||
+                      "Monday - Saturday: 9:00 AM - 6:00 PM"}
                   </p>
                 </div>
               </div>
@@ -585,7 +720,9 @@ const PropertyDetails = () => {
 
             <div className="space-y-5">
               <div className="bg-white rounded-lg p-5 shadow-sm">
-                <h3 className="font-bold text-gray-900 mb-4">{toPascalCase("Quick Contact")}</h3>
+                <h3 className="font-bold text-gray-900 mb-4">
+                  {toPascalCase("Quick Contact")}
+                </h3>
                 <div className="space-y-3">
                   {!showPhone ? (
                     <button
@@ -601,9 +738,13 @@ const PropertyDetails = () => {
                         )}
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">{toPascalCase("Call Now")}</p>
+                        <p className="text-xs text-gray-500">
+                          {toPascalCase("Call Now")}
+                        </p>
                         <p className="font-semibold text-green-700">
-                          {isShowingNumber ? toPascalCase("Loading...") : toPascalCase("Show Number")}
+                          {isShowingNumber
+                            ? toPascalCase("Loading...")
+                            : toPascalCase("Show Number")}
                         </p>
                       </div>
                     </button>
@@ -617,19 +758,30 @@ const PropertyDetails = () => {
                         <Phone className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">{toPascalCase("Call Now")}</p>
-                        <p className="font-semibold text-green-700">{vendorPhone}</p>
+                        <p className="text-xs text-gray-500">
+                          {toPascalCase("Call Now")}
+                        </p>
+                        <p className="font-semibold text-green-700">
+                          {vendorPhone}
+                        </p>
                       </div>
                     </a>
                   )}
                   {property.vendor?.email && (
-                    <a href={`mailto:${property.vendor.email}`} className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100">
+                    <a
+                      href={`mailto:${property.vendor.email}`}
+                      className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100"
+                    >
                       <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
                         <Mail className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-500">{toPascalCase("Email")}</p>
-                        <p className="font-semibold text-blue-700 text-sm truncate">{property.vendor.email}</p>
+                        <p className="text-xs text-gray-500">
+                          {toPascalCase("Email")}
+                        </p>
+                        <p className="font-semibold text-blue-700 text-sm truncate">
+                          {property.vendor.email}
+                        </p>
                       </div>
                     </a>
                   )}
@@ -648,33 +800,89 @@ const PropertyDetails = () => {
         </div>
 
         {isModalOpen && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setIsModalOpen(false)}>
-            <div className="bg-white rounded-xl w-full max-w-md" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+            onClick={() => setIsModalOpen(false)}
+          >
+            <div
+              className="bg-white rounded-xl w-full max-w-md"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between p-4 border-b">
-                <h2 className="font-bold text-lg">{toPascalCase("Send Enquiry")}</h2>
-                <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-gray-100 rounded">
+                <h2 className="font-bold text-lg">
+                  {toPascalCase("Send Enquiry")}
+                </h2>
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
                   <X className="w-5 h-5" />
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="p-4 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-1">{toPascalCase("Name")} *</label>
-                  <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                  <label className="block text-sm font-medium mb-1">
+                    {toPascalCase("Name")} *
+                  </label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">{toPascalCase("Phone")} *</label>
-                  <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                  <label className="block text-sm font-medium mb-1">
+                    {toPascalCase("Phone")} *
+                  </label>
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">{toPascalCase("Email")}</label>
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                  <label className="block text-sm font-medium mb-1">
+                    {toPascalCase("Email")}
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-1">{toPascalCase("Message")}</label>
-                  <textarea name="message" value={formData.message} onChange={handleInputChange} rows={3} className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none" />
+                  <label className="block text-sm font-medium mb-1">
+                    {toPascalCase("Message")}
+                  </label>
+                  <textarea
+                    name="message"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    rows={3}
+                    className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  />
                 </div>
-                <button type="submit" disabled={isSubmitting} className="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2">
-                  {isSubmitting ? toPascalCase("Sending...") : <><Send className="w-4 h-4" /> {toPascalCase("Send Enquiry")}</>}
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? (
+                    toPascalCase("Sending...")
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />{" "}
+                      {toPascalCase("Send Enquiry")}
+                    </>
+                  )}
                 </button>
               </form>
             </div>

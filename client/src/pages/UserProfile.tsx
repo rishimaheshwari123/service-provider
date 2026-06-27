@@ -33,7 +33,6 @@ import Footer from "@/components/Footer";
 import { setUser } from "@/redux/authSlice";
 import { toast } from "sonner";
 import UserRewardPoints from "./UserRewardPoints";
-// API response के स्ट्रक्चर के लिए Types
 interface Inquiry {
   _id: string;
   name: string;

@@ -5,6 +5,7 @@ const RedeemCode = require("../models/redeemCodeModel");
 const Auth = require("../models/authModel");
 const Vendor = require("../models/vendorModel");
 const crypto = require("crypto");
+const createSystemLog = require("../utils/auditLogger");
 
 // ==================== ADMIN CONTROLLERS ====================
 
@@ -86,6 +87,23 @@ exports.updateRewardSettings = async (req, res) => {
 
             await settings.save();
         }
+
+        await createSystemLog({
+            actorId: adminId,
+            actorModel: "auth",
+            entityId: settings._id,
+            entityModel: "RewardSettings",
+            action: "UPDATE",
+            description: `Reward settings updated`,
+            newData: {
+                referralPoints: settings.referralPoints,
+                downloadPoints: settings.downloadPoints,
+                bookingPoints: settings.bookingPoints,
+                phoneCallPoints: settings.phoneCallPoints,
+                isActive: settings.isActive,
+            },
+            req
+        });
 
         res.status(200).json({
             success: true,
@@ -365,6 +383,21 @@ exports.generateRedeemCode = async (req, res) => {
             status: "active",
         });
 
+        await createSystemLog({
+            actorId: userId,
+            actorModel: "auth", // assuming user is from auth table
+            entityId: redeemCode._id,
+            entityModel: "RedeemCode",
+            action: "CREATE",
+            description: `Redeem code generated for ${points} points`,
+            newData: {
+                points,
+            discountAmount,
+            discountType: settings.referralDiscountType,
+            },
+            req
+        });
+
         res.status(201).json({
             success: true,
             message: "Redeem code generated successfully",
@@ -482,6 +515,15 @@ exports.appDownloadReward = async (req, res) => {
             source: "download",
             description: "App download reward",
             balanceAfter: rewardPoints.availablePoints,
+        });
+
+        await createSystemLog({
+            actorId: user._id,
+            actorModel: "auth",
+            entityId: rewardPoints._id,
+            entityModel: "RewardPoints",
+            action: "UPDATE",
+            description: `App download reward credited: ${downloadPoints} points`,
         });
 
         res.status(200).json({
@@ -665,6 +707,15 @@ exports.applyRedeemCode = async (req, res) => {
                 balanceAfter: rewardPoints.availablePoints,
             });
         }
+
+        await createSystemLog({
+            actorId: vendorId,
+            actorModel: "Vendor",
+            entityId: redeemCode._id,
+            entityModel: "RedeemCode",
+            action: "UPDATE",
+            description: `Redeem code applied by vendor for user ${redeemCode.userId}`,
+        });
 
         res.status(200).json({
             success: true,

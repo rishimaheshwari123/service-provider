@@ -5,25 +5,32 @@ const systemAuditLogSchema = new mongoose.Schema(
     // 1. KISNE ACTION PERFORM KIYA (Actor)
     actorId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      required: false,
       refPath: "actorModel", // Dynamic reference
     },
     actorModel: {
       type: String,
-      required: true,
-      enum: ["auth", "Vendor"], // Action kon le raha hai (Admin/User ya Vendor)
+      required: false,
+      enum: ["auth", "Vendor", "CustomerSupport"], // Action kon le raha hai (Admin/User ya Vendor)
     },
 
     // 2. KIS ENTITY PAR ACTION HUA (Target/Entity)
     entityId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      required: false,
       refPath: "entityModel", // Dynamic reference
     },
     entityModel: {
       type: String,
       required: true,
-      enum: ["auth", "Vendor", "Category", "Property", "System", "Ads", "Blog", "Career"], // Kis model me change hua
+      enum: [
+        "auth", "Vendor", "Category", "Property", "System", "Ads", "Blog", 
+        "Career", "Coupon", "Contact", "CustomerSupport", "Job", 
+        "Notification", "VendorCategoryPurchase", "PriceKeyFeatures", 
+        "RatingAndReview", "RewardSettings", "RewardPoints", "RewardHistory", 
+        "RedeemCode", "ServiceUpdateRequest", "VendorProfileUpdateRequest",
+        "Device", "CommunicationLogs", "Topic"
+      ],
     },
 
     // 3. KYA ACTION HUA
@@ -66,5 +73,10 @@ systemAuditLogSchema.index({ entityModel: 1, entityId: 1 });
 systemAuditLogSchema.index({ actorId: 1 });
 systemAuditLogSchema.index({ action: 1 });
 systemAuditLogSchema.index({ createdAt: -1 });
+
+// Prevent MissingSchemaError when populating generic system logs
+if (!mongoose.models.System) {
+  mongoose.model("System", new mongoose.Schema({ name: String, email: String }, { strict: false }));
+}
 
 module.exports = mongoose.model("SystemAuditLog", systemAuditLogSchema);

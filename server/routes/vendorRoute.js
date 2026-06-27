@@ -18,7 +18,7 @@ router.get("/getAll", verifyToken, isAdmin, getAllVendorCtrl)
 router.get("/getAllPaginated", verifyToken, isAdmin, getAllVendorPaginatedCtrl)
 
 router.get("/get/:id", getVendorByIDCtrl)
-router.put("/update/:id", updateVendorStatusCtrl)
+router.put("/update/:id", verifyToken, isAdmin, updateVendorStatusCtrl)
 router.put("/update-profile/:id", updateVendorProfileCtrl)
 router.put("/update-percentage/:id", updateVendorPercentageCtrl)
 router.put("/working-hours/:id", updateWorkingHours);

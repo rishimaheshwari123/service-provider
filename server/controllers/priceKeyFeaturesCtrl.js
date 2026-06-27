@@ -1,4 +1,5 @@
 const PriceKeyFeatures = require("../models/priceKeyFeaturesModel");
+const createSystemLog = require("../utils/auditLogger");
 
 // Get key features (common for all categories)
 exports.getKeyFeatures = async (req, res) => {
@@ -54,6 +55,20 @@ exports.upsertKeyFeatures = async (req, res) => {
       });
     }
     
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: "auth",
+      entityId: keyFeatures._id,
+      entityModel: "PriceKeyFeatures",
+      action: "UPDATE",
+      description: `Price key features upserted`,
+      newData: {
+        price: keyFeatures.price,
+        premiumPrice: keyFeatures.premiumPrice,
+        premiumPlusPrice: keyFeatures.premiumPlusPrice,
+      },
+    });
+
     res.status(200).json({
       success: true,
       message: "Key features updated successfully",
@@ -74,6 +89,15 @@ exports.deleteKeyFeatures = async (req, res) => {
   try {
     await PriceKeyFeatures.deleteMany({});
     
+    await createSystemLog({
+      actorId: req.user?.id || null,
+      actorModel: "auth",
+      entityId: null,
+      entityModel: "PriceKeyFeatures",
+      action: "DELETE",
+      description: `All price key features deleted`,
+    });
+
     res.status(200).json({
       success: true,
       message: "Key features deleted successfully",

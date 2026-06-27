@@ -17,9 +17,9 @@ const router = express.Router()
 
 router.post("/admin/create", verifyToken, isAdmin, createAdminAdCtrl)
 router.post("/vendor/create", verifyToken, isVendor, createVendorAdCtrl)
-router.get("/getAll", verifyToken, getAllAds);
-router.get("/manage", verifyToken, getManageAds)
-router.get("/vendor/:vendorId", verifyToken, getVendorAds)
+router.get("/getAll", getAllAds);
+router.get("/manage", getManageAds)
+router.get("/vendor/:vendorId", getVendorAds)
 router.put("/approve/:id", verifyToken, isAdmin, approveVendorAdCtrl)
 router.put("/reject/:id", verifyToken, isAdmin, rejectVendorAdCtrl)
 router.put("/toggle-status/:id", verifyToken, isAdmin, toggleAdStatusCtrl)

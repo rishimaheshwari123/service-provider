@@ -391,8 +391,7 @@ const CategoryPurchasePage = () => {
       if (!data?.order) throw new Error("Failed to initiate payment");
 
       const options = {
-        // key: "rzp_test_lQz64anllWjB83",
-        key: "rzp_live_S4TPRyX5ae0LZA",
+        key: import.meta.env.VITE_RAZORPAY_KEY,
         amount: data.order.amount,
         currency: data.order.currency,
         name: "Niyati Solutions",

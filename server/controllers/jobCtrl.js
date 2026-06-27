@@ -1,73 +1,100 @@
-const Job = require('../models/jobModel');
+const Job = require("../models/jobModel");
+const createSystemLog = require("../utils/auditLogger");
 
 const createJobCtrl = async (req, res) => {
-    try {
-        const {
-            title,
-            location,
-            type,
-            department,
-            experience,
-            salary,
-            description,
-            responsibilities,
-            requirements,
-            benefits,
-            deadline
-        } = req.body;
+  try {
+    const {
+      title,
+      location,
+      type,
+      department,
+      experience,
+      salary,
+      description,
+      responsibilities,
+      requirements,
+      benefits,
+      deadline,
+    } = req.body;
 
-        if (
-            !title || !location || !type || !department || !experience || !salary ||
-            !description || !responsibilities || !requirements || !benefits || !deadline
-        ) {
-            return res.status(400).json({ message: 'All fields are required.' });
-        }
-
-        const job = await Job.create({
-            title,
-            location,
-            type,
-            department,
-            experience,
-            salary,
-            description,
-            responsibilities,
-            requirements,
-            benefits,
-            deadline
-        });
-
-        res.status(201).json({ success: true, message: 'Job created successfully', job });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    if (
+      !title ||
+      !location ||
+      !type ||
+      !department ||
+      !experience ||
+      !salary ||
+      !description ||
+      !responsibilities ||
+      !requirements ||
+      !benefits ||
+      !deadline
+    ) {
+      return res.status(400).json({ message: "All fields are required." });
     }
+
+    const job = await Job.create({
+      title,
+      location,
+      type,
+      department,
+      experience,
+      salary,
+      description,
+      responsibilities,
+      requirements,
+      benefits,
+      deadline,
+    });
+
+    await createSystemLog({
+      actorId: req.user?.id,
+      actorModel: "auth",
+      entityId: job._id,
+      entityModel: "Job",
+      action: "CREATE",
+      description: `New Job created: ${title}`,
+      newData: job,
+      req,
+    });
+
+    res
+      .status(201)
+      .json({ success: true, message: "Job created successfully", job });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
 };
 
 const getAllJobsCtrl = async (req, res) => {
-    try {
-        const jobs = await Job.find().sort({ createdAt: -1 }); // latest first
-        res.status(200).json({ success: true, jobs });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error', error: error.message });
-    }
+  try {
+    const jobs = await Job.find().sort({ createdAt: -1 }); // latest first
+    res.status(200).json({ success: true, jobs });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
 };
 
 const getJobByIdCtrl = async (req, res) => {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const job = await Job.findById(id);
+    const job = await Job.findById(id);
 
-        if (!job) {
-            return res.status(404).json({ message: 'Job not found' });
-        }
-
-        res.status(200).json({ success: true, job });
-    } catch (error) {
-        res.status(500).json({ success: false, message: 'Server error', error: error.message });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
     }
+
+    res.status(200).json({ success: true, job });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ success: false, message: "Server error", error: error.message });
+  }
 };
 
-
-
-module.exports = { createJobCtrl, getAllJobsCtrl, getJobByIdCtrl }
+module.exports = { createJobCtrl, getAllJobsCtrl, getJobByIdCtrl };
