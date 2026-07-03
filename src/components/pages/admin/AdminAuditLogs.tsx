@@ -63,7 +63,7 @@ const AdminAuditLogs = () => {
     setLoading(true);
     try {
       const token = (user as any)?.token;
-      const data = await getAuditLogsAPI(nextPage, activeSearch ? limit : limit, activeSearch, token);
+      const data = await getAuditLogsAPI(nextPage, activeSearch ? limit : limit, activeSearch, '',token);
       console.log("Audit Logs Response:", data);
 
       if (nextPage === 1) setLogs(data.logs || []);
