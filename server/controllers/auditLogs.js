@@ -23,19 +23,19 @@ const createAuditCtrl = async (req, res) => {
         });
 
         // Award phone call reward points if type is "phone"
-        if (type === "phone" || type ==="show_number") {
+        if (type === "phone" || type === "show_number") {
             try {
                 const rewardSettings = await RewardSettings.findOne();
-                
+
                 if (rewardSettings && rewardSettings.isActive && rewardSettings.phoneCallPoints > 0) {
                     console.log(`📞 Processing phone call reward for user ${userId}`);
-                    
+
                     // Get property details for reward history
                     const property = await Property.findById(id).select('title');
-                    
+
                     // Get or create reward points record
                     let userRewardPoints = await RewardPoints.findOne({ userId });
-                    
+
                     if (!userRewardPoints) {
                         userRewardPoints = await RewardPoints.create({
                             userId,
@@ -43,13 +43,13 @@ const createAuditCtrl = async (req, res) => {
                             availablePoints: 0,
                         });
                     }
-                    
+
                     // Add phone call points
                     const pointsToAdd = rewardSettings.phoneCallPoints;
                     userRewardPoints.totalPoints += pointsToAdd;
                     userRewardPoints.availablePoints += pointsToAdd;
                     await userRewardPoints.save();
-                    
+
                     // Create reward history entry
                     await RewardHistory.create({
                         userId,
@@ -61,7 +61,7 @@ const createAuditCtrl = async (req, res) => {
                         referenceModel: "AuditLogs",
                         balanceAfter: userRewardPoints.availablePoints,
                     });
-                    
+
                     console.log(`✅ Awarded ${pointsToAdd} phone call reward points to user ${userId}`);
                 } else {
                     console.log('ℹ️ Phone call rewards not active or not configured');
@@ -87,127 +87,128 @@ const getAuditLogsCtrl = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 50;
         const page = parseInt(req.query.page) || 1;
+        const searchQuery = req.query.searchQuery;
         const vendorId = req.query.vendorId;
         const type = req.query.type;
-
         const skip = (page - 1) * limit;
 
-        let filter = {
-            type: { $ne: "general_contact" } // exclude general_contact
-        };
-
-        // Filter by type if provided
-        if (type && type !== "general_contact") {
-            filter.type = type;
-        }
-
-        if (vendorId) {
-            // Find all propertyIds for this vendor
-            const properties = await Property.find({ vendor: vendorId }).select("_id");
-
-            const propertyIds = properties.map((p) => p._id);
-
-            filter.propertyId = { $in: propertyIds };
-        }
-
-        // First fetch logs
-        const logs = await AuditLogs.find(filter)
-            .populate("userId", "name email phone")
-            .populate({
-                path: "propertyId",
-                select: "title vendor",
-                populate: {
-                    path: "vendor",
-                    select: "name company phone",
-                },
-            })
-            .populate("adminComments.adminId", "name email")
-            .sort({ createdAt: -1 })
-            .skip(skip)
-            .limit(limit);
-
-        // Filter out logs where userId doesn't exist (user has been deleted)
-        const validLogs = logs.filter(log => {
-            // Keep general_contact logs even without userId
-            if (log.type === "general_contact") {
-                return true;
-            }
-            // For other types, only keep if user still exists
-            return log.userId !== null;
-        });
-
-        // Get all valid userIds from the database to ensure accurate count
-        const allLogs = await AuditLogs.find(filter).select("userId type propertyId");
-        const userIds = allLogs
-            .filter(log => log.userId !== null)
-            .map(log => log.userId);
-        
-        // Check which users still exist
-        const existingUsers = await Auth.find({ _id: { $in: userIds } }).select("_id");
-        const existingUserIds = new Set(existingUsers.map(user => user._id.toString()));
-        
-        // Count only logs with existing users
-        const validLogsCount = allLogs.filter(log => {
-            if (log.type === "general_contact") return true;
-            if (!log.userId) return false;
-            return existingUserIds.has(log.userId.toString());
-        }).length;
-
-        // Get counts by type for dashboard - only for existing users
-        const aggregateMatch = {
+        let matchStage = {
             type: { $ne: "general_contact" }
         };
 
+        if (type && type !== "general_contact") {
+            matchStage.type = type;
+        }
+
+        // Vendor filter
+        let propertyIds = [];
         if (vendorId) {
             const properties = await Property.find({ vendor: vendorId }).select("_id");
+            propertyIds = properties.map(p => p._id);
 
-            aggregateMatch.propertyId = {
-                $in: properties.map((p) => p._id)
-            };
+            matchStage.propertyId = { $in: propertyIds };
         }
 
-        const allTypeCountsLogs = await AuditLogs.find(aggregateMatch).select("userId type");
-        const typeCountsMap = {};
-        
-        for (const log of allTypeCountsLogs) {
-            if (log.userId && existingUserIds.has(log.userId.toString())) {
-                typeCountsMap[log.type] = (typeCountsMap[log.type] || 0) + 1;
+        const pipeline = [
+            { $match: matchStage },
+            {
+                $lookup: {
+                    from: "auths",
+                    localField: "userId",
+                    foreignField: "_id",
+                    as: "userId"
+                }
+            },
+            { $unwind: { path: "$userId", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "properties",
+                    localField: "propertyId",
+                    foreignField: "_id",
+                    as: "propertyId"
+                }
+            },
+            { $unwind: { path: "$propertyId", preserveNullAndEmptyArrays: true } },
+            {
+                $lookup: {
+                    from: "vendors",
+                    localField: "propertyId.vendor",
+                    foreignField: "_id",
+                    as: "propertyId.vendor"
+                }
+            },
+            { $unwind: { path: "$propertyId.vendor", preserveNullAndEmptyArrays: true } },
+            ...(searchQuery ? [{
+                $match: {
+                    $or: [
+                        { type: { $regex: searchQuery, $options: "i" } },
+                        { "userId.name": { $regex: searchQuery, $options: "i" } },
+                        { "userId.email": { $regex: searchQuery, $options: "i" } },
+                        { "userId.phone": { $regex: searchQuery, $options: "i" } },
+                        { "propertyId.title": { $regex: searchQuery, $options: "i" } },
+                        { "propertyId.vendor.name": { $regex: searchQuery, $options: "i" } }
+                    ]
+                }
+            }] : []),
+
+            {
+                $facet: {
+                    logs: [
+                        { $sort: { createdAt: -1 } },
+                        { $skip: skip },
+                        { $limit: limit }
+                    ],
+
+                    totalCount: [
+                        { $count: "count" }
+                    ],
+
+                    typeCounts: [
+                        {
+                            $group: {
+                                _id: "$type",
+                                count: { $sum: 1 }
+                            }
+                        }
+                    ],
+
+                    summary: [
+                        {
+                            $group: {
+                                _id: null,
+                                uniqueUsers: { $addToSet: "$userId._id" },
+                                uniqueProperties: { $addToSet: "$propertyId._id" },
+                                totalLogs: { $sum: 1 }
+                            }
+                        }
+                    ]
+                }
             }
-        }
+        ];
 
-        // Total logs in DB (without any user validation)
-        const totalLogsInDB = await AuditLogs.countDocuments(filter);
+        const result = await AuditLogs.aggregate(pipeline);
 
-        // Calculate unique users and properties from valid logs
-        const uniqueUserIds = new Set(
-            allLogs
-                .filter(log => log.userId && existingUserIds.has(log.userId.toString()))
-                .map(log => log.userId.toString())
-        );
+        const logs = result[0].logs;
+        const total = result[0].totalCount[0]?.count || 0;
 
-        const uniquePropertyIds = new Set(
-            allLogs
-                .filter(log => log.userId && existingUserIds.has(log.userId.toString()))
-                .map(log => log.propertyId?.toString())
-                .filter(Boolean)
-        );
+        const typeCountsMap = {};
+        result[0].typeCounts.forEach(t => {
+            typeCountsMap[t._id] = t.count;
+        });
+
+        const summaryData = result[0].summary[0] || {};
 
         res.status(200).json({
             success: true,
-            logs: validLogs,
-            total: validLogsCount, // Valid logs count (users exist)
-            totalInDB: totalLogsInDB, // Total logs in database
-            deletedUserLogs: totalLogsInDB - validLogsCount, // Logs with deleted users
+            logs,
+            total,
             page,
-            totalPages: Math.ceil(validLogsCount / limit),
+            totalPages: Math.ceil(total / limit),
             typeCounts: typeCountsMap,
             summary: {
-                totalLogsInDatabase: totalLogsInDB,
-                logsWithValidUsers: validLogsCount,
-                logsWithDeletedUsers: totalLogsInDB - validLogsCount,
-                uniqueActiveUsers: uniqueUserIds.size,
-                uniquePropertiesClicked: uniquePropertyIds.size,
-                percentageValid: totalLogsInDB > 0 ? ((validLogsCount / totalLogsInDB) * 100).toFixed(2) + '%' : '0%'
+                totalLogsInDatabase: total,
+                uniqueActiveUsers: summaryData.uniqueUsers?.length || 0,
+                uniquePropertiesClicked: summaryData.uniqueProperties?.length || 0
             }
         });
 
@@ -256,16 +257,16 @@ const addAdminCommentCtrl = async (req, res) => {
             },
             { new: true }
         )
-        .populate("userId", "name email phone")
-        .populate({
-            path: "propertyId",
-            select: "title vendor",
-            populate: {
-                path: "vendor",
-                select: "name company phone",
-            },
-        })
-        .populate("adminComments.adminId", "name email");
+            .populate("userId", "name email phone")
+            .populate({
+                path: "propertyId",
+                select: "title vendor",
+                populate: {
+                    path: "vendor",
+                    select: "name company phone",
+                },
+            })
+            .populate("adminComments.adminId", "name email");
 
         if (!updatedLog) {
             return res.status(404).json({

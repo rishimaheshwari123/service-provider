@@ -28,14 +28,31 @@ export const createAuditForPropertyCallAndEmailAPI = async (id, userId, type) =>
 
 
 
-export const getAuditLogsAPI = async (page = 1, limit = 50, vendorId = "", token) => {
+export const getAuditLogsAPI = async (
+  page = 1,
+  limit = 50,
+  activeSearch = "",
+  vendorId = "",
+  token
+) => {
   try {
-    // Directly add query params in the URL
-    const url = `${GET_ALL_AUDIT_API}?page=${page}&limit=${limit}${vendorId ? `&vendorId=${vendorId}` : ""
-      }`;
+    // Build query params safely
+    const params = new URLSearchParams();
+    params.append("page", page);
+    params.append("limit", limit);
+
+    if (activeSearch) {
+      params.append("searchQuery", activeSearch);
+    }
+
+    if (vendorId) {
+      params.append("vendorId", vendorId);
+    }
+
+    const url = `${GET_ALL_AUDIT_API}?${params.toString()}`;
 
     const response = await apiConnector(
-      "GET", 
+      "GET",
       url,
       null,
       {
@@ -47,24 +64,28 @@ export const getAuditLogsAPI = async (page = 1, limit = 50, vendorId = "", token
       throw new Error(response?.data?.message || "Something went wrong!");
     }
 
-    return response?.data || {};
+    return response.data;
+
   } catch (error) {
     console.error("Fetch audit logs error:", error);
     toast.error(
       error?.response?.data?.message || "Failed to fetch audit logs"
     );
+
     return {};
+
   }
 };
 
 
+
 export const addAdminCommentAPI = async (id, comment, adminId, token) => {
   const toastId = toast.loading("Adding comment...");
-  
+
   try {
     const response = await apiConnector(
-      "POST", 
-      `${ADD_ADMIN_COMMENT_API}/${id}`, 
+      "POST",
+      `${ADD_ADMIN_COMMENT_API}/${id}`,
       { comment, adminId },
       {
         Authorization: `Bearer ${token}`,
