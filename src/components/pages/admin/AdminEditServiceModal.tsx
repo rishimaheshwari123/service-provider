@@ -37,12 +37,14 @@ interface Service {
   category: string;
   description?: string;
   images?: Image[];
-  vendor: string | {
-    _id: string;
-    name: string;
-    company: string;
-    phone: string;
-  };
+  vendor:
+    | string
+    | {
+        _id: string;
+        name: string;
+        company: string;
+        phone: string;
+      };
   status?: string;
   createdAt?: string;
 }
@@ -89,18 +91,21 @@ export const AdminEditServiceModal = ({
         category: service.category?._id || service.category || "",
         description: service.description || "",
         images: service.images || [],
-        vendor: typeof service.vendor === 'string' ? service.vendor : service.vendor._id || "",
+        vendor:
+          typeof service.vendor === "string"
+            ? service.vendor
+            : service.vendor._id || "",
         status: service.status || "active",
       });
-      
+
       // Process images - use _id as public_id for existing images
       const processedImages = (service.images || []).map((img) => ({
         public_id: img._id || img.public_id || img.url, // Use _id as the unique identifier
         url: img.url,
         _id: img._id,
       }));
-      
-      console.log('Loading existing images:', processedImages);
+
+      console.log("Loading existing images:", processedImages);
       setImages(processedImages);
     }
   }, [service]);
@@ -118,7 +123,7 @@ export const AdminEditServiceModal = ({
 
   const handleInputChange = (
     field: keyof Service,
-    value: string | number | File
+    value: string | number | File,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -143,11 +148,17 @@ export const AdminEditServiceModal = ({
   };
 
   const removeImage = (publicId: string) => {
-    console.log('Removing image with public_id:', publicId);
-    console.log('Current images:', images.map(img => ({ public_id: img.public_id, url: img.url })));
+    console.log("Removing image with public_id:", publicId);
+    console.log(
+      "Current images:",
+      images.map((img) => ({ public_id: img.public_id, url: img.url })),
+    );
     setImages((prevImages) => {
       const filtered = prevImages.filter((img) => img.public_id !== publicId);
-      console.log('Images after removal:', filtered.map(img => ({ public_id: img.public_id, url: img.url })));
+      console.log(
+        "Images after removal:",
+        filtered.map((img) => ({ public_id: img.public_id, url: img.url })),
+      );
       return filtered;
     });
   };
@@ -175,14 +186,14 @@ export const AdminEditServiceModal = ({
       if (formData.description)
         dataToSend.append("description", formData.description);
       if (formData.vendor) {
-        if (typeof formData.vendor === 'string') {
+        if (typeof formData.vendor === "string") {
           dataToSend.append("vendor", formData.vendor);
         } else {
           dataToSend.append("vendor", formData.vendor._id);
         }
       }
       if (formData.status) dataToSend.append("status", formData.status);
-      
+
       // Always send images array, even if empty (this allows removal of all images)
       dataToSend.append("images", JSON.stringify(images));
 
@@ -253,7 +264,9 @@ export const AdminEditServiceModal = ({
                     <SelectItem value="home">Home Service</SelectItem>
                     <SelectItem value="online">Online Service</SelectItem>
                     <SelectItem value="on-site">On-site Service</SelectItem>
-                    <SelectItem value="on-site-home">On-site & Home Service</SelectItem>
+                    <SelectItem value="on-site-home">
+                      On-site & Home Service
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -264,7 +277,10 @@ export const AdminEditServiceModal = ({
                 <Label>Category *</Label>
                 <Select
                   value={formData.category}
-                  onValueChange={(value) => handleInputChange("category", value)}
+                  onValueChange={(value) =>
+                    handleInputChange("category", value)
+                  }
+                  disabled
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select category" />
@@ -343,7 +359,10 @@ export const AdminEditServiceModal = ({
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
-                          console.log('Button clicked for image:', img.public_id);
+                          console.log(
+                            "Button clicked for image:",
+                            img.public_id,
+                          );
                           removeImage(img.public_id);
                         }}
                         className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
