@@ -13,6 +13,7 @@ import {
 } from "@/service/operations/auth";
 import { FaTrash } from "react-icons/fa";
 import { endpoints } from "@/service/apis";
+import { apiConnector } from "@/service/apiConnector";
 
 const Modal = ({ isOpen, onClose, children, title }) => {
   if (!isOpen) return null;
@@ -246,9 +247,16 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
         setIsSuccess(true);
         setEditingEmployee(null);
         setShowEditModal(false);
-        fetchEmployees();
+        
+        // Clear search inputs and query
+        setSearchInput("");
+        setSearchQuery("");
+        setCurrentPage(1);
+
+        fetchEmployees(1, "");
       } else {
         setMessage("Failed to update employee. Please try again.");
+        setIsSuccess(false);
       }
     } catch (error) {
       console.error("Error updating employee:", error);
@@ -300,21 +308,21 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
     setIsSuccess(false);
 
     try {
-      const response = await fetch(endpoints.ADMIN_RESET_USER_PASSWORD_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const token = (user as any)?.token;
+      const response = await apiConnector(
+        "POST",
+        endpoints.ADMIN_RESET_USER_PASSWORD_API,
+        {
           userId: resetPasswordEmployee._id,
           newPassword: resetPasswordData.newPassword,
           confirmPassword: resetPasswordData.confirmPassword,
-        }),
-      });
+        },
+        {
+          Authorization: `Bearer ${token}`,
+        }
+      );
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response && response.data && response.data.success) {
         setMessage("Password reset successfully!");
         setIsSuccess(true);
         setShowResetPasswordModal(false);
@@ -324,12 +332,12 @@ export const GetAllEmployee = ({ refreshTrigger }: { refreshTrigger?: number }) 
           confirmPassword: "",
         });
       } else {
-        setMessage(data.message || "Failed to reset password");
+        setMessage(response?.data?.message || "Failed to reset password");
         setIsSuccess(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error resetting password:", error);
-      setMessage("An error occurred while resetting password");
+      setMessage(error?.response?.data?.message || "An error occurred while resetting password");
       setIsSuccess(false);
     }
   };

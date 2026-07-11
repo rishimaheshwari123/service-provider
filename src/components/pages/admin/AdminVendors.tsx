@@ -78,6 +78,7 @@ import { imageUpload } from "@/service/operations/image";
 import { vendor } from "@/service/apis";
 import * as XLSX from "xlsx";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
+import { apiConnector } from "@/service/apiConnector";
 
 interface Category {
   _id: string;
@@ -1083,35 +1084,21 @@ const VendorManagement = () => {
     try {
       setSubmitting(true);
 
-      const response = await fetch(vendor.ADMIN_RESET_PASSWORD_API, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      const token = (user as any)?.token;
+      const response = await apiConnector(
+        "POST",
+        vendor.ADMIN_RESET_PASSWORD_API,
+        {
           vendorId: resetPasswordDialog.vendor._id,
           newPassword: resetPasswordData.newPassword,
           confirmPassword: resetPasswordData.confirmPassword,
-        }),
-      });
+        },
+        {
+          Authorization: `Bearer ${token}`,
+        }
+      );
 
-      // Check if response is ok
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Server error response:", errorText);
-        throw new Error(`Server error: ${response.status} - ${errorText || 'Unknown error'}`);
-      }
-
-      // Try to parse JSON
-      let data;
-      try {
-        data = await response.json();
-      } catch (jsonError) {
-        console.error("Failed to parse JSON response:", jsonError);
-        throw new Error("Invalid response from server. Please check server logs.");
-      }
-
-      if (data.success) {
+      if (response && response.data && response.data.success) {
         toast({
           title: "Success",
           description: "Vendor password reset successfully",
@@ -1119,9 +1106,9 @@ const VendorManagement = () => {
         setResetPasswordDialog({ open: false, vendor: null });
         setResetPasswordData({ newPassword: "", confirmPassword: "" });
       } else {
-        throw new Error(data.message || "Failed to reset password");
+        throw new Error(response?.data?.message || "Failed to reset password");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error resetting password:", error);
       toast({
         title: "Error",
@@ -1381,10 +1368,12 @@ const VendorManagement = () => {
           pan: "",
           adhar: "",
           tradeLicense: "",
+          paymentMethod: "bank",
           bankName: "",
           accountHolderName: "",
           accountNumber: "",
           ifscCode: "",
+          upiId: "",
           totalYears: "",
           numberOfStaff: "",
           servicesOffered: "",
@@ -1459,6 +1448,11 @@ const VendorManagement = () => {
 
       setIsEditDialogOpen(false);
       setEditingVendor(null);
+
+      // Clear search and reset page
+      setSearchTerm("");
+      setCurrentPage(1);
+      fetchVendors(1, "", statusFilter);
     } catch (error) {
       console.error("Error editing vendor:", error);
       toast({

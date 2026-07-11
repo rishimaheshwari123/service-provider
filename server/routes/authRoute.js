@@ -1,5 +1,5 @@
 const express = require("express")
-const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl, generateReferralCodeCtrl, sendPhoneVerificationOTPCtrl, verifyPhoneOTPCtrl, saveFCMToken, removeFCMToken, getNotificationPreferences, updateNotificationPreferences } = require("../controllers/authCtrl")
+const { registerCtrl, loginCtrl, getAllUsers, editPermissionCtrl, deleteAuthCtrl, getUserInquiries, changeUserTypeCtrl, changePasswordCtrl, forgotPasswordCtrl, verifyResetOTPCtrl, resetPasswordCtrl, generateReferralCodeCtrl, sendPhoneVerificationOTPCtrl, verifyPhoneOTPCtrl, saveFCMToken, removeFCMToken, getNotificationPreferences, updateNotificationPreferences, adminResetUserPasswordCtrl } = require("../controllers/authCtrl")
 const { verifyToken, isAdmin } = require("../utils/verifyToken")
 const router = express.Router()
 
@@ -15,8 +15,9 @@ router.post("/generate-referral-code", generateReferralCodeCtrl)
 router.post("/send-phone-verification-otp", sendPhoneVerificationOTPCtrl)
 router.post("/verify-phone-otp", verifyPhoneOTPCtrl)
 
-// Protected Admin Route - Only Admin can get all users
+// Protected Admin Routes
 router.get("/getAll", verifyToken, isAdmin, getAllUsers)
+router.post("/admin-reset-password", verifyToken, isAdmin, adminResetUserPasswordCtrl)
 
 router.put("/update/:id", editPermissionCtrl)
 router.delete("/delete/:id", deleteAuthCtrl)

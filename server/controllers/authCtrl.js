@@ -254,6 +254,7 @@ const editPermissionCtrl = async (req, res) => {
       name,
       email,
       type,
+      role,
       isVendor,
       isBlog,
       isUser,
@@ -281,6 +282,7 @@ const editPermissionCtrl = async (req, res) => {
     user.name = name ?? user.name;
     user.email = email ?? user.email;
     user.type = type ?? user.type;
+    user.role = role ?? user.role;
 
     user.isVendor = isVendor ?? user.isVendor;
     user.isLogs = isLogs ?? user.isLogs;
@@ -808,6 +810,58 @@ const verifyPhoneOTPCtrl = async (req, res) => {
   }
 };
 
+// Admin Reset User/Employee Password (No OTP Required)
+const adminResetUserPasswordCtrl = async (req, res) => {
+  try {
+    const { userId, newPassword, confirmPassword } = req.body;
+
+    if (!userId || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID, new password, and confirm password are required",
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters long",
+      });
+    }
+
+    const user = await authModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "User password reset successfully by admin",
+    });
+  } catch (error) {
+    console.error("Admin reset user password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error. Please try again.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   registerCtrl,
   loginCtrl,
@@ -823,6 +877,7 @@ module.exports = {
   generateReferralCodeCtrl,
   sendPhoneVerificationOTPCtrl,
   verifyPhoneOTPCtrl,
+  adminResetUserPasswordCtrl,
 };
 
 

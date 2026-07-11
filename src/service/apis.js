@@ -54,7 +54,7 @@ export const vendor = {
 export const notification = {
   // Public Routes
   REGISTER_DEVICE: BASE_URL + "/notification/register-device",
- 
+
   // User/Vendor Routes - Matching Frontend API Structure
   GET_NOTIFICATIONS: BASE_URL + "/notification", // GET with params: userId, vendorId, isGuest
   MARK_AS_READ: BASE_URL + "/notification", // POST /:id/read
@@ -62,13 +62,13 @@ export const notification = {
   GET_UNREAD_COUNT: BASE_URL + "/notification/unread-count", // GET with params
   DELETE_NOTIFICATION: BASE_URL + "/notification", // DELETE /:id
   DELETE_ALL: BASE_URL + "/notification/delete-all", // POST with body
-  
+
   // Admin Routes
   GET_STATS: BASE_URL + "/notification/stats",
   SEND_PUSH: BASE_URL + "/notification/send",
   GET_LOGS: BASE_URL + "/notification/logs",
   GET_DEVICES: BASE_URL + "/notification/devices",
-  
+
   // Topic CRUD
   GET_TOPICS: BASE_URL + "/notification/topics",
   CREATE_TOPIC: BASE_URL + "/notification/topics",
