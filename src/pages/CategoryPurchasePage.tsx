@@ -46,12 +46,12 @@ const CategoryPurchasePage = () => {
     isAdmin ? "cash" : "qr", // Default to QR for regular vendors, cash for admin
   );
   const [transactionId, setTransactionId] = useState<string>("");
-  
+
   // Key Features Modal states
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
   const [keyFeatures, setKeyFeatures] = useState<any>(null);
   const [featuresLoading, setFeaturesLoading] = useState(false);
-  
+
   // Coupon states
   const [couponCode, setCouponCode] = useState<string>("");
   const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
@@ -190,13 +190,13 @@ const CategoryPurchasePage = () => {
         if (category) {
           setSelectedCategory(category);
           console.log("✅ Category set successfully:", category.name);
-          
+
           // Check if vendor already purchased this category and get their price tier
           try {
             console.log("🔍 Checking vendor's existing purchases...");
             const purchasedCategories = await getPurchasedCategoriesAPI(vendorId);
             console.log("📥 Vendor's purchased categories:", purchasedCategories);
-            
+
             const existingPurchase = purchasedCategories.find(
               (purchase: any) => {
                 console.log("🔍 Checking purchase:", {
@@ -208,7 +208,7 @@ const CategoryPurchasePage = () => {
                 return purchase.category?._id === selectedCategoryId || purchase.category === selectedCategoryId;
               }
             );
-            
+
             if (existingPurchase) {
               console.log("🎯 Found existing purchase:", existingPurchase);
               // Set the price tier from existing purchase
@@ -222,7 +222,7 @@ const CategoryPurchasePage = () => {
                 const { getVendorByIdAPI } = await import("@/service/operations/vendor");
                 const vendorData = await getVendorByIdAPI(vendorId);
                 console.log("👤 Vendor data:", vendorData);
-                
+
                 if (vendorData && vendorData.selectedPriceTier && vendorData.category === selectedCategoryId) {
                   console.log("💰 Setting price tier from vendor registration:", vendorData.selectedPriceTier);
                   setSelectedPriceTier(vendorData.selectedPriceTier);
@@ -391,7 +391,7 @@ const CategoryPurchasePage = () => {
       if (!data?.order) throw new Error("Failed to initiate payment");
 
       const options = {
-        // key: "rzp_test_lQz64anllWjB83",
+        // key: "rzp_test_SzRBgNqSTAHvYZ",
         key: "rzp_live_S4TPRyX5ae0LZA",
         amount: data.order.amount,
         currency: data.order.currency,
@@ -407,6 +407,12 @@ const CategoryPurchasePage = () => {
               vendorId,
               categoryId: selectedCategoryId,
               paymentMode: "prepaid",
+              priceTier: selectedPriceTier,
+              selectedPrice: getCurrentPrice(),
+              finalPrice: getFinalPrice(),
+              couponCode: appliedCoupon?.code || null,
+              couponId: appliedCoupon?.id || null,
+              discountAmount: appliedCoupon?.discountAmount || 0,
             });
 
             if (verifyResponse?.data?.success) {
@@ -491,7 +497,7 @@ const CategoryPurchasePage = () => {
         <Card className="shadow-xl">
           <CardHeader className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-t-lg">
             <CardTitle className="text-xl text-center">
-             Please Pay To Complete The Registration
+              Please Pay To Complete The Registration
             </CardTitle>
           </CardHeader>
           <CardContent className="p-6">
@@ -520,17 +526,16 @@ const CategoryPurchasePage = () => {
                   <h3 className="font-semibold text-xl text-gray-800 mb-3">
                     {selectedCategory.name}
                   </h3>
-                  
+
                   {/* Pricing Tiers */}
                   <div className="space-y-3 mb-4">
                     <h4 className="font-medium text-gray-700">Select Plan:</h4>
                     <div className="flex flex-col sm:flex-row gap-3 justify-center">
                       {/* Basic Plan */}
-                      <label className={`flex-1 max-w-xs p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                        selectedPriceTier === "basic" 
-                          ? "border-green-500 bg-green-50 text-green-700" 
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}>
+                      <label className={`flex-1 max-w-xs p-3 border-2 rounded-lg cursor-pointer transition-all ${selectedPriceTier === "basic"
+                        ? "border-green-500 bg-green-50 text-green-700"
+                        : "border-gray-200 hover:border-gray-300"
+                        }`}>
                         <input
                           type="radio"
                           name="priceTier"
@@ -558,11 +563,10 @@ const CategoryPurchasePage = () => {
 
                       {/* Premium Plan */}
                       {selectedCategory.premiumPrice > 0 && (
-                        <label className={`flex-1 max-w-xs p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                          selectedPriceTier === "premium" 
-                            ? "border-orange-500 bg-orange-50 text-orange-700" 
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}>
+                        <label className={`flex-1 max-w-xs p-3 border-2 rounded-lg cursor-pointer transition-all ${selectedPriceTier === "premium"
+                          ? "border-orange-500 bg-orange-50 text-orange-700"
+                          : "border-gray-200 hover:border-gray-300"
+                          }`}>
                           <input
                             type="radio"
                             name="priceTier"
@@ -591,11 +595,10 @@ const CategoryPurchasePage = () => {
 
                       {/* Premium Plus Plan */}
                       {selectedCategory.premiumPlusPrice > 0 && (
-                        <label className={`flex-1 max-w-xs p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                          selectedPriceTier === "premiumPlus" 
-                            ? "border-purple-500 bg-purple-50 text-purple-700" 
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}>
+                        <label className={`flex-1 max-w-xs p-3 border-2 rounded-lg cursor-pointer transition-all ${selectedPriceTier === "premiumPlus"
+                          ? "border-purple-500 bg-purple-50 text-purple-700"
+                          : "border-gray-200 hover:border-gray-300"
+                          }`}>
                           <input
                             type="radio"
                             name="priceTier"
@@ -652,7 +655,7 @@ const CategoryPurchasePage = () => {
                 <h4 className="font-semibold text-lg text-gray-800 mb-4">
                   Have a Coupon Code?
                 </h4>
-                
+
                 {!appliedCoupon ? (
                   <div className="space-y-4">
                     <div className="flex gap-3">
@@ -672,7 +675,7 @@ const CategoryPurchasePage = () => {
                         {couponLoading ? "Validating..." : "Apply"}
                       </Button>
                     </div>
-                    
+
                     {couponError && (
                       <div className="text-red-600 text-sm">
                         {couponError}
@@ -717,11 +720,10 @@ const CategoryPurchasePage = () => {
                 {/* Cash option - Only show for admin registrations */}
                 {isAdmin && (
                   <label
-                    className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                      paymentMethod === "cash"
-                        ? "border-yellow-500 bg-yellow-50"
-                        : "border-gray-200 hover:border-gray-300"
-                    }`}
+                    className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === "cash"
+                      ? "border-yellow-500 bg-yellow-50"
+                      : "border-gray-200 hover:border-gray-300"
+                      }`}
                   >
                     <input
                       type="radio"
@@ -746,11 +748,10 @@ const CategoryPurchasePage = () => {
 
                 {/* QR Code Payment - Always available */}
                 <label
-                  className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    paymentMethod === "qr"
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === "qr"
+                    ? "border-blue-500 bg-blue-50"
+                    : "border-gray-200 hover:border-gray-300"
+                    }`}
                 >
                   <input
                     type="radio"
@@ -772,11 +773,10 @@ const CategoryPurchasePage = () => {
 
                 {/* Online Payment - Always available */}
                 <label
-                  className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                    paymentMethod === "prepaid"
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
+                  className={`flex items-center space-x-4 p-4 border-2 rounded-lg cursor-pointer transition-all ${paymentMethod === "prepaid"
+                    ? "border-green-500 bg-green-50"
+                    : "border-gray-200 hover:border-gray-300"
+                    }`}
                 >
                   <input
                     type="radio"
@@ -912,32 +912,29 @@ const CategoryPurchasePage = () => {
             ) : (
               <div className="flex-1 overflow-y-auto px-4 py-2">
                 {/* Selected Plan Features */}
-                <div className={`border-2 rounded-lg p-6 ${
-                  selectedPriceTier === "basic" ? "border-blue-200 bg-blue-50" :
+                <div className={`border-2 rounded-lg p-6 ${selectedPriceTier === "basic" ? "border-blue-200 bg-blue-50" :
                   selectedPriceTier === "premium" ? "border-orange-200 bg-orange-50" :
-                  "border-purple-200 bg-purple-50"
-                }`}>
+                    "border-purple-200 bg-purple-50"
+                  }`}>
                   <div className="text-center mb-6">
-                    <h3 className={`text-2xl font-bold ${
-                      selectedPriceTier === "basic" ? "text-blue-700" :
+                    <h3 className={`text-2xl font-bold ${selectedPriceTier === "basic" ? "text-blue-700" :
                       selectedPriceTier === "premium" ? "text-orange-700" :
-                      "text-purple-700"
-                    }`}>
+                        "text-purple-700"
+                      }`}>
                       {selectedPriceTier === "basic" && "Basic Plan"}
                       {selectedPriceTier === "premium" && "Premium Plan"}
                       {selectedPriceTier === "premiumPlus" && "Premium Plus Plan"}
                     </h3>
-                    <p className={`text-3xl font-bold mt-2 ${
-                      selectedPriceTier === "basic" ? "text-blue-900" :
+                    <p className={`text-3xl font-bold mt-2 ${selectedPriceTier === "basic" ? "text-blue-900" :
                       selectedPriceTier === "premium" ? "text-orange-900" :
-                      "text-purple-900"
-                    }`}>
+                        "text-purple-900"
+                      }`}>
                       ₹{selectedPriceTier === "basic" ? selectedCategory?.price :
-                         selectedPriceTier === "premium" ? selectedCategory?.premiumPrice :
-                         selectedCategory?.premiumPlusPrice || 0}
+                        selectedPriceTier === "premium" ? selectedCategory?.premiumPrice :
+                          selectedCategory?.premiumPlusPrice || 0}
                     </p>
                   </div>
-                  
+
                   <div className="space-y-3">
                     {selectedPriceTier === "basic" && keyFeatures?.price?.features?.length > 0 ? (
                       keyFeatures.price.features.map((feature: string, index: number) => (

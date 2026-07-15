@@ -1,54 +1,11 @@
 const VendorCategoryPurchase = require("../models/vendorCategoryPurchase");
 const crypto = require("crypto");
 const { razorpayInstance } = require("../config/razorpay");
-
-// Helper function to create property/service automatically
-const createPropertyForCategory = async (vendorId, categoryId) => {
-  try {
-    const Property = require("../models/propertyModel");
-    const Vendor = require("../models/vendorModel");
-    const Category = require("../models/categoryModel");
-
-    // Get vendor and category details
-    const vendor = await Vendor.findById(vendorId);
-    const category = await Category.findById(categoryId);
-
-    if (!vendor || !category) {
-      console.log("Vendor or category not found for property creation");
-      return null;
-    }
-
-    // Check if property already exists for this vendor-category combination
-    const existingProperty = await Property.findOne({
-      vendor: vendorId,
-      category: category.name
-    });
-
-    if (existingProperty) {
-      console.log("Property already exists for this vendor-category combination");
-      return existingProperty;
-    }
-
-    // Create property with vendor and category information
-    const propertyData = {
-      title: category.name, // Category name as title
-      price: category.price.toString(), // Category price
-      location: vendor.address || vendor.serviceLocation || "Location not specified", // Vendor location
-      type: "service", // Default type
-      category: category.name, // Category name
-      description: vendor.description || category.autoFilled || `${category.name} service provided by ${vendor.name}`, // Vendor description or category auto-filled
-      images: category.image ? [{ url: category.image }] : [], // Category image
-      vendor: vendorId, // Vendor ID
-      status: "active"
-    };
-
-    const newProperty = await Property.create(propertyData);
-    return newProperty;
-  } catch (error) {
-    console.error("Error creating property automatically:", error);
-    return null;
-  }
-};
+const {
+  createPropertyForCategory,
+  sendVendorWelcomeMessages,
+  sendVendorApprovalMessages,
+} = require("./categoryCtrl");
 
 const createRazorpayOrderCtrl = async (req, res) => {
   try {
@@ -82,6 +39,12 @@ const verifyPaymentCtrl = async (req, res) => {
       vendorId,
       categoryId,
       paymentMode = "razorpay", // Changed default to razorpay for clarity
+      priceTier = "basic",
+      selectedPrice,
+      finalPrice,
+      couponCode,
+      couponId,
+      discountAmount = 0,
     } = req.body;
 
     // Validate request body
@@ -104,19 +67,87 @@ const verifyPaymentCtrl = async (req, res) => {
       return res.status(400).json({ message: "Payment verification failed." });
     }
 
-    // Create VendorCategoryPurchase record
-    const purchase = new VendorCategoryPurchase({
-      vendor: vendorId,
-      category: categoryId,
-      transactionId: razorpay_payment_id,
-      paymentMode,
-      status: "purchased", // Razorpay payments are immediately approved
-    });
+    // Check if category exists
+    const Category = require("../models/categoryModel");
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found." });
+    }
 
-    await purchase.save();
+    // Calculate price based on tier if not provided
+    let calculatedPrice = selectedPrice || finalPrice;
+    if (!calculatedPrice) {
+      switch (priceTier) {
+        case "premium":
+          calculatedPrice = category.premiumPrice || category.price;
+          break;
+        case "premiumPlus":
+          calculatedPrice = category.premiumPlusPrice || category.price;
+          break;
+        default:
+          calculatedPrice = category.price;
+      }
+    }
+
+    // Check if purchase record already exists for this vendor-category combination
+    let purchase = await VendorCategoryPurchase.findOne({ vendor: vendorId, category: categoryId });
+
+    if (purchase) {
+      // Update existing purchase
+      purchase.status = "purchased";
+      purchase.transactionId = razorpay_payment_id;
+      purchase.paymentMode = paymentMode;
+      purchase.priceTier = priceTier;
+      purchase.selectedPrice = selectedPrice || calculatedPrice;
+      purchase.finalPrice = finalPrice || (calculatedPrice - (discountAmount || 0));
+      purchase.couponCode = couponCode;
+      purchase.couponId = couponId;
+      purchase.discountAmount = discountAmount;
+      purchase.reason = undefined; // Clear any previous rejection reason
+      await purchase.save();
+    } else {
+      // Create VendorCategoryPurchase record
+      purchase = new VendorCategoryPurchase({
+        vendor: vendorId,
+        category: categoryId,
+        transactionId: razorpay_payment_id,
+        paymentMode,
+        status: "purchased", // Razorpay payments are immediately approved
+        priceTier,
+        selectedPrice: selectedPrice || calculatedPrice,
+        finalPrice: finalPrice || (calculatedPrice - (discountAmount || 0)),
+        couponCode,
+        couponId,
+        discountAmount,
+      });
+      await purchase.save();
+    }
 
     // Create property automatically for online Razorpay payment
     await createPropertyForCategory(vendorId, categoryId);
+
+    // Send notifications if vendor exists
+    try {
+      const Vendor = require("../models/vendorModel");
+      const vendor = await Vendor.findById(vendorId);
+      if (vendor) {
+        // Send welcome messages on first purchase
+        const previousPurchases = await VendorCategoryPurchase.countDocuments({
+          vendor: vendorId,
+          _id: { $ne: purchase._id } // Exclude current purchase
+        });
+
+        if (previousPurchases === 0) {
+          console.log("🎊 This is vendor's first purchase! Sending welcome messages...");
+          await sendVendorWelcomeMessages(vendor);
+        }
+
+        // Send approval message
+        await sendVendorApprovalMessages(vendor);
+      }
+    } catch (msgError) {
+      console.error("Error sending vendor purchase/approval notifications:", msgError);
+    }
 
     return res.status(200).json({
       success: true,
@@ -130,7 +161,4 @@ const verifyPaymentCtrl = async (req, res) => {
   }
 };
 
-
-
-
-module.exports = { createRazorpayOrderCtrl, verifyPaymentCtrl }
+module.exports = { createRazorpayOrderCtrl, verifyPaymentCtrl };

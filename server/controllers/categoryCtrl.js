@@ -300,6 +300,36 @@ const sendVendorWelcomeMessages = async (vendor) => {
   }
 };
 
+// Helper function to send approval messages to vendor when a purchase is approved/purchased
+const sendVendorApprovalMessages = async (vendor) => {
+  try {
+    if (vendor) {
+      // Send SMS approval message
+      if (vendor.phone) {
+        const smsResult = await sendApprovalSMS(vendor.phone, vendor.name, vendor._id);
+        if (smsResult.success) {
+          console.log('✅ Approval SMS sent successfully');
+        } else {
+          console.error('❌ Approval SMS failed:', smsResult.message);
+        }
+      }
+
+      // Send WhatsApp approval message if vendor has WhatsApp verified
+      if (vendor.whatsappNumber && vendor.isWhatsappVerified) {
+        console.log('📱 Sending WhatsApp approval message...');
+        const whatsappResult = await sendApprovalWhatsApp(vendor.whatsappNumber, vendor.name, vendor._id);
+        if (whatsappResult.success) {
+          console.log('✅ WhatsApp approval message sent successfully');
+        } else {
+          console.error('❌ WhatsApp approval message failed:', whatsappResult.message);
+        }
+      }
+    }
+  } catch (approvalError) {
+    console.error('❌ Error sending approval messages:', approvalError);
+  }
+};
+
 const purchaseCategoryCtrl = async (req, res) => {
   try {
     const {
@@ -661,6 +691,9 @@ module.exports = {
   getPurchasedCategoriesCtrl,
   updateCategoryCtrl,
   deleteCategoryCtrl,
+  createPropertyForCategory,
+  sendVendorWelcomeMessages,
+  sendVendorApprovalMessages,
 };
 
 // Get purchasers of a specific category (admin)
@@ -760,28 +793,8 @@ const approvePurchaseCtrl = async (req, res) => {
     try {
       const Vendor = require("../models/vendorModel");
       const vendor = await Vendor.findById(purchase.vendor);
-
       if (vendor) {
-
-        // Send SMS approval message
-        if (vendor.phone) {
-          const smsResult = await sendApprovalSMS(vendor.phone, vendor.name, vendor._id);
-          if (smsResult.success) {
-          } else {
-            console.error('❌ Approval SMS failed:', smsResult.message);
-          }
-        }
-
-        // Send WhatsApp approval message if vendor has WhatsApp verified
-        if (vendor.whatsappNumber && vendor.isWhatsappVerified) {
-          console.log('📱 Sending WhatsApp approval message...');
-          const whatsappResult = await sendApprovalWhatsApp(vendor.whatsappNumber, vendor.name, vendor._id);
-          if (whatsappResult.success) {
-            console.log('✅ WhatsApp approval message sent successfully');
-          } else {
-            console.error('❌ WhatsApp approval message failed:', whatsappResult.message);
-          }
-        }
+        await sendVendorApprovalMessages(vendor);
       }
     } catch (approvalError) {
       console.error('❌ Error sending approval messages:', approvalError);
