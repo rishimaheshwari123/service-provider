@@ -16,6 +16,7 @@ import {
   Mail,
   Briefcase,
   Layers, // For Blogs/Services Link
+  BarChart3,
   HardHat, // For Jobs
   LifeBuoy, // For Support
   FileText, // For Terms
@@ -42,6 +43,7 @@ const menuLinks = [
   { label: "About", href: "/about", icon: Info },
   { label: "Services", href: "/services", icon: Briefcase, hot: true },
   { label: "Blogs", href: "/blogs", icon: Layers },
+  { label: "Polls", href: "/polls", icon: BarChart3 },
   { label: "Jobs", href: "/careers", icon: HardHat },
   { label: "Contact", href: "/contact", icon: Mail },
   { label: "Support", href: "/customer-support", icon: LifeBuoy },
@@ -62,6 +64,7 @@ const Navbar = () => {
     { label: t("nav.about"), href: "/about", icon: Info },
     { label: t("nav.services"), href: "/services", icon: Briefcase },
     { label: t("nav.blogs"), href: "/blogs", icon: Layers },
+    { label: "Polls", href: "/polls", icon: BarChart3 },
     { label: t("nav.jobs"), href: "/careers", icon: HardHat },
     { label: t("nav.contact"), href: "/contact", icon: Mail },
     { label: t("nav.support"), href: "/customer-support", icon: LifeBuoy },

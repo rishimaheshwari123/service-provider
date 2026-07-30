@@ -63,7 +63,9 @@ import TermsAndConditions from "./pages/TermsAndConditions";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import AdminServices from "./components/pages/admin/AdminServices";
 import SendNotifications from "./components/pages/admin/SendNotifications";
+import PollsManagement from "./components/pages/admin/PollsManagement";
 import CategoriesPage from "./pages/CategoriesPage";
+import Polls from "./pages/Polls";
 import ScrollToTop from "./pages/ScrollToTop";
 import VendoreServiceImagesUpload from "./components/pages/vendor/VendoreServiceImagesUpload";
 import AppDownloadFloat from "./components/AppDownloadFloat";
@@ -104,6 +106,7 @@ const App = () => {
             <Route path="/blog/:slug" element={<SingleBlog />} />
             <Route path="/blogs" element={<Blogs />} />
             <Route path="/categories" element={<CategoriesPage />} />
+            <Route path="/polls" element={<Polls />} />
             <Route path="/user/profile" element={<UserProfile />} />
             <Route path="/user/rewards" element={<UserRewardPoints />} />
             <Route path="/customer-support" element={<CustomerSupport />} />
@@ -156,6 +159,7 @@ const App = () => {
                 <Route path="reward-settings" element={<RewardSettings />} />
                 <Route path="reward-applications" element={<RewardApplications />} />
                 <Route path="send-notifications" element={<SendNotifications />} />
+                <Route path="polls" element={<PollsManagement />} />
                 <Route path="add-service/:id" element={<VendorAddService />} />
               </Route>
             )}

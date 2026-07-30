@@ -92,6 +92,7 @@ app.use("/api/v1/coupon", require("./routes/couponRoute"))
 app.use("/api/v1/service-update-request", require("./routes/serviceUpdateRequestRoute"))
 app.use("/api/v1/reward", require("./routes/rewardRoute"))
 app.use("/api/v1/notification", require("./routes/notificationRoute"))
+app.use("/api/v1/poll", require("./routes/pollRoute"))
 
 
 

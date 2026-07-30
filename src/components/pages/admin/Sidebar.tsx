@@ -106,7 +106,7 @@ const Sidebar = () => {
       main: ["/", "/admin/dashboard"],
       users: ["/admin/users", "/admin/vendors", "/admin/crm", "/admin/get-support"],
       services: ["/admin/services", "/admin/service-update-requests", "/admin/bookings", "/admin/categories", "/admin/coupons"],
-      content: ["/admin/add-blog", "/admin/get-blog", "/admin/add-job", "/admin/get-jobs", "/admin/ads"],
+      content: ["/admin/add-blog", "/admin/get-blog", "/admin/add-job", "/admin/get-jobs", "/admin/ads", "/admin/polls"],
       rewards: ["/admin/reward-settings", "/admin/reward-applications", "/admin/vendor-reward-settings"],
       system: ["/admin/logs", "/admin/communication-logs", "/admin/search-logs"],
     };
@@ -206,6 +206,13 @@ const Sidebar = () => {
       icon: Megaphone,
       label: "Promote Your Service",
       color: "text-blue-600",
+      section: "content",
+    },
+{
+      to: "/admin/polls",
+      icon: BarChart3,
+      label: "Live Polls",
+      color: "text-emerald-600",
       section: "content",
     },
     {
