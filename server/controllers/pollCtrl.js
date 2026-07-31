@@ -193,7 +193,11 @@ const votePollCtrl = async (req, res) => {
       existingVote.vote = vote;
       existingVote.votedAt = new Date();
     } else {
-      poll.votes.push({ user: userId, vote });
+      poll.votes.push({
+        user: userId,
+        vote,
+        userModel: req.user?.role === "vendor" ? "Vendor" : "auth"
+      });
     }
 
     recalculateCounts(poll);

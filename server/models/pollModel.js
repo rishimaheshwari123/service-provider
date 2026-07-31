@@ -5,8 +5,14 @@ const voteSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "auth",
+      refPath: "userModel",
       required: true,
+    },
+    userModel: {
+      type: String,
+      required: true,
+      enum: ["auth", "Vendor"],
+      default: "auth",
     },
     vote: {
       type: String,

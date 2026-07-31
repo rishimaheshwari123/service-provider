@@ -98,3 +98,53 @@ exports.isUser = async (req, res, next) => {
         });
     }
 };
+
+// Check if authenticated user is eligible to vote (users and vendors allowed, admins denied)
+exports.canVote = async (req, res, next) => {
+    try {
+        if (!req.user || !req.user.role) {
+            return res.status(401).json({
+                success: false,
+                message: "Access denied. Authentication role missing.",
+            });
+        }
+
+        if (req.user.role === "admin") {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Admins cannot vote.",
+            });
+        }
+
+        if (req.user.role === "user") {
+            const user = await Auth.findById(req.user.id);
+            if (!user) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. User account not found.",
+                });
+            }
+        } else if (req.user.role === "vendor") {
+            const vendor = await Vendor.findById(req.user.id);
+            if (!vendor) {
+                return res.status(403).json({
+                    success: false,
+                    message: "Access denied. Vendor account not found.",
+                });
+            }
+        } else {
+            return res.status(403).json({
+                success: false,
+                message: "Access denied. Invalid role.",
+            });
+        }
+
+        next();
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Error checking voting eligibility",
+            error: error.message,
+        });
+    }
+};

@@ -104,8 +104,8 @@ const Polls = () => {
       return;
     }
 
-    if (user?.role !== "user") {
-      toast.info("Only customer users can vote.");
+    if (user?.role === "admin") {
+      toast.info("Admins cannot vote.");
       return;
     }
 

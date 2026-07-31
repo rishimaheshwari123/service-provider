@@ -7,7 +7,7 @@ const {
   updatePollStatusCtrl,
   deletePollCtrl,
 } = require("../controllers/pollCtrl");
-const { verifyToken, isAdmin, isUser } = require("../utils/verifyToken");
+const { verifyToken, isAdmin, isUser, canVote } = require("../utils/verifyToken");
 
 const router = express.Router();
 
@@ -18,6 +18,6 @@ router.post("/admin/create", verifyToken, isAdmin, createPollCtrl);
 router.patch("/admin/status/:id", verifyToken, isAdmin, updatePollStatusCtrl);
 router.delete("/admin/delete/:id", verifyToken, isAdmin, deletePollCtrl);
 
-router.post("/vote/:id", verifyToken, isUser, votePollCtrl);
+router.post("/vote/:id", verifyToken, canVote, votePollCtrl);
 
 module.exports = router;
