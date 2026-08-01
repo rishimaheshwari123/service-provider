@@ -64,7 +64,6 @@ const Navbar = () => {
     { label: t("nav.about"), href: "/about", icon: Info },
     { label: t("nav.services"), href: "/services", icon: Briefcase },
     { label: t("nav.blogs"), href: "/blogs", icon: Layers },
-    { label: "Polls", href: "/polls", icon: BarChart3 },
     { label: t("nav.jobs"), href: "/careers", icon: HardHat },
     { label: t("nav.contact"), href: "/contact", icon: Mail },
     { label: t("nav.support"), href: "/customer-support", icon: LifeBuoy },
